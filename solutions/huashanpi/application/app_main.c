@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 	YOC_SYSTEM_Init();
 	//board pinmux init
 	PLATFORM_IoInit();
-#if 0
+#if 1
 	//Fs init
 	YOC_SYSTEM_FsVfsInit();
 	//load cfg
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	MEDIA_VIDEO_SysInit();
 	//custom_evenet_pre
 	//media video
-	MEDIA_VIDEO_Init();
+	// MEDIA_VIDEO_Init();
 	//gui
 #if (CONFIG_APP_GUI_SUPPORT == 1)
 	GUI_Display_Start();
@@ -45,9 +45,9 @@ int main(int argc, char *argv[])
 	//media_audio
 	// MEDIA_AUDIO_Init();
 	//network
-	// #if (CONFIG_APP_ETHERNET_SUPPORT == 1)
-	// ethernet_init();
-	// #endif
+	#if (CONFIG_APP_ETHERNET_SUPPORT == 1)
+	ethernet_init();
+	#endif
 	#if (CONFIG_APP_WIFI_SUPPORT == 1)
 	APP_WifiInit();
 	#endif
