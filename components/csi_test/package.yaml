@@ -1,0 +1,107 @@
+name: csi_test
+version: v7.5.2
+description: csi test
+tag: ""
+keywords: ~
+author:
+  name: ""
+license: Apache license v2.0
+homepage: ~
+type: common
+depends: ~
+# - aos: v7.4.3
+# - aos_hal: v7.4.3
+# - csi: v7.4.3
+# - hal_csi: v7.4.3
+# - newlib: v7.4.3
+# - rhino: v7.4.3
+# - ulog: v7.4.3
+yoc_version: ~
+hw_info:
+  cpu_id: ""
+  cpu_name: ""
+  vendor_name: ""
+  chip_name: ""
+  board_name: ""
+  ld_script: ""
+  flash_program: ""
+build_config:
+  include:
+    - include
+  internal_include:
+    - include/driver
+    - src/atserver
+    - src/console
+  cflag: -O0  -g -nostartfiles -Wl,--gc-sections -lm  -Wl,-zmax-page-size=1024 -Wl,-Map="yoc.map"
+  cxxflag: -O0  -g -nostartfiles -Wl,--gc-sections -lm  -Wl,-zmax-page-size=1024 -Wl,-Map="yoc.map"
+  asmflag: ""
+  define: ~
+  libs: ~
+  libpath: ~
+source_file:
+  - src/common/data_init.c
+  - src/common/parsing.c
+  - src/common/statistical_time.c
+  - src/common/timer_ticks.c
+  - src/csi_test.c
+  - src/console/src/sys_console.c
+  - src/atserver/atserver.c
+  - src/atserver/at_global_cmd.c
+  - src/atserver/tst_io.c
+  - src/atserver/tst_utility.c
+  - src/driver/pinmux/pinmux_config_test.c
+  - src/driver/pinmux/pinmux_test.c
+  - src/driver/driver_tests_main.c
+  - src/driver/uart/*.c ? <CONFIG_UART>
+  - src/driver/timer/*.c ? <CONFIG_TIMER>
+  - src/driver/iic/*.c ? <CONFIG_IIC>
+  - src/driver/spi/*.c ? <CONFIG_SPI>
+  - src/driver/gpio/*.c ? <CONFIG_GPIO>
+  - src/driver/irq/*.c ? <CONFIG_IRQ>
+  - src/driver/rtc/*.c ? <CONFIG_RTC>
+  - src/driver/adc/*.c ? <CONFIG_ADC>
+  - src/driver/spiflash/*.c ? <CONFIG_SPIFLASH>
+  - src/driver/pwm/*.c ? <CONFIG_PWM>
+  - src/driver/dma/*.c ? <CONFIG_DMA>
+  - src/driver/wdt/*.c ? <CONFIG_WDT>
+  - src/driver/codec/*.c ? <CONFIG_CODEC>
+  - src/driver/pin/*.c ? <CONFIG_PIN>
+  - src/driver/gpiopin/*.c ? <CONFIG_GPIO_PIN>
+  - src/driver/aes/*.c ? <CONFIG_AES>
+  - src/driver/rsa/*.c ? <CONFIG_RSA>
+  - src/driver/sha/*.c ? <CONFIG_SHA>
+  - src/driver/trng/*.c ? <CONFIG_TRNG>
+  - src/driver/efuse/*.c ? <CONFIG_EFUSE>
+def_config:
+  CONFIG_DRIVER: 1
+  CONFIG_KERNEL_RHINO: 1
+  CONFIG_PARAM_NOT_CHECK: 1
+  # CONFIG_UART: 1
+  # CONFIG_TIMER: 1
+  # CONFIG_IIC: 1
+  # CONFIG_SPI: 1
+  # CONFIG_GPIO: 1
+  # CONFIG_IRQ: 1
+  # CONFIG_RTC: 1
+  # CONFIG_ADC: 1
+  # CONFIG_SPIFLASH: 1
+  # CONFIG_PWM: 1
+  # CONFIG_DMA: 1
+  # CONFIG_WDT: 1
+  # CONFIG_CODEC: 1
+  # CONFIG_PIN: 1
+  # CONFIG_GPIO_PIN: 1
+  # CONFIG_AES: 1
+  # CONFIG_RSA: 1
+  # CONFIG_SHA: 1
+  # CONFIG_TRNG: 1
+  # CONFIG_EFUSE: 1
+install: ~
+depends_forward: ~
+# - aos: v7.4.3
+# - aos_hal: v7.4.3
+# - csi: v7.4.3
+# - hal_csi: v7.4.3
+# - newlib: v7.4.3
+# - rhino: v7.4.3
+# - ulog: v7.4.3
