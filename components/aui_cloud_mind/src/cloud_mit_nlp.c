@@ -197,42 +197,7 @@ static void get_uuid(char *uuid)
 
 static char *mit_asr_get_account(void)
 {
-    cJSON *js_account_info = NULL;
-    char *account_info_p   = NULL;
-    char device_uuid[100]  = {0};
-
-    get_uuid(device_uuid);
-
-    js_account_info = cJSON_CreateObject();
-    CHECK_RET_WITH_GOTO(js_account_info, END);
-
-    int mitasr_key = 0;
-    aos_kv_getint("mitasr", &mitasr_key);
-
-    switch(mitasr_key) {
-    case 1:
-        /*ASR IoT feiyan*/
-        break;
-    case 2:
-        /*ASR kaishu*/
-        break;
-    case 3:
-        /*ASR IoT meeting*/
-        break;
-    default:
-        /*ASR kaishu test account*/
-        ;
-    }
-
-    /*TTS*/
-   
-    account_info_p = cJSON_PrintUnformatted(js_account_info);
-    CHECK_RET_TAG_WITH_GOTO(account_info_p, END);
-
-END:
-    cJSON_Delete(js_account_info);
-
-    return account_info_p;
+    return null;
 }
 
 static int mit_asr_event_cb(void *user_data, NuiThingsEvent event, int dialog_finish)
