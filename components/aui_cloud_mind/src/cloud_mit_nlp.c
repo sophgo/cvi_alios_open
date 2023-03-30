@@ -25,9 +25,6 @@
 
 #define MIT_ASR_BUFFER_SIZE 200 * 1024 //50K
 
-#define MIT_ASR_KEY "y5QsLk2A3acWEhCs"
-#define MIT_ASR_TOKEN "4a37aa0c0373498ea04f732054841b62"
-#define MIT_ASR_URL "wss://nls-gateway-inner.aliyuncs.com/ws/v1"
 
 #define MIT_ASR_TASK_QUIT_EVT (0x01)
 
@@ -200,6 +197,7 @@ static void get_uuid(char *uuid)
 
 static char *mit_asr_get_account(void)
 {
+    return "";
     cJSON *js_account_info = NULL;
     char *account_info_p   = NULL;
     char device_uuid[100]  = {0};
