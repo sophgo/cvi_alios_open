@@ -27,7 +27,7 @@ static void event_timer_cb(lv_timer_t *t)
 	ip_addr_t ipaddr;
 	ip_addr_t netmask;
 	ip_addr_t gw;
-	rvm_dev_t *dev;
+	rvm_dev_t *dev = NULL;
 	rvm_hal_wifi_ap_record_t ap_info = {0};
 #if (CONFIG_APP_WIFI_SUPPORT == 1)
 	dev = rvm_hal_device_find("wifi", 0);

@@ -95,11 +95,14 @@ build_config:
     - opnous_opn8018
     - sms_sc200ai
     - sms_sc2336
+    - sms_sc3336
     - sms_sc030iot
     - sms_sc201cs
     - sms_sc201cs_slave
+    - sms_sc031iot
     - sony_imx307
     - sony_imx327
+    - byd_bf314a
 
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
@@ -115,11 +118,14 @@ source_file:
   - opnous_opn8018/*.c
   - sms_sc200ai/*.c
   - sms_sc2336/*.c
+  - sms_sc3336/*.c
   - sms_sc030iot/*.c
   - sms_sc201cs/*.c
   - sms_sc201cs_slave/*.c
+  - sms_sc031iot/*.c
   - sony_imx307/*.c
   - sony_imx327/*.c
+  - byd_bf314a/*.c
 
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项

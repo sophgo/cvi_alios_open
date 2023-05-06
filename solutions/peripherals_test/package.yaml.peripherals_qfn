@@ -57,6 +57,7 @@ depends:
   - g711: v0.0.1
   - fdk_aac: v0.0.1
 
+  - cvi_mmf_sdk_cv181xx: develop
 ## 第三部分：板级信息
 # hw_info:                                 # 对 solution、board、chip 三个字段的改进，统称为 hw_info 字段
 #   cpu_id: cpu0

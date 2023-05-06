@@ -649,3 +649,52 @@ void dump_vi_register(int32_t argc, char **argv)
 }
 
 ALIOS_CLI_CMD_REGISTER(dump_vi_register, dump_vi_register, dump vi register function);
+
+static int call_back_test0(uint64_t data)
+{
+	int local_data = data;
+
+	aos_debug_printf("call_back_test0 0x%x\n", local_data);
+
+	return 0;
+}
+
+static int call_back_test1(uint64_t data)
+{
+	int local_data = data;
+
+	aos_debug_printf("call_back_test1 0x%x\n", local_data);
+
+	return 0;
+}
+
+VI_SYNC_TASK_NODE_S g_sync_node[2] = {
+	{
+		.isp_sync_task_call_back = call_back_test0,
+		.data = 0x10,
+		.name = "test0",
+	},
+	{
+		.isp_sync_task_call_back = call_back_test1,
+		.data = 0x11,
+		.name = "test1",
+	},
+};
+
+void vi_reg_sync_task(int32_t argc, char **argv)
+{
+	VI_PIPE ViPipe = 0;
+
+	CVI_VI_RegSyncTask(ViPipe, &g_sync_node[0]);
+	printf("vi_reg_sync_task ViPipe:%d\n", ViPipe);
+}
+ALIOS_CLI_CMD_REGISTER(vi_reg_sync_task, test_vi_reg_sync_task, vi register sync task);
+
+void vi_unreg_sync_task(int32_t argc, char **argv)
+{
+	VI_PIPE ViPipe = 0;
+
+	CVI_VI_UnRegSyncTask(ViPipe, &g_sync_node[0]);
+	printf("vi_unreg_sync_task ViPipe:%d\n", ViPipe);
+}
+ALIOS_CLI_CMD_REGISTER(vi_unreg_sync_task, test_vi_unreg_sync_task, vi unregister sync task);

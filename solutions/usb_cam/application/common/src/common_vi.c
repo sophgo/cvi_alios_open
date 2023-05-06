@@ -159,6 +159,10 @@ ISP_SNS_OBJ_S *getSnsObj(SNS_TYPE_E enSnsType)
 	case SONY_IMX327_MIPI_2M_30FPS_12BIT_WDR2TO1:
 		return &stSnsImx327_Obj;
 #endif
+#if CONFIG_SENSOR_BYD_BF314A
+	case BYD_BF314A_MIPI_720P_30FPS_10BIT:
+		return &stSnsBf314a_Obj;
+#endif
 	default:
 		return CVI_NULL;
 	}
@@ -205,6 +209,7 @@ CVI_S32 getPicSize(CVI_S32 dev_id, SNS_SIZE_S *pstSize)
 		pstSize->u32Height = 1200;
 		break;
 	case GCORE_GC1054_MIPI_1M_30FPS_10BIT:
+	case BYD_BF314A_MIPI_720P_30FPS_10BIT:
 		pstSize->u32Width  = 1280;
 		pstSize->u32Height = 720;
 		break;
@@ -257,6 +262,7 @@ CVI_S32 getDevAttr(VI_DEV ViDev, VI_DEV_ATTR_S *pstViDevAttr)
 	case GCORE_GC1054_MIPI_1M_30FPS_10BIT:
 	case GCORE_GC2093_MIPI_2M_30FPS_10BIT:
 	case GCORE_GC2093_MIPI_2M_30FPS_10BIT_WDR2TO1:
+	case BYD_BF314A_MIPI_720P_30FPS_10BIT:
 		pstViDevAttr->enBayerFormat = BAYER_FORMAT_RG;
 		break;
 	case GCORE_GC4653_MIPI_4M_30FPS_10BIT:

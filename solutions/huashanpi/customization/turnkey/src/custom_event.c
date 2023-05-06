@@ -13,9 +13,9 @@ int APP_CustomEventStart(void)
 // #if (CONFIG_APP_GUI_SUPPORT == 1)
 //     GUI_Display_Start();
 // #endif
-// #if (CONFIG_APP_RTSP_SUPPORT == 1)
-//     cvi_rtsp_init();
-// #endif
+#if (CONFIG_APP_RTSP_SUPPORT == 1)
+    cvi_rtsp_init();
+#endif
     Touchscreen_Init();
     return 0;
 }
