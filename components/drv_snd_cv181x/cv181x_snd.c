@@ -467,11 +467,16 @@ static int interleave2noninterleave(short *buf, int frame_size)
 
 static int pcm_recv(aos_pcm_t *pcm, void *buf, int size)
 {
+    int ret = 0;
     capture_t *capture = (capture_t *)pcm->hdl;
     int bytes_per_sample = pcm->hw_params->format / 8;
     int frame_size = size / pcm->hw_params->channels / bytes_per_sample;
-    int ret = csi_codec_input_read(capture->hdl, (uint8_t *)buf, size);
-    ret |= interleave2noninterleave((short *)buf, frame_size);
+    if(pcm->mode)
+        ret = csi_codec_input_read_async(capture->hdl, (uint8_t *)buf, size);
+    else
+        ret = csi_codec_input_read(capture->hdl, (uint8_t *)buf, size);
+    if(pcm->hw_params->channels != 1)
+        ret |= interleave2noninterleave((short *)buf, frame_size);
     return ret;
 }
 

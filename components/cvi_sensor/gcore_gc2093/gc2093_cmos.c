@@ -26,6 +26,10 @@
 #define DIV_0_TO_1(a)   ((0 == (a)) ? 1 : (a))
 #define DIV_0_TO_1_FLOAT(a) ((((a) < 1E-10) && ((a) > -1E-10)) ? 1 : (a))
 #define GC2093_ID 2093
+#define GC2093_I2C_ADDR_1 0x37
+#define GC2093_I2C_ADDR_2 0x7e
+#define GC2093_I2C_ADDR_IS_VALID(addr)      ((addr) == GC2093_I2C_ADDR_1 || (addr) == GC2093_I2C_ADDR_2)
+
 /****************************************************************************
  * global variables                                                         *
  ***************************************************************************/
@@ -1032,6 +1036,11 @@ static CVI_S32 cmos_init_sensor_exp_function(ISP_SENSOR_EXP_FUNC_S *pstSensorExp
 /****************************************************************************
  * callback structure                                                       *
  ****************************************************************************/
+static CVI_VOID sensor_patch_i2c_addr(CVI_S32 s32I2cAddr)
+{
+	if (GC2093_I2C_ADDR_IS_VALID(s32I2cAddr))
+		gc2093_i2c_addr = s32I2cAddr;
+}
 
 static CVI_S32 gc2093_set_bus_info(VI_PIPE ViPipe, ISP_SNS_COMMBUS_U unSNSBusInfo)
 {
@@ -1176,10 +1185,11 @@ ISP_SNS_OBJ_S stSnsGc2093_Obj = {
 	.pfnSetBusInfo          = gc2093_set_bus_info,
 	.pfnSetInit             = sensor_set_init,
 	.pfnMirrorFlip          = sensor_mirror_flip,
-	.pfnPatchRxAttr		= sensor_patch_rx_attr,
-	.pfnGetRxAttr		= sensor_rx_attr,
-	.pfnExpSensorCb		= cmos_init_sensor_exp_function,
-	.pfnExpAeCb		= cmos_init_ae_exp_function,
-	.pfnSnsProbe		= sensor_probe,
+	.pfnPatchRxAttr		    = sensor_patch_rx_attr,
+	.pfnPatchI2cAddr        = sensor_patch_i2c_addr,
+	.pfnGetRxAttr			= sensor_rx_attr,
+	.pfnExpSensorCb			= cmos_init_sensor_exp_function,
+	.pfnExpAeCb				= cmos_init_ae_exp_function,
+	.pfnSnsProbe			= sensor_probe,
 };
 

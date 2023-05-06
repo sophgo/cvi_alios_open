@@ -349,6 +349,7 @@ static int _meida_sensor_init(PARAM_VI_CFG_S * pstViCtx,CVI_U8 *devNum)
             devAttr.mipi_attr.wdr_mode = pstViCtx->pstSensorCfg[i].s32WDRMode;
         }
         if(pstViCtx->pstSensorCfg[i].bSetDevAttr != 0) {
+            devAttr.devno = i;
             devAttr.mac_clk = pstViCtx->pstSensorCfg[i].s16MacClk;
             devAttr.mclk.cam = pstViCtx->pstSensorCfg[i].u8MclkCam;
             devAttr.mclk.freq = pstViCtx->pstSensorCfg[i].u8MclkFreq;
@@ -724,12 +725,134 @@ static int _MEDIA_VIDEO_VpssDeinit()
     return MEDIA_VIDEO_VpssDeinit(pstVpssCtx);
 }
 
+
+int _MEDIA_VIDEO_DSIInit(int devno, const struct dsc_instr *cmds, int size)
+{
+    CVI_S32 s32Ret = CVI_SUCCESS;
+
+    for (int i = 0; i < size; i++) {
+        const struct dsc_instr *instr = &cmds[i];
+        struct cmd_info_s cmd_info = {
+            .devno = devno,
+            .cmd_size = instr->size,
+            .data_type = instr->data_type,
+            .cmd = (void *)instr->data
+        };
+
+        s32Ret = mipi_tx_send_cmd(0, &cmd_info);
+        if (s32Ret != CVI_SUCCESS) {
+            MEDIABUG_PRINTF("dsi init failed at %d instr.\n", i);
+            return CVI_FAILURE;
+        }
+        if (instr->delay) {
+            udelay(instr->delay * 1000);
+        }
+    }
+
+    return 0;
+}
+
+void *_MEDIA_VIDEO_PanelInit(void *data)
+{
+    int fd = 0;
+    CVI_S32 s32Ret = CVI_SUCCESS;
+    struct panel_desc_s *panel_desc = (struct panel_desc_s *)data;
+
+    s32Ret = mipi_tx_rstpin(0);
+    if (s32Ret != CVI_SUCCESS) {
+        MEDIABUG_PRINTF("mipi_tx_rstpin failed with %#x\n", s32Ret);
+        return NULL;
+    }
+
+#if (CONFIG_PANEL_READID == 1)
+    CVI_U32 panelid[3] = {0}, param[3] = {0xDA, 0xDB, 0xDC};
+    CVI_U8 buf[4], i;
+
+    for (i = 0; i < 3; ++i) {
+        struct get_cmd_info_s get_cmd_info = {
+            .devno = 0,
+            .data_type = 0x06,
+            .data_param = param[i],
+            .get_data_size = 0x01,
+            .get_data = buf
+        };
+
+        memset(buf, 0, sizeof(buf));
+        if (mipi_tx_recv_cmd(0, &get_cmd_info)) {
+            MEDIABUG_PRINTF("%s get panel id fialed!\n", __func__);
+            return NULL;
+        }
+        panelid[i] = buf[0];
+    }
+    printf("%s panel id (0x%02x 0x%02x 0x%02x)!\n", __func__, panelid[0], panelid[1], panelid[2]);
+
+    // modify panel_desc accord to panel id.
+    s32Ret = mipi_tx_cfg(0, panel_desc->dev_cfg);
+    if (s32Ret != CVI_SUCCESS) {
+        MEDIABUG_PRINTF("mipi_tx_cfg failed with %#x\n", s32Ret);
+        return NULL;
+    }
+#endif
+
+    s32Ret = _MEDIA_VIDEO_DSIInit(0, panel_desc->dsi_init_cmds, panel_desc->dsi_init_cmds_size);
+    if (s32Ret != CVI_SUCCESS) {
+        MEDIABUG_PRINTF("dsi_init failed with %#x\n", s32Ret);
+        return NULL;
+    }
+    s32Ret = mipi_tx_set_hs_settle(fd, panel_desc->hs_timing_cfg);
+    if (s32Ret != CVI_SUCCESS) {
+        MEDIABUG_PRINTF("mipi_tx_set_hs_settle failed with %#x\n", s32Ret);
+        return NULL;
+    }
+    s32Ret = mipi_tx_enable(fd);
+    if (s32Ret != CVI_SUCCESS) {
+        MEDIABUG_PRINTF("mipi_tx_enable failed with %#x\n", s32Ret);
+        return NULL;
+    }
+    MEDIABUG_PRINTF("Init for MIPI-Driver-%s\n", panel_desc->panel_name);
+
+    pthread_exit(NULL);
+    return NULL;
+}
+
 int MEDIA_VIDEO_PanelInit(void)
 {
     static int initstatus = 0;
-    if(initstatus ==0) {
+    CVI_S32 s32Ret = CVI_SUCCESS;
+
+    if (initstatus == 0) {
         initstatus = 1;
-        mipi_tx_init(&panel_desc);
+        s32Ret = mipi_tx_init(panel_desc.dev_cfg);
+        if (s32Ret != CVI_SUCCESS) {
+            MEDIABUG_PRINTF("mipi_tx_init failed with %#x\n", s32Ret);
+            return s32Ret;
+        }
+
+        s32Ret = mipi_tx_disable(0);
+        if (s32Ret != CVI_SUCCESS) {
+            MEDIABUG_PRINTF("mipi_tx_disable failed with %#x\n", s32Ret);
+            return s32Ret;
+        }
+        s32Ret = mipi_tx_cfg(0, panel_desc.dev_cfg);
+        if (s32Ret != CVI_SUCCESS) {
+            MEDIABUG_PRINTF("mipi_tx_cfg failed with %#x\n", s32Ret);
+            return s32Ret;
+        }
+
+        struct sched_param param;
+        pthread_attr_t attr;
+        pthread_condattr_t cattr;
+        pthread_t thread;
+
+        param.sched_priority = MIPI_TX_RT_PRIO;
+        pthread_attr_init(&attr);
+        pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
+        pthread_attr_setschedparam(&attr, &param);
+        pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+        pthread_condattr_init(&cattr);
+        pthread_condattr_setclock(&cattr, CLOCK_MONOTONIC);
+        pthread_create(&thread, &attr, _MEDIA_VIDEO_PanelInit, (void *)&panel_desc);
+        pthread_setname_np(thread, "cvi_mipi_tx");
     }
     return 0;
 }

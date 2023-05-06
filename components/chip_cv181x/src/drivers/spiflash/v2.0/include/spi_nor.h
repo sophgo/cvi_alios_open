@@ -30,6 +30,10 @@
 #define SNOR_MFR_ZBIT           0x5e
 #define SNOR_MFR_WINBOND        0xef
 #define SNOR_MFR_ISSI           0x9d
+#define SNOR_MFR_PY             0x85
+#define SNOR_MFR_FUDAN          0xA1
+#define SNOR_MFR_CYPRESS	0x34
+#define SNOR_MFR_BOYA		0x68
 
 #define JEDEC_MFR(info)               ((info)->id[0])
 
