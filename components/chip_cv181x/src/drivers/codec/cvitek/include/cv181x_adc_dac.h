@@ -833,10 +833,10 @@ static inline void cv182x_reset_adc(void)
 
 
 int cv182xdac_init(u32 rate, u32 chan_nr);
-int cv182xdac_ioctl(u32 cmd, struct cvi_vol_ctrl vol, u32 val);
+int cv182xdac_ioctl(u32 cmd, u64 parg);
 
 int cv182xadc_init(u32 rate);
-int cv182xadc_ioctl(u32 cmd, struct cvi_vol_ctrl vol, u32 val);
+int cv182xadc_ioctl(u32 cmd,  u64 parg);
 
 
 int  cv183xdac_init(u32 rate);

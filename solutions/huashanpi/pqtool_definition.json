@@ -1,8 +1,8 @@
 {
     "DEVICE": {
-        "FULL_NAME": "mars",
-        "CODE_NAME": "mars",
-        "SDK_VERSION": "20230309",
+        "FULL_NAME": "cv181x",
+        "CODE_NAME": "cv181x",
+        "SDK_VERSION": "20230505",
         "GENERATOR_VERSION": "(I2db8c42,8fa5a9ce)",
         "ISP_VERSION": "(Iaa68769,a871ba61)",
         "ISP_BRANCH": "master",

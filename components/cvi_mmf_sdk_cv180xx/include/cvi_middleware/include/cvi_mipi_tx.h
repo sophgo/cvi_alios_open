@@ -28,9 +28,9 @@ int mipi_tx_disable(int fd);
 int mipi_tx_set_hs_settle(int fd, const struct hs_settle_s *hs_cfg);
 int mipi_tx_get_hs_settle(int fd, struct hs_settle_s *hs_cfg);
 int mipi_tx_poweroff(int fd);
-int mipi_tx_init(struct panel_desc_s *panel_desc);
+int mipi_tx_init(const struct combo_dev_cfg_s *dev_cfg);
 int mipi_tx_suspend(void);
-int mipi_tx_resume(struct panel_desc_s *panel_desc);
+int mipi_tx_resume(const struct combo_dev_cfg_s *dev_cfg);
 int mipi_tx_rstpin(int devno);
 
 #ifdef __cplusplus

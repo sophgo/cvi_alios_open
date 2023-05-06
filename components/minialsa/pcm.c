@@ -340,9 +340,8 @@ aos_pcm_sframes_t aos_pcm_readi(aos_pcm_t *pcm, void *buffer, aos_pcm_uframes_t 
     if (bytes <= 0) {
         return 0;
     }
-
-
-    pcm_access(pcm, buffer, bytes);
+    if(pcm->hw_params->channels != 1)
+        pcm_access(pcm, buffer, bytes);
 
     return (aos_pcm_bytes_to_frames(pcm, bytes));
 }

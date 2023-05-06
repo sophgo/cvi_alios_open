@@ -1137,9 +1137,6 @@ int32_t csi_i2s_receive(csi_i2s_t *i2s, void *data, uint32_t size)
 		aos_mutex_lock(&p_status->mutex, AOS_WAIT_FOREVER);
         while (1) {
             avail_size = ringbuffer_len(i2s->rx_buf);
-            if (avail_size < i2s->rx_period) {
-                return 0;
-            }
             read_size += (int32_t)ringbuffer_out(i2s->rx_buf, (void *)(read_data + (uint32_t)read_size), (size - (uint32_t)read_size));
             if ((size - (uint32_t)read_size) <= 0U) {
                 break;
@@ -1264,14 +1261,50 @@ int32_t csi_i2s_send(csi_i2s_t *i2s, const void *data, uint32_t size)
 */
 uint32_t csi_i2s_receive_async(csi_i2s_t *i2s, void *data, uint32_t size)
 {
-    CSI_PARAM_CHK(i2s, 0U);
-    CSI_PARAM_CHK(data, 0U);
-    uint32_t read_len;
+    CSI_PARAM_CHK(i2s, CSI_ERROR);
+    CSI_PARAM_CHK(data, CSI_ERROR);
+    int32_t received_size = 0;
+    uint8_t *read_data = (void *)data;
+    int32_t read_size = 0;
+    int ret = 0;
+    unsigned int actl_flags = 0;
+    int32_t avail_size = 0;
+    csi_i2s_status_t *p_status = (csi_i2s_status_t *)i2s->priv;
 
-    uint32_t result = csi_irq_save();
-    read_len = ringbuffer_out(i2s->rx_buf, (void *)data, size);
-    csi_irq_restore(result);
-    return read_len;
+    if (i2s->rx_dma == NULL) {
+        received_size = i2s_receive_polling(i2s, read_data, size);
+        if (received_size == (int32_t)size) {
+            read_size = (int32_t)size;
+        } else {
+            read_size = CSI_ERROR;
+        }
+
+    } else {
+        aos_mutex_lock(&p_status->mutex, AOS_WAIT_FOREVER);
+        while (1) {
+            avail_size = ringbuffer_len(i2s->rx_buf);
+            if (avail_size < i2s->rx_period) {
+                return 0;
+            }
+            read_size += (int32_t)ringbuffer_out(i2s->rx_buf, (void *)(read_data + (uint32_t)read_size), (size - (uint32_t)read_size));
+            if ((size - (uint32_t)read_size) <= 0U) {
+                break;
+            }
+            if(p_status) {
+                ret = aos_event_get(&p_status->evt, PCM_EVT_READ | PCM_EVT_XRUN, AOS_EVENT_OR_CLEAR, &actl_flags, 10*1000);
+                if(ret == RHINO_SUCCESS) {
+                    if ((actl_flags | PCM_EVT_XRUN) == PCM_EVT_XRUN) {
+                        LOGW(TAG,"pcm read PCM_EVT_XRUN\r\n");
+                    }
+                }else {
+                    LOGE(TAG,"aos_event_get error ret:%d  avail_size:%d, read_size:%d\r\n",ret, avail_size, read_size);
+                }
+            }
+        }
+        aos_mutex_unlock(&p_status->mutex);
+    }
+
+    return read_size;
 }
 
 /**

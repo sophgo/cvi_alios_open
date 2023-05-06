@@ -25,7 +25,6 @@
 
 #define MIT_ASR_BUFFER_SIZE 200 * 1024 //50K
 
-
 #define MIT_ASR_TASK_QUIT_EVT (0x01)
 
 mit_account_info_t g_mit_account_info;
@@ -138,6 +137,7 @@ static void get_session_id(char *buff, const int number)
     }
 }
 
+/*
 static void get_hex_mac(char *hex_mac)
 {
     static uint8_t s_mac[6] = {0};
@@ -197,8 +197,8 @@ static void get_uuid(char *uuid)
 
 static char *mit_asr_get_account(void)
 {
-    return null;
-}
+    return NULL;
+}*/
 
 static int mit_asr_event_cb(void *user_data, NuiThingsEvent event, int dialog_finish)
 {
@@ -487,64 +487,6 @@ static int nui_things_return_data_main(void *              user_data,
 
 static int mit_asr_set_account(aui_t *aui)
 {
-    cJSON *j_info            = NULL;
-
-    aos_check_param(aui);
-
-    char *js_account = mit_asr_get_account();
-    LOGD(TAG, "mit_asr_set_account json_account_info: %s", js_account);
-
-    j_info                = cJSON_Parse(js_account);
-
-    cJSON *device_uuid    = cJSON_GetObjectItem(j_info, "device_uuid");
-    cJSON *asr_app_key    = cJSON_GetObjectItem(j_info, "asr_app_key");
-    cJSON *asr_token      = cJSON_GetObjectItem(j_info, "asr_token");
-    cJSON *asr_url        = cJSON_GetObjectItem(j_info, "asr_url");
-    cJSON *tts_app_key    = cJSON_GetObjectItem(j_info, "tts_app_key");
-    cJSON *tts_token      = cJSON_GetObjectItem(j_info, "tts_token");
-    cJSON *tts_url        = cJSON_GetObjectItem(j_info, "tts_url");
-    cJSON *tts_key_id     = cJSON_GetObjectItem(j_info, "tts_key_id");
-    cJSON *tts_key_secret = cJSON_GetObjectItem(j_info, "tts_key_secret");
-    cJSON *dialog_context = cJSON_GetObjectItem(j_info, "dialog_context");
-
-    CHECK_RET_TAG_WITH_GOTO(j_info && device_uuid && cJSON_IsString(device_uuid) && asr_app_key &&
-                                cJSON_IsString(asr_app_key) && asr_token &&
-                                cJSON_IsString(asr_token) && asr_url && cJSON_IsString(asr_url) &&
-                                tts_app_key && cJSON_IsString(tts_app_key) && tts_token &&
-                                cJSON_IsString(tts_token) && tts_url && cJSON_IsString(tts_url),
-                            ERR);
-
-    g_mit_account_info.device_uuid    = device_uuid->valuestring;
-    g_mit_account_info.asr_app_key    = asr_app_key->valuestring;
-    g_mit_account_info.asr_token      = asr_token->valuestring;
-    g_mit_account_info.asr_url        = asr_url->valuestring;
-    g_mit_account_info.tts_app_key    = tts_app_key->valuestring;
-    g_mit_account_info.tts_token      = tts_token->valuestring;
-    g_mit_account_info.tts_url        = tts_url->valuestring;
-    if (dialog_context) {
-        g_mit_account_info.dialog_context = dialog_context->valuestring;
-    }
-
-    if ((tts_key_id && cJSON_IsString(tts_key_id)) &&
-        (tts_key_secret && cJSON_IsString(tts_key_secret))) {
-        g_mit_account_info.tts_key_id     = tts_key_id->valuestring;
-        g_mit_account_info.tts_key_secret = tts_key_secret->valuestring;
-    }
-
-    mit_dialog_config.device_uuid        = g_mit_account_info.device_uuid;
-    mit_dialog_config.app_key            = g_mit_account_info.asr_app_key;
-    mit_dialog_config.token              = g_mit_account_info.asr_token;
-    mit_dialog_config.url                = g_mit_account_info.asr_url;
-    mit_dialog_config.dialog_context     = g_mit_account_info.dialog_context;
-    mit_dialog_config.enable_vad_cloud   = 1; //1;//enable cloud nn vad
-    mit_dialog_config.enable_decoder_vad = 1; //1;// enable cloud decoder vad
-    return 0;
-
-ERR:
-    if (j_info) {
-        cJSON_Delete(j_info);
-    }
-
     return -1;
 }
 

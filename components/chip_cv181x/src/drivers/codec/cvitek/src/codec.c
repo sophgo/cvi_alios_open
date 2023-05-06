@@ -144,10 +144,7 @@ csi_error_t csi_codec_output_config(csi_codec_output_t *ch, csi_codec_output_con
     CSI_PARAM_CHK(config, CSI_ERROR);
     csi_error_t ret =  CSI_OK;
     csi_i2s_format_t i2s_format;
-    //struct cvi_vol_ctrl vol;
-    //vol.vol_ctrl = 0;
-    //vol.vol_ctrl_mute = 0;
-
+    //u32 vol = 12;
     ch->ring_buf->buffer = config->buffer;
     ch->ring_buf->size = config->buffer_size;
     ch->period = config->period;
@@ -169,7 +166,7 @@ csi_error_t csi_codec_output_config(csi_codec_output_t *ch, csi_codec_output_con
         printf("%s ch->period = %d \n", __func__, ch->period);
         ret = csi_i2s_tx_set_period(&i2s_codec_output, ch->period);
         cv182xdac_init(config->sample_rate, 2);
-        //cv182xdac_ioctl(ACODEC_SET_OUTPUT_VOL, vol, 12);
+        //cv182xdac_ioctl(ACODEC_SET_OUTPUT_VOL, (u64)&vol);
 
     }
 
@@ -364,13 +361,11 @@ csi_error_t csi_codec_output_mute(csi_codec_output_t *ch, bool enable)
 {
     CSI_PARAM_CHK(ch, CSI_ERROR);
     csi_error_t ret = CSI_OK;
-    struct cvi_vol_ctrl vol;
-    vol.vol_ctrl = 0;
-    vol.vol_ctrl_mute = 1;
+    u32 vol = enable;
 
     //_/ es8156_set_software_mute(&es8156_dev, true);
-    cv182xdac_ioctl(ACODEC_SET_DACR_MUTE, vol, 0);
-    cv182xdac_ioctl(ACODEC_SET_DACL_MUTE, vol, 0);
+    ret = cv182xdac_ioctl(ACODEC_SET_DACR_MUTE, (u64)&vol);
+    ret |= cv182xdac_ioctl(ACODEC_SET_DACL_MUTE, (u64)&vol);
     return ret;
 }
 
@@ -384,14 +379,9 @@ csi_error_t csi_codec_output_digital_gain(csi_codec_output_t *ch, uint32_t val)
 {
     CSI_PARAM_CHK(ch, CSI_ERROR);
     csi_error_t ret = CSI_UNSUPPORTED;
-    struct cvi_vol_ctrl vol;
-    vol.vol_ctrl = 0;
-    vol.vol_ctrl_mute = 0;
+    u32 vol = val;
 
-    if(val == 0)
-        vol.vol_ctrl_mute = 1;
-
-    cv182xdac_ioctl(ACODEC_SET_OUTPUT_VOL, vol, val);
+    ret = cv182xdac_ioctl(ACODEC_SET_OUTPUT_VOL, (u64)&vol);
     return ret;
 }
 
@@ -405,15 +395,13 @@ csi_error_t csi_codec_output_analog_gain(csi_codec_output_t *ch, uint32_t val)
 {
     CSI_PARAM_CHK(ch, CSI_ERROR);
     csi_error_t ret = CSI_OK;
-    struct cvi_vol_ctrl vol;
-    vol.vol_ctrl = 0;
-    vol.vol_ctrl_mute = 0;
+    u32 vol = val;
 
     /*
       range0 ~ 32, step:0.75DB
       0（-95.5DB）... 0xbf(0DB) ... 0xff(32DB)
     */
-    cv182xdac_ioctl(ACODEC_SET_OUTPUT_VOL, vol, val);
+    ret = cv182xdac_ioctl(ACODEC_SET_OUTPUT_VOL, (u64)&vol);
     return ret;
 }
 
@@ -479,9 +467,7 @@ csi_error_t csi_codec_input_config(csi_codec_input_t *ch, csi_codec_input_config
     CSI_PARAM_CHK(config, CSI_ERROR);
     csi_error_t ret =  CSI_OK;
     csi_i2s_format_t i2s_format;
-    struct cvi_vol_ctrl vol;
-    vol.vol_ctrl = 0;
-    vol.vol_ctrl_mute = 0;
+    u32 vol = 8;
 
     ch->ring_buf->buffer = config->buffer;
     ch->ring_buf->size = config->buffer_size;
@@ -505,7 +491,7 @@ csi_error_t csi_codec_input_config(csi_codec_input_t *ch, csi_codec_input_config
             csi_i2s_rx_buffer_reset(&i2s_codec_input);
             ret = csi_i2s_rx_set_period(&i2s_codec_input, ch->period);
             cv182xadc_init(config->sample_rate);
-            cv182xadc_ioctl(ACODEC_SET_ADCL_VOL, vol, 8);
+            ret = cv182xadc_ioctl(ACODEC_SET_ADCL_VOL, (u64)&vol);
             break;
           case 1:
             csi_i2s_format(&i2s_codec_input_1, &i2s_format);
@@ -708,14 +694,12 @@ csi_error_t csi_codec_input_mute(csi_codec_input_t *ch, bool en)
 {
     CSI_PARAM_CHK(ch, CSI_ERROR);
     csi_error_t ret = CSI_OK;
-    struct cvi_vol_ctrl vol;
+    u32 vol = en;
     if(ch->codec->dev.idx)
       return CSI_UNSUPPORTED;
-    vol.vol_ctrl = 0;
-    vol.vol_ctrl_mute = 1;
 
-    cv182xadc_ioctl(ACODEC_SET_MICL_MUTE, vol, 0);
-    cv182xadc_ioctl(ACODEC_SET_MICR_MUTE, vol, 0);
+    ret = cv182xadc_ioctl(ACODEC_SET_MICL_MUTE, (u64)&vol);
+    ret |= cv182xadc_ioctl(ACODEC_SET_MICR_MUTE, (u64)&vol);
 
     return ret;
 }
@@ -743,18 +727,15 @@ csi_error_t csi_codec_input_analog_gain(csi_codec_input_t *ch, uint32_t val)
 {
     CSI_PARAM_CHK(ch, CSI_ERROR);
     csi_error_t ret = CSI_OK;
-    struct cvi_vol_ctrl vol;
+    u32 vol = val;
     if(ch->codec->dev.idx)
       return CSI_UNSUPPORTED;
-
-    vol.vol_ctrl = 0;
-    vol.vol_ctrl_mute = 0;
 
     /*
       range0 ~ 24, step:3DB
       0（-95.5DBDB）... 0xBF(0DB) ... 0xff(32DB)
     */
-    cv182xadc_ioctl(ACODEC_SET_ADCL_VOL, vol, val);
+    ret = cv182xadc_ioctl(ACODEC_SET_ADCL_VOL, (u64)&vol);
 
     return ret;
 }

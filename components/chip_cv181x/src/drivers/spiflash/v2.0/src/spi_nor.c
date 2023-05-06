@@ -544,6 +544,9 @@ static int set_quad_mode(struct spi_nor *nor)
 		case SNOR_MFR_XTX:
 		case SNOR_MFR_FM:
 		case SNOR_MFR_SPANSION:
+		case SNOR_MFR_PY:
+		case SNOR_MFR_FUDAN:
+		case SNOR_MFR_BOYA:
 			return quad_enable_SR2_bit1(nor);
 
 		default:
