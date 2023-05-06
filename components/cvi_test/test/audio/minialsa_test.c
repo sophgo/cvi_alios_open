@@ -11,7 +11,7 @@
 #include "dw_i2s.h"
 #include "fatfs_vfs.h"
 #include "platform.h"
-
+#include "cv181x_adc_dac.h"
 static int capture_running, play_running;
 static aos_pcm_t *capture_handle;
 static aos_pcm_t *playback_handle;
@@ -145,7 +145,7 @@ void audio_debug_capture_cmd(int32_t argc, char **argv)
 				return;
 			}
 			capture_running = 1;
-			aos_task_new("audio_capture_test", audio_capture_test_entry, argv[1], 4096);
+			aos_task_new("audio_capture_test", audio_capture_test_entry, argv[1], 8192);
 			return;
 		} else if (strcmp(argv[2], "0") == 0) {
 			printf("audio_arecord stop\n");
@@ -178,7 +178,7 @@ void audio_debug_play_cmd(int32_t argc, char **argv)
 			}
 			play_running = 1;
 			PLATFORM_SpkMute(1);
-			aos_task_new("audio_play_test", audio_play_test_entry, argv[1], 4096);
+			aos_task_new("audio_play_test", audio_play_test_entry, argv[1], 8192);
 			return;
 		} else if (strcmp(argv[2], "0") == 0) {
 			printf("audio_play stop\n");
@@ -203,6 +203,69 @@ void audio_debug_show_info(int32_t argc, char **argv)
 	show_debug_info();
 }
 
+void audio_test_vol_cmd(int32_t argc, char **argv)
+{
+
+	if(argc == 4){
+		int ai_ao = atoi(argv[1]);
+		int l_r = atoi(argv[2]);
+		int val = atoi(argv[3]);
+		u32 cmd;
+		if(ai_ao){
+			if(l_r)
+				cmd = ACODEC_SET_DACR_VOL;
+			else
+				cmd = ACODEC_SET_DACL_VOL;
+		    cv182xdac_ioctl(cmd, (u64)&val);
+		}else
+		{
+			if(l_r)
+				cmd = ACODEC_SET_ADCR_VOL;
+			else
+				cmd = ACODEC_SET_ADCL_VOL;
+		    cv182xadc_ioctl(cmd, (u64)&val);
+		}
+		return;
+	}
+	else if(argc == 3)
+	{
+		int ai_ao = atoi(argv[1]);
+		int val = atoi(argv[2]);
+
+		if(ai_ao){
+		    cv182xdac_ioctl(ACODEC_SET_DACL_VOL, (u64)&val);
+			cv182xdac_ioctl(ACODEC_SET_DACR_VOL, (u64)&val);
+		}else
+		{
+		    cv182xadc_ioctl(ACODEC_SET_ADCL_VOL, (u64)&val);
+			cv182xadc_ioctl(ACODEC_SET_ADCR_VOL, (u64)&val);
+		}
+		return;
+	}else if(argc == 2)
+	{
+		int ai_ao = atoi(argv[1]);
+		u32 vol_l, vol_r;
+		if(ai_ao){
+		    cv182xdac_ioctl(ACODEC_GET_DACL_VOL, (u64)&vol_l);
+			cv182xdac_ioctl(ACODEC_GET_DACR_VOL, (u64)&vol_r);
+			printf("ao vol:l = %d, r = %d\n", vol_l, vol_r);
+		}else
+		{
+		    cv182xadc_ioctl(ACODEC_GET_ADCL_VOL, (u64)&vol_l);
+			cv182xadc_ioctl(ACODEC_GET_ADCR_VOL, (u64)&vol_r);
+			printf("ai vol:l = %d, r = %d\n", vol_l, vol_r);
+		}
+		return;
+	}else
+	{
+		printf("invalid cmd params.\n");
+		printf("usage1:%s [0{ai},1{ao}] [0[l],1[r]] [val]\n", argv[0]);
+		printf("usage2:%s [0{ai},1{ao}] [val]\n", argv[0]);
+		printf("usage3:%s [0{ai},1{ao}]\n", argv[0]);
+	}
+	return;
+}
 ALIOS_CLI_CMD_REGISTER(audio_debug_play_cmd, aplay, play audio);
 ALIOS_CLI_CMD_REGISTER(audio_debug_capture_cmd, arecord, capture audio);
 ALIOS_CLI_CMD_REGISTER(audio_debug_show_info, audio_info, show audio debug info);
+ALIOS_CLI_CMD_REGISTER(audio_test_vol_cmd, audio_vol, test audio vol info);

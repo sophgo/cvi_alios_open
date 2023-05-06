@@ -11,6 +11,7 @@
 
 #include <cvi_common.h>
 #include <cvi_comm_video.h>
+#include <aos/list.h>
 //#include "cvi_comm_gdc.h"
 
 #ifdef __cplusplus
@@ -825,6 +826,13 @@ typedef struct _VI_SMOOTH_RAW_DUMP_INFO_S {
 	CVI_U64 *phy_addr_list;	// ring buffer addr
 	RECT_S  stCropRect;
 } VI_SMOOTH_RAW_DUMP_INFO_S;
+
+typedef struct _VI_SYNC_TASK_NODE_S {
+	CVI_S32 (*isp_sync_task_call_back)(CVI_U64 data);
+	CVI_U64 data;
+	CVI_CHAR *name;
+	struct dlist_s list;
+} VI_SYNC_TASK_NODE_S;
 
 #ifdef __cplusplus
 #if __cplusplus

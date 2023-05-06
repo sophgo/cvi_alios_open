@@ -39,6 +39,7 @@ int test_cvimodel(int argc, char **argv) {
   ret = CVI_NN_RegisterModel(model_file_name.str().c_str(), &model);
   if (ret != CVI_RC_SUCCESS) {
     printf("CVI_NN_RegisterModel failed, err %d\n", ret);
+    CVI_NN_CleanupModel(model);
     return -1;
   }
   printf("CVI_NN_RegisterModel succeeded! model file:%s\n", model_file_name.str().c_str());
@@ -52,6 +53,7 @@ int test_cvimodel(int argc, char **argv) {
     ScopeTimer st("forward");
     ret = CVI_NN_Forward(model, input_tensors, input_num, output_tensors, output_num);
     if (ret != CVI_RC_SUCCESS) {
+      CVI_NN_CleanupModel(model);
       printf("cvimodel forward failed! ret:%d\n", ret);
       return -1;
     }

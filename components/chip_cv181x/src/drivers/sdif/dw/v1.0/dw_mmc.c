@@ -418,7 +418,7 @@ status_t SDIF_SendCommand(SDIF_TYPE *base, sdif_command_t *cmd, uint32_t timeout
 		if (!(mmio_read_32(BASE + SDIF_PRESENT_STATE) & SDIF_CMD_INHIBIT))
 			break;
 		end_time = csi_tick_get_ms();
-		if (end_time - start_time >= 200)
+		if (end_time - start_time >= 2000)
 			return -1;
 	}
 
@@ -444,7 +444,7 @@ status_t SDIF_SendCommand(SDIF_TYPE *base, sdif_command_t *cmd, uint32_t timeout
 			if (!(mmio_read_32(BASE + SDIF_PRESENT_STATE) & SDIF_CMD_INHIBIT_DAT))
 				break;
 			end_time = csi_tick_get_ms();
-			if (end_time - start_time >= 200)
+			if (end_time - start_time >= 2000)
 				return -1;
 		}
 	}
@@ -1138,7 +1138,7 @@ static int SDIF_SendNoDataCmd(SDIF_TYPE *base,
 		if (!(mmio_read_32(BASE + SDIF_PRESENT_STATE) & SDIF_CMD_INHIBIT))
 			break;
 		end_time = csi_tick_get_ms();
-		if (end_time - start_time >= 200)
+		if (end_time - start_time >= 2000)
 			return -1;
 	}
 
@@ -1163,7 +1163,7 @@ static int SDIF_SendNoDataCmd(SDIF_TYPE *base,
 			if (!(mmio_read_32(BASE + SDIF_PRESENT_STATE) & SDIF_CMD_INHIBIT_DAT))
 				break;
 			end_time = csi_tick_get_ms();
-			if (end_time - start_time >= 200)
+			if (end_time - start_time >= 2000)
 				return -1;
 		}
 	}

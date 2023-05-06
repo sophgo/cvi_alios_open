@@ -71,9 +71,9 @@ fi
 [ -f "${MK_BOARD_PATH}/bootimgs/boot" ] && cp -arf ${MK_BOARD_PATH}/bootimgs/boot.emmc ${MK_GENERATED_PATH}/data/boot
 [ -f "${MK_BOARD_PATH}/bootimgs/boot0" ] && cp -arf ${MK_BOARD_PATH}/bootimgs/boot0.emmc ${MK_GENERATED_PATH}/data/
 
-#[ -f yoc.bin ] && cp -arf yoc.bin ${MK_GENERATED_PATH}/data/prim
+[ -f yoc.bin ] && cp -arf yoc.bin ${MK_GENERATED_PATH}/data/prim
 cp -arf ${MK_BOARD_PATH}/configs/config.yaml.emmc ${MK_GENERATED_PATH}/data/config.yaml
-${PRODUCT} combine -i yoc.bin,0x80040000,xz -o ${MK_GENERATED_PATH}/data/prim
+# ${PRODUCT} combine -i yoc.bin,0x80040000,xz -o ${MK_GENERATED_PATH}/data/prim
 ${PRODUCT} image ${MK_GENERATED_PATH}/images.zip -i ${MK_GENERATED_PATH}/data -l -p
 ${PRODUCT} image ${MK_GENERATED_PATH}/images.zip -e ${MK_GENERATED_PATH} -x
 

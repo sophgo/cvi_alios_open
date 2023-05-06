@@ -35,10 +35,9 @@ PARAM_CLASSDEFINE(PARAM_VODEV_S,VOCFG,CTX,VO)[] = {
         },
         .u8ChnCnt = 1,
         .pstVOChnAttr = PARAM_CLASS(VOCHN,VO,CHN),
-        .u8Bindmode = CVI_TRUE,
         .stSrcChn = {
             .enModId = CVI_ID_VPSS,
-            .s32ChnId = 0,
+            .s32ChnId = 1,
             .s32DevId = 0,
         },
         .stDestChn = {
@@ -46,6 +45,7 @@ PARAM_CLASSDEFINE(PARAM_VODEV_S,VOCFG,CTX,VO)[] = {
             .s32ChnId = 0,
             .s32DevId = 0,
         },
+        .u8ChnRotation = ROTATION_90,
     }
 };
 

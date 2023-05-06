@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "yoc/partition.h"
-#include "yoc/partition_flash.h"
+#include "yoc/partition_device.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>

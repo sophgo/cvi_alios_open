@@ -28,7 +28,6 @@ int main(int argc, char *argv[])
 	YOC_SYSTEM_Init();
 	//board pinmux init
 	PLATFORM_IoInit();
-#if 1
 	//Fs init
 	YOC_SYSTEM_FsVfsInit();
 	//load cfg
@@ -37,7 +36,11 @@ int main(int argc, char *argv[])
 	MEDIA_VIDEO_SysInit();
 	//custom_evenet_pre
 	//media video
-	// MEDIA_VIDEO_Init();
+	MEDIA_VIDEO_Init();
+	#if (CONFIG_APP_ETHERNET_SUPPORT == 1)
+	ethernet_init();
+	#endif
+#if 0
 	//gui
 #if (CONFIG_APP_GUI_SUPPORT == 1)
 	GUI_Display_Start();
@@ -45,24 +48,20 @@ int main(int argc, char *argv[])
 	//media_audio
 	// MEDIA_AUDIO_Init();
 	//network
-	#if (CONFIG_APP_ETHERNET_SUPPORT == 1)
-	ethernet_init();
-	#endif
+
 	#if (CONFIG_APP_WIFI_SUPPORT == 1)
 	APP_WifiInit();
 	#endif
-	//cli and ulog init
-	YOC_SYSTEM_ToolInit();
-	// #if (CONFIG_PQTOOL_SUPPORT == 1)
-	// usleep(1000);
-	// isp_daemon2_init(5566);
-	// #endif
-	LOGI(TAG, "app start........\n");
-	APP_CustomEventStart();
 	#if (CONFIG_APP_GPRS_SUPPORT == 1)
 	// APP_GprsInit();
 	#endif
 #endif
+	YOC_SYSTEM_ToolInit();
+	#if (CONFIG_PQTOOL_SUPPORT == 1)
+	usleep(1000);
+	isp_daemon2_init(5566);
+	#endif
+	APP_CustomEventStart();
 	while (1) {
 		aos_msleep(3000);
 	};
