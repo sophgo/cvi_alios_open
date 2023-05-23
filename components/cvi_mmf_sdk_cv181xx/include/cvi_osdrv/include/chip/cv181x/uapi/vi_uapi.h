@@ -88,6 +88,9 @@ enum VI_SDK_CTRL {
 	VI_SDK_ENABLE_CHN,
 	VI_SDK_DISABLE_CHN,
 	VI_SDK_SET_MOTION_LV,
+	VI_SDK_ENABLE_DIS,
+	VI_SDK_DISABLE_DIS,
+	VI_SDK_SET_DIS_INFO,
 	VI_SDK_SET_PIPE_FRM_SRC,
 	VI_SDK_SEND_PIPE_RAW,
 	VI_SDK_SET_DEV_TIMING_ATTR,
@@ -174,6 +177,19 @@ struct mlv_info_s {
 	__u32	frm_num;
 	__u8	mlv;
 	__u8	mtable[MO_TBL_SIZE];
+};
+
+struct crop_size_s {
+	__u16 start_x;
+	__u16 start_y;
+	__u16 end_x;
+	__u16 end_y;
+};
+
+struct dis_info_s {
+	__u8   sensor_num;
+	__u32  frm_num;
+	struct crop_size_s dis_i;
 };
 
 struct vi_chn_rot_cfg {

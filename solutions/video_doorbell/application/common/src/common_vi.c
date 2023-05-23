@@ -40,7 +40,7 @@ VI_DEV_ATTR_S vi_dev_attr_base = {
 	},
 	.enInputDataType = VI_DATA_TYPE_RGB,
 	.stSize = {1280, 720},
-	.stWDRAttr = {WDR_MODE_NONE, 720},
+	.stWDRAttr = {WDR_MODE_NONE, 720, 0},
 	.enBayerFormat = BAYER_FORMAT_BG,
 };
 
@@ -272,8 +272,20 @@ CVI_S32 getDevAttr(VI_DEV ViDev, VI_DEV_ATTR_S *pstViDevAttr)
 		break;
 	};
 
+	// WDR mode
 	if (sensor_type >= SNS_TYPE_LINEAR_BUTT)
 		pstViDevAttr->stWDRAttr.enWDRMode = WDR_MODE_2To1_LINE;
+
+	// set synthetic wdr mode
+	switch (sensor_type) {
+	// case SMS_SC1346_1L_MIPI_1M_30FPS_10BIT_WDR2TO1:
+	// case SMS_SC1346_1L_MIPI_1M_60FPS_10BIT_WDR2TO1:
+	// 	pstViDevAttr->stWDRAttr.bSyntheticWDR = 1;
+	// 	break;
+	default:
+		pstViDevAttr->stWDRAttr.bSyntheticWDR = 0;
+		break;
+	}
 
 	return CVI_SUCCESS;
 }

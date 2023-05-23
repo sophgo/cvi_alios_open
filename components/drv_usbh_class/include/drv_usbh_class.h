@@ -28,6 +28,11 @@ void drv_ec200a_serial_register(uint8_t idx);
  */
 void rvm_usb_msc_drv_register(int idx);
 
+/**
+ * Register esp32 rndis dirver
+ * @return      void
+ */
+void drv_esp32_rndis_register();
 #ifdef __cplusplus
 }
 #endif

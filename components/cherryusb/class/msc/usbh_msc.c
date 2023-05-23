@@ -91,6 +91,7 @@ static inline int usbh_msc_bulk_in_transfer(struct usbh_msc *msc_class, uint8_t 
     struct usbh_urb *urb = &msc_class->bulkin_urb;
     memset(urb, 0, sizeof(struct usbh_urb));
 
+    urb->type = USBH_APP_MSC;
     usbh_bulk_urb_fill(urb, msc_class->bulkin, buffer, buflen, timeout, NULL, NULL);
     ret = usbh_submit_urb(urb);
     if (ret == 0) {
@@ -105,6 +106,7 @@ static inline int usbh_msc_bulk_out_transfer(struct usbh_msc *msc_class, uint8_t
     struct usbh_urb *urb = &msc_class->bulkout_urb;
     memset(urb, 0, sizeof(struct usbh_urb));
 
+    urb->type = USBH_APP_MSC;
     usbh_bulk_urb_fill(urb, msc_class->bulkout, buffer, buflen, timeout, NULL, NULL);
     ret = usbh_submit_urb(urb);
     if (ret == 0) {

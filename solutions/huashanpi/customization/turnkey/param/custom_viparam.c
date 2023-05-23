@@ -6,6 +6,10 @@
  *   ....
  */
 #include "custom_param.h"
+
+#define BIN_DATA_SIZE 345345
+extern unsigned char dual_ir_cvi_isp_default_param[];
+
 PARAM_CLASSDEFINE(PARAM_SNS_CFG_S,SENSORCFG,CTX,Sensor)[] = {
     {
         .enSnsType = CONFIG_SNS0_TYPE,
@@ -69,16 +73,8 @@ PARAM_CLASSDEFINE(PARAM_ISP_CFG_S,ISPCFG,CTX,ISP)[] = {
         .bUseSingleBin = 0,
         .stPQBinDes =
         {
-            .pIspBinData = NULL,
-            .u32IspBinDataLen = 0,
-        },
-    },
-    {
-        .bUseSingleBin = 0,
-        .stPQBinDes =
-        {
-            .pIspBinData = NULL,
-            .u32IspBinDataLen = 0,
+            .pIspBinData = dual_ir_cvi_isp_default_param,
+            .u32IspBinDataLen = BIN_DATA_SIZE,
         },
     },
 };
