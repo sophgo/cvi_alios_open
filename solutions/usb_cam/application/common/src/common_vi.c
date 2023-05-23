@@ -163,6 +163,10 @@ ISP_SNS_OBJ_S *getSnsObj(SNS_TYPE_E enSnsType)
 	case BYD_BF314A_MIPI_720P_30FPS_10BIT:
 		return &stSnsBf314a_Obj;
 #endif
+#if CONFIG_SENSOR_SMS_SC1336_2L
+	case SMS_SC1336_2L_MIPI_1M_30FPS_10BIT:
+	return &stSnsSC1336_2L_Obj;
+#endif
 	default:
 		return CVI_NULL;
 	}
@@ -210,6 +214,7 @@ CVI_S32 getPicSize(CVI_S32 dev_id, SNS_SIZE_S *pstSize)
 		break;
 	case GCORE_GC1054_MIPI_1M_30FPS_10BIT:
 	case BYD_BF314A_MIPI_720P_30FPS_10BIT:
+	case SMS_SC1336_2L_MIPI_1M_30FPS_10BIT:
 		pstSize->u32Width  = 1280;
 		pstSize->u32Height = 720;
 		break;

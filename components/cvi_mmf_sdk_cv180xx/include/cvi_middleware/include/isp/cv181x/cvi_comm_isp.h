@@ -876,6 +876,14 @@ typedef struct _ISP_AWB_EXTRA_LIGHTSOURCE_INFO_S {
 	CVI_U8 u8Radius; /*RW; Range:[0x1, 0xFF]*/
 } ISP_AWB_EXTRA_LIGHTSOURCE_INFO_S;
 
+struct ST_ISP_AWB_INTERFERNCE_S {
+	CVI_U8 u8Mode;	/*RW; Range:[0x0, 0x1]*/
+	CVI_U8 u8Limit; /*RW; Range:[0x32, 0x64]*/
+	CVI_U8 u8Radius; /*RW; Range:[0x1, 0xFF]*/
+	CVI_U8 u8Ratio; /*RW; Range:[0x1, 0xFF]*/
+	CVI_U8 u8Distance; /*RW; Range:[0x1, 0xFF]*/
+};
+
 struct ST_ISP_AWB_SKIN_S {
 	CVI_U8 u8Mode;
 	CVI_U16 u16RgainDiff;
@@ -912,11 +920,11 @@ enum ISP_AWB_TEMP_E {
 struct ST_ISP_AWB_SHIFT_LV_S {
 	CVI_U8 u8LowLvMode; /*RW; Range:[0x0, 0x1]*/
 	CVI_U16 u16LowLvCT[ISP_AWB_COLORTEMP_NUM]; /*RW; Range:[0x0, 0xFF]*/
-	CVI_U16 u16LowLvThr[ISP_AWB_COLORTEMP_NUM]; /*RW; Range:[0x0, 0xF]*/
+	CVI_U16 u16LowLvThr[ISP_AWB_COLORTEMP_NUM]; /*RW; Range:[0x0, 0x5DC]*/
 	CVI_U16 u16LowLvRatio[ISP_AWB_COLORTEMP_NUM]; /*RW; Range:[0x64, 0x3E8]*/
 	CVI_U8 u8HighLvMode; /*RW; Range:[0x0, 0x1]*/
 	CVI_U16 u16HighLvCT[ISP_AWB_COLORTEMP_NUM]; /*RW; Range:[0x0, 0xFF]*/
-	CVI_U16 u16HighLvThr[ISP_AWB_COLORTEMP_NUM]; /*RW; Range:[0x0, 0xF]*/
+	CVI_U16 u16HighLvThr[ISP_AWB_COLORTEMP_NUM]; /*RW; Range:[0x0, 0x5DC]*/
 	CVI_U16 u16HighLvRatio[ISP_AWB_COLORTEMP_NUM]; /*RW; Range:[0x64, 0x3E8]*/
 };
 
@@ -980,6 +988,7 @@ typedef struct _ISP_AWB_ATTR_EX_S {
 	CVI_BOOL bFineTunEn;
 	CVI_U8 u8FineTunStrength;
 	//AWB Algo 6
+	struct ST_ISP_AWB_INTERFERNCE_S stInterfernce;
 	struct ST_ISP_AWB_SKIN_S stSkin;
 	struct ST_ISP_AWB_SKY_S stSky;
 	struct ST_ISP_AWB_GRASS_S stGrass;
@@ -987,7 +996,7 @@ typedef struct _ISP_AWB_ATTR_EX_S {
 	struct ST_ISP_AWB_SHIFT_LV_S stShiftLv;
 	struct ST_ISP_AWB_REGION_S stRegion;
 	CVI_U8 adjBgainMode;
-	CVI_U8 reserve[244];
+	CVI_U8 reserve[239];
 } ISP_AWB_ATTR_EX_S;//keep size to 512 bytes
 
 typedef struct _ISP_MWB_ATTR_S {
@@ -2082,6 +2091,7 @@ typedef struct _ISP_CA2_ATTR_S {
 #define EE_LUT_NODE (4)
 typedef struct _ISP_PRESHARPEN_MANUAL_ATTR_S {
 	CVI_U8 LumaAdpGain[SHARPEN_LUT_NUM]; /*RW; Range:[0x0, 0x3f]*/
+	CVI_U8 DeltaAdpGain[SHARPEN_LUT_NUM]; /*RW; Range:[0x0, 0x3f]*/
 	CVI_U8 LumaCorLutIn[EE_LUT_NODE]; /*RW; Range:[0x0, 0xff]*/
 	CVI_U8 LumaCorLutOut[EE_LUT_NODE]; /*RW; Range:[0x0, 0x20]*/
 	CVI_U8 MotionCorLutIn[EE_LUT_NODE]; /*RW; Range:[0x0, 0xff]*/
@@ -2106,6 +2116,7 @@ typedef struct _ISP_PRESHARPEN_MANUAL_ATTR_S {
 
 typedef struct _ISP_PRESHARPEN_AUTO_ATTR_S {
 	CVI_U8 LumaAdpGain[SHARPEN_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3f]*/
+	CVI_U8 DeltaAdpGain[SHARPEN_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3f]*/
 	CVI_U8 LumaCorLutIn[EE_LUT_NODE][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
 	CVI_U8 LumaCorLutOut[EE_LUT_NODE][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x20]*/
 	CVI_U8 MotionCorLutIn[EE_LUT_NODE][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
@@ -2135,7 +2146,6 @@ typedef struct _ISP_PRESHARPEN_ATTR_S {
 	CVI_U8 TuningMode; /*RW; Range:[0x0, 0xb]*/
 	CVI_BOOL LumaAdpGainEn; /*RW; Range:[0x0, 0x1]*/
 	CVI_BOOL DeltaAdpGainEn; /*RW; Range:[0x0, 0x1]*/
-	CVI_U8 DeltaAdpGain[SHARPEN_LUT_NUM]; /*RW; Range:[0x0, 0x3f]*/
 	CVI_BOOL NoiseSuppressEnable; /*RW; Range:[0, 1]*/
 	CVI_BOOL SatShtCtrlEn; /*RW; Range:[0, 1]*/
 	CVI_BOOL SoftClampEnable; /*RW; Range:[0x0, 0x1]*/
@@ -2504,6 +2514,7 @@ typedef struct _ISP_CAC_ATTR_S {
 
 typedef struct _ISP_SHARPEN_MANUAL_ATTR_S {
 	CVI_U8 LumaAdpGain[SHARPEN_LUT_NUM]; /*RW; Range:[0x0, 0x3f]*/
+	CVI_U8 DeltaAdpGain[SHARPEN_LUT_NUM]; /*RW; Range:[0x0, 0x3f]*/
 	CVI_U8 LumaCorLutIn[EE_LUT_NODE]; /*RW; Range:[0x0, 0xff]*/
 	CVI_U8 LumaCorLutOut[EE_LUT_NODE]; /*RW; Range:[0x0, 0x20]*/
 	CVI_U8 MotionCorLutIn[EE_LUT_NODE]; /*RW; Range:[0x0, 0xff]*/
@@ -2528,6 +2539,7 @@ typedef struct _ISP_SHARPEN_MANUAL_ATTR_S {
 
 typedef struct _ISP_SHARPEN_AUTO_ATTR_S {
 	CVI_U8 LumaAdpGain[SHARPEN_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3f]*/
+	CVI_U8 DeltaAdpGain[SHARPEN_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3f]*/
 	CVI_U8 LumaCorLutIn[EE_LUT_NODE][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
 	CVI_U8 LumaCorLutOut[EE_LUT_NODE][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x20]*/
 	CVI_U8 MotionCorLutIn[EE_LUT_NODE][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
@@ -2557,7 +2569,6 @@ typedef struct _ISP_SHARPEN_ATTR_S {
 	CVI_U8 TuningMode; /*RW; Range:[0x0, 0xb]*/
 	CVI_BOOL LumaAdpGainEn; /*RW; Range:[0x0, 0x1]*/
 	CVI_BOOL DeltaAdpGainEn; /*RW; Range:[0x0, 0x1]*/
-	CVI_U8 DeltaAdpGain[SHARPEN_LUT_NUM]; /*RW; Range:[0x0, 0x3f]*/
 	CVI_BOOL NoiseSuppressEnable; /*RW; Range:[0, 1]*/
 	CVI_BOOL SatShtCtrlEn; /*RW; Range:[0, 1]*/
 	CVI_BOOL SoftClampEnable; /*RW; Range:[0x0, 0x1]*/

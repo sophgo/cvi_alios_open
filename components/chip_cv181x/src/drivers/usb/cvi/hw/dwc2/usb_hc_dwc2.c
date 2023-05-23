@@ -57,6 +57,8 @@ struct dwc2_pipe {
     void* buf;
 };
 
+static int send_zlp;
+
 struct dwc2_hcd {
     volatile bool port_csc;
     volatile bool port_pec;
@@ -296,6 +298,7 @@ static inline void dwc2_pipe_transfer(uint8_t ch_num, uint8_t ep_addr, uint32_t 
             chan->align_size = size;
         }
     }
+
     USB_OTG_HC(ch_num)->HCDMA = (intptr_t)chan->align_buf;
 
     is_oddframe = (((uint32_t)USB_OTG_HOST->HFNUM & 0x01U) != 0U) ? 0U : 1U;
@@ -335,9 +338,12 @@ static void dwc2_halt(uint8_t ch_num)
     uint32_t HcEpType = (USB_OTG_HC(ch_num)->HCCHAR & USB_OTG_HCCHAR_EPTYP) >> 18;
     uint32_t ChannelEna = (USB_OTG_HC(ch_num)->HCCHAR & USB_OTG_HCCHAR_CHENA) >> 31;
 
-    if (((USB_OTG_GLB->GAHBCFG & USB_OTG_GAHBCFG_DMAEN) == USB_OTG_GAHBCFG_DMAEN) &&
-        (ChannelEna == 0U)) {
-        return;
+
+    return;
+
+
+    if (((USB_OTG_GLB->GAHBCFG & USB_OTG_GAHBCFG_DMAEN) == USB_OTG_GAHBCFG_DMAEN) && (ChannelEna == 0U)) {
+                return;
     }
 
     /* Check for space in the request queue to issue the halt. */
@@ -825,7 +831,7 @@ int usbh_submit_urb(struct usbh_urb *urb)
         return -EINVAL;
     }
 
-    flags = usb_osal_enter_critical_section();
+
 
     if (!chan->hport->connected) {
         return -ENODEV;
@@ -834,6 +840,8 @@ int usbh_submit_urb(struct usbh_urb *urb)
     if (chan->urb) {
         return -EBUSY;
     }
+
+    flags = usb_osal_enter_critical_section();
 
     chan->waiter = false;
     chan->xfrd = 0;
@@ -864,11 +872,8 @@ int usbh_submit_urb(struct usbh_urb *urb)
     }
     if (urb->timeout > 0) {
         /* wait until timeout or sem give */
-        do {
-            ret = usb_osal_sem_take(chan->waitsem, urb->timeout);
-            //printf("urb %d waiting... %lld\n", retry, aos_now_ms());
-        } while(ret);
-        if (ret < 0) {
+        ret = usb_osal_sem_take(chan->waitsem, urb->timeout);
+        if (ret != 0) {
             goto errout_timeout;
         }
 
@@ -902,6 +907,14 @@ int usbh_kill_urb(struct usbh_urb *urb)
     return 0;
 }
 
+static inline void dwc2_send_zlp(struct dwc2_pipe *pipe)
+{
+    // aos_debug_printf("[%s,%d]===========send zlp\n", __FUNCTION__, __LINE__);
+    struct dwc2_pipe *chan = pipe;
+    dwc2_pipe_transfer(chan->chidx, chan->ep_addr, NULL, 0, 1, chan->data_pid);
+}
+
+
 static inline void dwc2_pipe_waitup(struct dwc2_pipe *pipe)
 {
     struct usbh_urb *urb;
@@ -928,12 +941,16 @@ static void dwc2_inchan_irq_handler(uint8_t ch_num)
     uint32_t chan_intstatus;
     struct dwc2_pipe *chan;
     struct usbh_urb *urb;
+    struct usbh_urb inuse_urb = {0};
 
     chan_intstatus = (USB_OTG_HC(ch_num)->HCINT) & (USB_OTG_HC((uint32_t)ch_num)->HCINTMSK);
 
     chan = &g_dwc2_hcd.pipe_pool[ch_num];
     urb = chan->urb;
     //USB_LOG_INFO("s1:%d %08x\r\n", ch_num, USB_OTG_HC(ch_num)->HCINT);
+    if (!chan->inuse) {
+        urb = &inuse_urb;
+    }
 
     if ((chan_intstatus & USB_OTG_HCINT_XFRC) == USB_OTG_HCINT_XFRC) {
         urb->errorcode = 0;
@@ -994,6 +1011,10 @@ static void dwc2_inchan_irq_handler(uint8_t ch_num)
         USB_MASK_HALT_HC_INT(ch_num);
         CLEAR_HC_INT(ch_num, USB_OTG_HCINT_CHH);
 
+        if (!chan->inuse) {
+            return ;
+        }
+
         if (urb->errorcode == 0) {
             uint32_t count = chan->xferlen - (USB_OTG_HC(ch_num)->HCTSIZ & USB_OTG_HCTSIZ_XFRSIZ);                          /* size that has received */
             uint32_t has_sent_packets = chan->num_packets - ((USB_OTG_HC(ch_num)->HCTSIZ & USB_OTG_DIEPTSIZ_PKTCNT) >> 19); /*how many packets has sent*/
@@ -1053,6 +1074,7 @@ static void dwc2_outchan_irq_handler(uint8_t ch_num)
     uint32_t chan_intstatus;
     struct dwc2_pipe *chan;
     struct usbh_urb *urb;
+    struct usbh_urb inuse_urb = {0};
     //uint16_t buflen;
 
     chan_intstatus = (USB_OTG_HC(ch_num)->HCINT) & (USB_OTG_HC((uint32_t)ch_num)->HCINTMSK);
@@ -1060,6 +1082,10 @@ static void dwc2_outchan_irq_handler(uint8_t ch_num)
     chan = &g_dwc2_hcd.pipe_pool[ch_num];
     urb = chan->urb;
     //USB_LOG_INFO("s2:%d %08x\r\n", ch_num, USB_OTG_HC(ch_num)->HCINT);
+    if (!chan->inuse) {
+        urb = &inuse_urb;
+    }
+
     if ((chan_intstatus & USB_OTG_HCINT_XFRC) == USB_OTG_HCINT_XFRC) {
         CLEAR_HC_INT(ch_num, USB_OTG_HCINT_XFRC);
 
@@ -1119,10 +1145,17 @@ static void dwc2_outchan_irq_handler(uint8_t ch_num)
         USB_MASK_HALT_HC_INT(ch_num);
         CLEAR_HC_INT(ch_num, USB_OTG_HCINT_CHH);
 
+        if (!chan->inuse) {
+            return ;
+        }
+
         if (urb->errorcode == 0) {
             uint32_t count = (USB_OTG_HC(ch_num)->HCTSIZ & USB_OTG_HCTSIZ_XFRSIZ); /* last send size */
             if (count == chan->ep_mps) {
                 chan->xfrd += chan->num_packets * chan->ep_mps;
+                if (urb->type == USBH_APP_RNDIS) {
+                    send_zlp = 1;
+                }
             } else {
                 chan->xfrd += (chan->num_packets - 1) * chan->ep_mps + count;
             }
@@ -1169,7 +1202,14 @@ static void dwc2_outchan_irq_handler(uint8_t ch_num)
                 }
             } else {
                 urb->actual_length = chan->xfrd;
-                dwc2_pipe_waitup(chan);
+                if(send_zlp){
+                    dwc2_send_zlp(chan);
+                    send_zlp = 0;
+                }
+                else{
+                    dwc2_pipe_waitup(chan);
+                }
+            }
             }
         } else if (urb->errorcode == -EAGAIN) {
             /* re-activate the channel */
@@ -1177,7 +1217,6 @@ static void dwc2_outchan_irq_handler(uint8_t ch_num)
         } else {
             dwc2_pipe_waitup(chan);
         }
-    }
 }
 
 static void dwc2_port_irq_handler(void)
@@ -1240,6 +1279,7 @@ static void dwc2_port_irq_handler(void)
     /* Clear Port Interrupts */
     USB_OTG_HPRT = hprt0_dup;
 }
+
 
 void USBH_IRQHandler(void)
 {

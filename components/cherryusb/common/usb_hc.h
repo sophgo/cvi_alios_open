@@ -41,12 +41,19 @@ struct usbh_iso_frame_packet {
     int errorcode;
 };
 
+enum USBH_APP_TYPE {
+    USBH_APP_RNDIS,
+    USBH_APP_MSC,
+    USBH_APP_BUTT,
+};
+
 /**
  * @brief USB Urb Configuration.
  *
  * Structure containing the USB Urb configuration.
  */
 struct usbh_urb {
+    enum USBH_APP_TYPE type;
     usbh_pipe_t pipe;
     struct usb_setup_packet *setup;
     uint8_t *transfer_buffer;

@@ -154,7 +154,7 @@ source_file:
 #   CONFIG_PARAM_NOT_CHECK: y
 #   CONFIG_CLI: y
 def_config:
-  ARCH_MARS: 1
+  __CV181X__: 1
   AOS_COMP_CLI: 1
   CONFIG_DEBUG: 3
   CONFIG_DEBUG_MM: 1

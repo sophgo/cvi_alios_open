@@ -53,6 +53,8 @@ CVI_S32 CVI_ISP_GetWBCalibration(VI_PIPE ViPipe, ISP_AWB_Calibration_Gain_S *pst
 CVI_S32 CVI_ISP_SetWBCalibrationEx(VI_PIPE ViPipe, const ISP_AWB_Calibration_Gain_S_EX *pstWBCalib);
 CVI_S32 CVI_ISP_GetWBCalibrationEx(VI_PIPE ViPipe, ISP_AWB_Calibration_Gain_S_EX *pstWBCalib);
 CVI_S32 CVI_ISP_GetAWBCurve(VI_PIPE ViPipe, ISP_WB_CURVE_S *pshWBCurve);
+CVI_BOOL CVI_ISP_GetAwbRunStatus(VI_PIPE ViPipe);
+void CVI_ISP_SetAwbRunStatus(VI_PIPE ViPipe, CVI_BOOL bState);
 
 #ifdef __cplusplus
 #if __cplusplus
