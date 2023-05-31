@@ -6,6 +6,7 @@ endif
 
 MK_GENERATED_IMGS_PATH:=generated
 ALGORITHMS_PATH:=../../components/chip_d1/d1_flash.elf
+STRIP:=riscv64-unknown-elf-strip
 
 HOST_TOOLS := $(CURDIR)/../../host-tools/Xuantie-900-gcc-elf-newlib-x86_64-V2.6.1/bin
 export PATH := $(HOST_TOOLS):$(PATH)
@@ -19,6 +20,7 @@ all:
 	$(CPRE) if [ -e package.yaml ]; then rm -f package.yaml; fi
 	$(CPRE) ln -s package.yaml.$(PROJECT) package.yaml
 	$(CPRE) scons $(VERB) --board=$(BOARD) -j4
+	$(CPRE) if [ -e $(CURDIR)/yoc_sdk/lib/libcviai.a ]; then $(STRIP) --strip-unneeded $(CURDIR)/yoc_sdk/lib/libcviai.a; fi
 	@cp yoc.bin $(MK_GENERATED_IMGS_PATH)/data/prim
 ifeq ($(YOC_COMPRESS),y)
 	@echo YoC Compress start

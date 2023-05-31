@@ -9,7 +9,7 @@ hw_info:
   cpu_name: ""
   vendor_name: ""
   chip_name: ""
-  board_name: cv181xc_qfn
+  board_name: cv180xb_evb
   ld_script: ""
   flash_program: ""
 ## 第二部分：依赖信息
@@ -45,8 +45,8 @@ depends:
   - fatfs: cv_dev
   - vfs: develop
   - lwext4: develop
-  - cv181xc_qfn: v0.0.1
-  - chip_cv181x: v0.0.1
+  - cv180xb_evb: v0.0.1
+  - chip_cv180x: v0.0.1
   - minialsa: v7.5.1
   - drv_snd_cv181x: v7.5.1
   - lvgl: develop
@@ -60,6 +60,7 @@ depends:
   - zbar: develop
   - iconv: develop
 
+  - cvi_mmf_sdk_cv180xx: develop
 ## 第三部分：板级信息
 # hw_info:                                 # 对 solution、board、chip 三个字段的改进，统称为 hw_info 字段
 #   cpu_id: cpu0
@@ -134,8 +135,8 @@ build_config:
     - customization/include
   internal_include:
 
-  cflag: ""
-  cxxflag: ""
+  cflag: -Wno-error
+  cxxflag: -Wno-error
   asmflag: ""
   define:
   libs:
@@ -145,7 +146,7 @@ build_config:
 source_file:
   - application/*.c
   - application/common/src/*.c
-  - customization/turnkey/cv181xc_evb_qfn_param/*.c
+  - customization/turnkey/cv180xb_evb_qfn_param/*.c
   - customization/turnkey/src/*.c
 
 
@@ -155,7 +156,7 @@ source_file:
 #   CONFIG_PARAM_NOT_CHECK: y
 #   CONFIG_CLI: y
 def_config:
-  __CV181X__: 1
+  __CV180X__: 1
   AOS_COMP_CLI: 1
   CONFIG_DEBUG: 1
   CONFIG_DEBUG_MM: 1
@@ -201,7 +202,7 @@ def_config:
   CONFIG_SUPPORT_USB_DC: 0
   CONFIG_APP_UVC_SUPPORT: 0
 
-  CONFIG_SNS0_TYPE: 15
+  CONFIG_SNS0_TYPE: 6
   CONFIG_SNS1_TYPE: 0
 
   CONFIG_PANEL_HX8394: 0
