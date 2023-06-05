@@ -334,7 +334,7 @@ static int dw_spi_transfer_one(csi_spi_t *spi, const void *tx_buf,
 	dw_spi_set_cs(dws, true, 0);
 	/* enable spi */
 	spi_enable_chip(dws, 1);
-	udelay(1000);
+	udelay(10);
 
 	if (tran_type == DMA_TRAN) {
 		dma_transfer(spi);
@@ -499,12 +499,14 @@ int32_t csi_spi_send_receive_dma(csi_spi_t *spi, const void *data_out,
 	CSI_PARAM_CHK(data_in, CSI_ERROR);
 	CSI_PARAM_CHK(size, CSI_ERROR);
 	int32_t  ret   = CSI_OK;
-
+#if CONFIG_APP_ESWIN_SPI_WIFI_SUPPORT
+	ret = dw_spi_transfer_one(spi, data_out, data_in, size, DMA_TRAN);
+#else
 	if (size > 16)
 		ret = dw_spi_transfer_one(spi, data_out, data_in, size, DMA_TRAN);
 	else
 		ret = dw_spi_transfer_one(spi, data_out, data_in, size, POLL_TRAN);
-
+#endif
 	return ret;
 }
 

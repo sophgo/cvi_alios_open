@@ -55,6 +55,7 @@ depends:
 #  - cvi_mw_tpu: v0.0.1
   - cvi_platform: develop
   - cvi_test: develop
+  - drv_espiwifi: develop
 
   - cvi_mmf_sdk_cv181xx: develop
 ## 第三部分：板级信息
@@ -165,6 +166,7 @@ def_config:
   CONFIG_APP_WIFI_SUPPORT: 0
   CONFIG_APP_HI3861_WIFI_SUPPORT: 0
   CONFIG_APP_RTL8723DS_WIFI_SUPPORT: 0
+  CONFIG_APP_ESWIN_SPI_WIFI_SUPPORT: 0
   CONFIG_APP_CX_CLOUD_SUPPORT: 0
   CONFIG_APP_RTSP_SUPPORT: 1
   CONFIG_RTSP_SUPPORT_UDP: 0
@@ -206,6 +208,7 @@ def_config:
   CONFIG_ISP_SUPPORT_PROC: 0
   CONFIG_ENABLE_FASTBOOT: 0
   CONFIG_AOS_NEWLINE_SUPPORT: 1
+  CONFIG_ZOWEE_VIDEO_DOORBELL: 0
 
 ## 第六部分：安装信息
 # install:

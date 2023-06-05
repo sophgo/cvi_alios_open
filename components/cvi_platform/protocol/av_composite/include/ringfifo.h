@@ -113,38 +113,38 @@ uint32_t __ring_buffer_put(struct ring_buffer *ring_buf, void *buffer, uint32_t 
 
 void ring_buffer_reset(struct ring_buffer *ring_buf)
 {
-    pthread_mutex_lock(ring_buf->f_lock);
+    // pthread_mutex_lock(ring_buf->f_lock);
     __ring_buffer_reset(ring_buf);
-    pthread_mutex_unlock(ring_buf->f_lock);
+    // pthread_mutex_unlock(ring_buf->f_lock);
 }
 
 uint32_t ring_buffer_len(const struct ring_buffer *ring_buf)
 {
     uint32_t len = 0;
-    pthread_mutex_lock(ring_buf->f_lock);
+    // pthread_mutex_lock(ring_buf->f_lock);
     len = __ring_buffer_len(ring_buf);
-    pthread_mutex_unlock(ring_buf->f_lock);
+    // pthread_mutex_unlock(ring_buf->f_lock);
     return len;
 }
 
 uint32_t ring_buffer_get(struct ring_buffer *ring_buf, void *buffer, uint32_t size)
 {
     uint32_t ret;
-    pthread_mutex_lock(ring_buf->f_lock);
+    // pthread_mutex_lock(ring_buf->f_lock);
     ret = __ring_buffer_get(ring_buf, buffer, size);
     //buffer中没有数据
     if (ring_buf->in == ring_buf->out)
     ring_buf->in = ring_buf->out = 0;
-    pthread_mutex_unlock(ring_buf->f_lock);
+    // pthread_mutex_unlock(ring_buf->f_lock);
     return ret;
 }
 
 uint32_t ring_buffer_put(struct ring_buffer *ring_buf, void *buffer, uint32_t size)
 {
     uint32_t ret;
-    pthread_mutex_lock(ring_buf->f_lock);
+    // pthread_mutex_lock(ring_buf->f_lock);
     ret = __ring_buffer_put(ring_buf, buffer, size);
-    pthread_mutex_unlock(ring_buf->f_lock);
+    // pthread_mutex_unlock(ring_buf->f_lock);
     return ret;
 }
 #endif
