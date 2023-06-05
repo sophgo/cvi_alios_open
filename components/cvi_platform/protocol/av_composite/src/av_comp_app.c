@@ -10,8 +10,8 @@
 #include "cvi_sys.h"
 #include "av_comp_descriptor.h"
 #include "uac.h"
-
-
+#include "uac_descriptor.h"
+#include <core/core_rv64.h>
 
 #define VIDEO_IN_EP 0x81
 
@@ -37,6 +37,8 @@ volatile bool uvc_update = CVI_FALSE;
 static int uvc_session_init_flag = CVI_FALSE;
 static aos_event_t _gslUvcEvent;
 static volatile bool g_uvc_event_flag;
+
+static uint8_t *packet_buffer_uvc;
 
 CVI_S32 is_media_info_update();
 void uvc_parse_media_info(uint8_t bFormatIndex, uint8_t bFrameIndex);
@@ -247,16 +249,13 @@ void uvc_media_update(){
 }
 
 void uvc_streaming_on(int is_on) {
-//    aos_debug_printf("streaming %s\n", is_on ? "on" : "off");
-    tx_flag = is_on;
+	USB_LOG_INFO("streaming %s\n", is_on ? "on" : "off");
+	tx_flag = is_on;
 
 	if(is_on && is_media_info_update())
 		uvc_update = 1;
 
-    // if (g_uvc_event_flag) {
-        aos_event_set(&_gslUvcEvent, 0x01, AOS_EVENT_OR);
-        // g_uvc_event_flag = false;
-    // }
+	g_uvc_event_flag = false;
 }
 
 void usbd_configure_done_callback(void)
@@ -279,13 +278,27 @@ static void uvc_data_out(struct usb_setup_packet *setup, uint8_t **data, uint32_
     aos_debug_printf("%s:%d\n", __FUNCTION__, __LINE__);
 }
 
+static volatile uint32_t offset = 0;
+static volatile uint32_t total_len = 0;
 static void uvc_tx_complete(uint8_t ep, uint32_t nbytes)
 {
     // aos_debug_printf("%d bytes of data sent at ep(%d)\n", nbytes, ep);
-    // if (g_uvc_event_flag) {
-        aos_event_set(&_gslUvcEvent, 0x01, AOS_EVENT_OR);
-        // g_uvc_event_flag = false;
-    // }
+	uint32_t data_len = 0;
+	offset += nbytes;
+	if (total_len > nbytes) {
+		total_len -= nbytes;
+	} else {
+		total_len = 0;
+	}
+
+	if (total_len > 0) {
+		data_len = total_len < MAX_PAYLOAD_SIZE ? total_len : MAX_PAYLOAD_SIZE;
+		usbd_ep_start_write(VIDEO_IN_EP, packet_buffer_uvc + offset, data_len);
+	} else {
+    	g_uvc_event_flag = false;
+		offset = 0;
+		total_len = 0;
+	}
 }
 
 void usbd_video_commit_set_cur(struct video_probe_and_commit_controls *commit)
@@ -306,8 +319,7 @@ static void *send_to_uvc()
 {
     uint32_t out_len, i = 0, ret = 0;
 	uint32_t buf_len = 0,buf_len_stride = 0, packets = 0;
-	uint8_t *packet_buffer_media = (uint8_t *)usb_malloc(DEFAULT_FRAME_SIZE);
-	uint8_t *packet_buffer_uvc = (uint8_t *)usb_malloc(DEFAULT_FRAME_SIZE);
+	uint8_t *packet_buffer_media = (uint8_t *)usb_iomalloc(DEFAULT_FRAME_SIZE);
     memset(packet_buffer_media, 0, DEFAULT_FRAME_SIZE);
     memset(packet_buffer_uvc, 0, DEFAULT_FRAME_SIZE);
 	extern volatile bool tx_flag;
@@ -316,7 +328,6 @@ static void *send_to_uvc()
 	VIDEO_FRAME_INFO_S stVideoFrame, *pstVideoFrame=&stVideoFrame;
 	VPSS_CHN_ATTR_S stChnAttr,*pstChnAttr = &stChnAttr;
 	struct uvc_format_info_st uvc_format_info;
-	unsigned int actl_flags = 0;
 
     while (uvc_session_init_flag) {
         if (tx_flag) {
@@ -412,28 +423,17 @@ static void *send_to_uvc()
 			buf_len_stride = 0;
 
             /* dwc2 must use this method */
-            for (i = 0; i < packets; i++) {
-                if (i == (packets - 1)) {
-					usbd_ep_start_write(VIDEO_IN_EP, &packet_buffer_uvc[i * MAX_PAYLOAD_SIZE], out_len - i * MAX_PAYLOAD_SIZE);
-					aos_msleep(1);
-                    aos_event_get(&_gslUvcEvent , 0x01, AOS_EVENT_OR_CLEAR,
-                        &actl_flags, 10);
-					
-					if (tx_flag == 0) {
-                        break;
-                    }
-                } else {
-                    usbd_ep_start_write(VIDEO_IN_EP, &packet_buffer_uvc[i * MAX_PAYLOAD_SIZE], MAX_PAYLOAD_SIZE);
-					aos_msleep(1);
-                    aos_event_get(&_gslUvcEvent , 0x01, AOS_EVENT_OR_CLEAR,
-                        &actl_flags, 10);
-					if (tx_flag == 0) {
-                        break;
-                    }
-                }
-            }
+			if (tx_flag && packets > 0) {
+				offset = 0;
+				total_len = out_len;
+				g_uvc_event_flag = true;
+				usbd_ep_start_write(VIDEO_IN_EP, packet_buffer_uvc, MAX_PAYLOAD_SIZE);
+				while(tx_flag && g_uvc_event_flag) {
+					aos_task_yield();
+				}
+			}
         }else {
-			aos_msleep(20);
+			aos_msleep(1);
 		}
 
     }
@@ -479,7 +479,13 @@ int MEDIA_AV_Init()
 	pthread_attr_t pthread_attr;
 	pthread_t pthreadId = 0;
 
+	// csi_dcache_clean_invalid();
+	// csi_dcache_disable();
+	MEDIA_UAC_Init();
+
 	usb_av_comp_init();
+
+	packet_buffer_uvc = (uint8_t *)usb_iomalloc(DEFAULT_FRAME_SIZE);
 
 	// Wait until configured
 	while (!usb_device_is_configured()) {
@@ -498,8 +504,6 @@ int MEDIA_AV_Init()
 	snprintf(threadname,sizeof(threadname),"uvc_send%d",0);
 	pthread_setname_np(pthreadId, threadname);
 
-	MEDIA_UAC_Init();
-
 	return 0;
 }
 
@@ -513,6 +517,11 @@ int MEDIA_AV_DeInit()
     if (av_comp_descriptor) {
         av_comp_destroy_descriptors(av_comp_descriptor);
     }
+
+	if (packet_buffer_uvc) {
+		usb_iofree(packet_buffer_uvc);
+		packet_buffer_uvc = NULL;
+	}
 
 	return 0;
 }

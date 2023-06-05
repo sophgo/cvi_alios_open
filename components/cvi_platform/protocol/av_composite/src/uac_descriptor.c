@@ -47,31 +47,19 @@ struct audio_cs_if_ac_header_descriptor_##n {			\
 	uint8_t  baInterfaceNr[n];					\
 } __PACKED
 
-DECLARE_UAC_AC_HEADER_DESCRIPTOR(AUDIO_CHANNEL_NUM);
-struct UAC_AC_HEADER_DESCRIPTOR(AUDIO_CHANNEL_NUM) ac_hdr_desc = {
+DECLARE_UAC_AC_HEADER_DESCRIPTOR(AUDIO_STREAM_INTF_COUNT);
+struct UAC_AC_HEADER_DESCRIPTOR(AUDIO_STREAM_INTF_COUNT) ac_hdr_desc = {
 	.bLength =	sizeof ac_hdr_desc,
 	.bDescriptorType =	USB_CS_DESCRIPTOR_TYPE_INTERFACE,
 	.bDescriptorSubtype =	AUDIO_CONTROL_HEADER,
 	.bcdADC = cpu_to_le16(0x0100),
 	.wTotalLength = cpu_to_le16(0),	/* dynamic*/
-	.bInCollection = 2,
+	.bInCollection = AUDIO_STREAM_INTF_COUNT,
 	.baInterfaceNr = {
 	/* Interface number of the AudioStream interfaces */
 		[0] = 3,
 		[1] = 4,
 	}
-};
-
-#define USB_IN_IT_ID	1
-static struct audio_cs_if_ac_input_terminal_descriptor io_in_it_desc = {
-	.bLength =		sizeof io_in_it_desc,
-	.bDescriptorType =	USB_CS_DESCRIPTOR_TYPE_INTERFACE,
-	.bDescriptorSubtype =	AUDIO_CONTROL_INPUT_TERMINAL,
-	.bTerminalID =		USB_IN_IT_ID,
-	.wTerminalType =	cpu_to_le16(AUDIO_INTERM_MIC),
-	.bAssocTerminal =	0,
-	.bNrChannels	=	AUDIO_CHANNEL_NUM,
-	.wChannelConfig =	cpu_to_le16(0x3),
 };
 
 #define UAC_FEATURE_UNIT_DESCRIPTOR(n) \
@@ -89,34 +77,9 @@ struct audio_cs_if_ac_feature_unit_descriptor_##ch {	\
 	uint8_t iFeature;						\
 } __PACKED
 
-#define USB_IN_FEATURE_ID	2
 DECLARE_UAC_FEATURE_UNIT_DESCRIPTOR(AUDIO_CHANNEL_NUM);
-static struct UAC_FEATURE_UNIT_DESCRIPTOR(AUDIO_CHANNEL_NUM) usb_in_feautre_desc = {
-	.bLength = sizeof usb_in_feautre_desc,
-	.bDescriptorType = USB_CS_DESCRIPTOR_TYPE_INTERFACE,
-	.bDescriptorSubtype =AUDIO_CONTROL_FEATURE_UNIT,
-	.bUnitID = USB_IN_FEATURE_ID,
-	.bSourceID = USB_IN_IT_ID,
-	.bControlSize = 1,
-	.bmaControls = {
-		[0] = 0x03,
-		[1] = 0x00,
-	},
-	.iFeature = 0,
-};
 
-#define IO_IN_OT_ID	3
-static struct audio_cs_if_ac_output_terminal_descriptor usb_in_ot_desc = {
-	.bLength		= sizeof usb_in_ot_desc,
-	.bDescriptorType	= USB_CS_DESCRIPTOR_TYPE_INTERFACE,
-	.bDescriptorSubtype	= AUDIO_CONTROL_OUTPUT_TERMINAL,
-	.bTerminalID		= IO_IN_OT_ID,
-	.wTerminalType		= cpu_to_le16(AUDIO_TERMINAL_STREAMING),
-	.bAssocTerminal		= 0,
-	.bSourceID		= USB_IN_FEATURE_ID,
-};
-
-#define IO_OUT_IT_ID	4
+#define IO_OUT_IT_ID	1
 static struct audio_cs_if_ac_input_terminal_descriptor usb_out_it_desc = {
 	.bLength		= sizeof usb_out_it_desc,
 	.bDescriptorType	= USB_CS_DESCRIPTOR_TYPE_INTERFACE,
@@ -125,10 +88,10 @@ static struct audio_cs_if_ac_input_terminal_descriptor usb_out_it_desc = {
 	.wTerminalType		= cpu_to_le16(AUDIO_TERMINAL_STREAMING),
 	.bAssocTerminal		= 0,
 	.bNrChannels		= AUDIO_CHANNEL_NUM,
-	.wChannelConfig		= cpu_to_le16(0x3),
+	.wChannelConfig		= cpu_to_le16(AUDIO_CHANNEL_FL),
 };
 
-#define USB_OUT_FEATURE_ID	5
+#define USB_OUT_FEATURE_ID	2
 static struct UAC_FEATURE_UNIT_DESCRIPTOR(AUDIO_CHANNEL_NUM) usb_out_feautre_desc = {
 	.bLength = sizeof usb_out_feautre_desc,
 	.bDescriptorType = USB_CS_DESCRIPTOR_TYPE_INTERFACE,
@@ -138,12 +101,12 @@ static struct UAC_FEATURE_UNIT_DESCRIPTOR(AUDIO_CHANNEL_NUM) usb_out_feautre_des
 	.bControlSize = 1,
 	.bmaControls = {
 		[0] = 0x03,
-		[1] = 0x00,
+		// [1] = 0x00,
 	},
 	.iFeature = 0,
 };
 
-#define USB_OUT_OT_ID	6
+#define USB_OUT_OT_ID	2
 static struct audio_cs_if_ac_output_terminal_descriptor io_out_ot_desc = {
 	.bLength =		sizeof io_out_ot_desc,
 	.bDescriptorType =	USB_CS_DESCRIPTOR_TYPE_INTERFACE,
@@ -151,17 +114,59 @@ static struct audio_cs_if_ac_output_terminal_descriptor io_out_ot_desc = {
 	.bTerminalID =		USB_OUT_OT_ID,
 	.wTerminalType =	cpu_to_le16(AUDIO_OUTTERM_SPEAKER),
 	.bAssocTerminal =	0,
-	.bSourceID =		USB_OUT_FEATURE_ID,
+	.bSourceID =		IO_OUT_IT_ID,
 };
+
+#define USB_IN_IT_ID	3
+static struct audio_cs_if_ac_input_terminal_descriptor io_in_it_desc = {
+	.bLength =		sizeof io_in_it_desc,
+	.bDescriptorType =	USB_CS_DESCRIPTOR_TYPE_INTERFACE,
+	.bDescriptorSubtype =	AUDIO_CONTROL_INPUT_TERMINAL,
+	.bTerminalID =		USB_IN_IT_ID,
+	.wTerminalType =	cpu_to_le16(AUDIO_INTERM_MIC),
+	.bAssocTerminal =	0,
+	.bNrChannels	=	AUDIO_CHANNEL_NUM,
+	.wChannelConfig =	cpu_to_le16(AUDIO_CHANNEL_FL),
+};
+
+
+#define USB_IN_FEATURE_ID	5
+static struct UAC_FEATURE_UNIT_DESCRIPTOR(AUDIO_CHANNEL_NUM) usb_in_feautre_desc = {
+	.bLength = sizeof usb_in_feautre_desc,
+	.bDescriptorType = USB_CS_DESCRIPTOR_TYPE_INTERFACE,
+	.bDescriptorSubtype =AUDIO_CONTROL_FEATURE_UNIT,
+	.bUnitID = USB_IN_FEATURE_ID,
+	.bSourceID = USB_IN_IT_ID,
+	.bControlSize = 1,
+	.bmaControls = {
+		[0] = 0x03,
+		// [1] = 0x00,
+	},
+	.iFeature = 0,
+};
+
+#define IO_IN_OT_ID	4
+static struct audio_cs_if_ac_output_terminal_descriptor usb_in_ot_desc = {
+	.bLength		= sizeof usb_in_ot_desc,
+	.bDescriptorType	= USB_CS_DESCRIPTOR_TYPE_INTERFACE,
+	.bDescriptorSubtype	= AUDIO_CONTROL_OUTPUT_TERMINAL,
+	.bTerminalID		= IO_IN_OT_ID,
+	.wTerminalType		= cpu_to_le16(AUDIO_TERMINAL_STREAMING),
+	.bAssocTerminal		= 0,
+	.bSourceID		= USB_IN_IT_ID,
+};
+
+
 
 static const struct usb_desc_header * const hs_audio_control_cls[] = {
 	(struct usb_desc_header *)&ac_hdr_desc,
-	(struct usb_desc_header *)&io_in_it_desc,
-	(struct usb_desc_header *)&usb_in_feautre_desc,
-	(struct usb_desc_header *)&usb_in_ot_desc,
 	(struct usb_desc_header *)&usb_out_it_desc,
 	(struct usb_desc_header *)&usb_out_feautre_desc,
 	(struct usb_desc_header *)&io_out_ot_desc,
+	(struct usb_desc_header *)&io_in_it_desc,
+	(struct usb_desc_header *)&usb_in_feautre_desc,
+	(struct usb_desc_header *)&usb_in_ot_desc,
+
 
 	NULL,
 };
@@ -221,10 +226,10 @@ static struct audio_cs_if_as_format_type_descriptor as_out_type_i_desc = {
 static struct audio_ep_descriptor as_iso_out_ep_desc  = {
 	.bLength =		sizeof as_iso_out_ep_desc,
 	.bDescriptorType =	USB_DESCRIPTOR_TYPE_ENDPOINT,
-	.bEndpointAddress =	0x02,
+	.bEndpointAddress =	AUDIO_OUT_EP,
 	.bmAttributes =		USB_ENDPOINT_TYPE_ISOCHRONOUS,
 	.wMaxPacketSize	=	cpu_to_le16(64),
-	.bInterval =		4,
+	.bInterval =		EP_INTERVAL,
 };
 
 /* Class-specific AS ISO OUT Endpoint Descriptor */
@@ -304,10 +309,10 @@ static struct audio_cs_if_as_format_type_descriptor as_in_type_i_desc = {
 static struct audio_ep_descriptor as_iso_in_ep_desc  = {
 	.bLength =		sizeof as_iso_in_ep_desc,
 	.bDescriptorType =	USB_DESCRIPTOR_TYPE_ENDPOINT,
-	.bEndpointAddress =	0x83,
+	.bEndpointAddress =	AUDIO_IN_EP,
 	.bmAttributes =		USB_ENDPOINT_TYPE_ISOCHRONOUS,
 	.wMaxPacketSize	=	cpu_to_le16(64),
-	.bInterval =		4,
+	.bInterval =		EP_INTERVAL,
 };
 
 /* Class-specific AS ISO OUT Endpoint Descriptor */
@@ -373,7 +378,7 @@ uint8_t *uac_build_descriptor(uint32_t *len)
 	for (uint32_t i = 0; hs_audio_control_cls[i] != NULL; i++) {
 		tmp_count += hs_audio_control_cls[i]->bLength;
 	}
-	((struct UAC_AC_HEADER_DESCRIPTOR(AUDIO_CHANNEL_NUM) *)
+	((struct UAC_AC_HEADER_DESCRIPTOR(AUDIO_STREAM_INTF_COUNT) *)
 							hs_audio_control_cls[0])->wTotalLength = cpu_to_le16(tmp_count);
 	bytes += tmp_count;
 

@@ -144,11 +144,7 @@ cvi_error_t cvi_pin_set_mode(pin_name_t pin_name, cvi_pin_mode_t mode)
         goto done;
     }
 
-#ifdef __CV180X__
-    if (pin_name >= GPIO_ZQ)
-#else
-    if (pin_name >= PWR_VBAT_DET)
-#endif
+	if ((pin_name == GPIO_ZQ) || (pin_name >= PWR_VBAT_DET && pin_name <= SD1_CLK))
         cfg_reg_base = PWR_PIN_CFG_BASE;
 
     switch (mode)
@@ -190,11 +186,7 @@ cvi_error_t cvi_pin_set_speed(pin_name_t pin_name, cvi_pin_speed_t speed)
         goto done;
     }
 
-#ifdef __CV180X__
-	if (pin_name >= GPIO_ZQ)
-#else
-	if (pin_name >= PWR_VBAT_DET)
-#endif
+	if ((pin_name == GPIO_ZQ) || (pin_name >= PWR_VBAT_DET && pin_name <= SD1_CLK))
         cfg_reg_base = PWR_PIN_CFG_BASE;
 
     switch (speed)
@@ -233,11 +225,7 @@ cvi_error_t cvi_pin_set_drive(pin_name_t pin_name, cvi_pin_drive_t drive)
         goto done;
     }
 
-#ifdef __CV180X__
-	if (pin_name >= GPIO_ZQ)
-#else
-	if (pin_name >= PWR_VBAT_DET)
-#endif
+	if ((pin_name == GPIO_ZQ) || (pin_name >= PWR_VBAT_DET && pin_name <= SD1_CLK))
         cfg_reg_base = PWR_PIN_CFG_BASE;
 
     switch (drive)

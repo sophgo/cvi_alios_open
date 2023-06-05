@@ -1190,6 +1190,11 @@ typedef struct
 #define USB_OTG_DIEPCTL_EONUM_DPID_Pos           (16U)
 #define USB_OTG_DIEPCTL_EONUM_DPID_Msk           (0x1UL << USB_OTG_DIEPCTL_EONUM_DPID_Pos) /*!< 0x00010000 */
 #define USB_OTG_DIEPCTL_EONUM_DPID               USB_OTG_DIEPCTL_EONUM_DPID_Msk /*!< Even/odd frame                   */
+
+#define USB_OTG_DOEPCTL_EONUM_DPID_Pos           (16U)
+#define USB_OTG_DOEPCTL_EONUM_DPID_Msk           (0x1UL << USB_OTG_DOEPCTL_EONUM_DPID_Pos) /*!< 0x00010000 */
+#define USB_OTG_DOEPCTL_EONUM_DPID               USB_OTG_DOEPCTL_EONUM_DPID_Msk /*!< Even/odd frame                   */
+
 #define USB_OTG_DIEPCTL_NAKSTS_Pos               (17U)
 #define USB_OTG_DIEPCTL_NAKSTS_Msk               (0x1UL << USB_OTG_DIEPCTL_NAKSTS_Pos) /*!< 0x00020000 */
 #define USB_OTG_DIEPCTL_NAKSTS                   USB_OTG_DIEPCTL_NAKSTS_Msk    /*!< NAK status                       */

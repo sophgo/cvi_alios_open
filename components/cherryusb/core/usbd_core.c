@@ -904,6 +904,7 @@ static void usbd_class_event_notify_handler(uint8_t event, void *arg)
     } else {
         USB_LOG_INFO("NULL ptr\n");
     }
+
     usb_slist_for_each(i, &usbd_intf_head)
     {
         struct usbd_interface *intf = usb_slist_entry(i, struct usbd_interface, list);
@@ -964,9 +965,9 @@ void usbd_event_ep0_setup_complete_handler(uint8_t *psetup)
     struct usb_setup_packet *setup = &usbd_core_cfg.setup;
 
     memcpy(setup, psetup, 8);
-#ifdef CONFIG_USBDEV_SETUP_LOG_PRINT
+// #ifdef CONFIG_USBDEV_SETUP_LOG_PRINT
     usbd_print_setup(setup);
-#endif
+// #endif
     if (setup->wLength > CONFIG_USBDEV_REQUEST_BUFFER_LEN) {
         if ((setup->bmRequestType & USB_REQUEST_DIR_MASK) == USB_REQUEST_DIR_OUT) {
             USB_LOG_ERR("Request buffer too small\r\n");
@@ -1077,7 +1078,7 @@ void usbd_event_ep_out_complete_handler(uint8_t ep, uint32_t nbytes)
             usbd_core_cfg.ep0_data_buf += nbytes;
             usbd_core_cfg.ep0_data_buf_residue -= nbytes;
 
-            USB_LOG_DBG("EP0 recv %d bytes, %d remained\r\n", nbytes, usbd_core_cfg.ep0_data_buf_residue);
+            USB_LOG_INFO("EP0 recv %d bytes, %d remained\r\n", nbytes, usbd_core_cfg.ep0_data_buf_residue);
 
             if (usbd_core_cfg.ep0_data_buf_residue == 0) {
                 /* Received all, send data to handler */

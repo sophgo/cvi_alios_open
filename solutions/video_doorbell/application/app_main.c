@@ -58,6 +58,10 @@ int main(int argc, char *argv[])
 	#endif
 	LOGI(TAG, "app start........\n");
 	APP_CustomEventStart();
+	#if (CONFIG_APP_ESWIN_SPI_WIFI_SUPPORT == 1)
+    extern int drv_espi_service_init(void);
+    drv_espi_service_init();
+	#endif
 	while (1) {
 		aos_msleep(3000);
 	};
