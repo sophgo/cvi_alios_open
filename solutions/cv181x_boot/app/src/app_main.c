@@ -13,6 +13,10 @@
 #include <yoc/partition.h>
 #include <yoc/partition_device.h>
 #include <decompress.h>
+#if defined(CONFIG_OTA_AB) && (CONFIG_OTA_AB > 0)
+#include <bootab.h>
+#endif
+#include <security.h>
 
 #define LOAD_DDR_ADRR  0x84000000
 #define MAX_YOC_SIZE   0xA00000
@@ -34,6 +38,35 @@ void boot_load_and_jump(void)
     partition_t part;
     partition_info_t *part_info;
 
+#if defined(CONFIG_OTA_AB) && (CONFIG_OTA_AB > 0)
+    char *ab;
+    char *pre_slot;
+    char j2part[16];
+
+    ab = (char *)bootab_get_current_ab();
+    if (ab == NULL) {
+        printf("select valid prim[ab] failed, panic !\n");
+        goto fail;
+    }
+    snprintf(j2part, sizeof(j2part), "prim%s", ab);
+    pre_slot = (char *)bootab_fallback(ab);
+    if (pre_slot) {
+        printf("#########fallback to prim%s\n", pre_slot);
+        snprintf(j2part, sizeof(j2part), "prim%s", pre_slot);
+    }
+
+    printf("load img & jump to [%s]\n", j2part);
+    part = partition_open(j2part);
+    part_info = partition_info_get(part);
+    if (part_info == NULL) {
+        goto fail;
+    }
+    partition_close(part);
+    if (mtb_image_verify(j2part)) {
+        goto fail;
+    }
+    jump_to = j2part;
+#endif /*CONFIG_OTA_AB*/
 
 #if defined(CONFIG_DEBUG) && (CONFIG_DEBUG > 0)
     printf("load img & jump to [%s]\n", jump_to);
@@ -44,6 +77,13 @@ void boot_load_and_jump(void)
     static_addr = part_info->start_addr + part_info->base_addr;
     load_addr = part_info->load_addr;
     image_size = part_info->image_size;
+#if defined(CONFIG_OTA_AB) && (CONFIG_OTA_AB > 0)
+    image_size = part_info->length;
+#endif
+    if (security_is_tee_enabled()) {
+        image_size = security_pad(image_size);
+    }
+
 #if defined(CONFIG_DEBUG) && (CONFIG_DEBUG > 0)
     printf("load&jump 0x%lx,0x%lx,%d\n", static_addr, load_addr, image_size);
 #endif
@@ -55,6 +95,12 @@ void boot_load_and_jump(void)
 #endif
     partition_read(part, 0, (void *)uzip_addr, image_size);
     //partition_flash_read(NULL, static_addr, (void *)uzip_addr, image_size);
+
+    ret = dec_verify_image((void *)uzip_addr, image_size, 0, NULL);
+    if (ret < 0) {
+        printf("decrypt and verify %s failed : %d\n", jump_to, ret);
+        return;
+    }
 
     if (memcmp((uint8_t *)(uzip_addr), "ULZ4", 4) == 0) {
         while(*(uint8_t *)(uzip_addr + 4 + i) != 0x0a)
@@ -112,6 +158,11 @@ void boot_load_and_jump(void)
 
     (*func)();
     while(1) {;}
+
+fail:
+    printf("jump failed. reboot.\n");
+    mdelay(200);
+    boot_sys_reboot();
 }
 
 void boot_sys_reboot(void)

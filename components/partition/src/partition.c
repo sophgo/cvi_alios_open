@@ -192,9 +192,10 @@ partition_t partition_open(const char *name)
         return -EINVAL;
     }
     len = strlen(name);
-    len = len > MTB_IMAGE_NAME_SIZE ? MTB_IMAGE_NAME_SIZE : len;    
+    len = len > MTB_IMAGE_NAME_SIZE ? MTB_IMAGE_NAME_SIZE : len;
     for (int i = 0; i < g_partion_array.num; i++) {
-        if (memcmp(name, g_partion_array.scn_list[i].description, len) == 0) {
+        if ((memcmp(name, g_partion_array.scn_list[i].description, len) == 0) &&
+                        (strlen(g_partion_array.scn_list[i].description) == len) ) {
             if (g_partion_array.scn_list[i].flash_dev == NULL) {
                 void *flash_dev = partition_device_find(&g_partion_array.scn_list[i].storage_info);
                 if (g_partion_array.scn_list[i].storage_info.hot_plug) {
@@ -322,10 +323,17 @@ int partition_erase(partition_t partition, off_t off_set, uint32_t sector_count)
     if (off_set % node->erase_size) {
         return -EINVAL;
     }
+#if CONFIG_PARTITION_SUPPORT_EMMC
+    if (node != NULL && off_set >= 0) {
+        return partition_device_erase(node->flash_dev, node->start_addr, node->length);
+    }
+#else
     size_t len = sector_count * node->erase_size;
     if (node != NULL && off_set >= 0 && off_set + len <= node->length) {
         return partition_device_erase(node->flash_dev, node->start_addr + off_set, len);
     }
+#endif
+    printf("Err: node->length: 0x%lx \n", node->length);
     return -1;
 }
 

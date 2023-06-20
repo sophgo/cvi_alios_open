@@ -64,6 +64,7 @@ const csi_perip_info_t g_soc_info[] = {
     {CVI_WDT1_BASE,             WDT1_INTR,                 1,    DEV_DW_WDT_TAG},
     {CVI_WDT2_BASE,             0,                 2,    DEV_DW_WDT_TAG},
     {CVI_RTC_WDT_BASE,          0,                 3,    DEV_DW_WDT_TAG},
+    {CVI_TEMPSEN_BASE,          TEMPSEN_INTR,             0,    DEV_DW_TEMPSEN_TAG},
     {0, 0, 0, 0}
 };
 

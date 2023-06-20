@@ -150,6 +150,7 @@ source_file:
   - audio/test_g711_fun.c ? <CONFIG_AUDIO_G711>
   - audio/test_aac_fun.c ? <CONFIG_AUDIO_AAC>
   - flash/*.c
+  - spinand/*.c
   - pwm/*.c
   - adc/*.c
   - disk_sd/*.c

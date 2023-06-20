@@ -71,6 +71,7 @@ typedef enum {
     SD1_INTR                        =  38U,
     SD2_INTR                        =  34U,
     WDT1_INTR                       =  58U,
+    TEMPSEN_INTR                    =  16U,
 } irqn_type_t;
 
 typedef enum {
@@ -619,6 +620,9 @@ typedef struct {
 #define CVI_WDT2_BASE                0x03012000
 #define CVI_RTC_WDT_BASE             0x0502D000
 #define CVI_WDT_SIZE                0x1000
+
+#define CVI_TEMPSEN_BASE			0x030E0000
+#define CVI_TEMPSEN_SIZE			0x10000
 
 #define DW_UART0_BASE               0x04140000UL
 #define DW_UART0_SIZE               0x1000U
