@@ -55,12 +55,25 @@ static int cli_update_norflash_by_name(int argc, char** argv) {
         goto UPDATE_ERR3;
     }
     printf("partition_info_get partitionFd[%d] success.\n", partitionFd);
-
+#if CONFIG_PARTITION_SUPPORT_EMMC
+    ret = partition_erase(partitionFd, 0x0,
+                          partitionInfo->length / partitionInfo->block_size);
+#elif CONFIG_PARTITION_SUPPORT_SPINORFLASH
     ret = partition_erase(partitionFd, 0x0,
                           partitionInfo->length / partitionInfo->sector_size);
+#else
+    ret = partition_erase(partitionFd, 0x0,
+                          partitionInfo->length / partitionInfo->sector_size);
+#endif
     if (ret != 0) {
         printf("partition_erase block %lu failed.\n",
-               partitionInfo->length / partitionInfo->sector_size);
+#if CONFIG_PARTITION_SUPPORT_EMMC
+                partitionInfo->length / partitionInfo->block_size);
+#elif CONFIG_PARTITION_SUPPORT_SPINORFLASH
+                partitionInfo->length / partitionInfo->sector_size);
+#else
+                partitionInfo->length / partitionInfo->sector_size);
+#endif
         goto UPDATE_ERR3;
     }
     printf("partition_erase success.\n");
@@ -92,8 +105,8 @@ UPDATE_ERR1:
 }
 ALIOS_CLI_CMD_REGISTER(cli_update_norflash_by_name,
                        update_by_name,
-                       update cvitek norflash by partition name);
-
+                       update cvitek norflash or emmc by partition name);
+#ifndef CONFIG_PARTITION_SUPPORT_EMMC
 static int cli_update_partition_flash(int argc, char** argv) {
     int ret = 0;
     char fileName[32] = {0};
@@ -179,10 +192,11 @@ static int cli_update_partition_flash(int argc, char** argv) {
     aos_close(readFd);
     return ret;
 }
+
 ALIOS_CLI_CMD_REGISTER(cli_update_partition_flash,
                        update_flash,
                        update cvitek norflash by partition flash);
-
+#endif
 static int cli_read_partition(int argc, char** argv) {
     if (argc != 3) {
         printf("read_partition [part name] [output]\n");

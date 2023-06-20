@@ -15,6 +15,7 @@
 #include "wifi_if.h"
 #include "ethernet_init.h"
 #include "cvi_gprs.h"
+#include <drv/tick.h>
 
 #if CONFIG_PQTOOL_SUPPORT == 1
 #include "cvi_ispd2.h"
@@ -28,8 +29,7 @@ int main(int argc, char *argv[])
 	YOC_SYSTEM_Init();
 	//board pinmux init
 	PLATFORM_IoInit();
-	//Fs init
-	YOC_SYSTEM_FsVfsInit();
+	//YOC_SYSTEM_FsVfsInit();
 	//load cfg
 	PARAM_LoadCfg();
 	//media video sys init
@@ -37,6 +37,9 @@ int main(int argc, char *argv[])
 	//custom_evenet_pre
 	//media video
 	MEDIA_VIDEO_Init();
+	printf("##cur_ms:%d\n", csi_tick_get_ms());
+	//Fs init
+	YOC_SYSTEM_FsVfsInit();
 	//gui
 #if (CONFIG_APP_GUI_SUPPORT == 1)
 	GUI_Display_Start();
