@@ -43,7 +43,6 @@ license: Apache license v2.0                        # <可选项> 源代码的�
 hw_info:
   cpu_id: cpu0
   chip_name: chip_cv181x
-  ld_script: configs/gcc_flash.ld
 ## 第四部分：编译连接信息
 # build_config:                            # <可选项> 编译配置项
 #   include:                               # <可选项> 编译时，影响编译器的-I 参数 ,全局有效
@@ -91,7 +90,7 @@ source_file:
 def_config:
   CONFIG_BOARD_CV181XC: 0
   CONFIG_BOARD_CV181XH: 1
-  CONFIG_BOARD_RUIXIANG_BOARD: 1
+#  CONFIG_BOARD_RUIXIANG_BOARD: 1
   WITH_LWIP: 1
   CONFIG_KERNEL_LWIP_HOOK: 1
   CONFIG_SYSTICK_HZ: 250

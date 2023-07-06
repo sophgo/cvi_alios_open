@@ -15,6 +15,9 @@
 #include "wifi_if.h"
 #include "ethernet_init.h"
 #include "media_nightvision.h"
+#include "yoc/netmgr.h"
+#include "uservice/uservice.h"
+#include "yoc/netmgr_service.h"
 
 #if CONFIG_PQTOOL_SUPPORT == 1
 #include "cvi_ispd2.h"
@@ -51,6 +54,22 @@ int main(int argc, char *argv[])
 	#endif
 	//cli and ulog init
 	YOC_SYSTEM_ToolInit();
+		
+#if defined(CONFIG_RNDIS_DEVICE_ETH) && CONFIG_RNDIS_DEVICE_ETH
+	extern void drv_rndis_device_eth_register(void);
+	drv_rndis_device_eth_register();
+	netmgr_dev_eth_init();
+
+	netmgr_hdl_t app_netmgr_hdl;
+	app_netmgr_hdl = netmgr_dev_eth_init();
+
+	if (app_netmgr_hdl) {
+		utask_t *task = utask_new("netmgr", 10 * 1024, QUEUE_MSG_COUNT, AOS_DEFAULT_APP_PRI);
+		netmgr_service_init(task);
+		netmgr_start(app_netmgr_hdl);
+	}
+#endif
+
 	#if (CONFIG_PQTOOL_SUPPORT == 1)
 	usleep(12 * 1000);
 	isp_daemon2_init(5566);

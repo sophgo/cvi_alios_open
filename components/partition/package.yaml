@@ -46,7 +46,14 @@ build_config:
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
 source_file:
-  - "src/*.c"
+  - "src/partition.c"
+  - "src/partition_device.c"
+  - "src/partition_eflash.c"
+  - "src/partition_flash_aos.c"
+  - "src/partition_flash.c"
+  - "src/partition_test.c"
+  - "src/verify.c"
+  - "src/partition_emmc.c ? <CONFIG_PARTITION_SUPPORT_EMMC>"
   - "mtb/*.c"
   - "utils/*.c"
 

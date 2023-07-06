@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <aos/kernel.h>
+#include <k_atomic.h>
 #include <aos/cli.h>
 #include "usbd_core.h"
 #include "usbd_video.h"
@@ -23,20 +24,24 @@
 #define MAX_FRAME_SIZE (unsigned long)(WIDTH * HEIGHT * 2)
 #define DEFAULT_FRAME_SIZE (unsigned long)(WIDTH * HEIGHT * 3 / 2)
 
-#define UVC_VENC_CHN   (0)
-#define UVC_VPSS_CHN   (0)
-#define UVC_VPSS_GRP   (0)
 
 #define MJPEG_FORMAT_INDEX  (1)
 #define H264_FORMAT_INDEX   (2)
 #define YUYV_FORMAT_INDEX   (3)
 #define NV21_FORMAT_INDEX   (4)
 
+static int UVC_VENC_CHN = 0;
+static int UVC_VPSS_CHN = 0;
+static int UVC_VPSS_GRP = 0;
+
 volatile bool tx_flag = CVI_FALSE;
 volatile bool uvc_update = CVI_FALSE;
 static int uvc_session_init_flag = CVI_FALSE;
 static aos_event_t _gslUvcEvent;
 static volatile bool g_uvc_event_flag;
+
+static atomic_t uvc_pause_flag = CVI_FALSE;
+static atomic_t uvc_pause_done = CVI_FALSE;
 
 static uint8_t *packet_buffer_uvc;
 
@@ -330,18 +335,27 @@ static void *send_to_uvc()
 	struct uvc_format_info_st uvc_format_info;
 
     while (uvc_session_init_flag) {
+
+		if (rhino_atomic_get(&uvc_pause_flag)) {
+			rhino_atomic_inc(&uvc_pause_done);
+			while (rhino_atomic_get(&uvc_pause_done)) {
+				aos_msleep(1);
+			}
+			uvc_update = 1;
+		}
+
         if (tx_flag) {
-			
+
 			if(uvc_update){
 				uvc_media_update();
 				uvc_get_video_format_info(&uvc_format_info);
 				uvc_update = 0;
 			}
 
-			
-			if(H264_FORMAT_INDEX == uvc_format_info.format_index || 
+
+			if(H264_FORMAT_INDEX == uvc_format_info.format_index ||
 				MJPEG_FORMAT_INDEX == uvc_format_info.format_index){
-				
+
 		        ret = MEDIA_VIDEO_VencGetStream(UVC_VENC_CHN,pstStream,2000);
 				if(ret != CVI_SUCCESS){
 	//				printf("MEDIA_VIDEO_VencGetStream failed\n");
@@ -366,7 +380,7 @@ static void *send_to_uvc()
 				if(ret != CVI_SUCCESS)
 					printf("MEDIA_VIDEO_VencReleaseStream failed\n");
 
-				}else 
+				}else
 			if(YUYV_FORMAT_INDEX == uvc_format_info.format_index){
 				ret = CVI_VPSS_GetChnFrame(UVC_VPSS_GRP, UVC_VPSS_CHN, pstVideoFrame, -1);
 				if(ret != CVI_SUCCESS){
@@ -380,7 +394,7 @@ static void *send_to_uvc()
 				int data_len = pstChnAttr->u32Width * 2;
 				for (i = 0;i < (pstChnAttr->u32Height); ++i)
 				{
-					memcpy(packet_buffer_media + buf_len, pstVideoFrame->stVFrame.pu8VirAddr[0] + 
+					memcpy(packet_buffer_media + buf_len, pstVideoFrame->stVFrame.pu8VirAddr[0] +
 						buf_len_stride, data_len);
 
 					buf_len += pstChnAttr->u32Width * 2;
@@ -405,7 +419,7 @@ static void *send_to_uvc()
 				int data_len = pstChnAttr->u32Width;
 				for (i = 0;i < ((pstChnAttr->u32Height * 3) >>1); ++i)
 				{
-					memcpy(packet_buffer_media + buf_len, pstVideoFrame->stVFrame.pu8VirAddr[0] + 
+					memcpy(packet_buffer_media + buf_len, pstVideoFrame->stVFrame.pu8VirAddr[0] +
 						buf_len_stride, data_len);
 					buf_len += pstChnAttr->u32Width;
 					buf_len_stride += pstVideoFrame->stVFrame.u32Stride[0];
@@ -437,7 +451,7 @@ static void *send_to_uvc()
 		}
 
     }
-	
+
     return 0;
 }
 
@@ -491,7 +505,6 @@ int MEDIA_AV_Init()
 	while (!usb_device_is_configured()) {
 		aos_msleep(100);
 	}
-	
 	uvc_session_init_flag = CVI_TRUE;
 	aos_event_new(&_gslUvcEvent, 0);
 	param.sched_priority = 31;
@@ -539,4 +552,29 @@ void av_comp_app_deinit()
 ALIOS_CLI_CMD_REGISTER(av_comp_app_init, av_comp_app_init, av_comp_app_init);
 ALIOS_CLI_CMD_REGISTER(av_comp_app_deinit, av_comp_app_deinit, av_comp_app_deinit);
 
+void av_comp_app_switch(int argc, char** argv)
+{
+	if(argc < 4){
+		printf("Usage: %s [VENC_ID] [VPSS_GrpID] [VPSS_ChnID]\n\n", argv[0]);
+		return;
+	}
 
+	rhino_atomic_inc(&uvc_pause_flag);
+	while (!rhino_atomic_get(&uvc_pause_done)) {
+		aos_msleep(1);
+	}
+
+	UVC_VENC_CHN = atoi(argv[1]);
+	UVC_VPSS_GRP = atoi(argv[2]);
+	UVC_VPSS_CHN = atoi(argv[3]);
+
+	rhino_atomic_dec(&uvc_pause_flag);
+	rhino_atomic_dec(&uvc_pause_done);
+}
+void av_comp_app_get_info(int argc, char** argv)
+{
+	printf("UVC_VENC_CHN:%d, UVC_VPSS_GRP:%d, UVC_VPSS_CHN:%d\n", UVC_VENC_CHN, UVC_VPSS_GRP, UVC_VPSS_CHN);
+}
+
+ALIOS_CLI_CMD_REGISTER(av_comp_app_switch, av_comp_app_switch, av_comp_app_switch);
+ALIOS_CLI_CMD_REGISTER(av_comp_app_get_info, av_comp_app_get_info, av_comp_app_get_info);

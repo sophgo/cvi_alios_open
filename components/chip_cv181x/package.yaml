@@ -88,7 +88,8 @@ build_config:
 # cflag: -DARCH_CV182X
   asmflag: -D__ASSEMBLY__
   internal_include:
-
+  libpath:
+    - <CONFIG_DRAM_CFG>_cfg/
   include:
     - src/sys
     - include
@@ -217,7 +218,7 @@ def_config:
   CONFIG_CSI: "csi2"
   CONFIG_CPU_C906: y
   CONFIG_ARCH_INTERRUPTSTACK: 4096
-
+  CONFIG_DRAM_CFG: "64m"
   CVI_SOC_NAME: "cv181x"
   CVI_SOC_CV181XC: 1
 

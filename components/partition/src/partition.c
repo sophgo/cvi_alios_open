@@ -179,6 +179,8 @@ partition_info_t *partition_info_get(partition_t partition)
     if (partition >= 0 && partition < g_partion_array.num && g_partion_array.scn_list[partition].flash_dev)
 #endif
     {
+        partition_device_ops_t *dev_ops = g_partion_array.scn_list[partition].flash_dev;
+        dev_ops->storage_info.area = g_partion_array.scn_list[partition].storage_info.area;
         return &g_partion_array.scn_list[partition];
     }
     return NULL;
