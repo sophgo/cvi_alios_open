@@ -8,9 +8,12 @@
  * @version  V1.0
  * @date     02. June 2017
  ******************************************************************************/
+INCLUDE cvi_memory.ld
+
+/* default DRAM 64M-256K */
 MEMORY
 {
-    DRAM   : ORIGIN = 0x80040000, LENGTH = 0x3FC0000   /* DRAM 64M-2M-256K */
+    DRAM   : ORIGIN = 0x80040000, LENGTH = DRAM_LENGTH
 }
 
 __min_heap_size = 0x200;

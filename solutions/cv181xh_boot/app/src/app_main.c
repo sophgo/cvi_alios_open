@@ -24,9 +24,9 @@
 
 void boot_load_and_jump(void)
 {
-    const char *jump_to = "prim";
-    unsigned long static_addr;
+    const char *jump_to = "prima";
     unsigned long load_addr;
+    unsigned long static_addr;
     uint32_t image_size;
     partition_t part;
     partition_info_t *part_info;
@@ -64,36 +64,26 @@ void boot_load_and_jump(void)
     DBG_PRINT("load img & jump to [%s]\n", jump_to);
     part = partition_open(jump_to);
     part_info = partition_info_get(part);
-
+    if (part_info == NULL) {
+        DBG_PRINT("partition_info_get %s err \r\n", jump_to);
+        goto fail;
+    }
     static_addr = part_info->start_addr + part_info->base_addr;
     load_addr = part_info->load_addr;
-    image_size = part_info->image_size;
-#if defined(CONFIG_OTA_AB) && (CONFIG_OTA_AB > 0)
     image_size = part_info->length;
-#endif
 
     DBG_PRINT("load&jump 0x%lx,0x%lx,%d\n", static_addr, load_addr, image_size);
-    if (static_addr != load_addr) {
-        // DBG_PRINT("start copy %d bytes\n", image_size);
-        // DBG_PRINT("##cur_ms:%d\n", csi_tick_get_ms());
-        // if (partition_read(part, 0, (void *)load_addr, image_size)) {
-        //     DBG_PRINT("part read e.\n");
-        //     goto fail;
-        // }
-        // DBG_PRINT("##cur_ms:%d\n", csi_tick_get_ms());
-        // DBG_PRINT("all copy over..\n");
-    } else {
-        DBG_PRINT("xip...\n");
-    }
     // split & decompress
     printf("##start to decompress and copy.[%d ms]\n", csi_tick_get_ms());
-    part = partition_open(jump_to);
     if (static_addr != load_addr) {
         // copy prim to ram
-        if (partition_split_and_copy(part, 0)) {
-            DBG_PRINT("decompress and copy prim bin failed.\n");
-            goto fail;
-        }
+        printf("The image_size is %d \r\n ", image_size);
+        printf("The load_addr is %ld \r\n ", load_addr);
+        partition_read(part, 0, (void *)load_addr, image_size);
+        //if (partition_split_and_copy(part, 0)) {
+        //    DBG_PRINT("decompress and copy prim bin failed.\n");
+        //    goto fail;
+        //}
     }
     partition_close(part);
     printf("##decompress and copy ok.[%d ms]\n", csi_tick_get_ms());

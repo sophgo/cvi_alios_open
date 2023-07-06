@@ -8,6 +8,7 @@
 
 /* ================ USB common Configuration ================ */
 #ifndef CONFIG_USB_PRINTF
+extern int aos_debug_printf(const char *fmt, ...);
 #define CONFIG_USB_PRINTF aos_debug_printf
 #endif
 

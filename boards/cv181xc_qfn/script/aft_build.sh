@@ -4,7 +4,8 @@ BASE_PWD=`pwd`
 MK_BOARD_PATH=$BOARD_PATH
 MK_CHIP_PATH=$CHIP_PATH
 MK_SOLUTION_PATH=$SOLUTION_PATH
-
+MK_SOLUTION_PARTITION_NAME=
+MK_OPTARG=
 echo "[INFO] Generated output files ..."
 echo $BASE_PWD
 
@@ -31,6 +32,7 @@ else
             ;;
         "a")
             # echo "the all variables from yoctools, value is $OPTARG"
+            MK_OPTARG=$OPTARG
             ;;
         "h")
             ;;
@@ -49,6 +51,7 @@ else
     PRODUCT=product
 fi
 
+MK_SOLUTION_PARTITION_NAME=$(echo ${MK_OPTARG} | grep "CONFIG_CUSTOM_PARTITION_NAME" | awk -F: '{print $2}')
 MK_GENERATED_PATH=${MK_SOLUTION_PATH}/generated
 rm -fr $MK_GENERATED_PATH
 mkdir -p $MK_GENERATED_PATH/data/
@@ -72,7 +75,15 @@ fi
 [ -f "${MK_BOARD_PATH}/bootimgs/boot0" ] && cp -arf ${MK_BOARD_PATH}/bootimgs/boot0 ${MK_GENERATED_PATH}/data/
 
 [ -f yoc.bin ] && cp -arf yoc.bin ${MK_GENERATED_PATH}/data/prim
-cp -arf ${MK_BOARD_PATH}/configs/config.yaml ${MK_GENERATED_PATH}/data/
+if [ ${MK_SOLUTION_PARTITION_NAME} != "" ]; then
+    echo "MK_SOLUTION_PARTITION_NAME is ${MK_SOLUTION_PARTITION_NAME}"
+    cp -arf ${MK_BOARD_PATH}/configs/config.yaml.${MK_SOLUTION_PARTITION_NAME} ${MK_GENERATED_PATH}/data/config.yaml
+    cp -arf ${MK_BOARD_PATH}/bootimgs/${MK_SOLUTION_PARTITION_NAME}/boot ${MK_GENERATED_PATH}/data/
+    cp -arf ${MK_BOARD_PATH}/bootimgs/${MK_SOLUTION_PARTITION_NAME}/boot0 ${MK_GENERATED_PATH}/data/
+else
+    echo "default config.yaml copy"
+    cp -arf ${MK_BOARD_PATH}/configs/config.yaml ${MK_GENERATED_PATH}/data/
+fi
 ${PRODUCT} image ${MK_GENERATED_PATH}/images.zip -i ${MK_GENERATED_PATH}/data -l -p
 ${PRODUCT} image ${MK_GENERATED_PATH}/images.zip -e ${MK_GENERATED_PATH} -x
 

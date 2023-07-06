@@ -456,7 +456,7 @@ int MEDIA_VIDEO_ViInit(PARAM_VI_CFG_S * pstViCfg)
         if (pstViCfg->bFastConverge == CVI_TRUE)
             setFastConvergeAttr(ViDev, CVI_TRUE);
     }
-    
+
     for (int i = 0; i < devNum; i++) {
         ISP_PUB_ATTR_S stPubAttr = { 0 };
 
@@ -1087,11 +1087,22 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
     }
     stAttr.stGopAttr.enGopMode = pstVecncChnCtx->stGopParam.u16gopMode;
     stAttr.stGopAttr.stNormalP.s32IPQpDelta = pstVecncChnCtx->stGopParam.s8IPQpDelta;
-    MEDIA_CHECK_RET(CVI_VENC_CreateChn(VencChn, &stAttr), "CVI_VENC_CreateChn");
 
     MEDIA_CHECK_RET(CVI_VENC_GetModParam(&stModParam), "CVI_VENC_GetModParam");
+#if(CONFIG_APP_AV_COMP_SUPPORT || CONFIG_APP_UVC_SUPPORT)
+	stModParam.enVencModType = MODTYPE_JPEGE;
+    stModParam.stJpegeModParam.enJpegeFormat = JPEGE_FORMAT_CUSTOM;
+    stModParam.stJpegeModParam.JpegMarkerOrder[0] = JPEGE_MARKER_SOI;
+    stModParam.stJpegeModParam.JpegMarkerOrder[1] = JPEGE_MARKER_JFIF;
+    stModParam.stJpegeModParam.JpegMarkerOrder[2] = JPEGE_MARKER_DQT_MERGE;
+    stModParam.stJpegeModParam.JpegMarkerOrder[3] = JPEGE_MARKER_SOF0;
+    stModParam.stJpegeModParam.JpegMarkerOrder[4] = JPEGE_MARKER_DHT_MERGE;
+    stModParam.stJpegeModParam.JpegMarkerOrder[5] = JPEGE_MARKER_DRI;
+    stModParam.stJpegeModParam.JpegMarkerOrder[6] = JPEGE_MARKER_BUTT;
+#endif
     MEDIA_CHECK_RET(CVI_VENC_SetModParam(&stModParam), "CVI_VENC_SetModParam");
 
+    MEDIA_CHECK_RET(CVI_VENC_CreateChn(VencChn, &stAttr), "CVI_VENC_CreateChn");
     MEDIA_CHECK_RET(CVI_VENC_GetRcParam(VencChn, &stRcParam), "CVI_VENC_GetRcParam");
     stRcParam.s32FirstFrameStartQp = pstVecncChnCtx->stRcParam.u16FirstFrmstartQp;
     stRcParam.s32InitialDelay = pstVecncChnCtx->stRcParam.u16InitialDelay;
@@ -1406,20 +1417,20 @@ void efuse_fastboot()
     csi_efuse_init(&efuse, 0);
     int ret = CVI_EFUSE_EnableFastBoot();
     if (ret == CVI_SUCCESS) {
-        printf("fast boot enable\n");   
+        printf("fast boot enable\n");
     }else {
         printf("CVI_EFUSE_EnableFastBoot ret=%d\n", ret);
     }
-    
+
     ret = CVI_EFUSE_IsFastBootEnabled();
     if (ret == CVI_SUCCESS) {
-        printf("fast boot enable\n");   
+        printf("fast boot enable\n");
     }
     else {
         printf("CVI_EFUSE_IsFastBootEnabled ret=%d\n", ret);
     }
 
-    csi_efuse_uninit(&efuse); 
+    csi_efuse_uninit(&efuse);
 }
 #endif
 
@@ -1494,3 +1505,39 @@ void testMedia_switch_pipeline(int32_t argc, char **argv)
 ALIOS_CLI_CMD_REGISTER(testMedia_video_init, testMedia_video_init, testMedia_video_init);
 ALIOS_CLI_CMD_REGISTER(testMedia_video_Deinit, testMedia_video_Deinit, testMedia_video_Deinit);
 ALIOS_CLI_CMD_REGISTER(testMedia_switch_pipeline, testMedia_switch_pipeline, testMedia_switch_pipeline);
+
+#if CONFIG_SENSOR_DUAL_SWITCH
+void testMedia_sensor_switch(int32_t argc, char **argv)
+{
+    CVI_S32 snsr_type;
+    CVI_U8 dev_num;
+    ISP_SNS_OBJ_S *pSnsObj;
+
+    if(argc < 2) {
+        printf("please input 0/1 chose sensor switch\n");
+        printf("testMedia_sensor_switch 0/1 \n");
+        return ;
+    }
+
+    int sns_idx = atoi(argv[1]);
+    if (sns_idx > 1 || sns_idx < 0){
+        printf("input illegal\n");
+        return ;
+    }
+
+    getSnsType(&snsr_type, &dev_num);
+    pSnsObj = getSnsObj(snsr_type);
+    if (!pSnsObj) {
+        printf("pSnsObj null, %d\n", snsr_type);
+        return;
+    }
+
+    if (pSnsObj->pfnSnsDualSwitch) {
+        pSnsObj->pfnSnsDualSwitch(sns_idx);
+    }
+    else {
+        printf("sns %d not support dual switch\n", snsr_type);
+    }
+}
+ALIOS_CLI_CMD_REGISTER(testMedia_sensor_switch, testMedia_sensor_switch, testMedia_sensor_switch);
+#endif

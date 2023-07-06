@@ -100,6 +100,10 @@ struct combo_dev_attr_s sc201cs_slave_rx_attr = {
 		.raw_data_type = RAW_DATA_10BIT,
 		.lane_id = {3, 4, -1, -1, -1},
 		.wdr_mode = CVI_MIPI_WDR_MODE_NONE,
+		.dphy = {
+			.enable = CVI_TRUE,
+			.hs_settle = 8,
+		}
 	},
 	.mclk = {
 		.cam = 1,

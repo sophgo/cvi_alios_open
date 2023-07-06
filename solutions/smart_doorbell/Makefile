@@ -15,10 +15,11 @@ PROJECT := turnkey
 startup: all
 
 all:
+	@echo "build CHIP_ARCH by $(CHIP_ARCH)"
 	@echo "Build Solution by $(BOARD) "
-	$(CPRE) if [ -e $(CURDIR)/prebuild.sh ]; then bash $(CURDIR)/prebuild.sh; fi
+	$(CPRE) if [ -e $(CURDIR)/prebuild.sh ]; then bash $(CURDIR)/prebuild.sh $(shell echo $(CHIP_ARCH) | tr A-Z a-z); fi
 	$(CPRE) if [ -e package.yaml ]; then rm -f package.yaml; fi
-	$(CPRE) ln -s package.yaml.$(PROJECT) package.yaml
+	$(CPRE) ln -s customization/$(PROJECT)/package.yaml.$(PROJECT) package.yaml
 	$(CPRE) scons $(VERB) --board=$(BOARD) -j4
 	$(CPRE) if [ -e $(CURDIR)/yoc_sdk/lib/libcviai.a ]; then $(STRIP) --strip-unneeded $(CURDIR)/yoc_sdk/lib/libcviai.a; fi
 	@cp yoc.bin $(MK_GENERATED_IMGS_PATH)/data/prim
@@ -53,7 +54,7 @@ sdk:
 .PHONY:clean
 clean:
 	$(CPRE) if [ -e package.yaml ]; then rm -f package.yaml; fi
-	$(CPRE) if [ ! -e package.yaml ]; then ln -s package.yaml.$(PROJECT) package.yaml; fi
+	$(CPRE) if [ ! -e package.yaml ]; then ln -s customization/$(PROJECT)/package.yaml.$(PROJECT) package.yaml; fi
 	$(CPRE) scons -c
 ifeq ($(OS), Windows_NT)
 	$(CPRE) if exist yoc_sdk rmdir /s /q yoc_sdk

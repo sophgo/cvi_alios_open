@@ -14,10 +14,12 @@ CC := $(HOST_TOOLS)/riscv64-unknown-elf-gcc
 CXX := $(HOST_TOOLS)/riscv64-unknown-elf-g++
 AR := $(HOST_TOOLS)/riscv64-unknown-elf-ar
 STRIP := $(HOST_TOOLS)/riscv64-unknown-elf-strip
+CHIP_ARCH := cv181x
 export CC CXX AR STRIP
 export PATH := $(HOST_TOOLS):$(PATH)
+export CHIP_ARCH
 #
-TOPSUBDIRS := smart_doorbell testsolution autotest video_doorbell SmartPad cv181x_boot peripherals_test usb_cam live_recorder_demo ipc barcode_scan huashanpi fs_demo
+TOPSUBDIRS := smart_doorbell autotest smart_pad cv181x_boot peripherals_test usb_cam ipc barcode_scan sophpi
 #
 .PHONY:all clean install $(TOPSUBDIRS)
 
@@ -41,12 +43,4 @@ clean:
 	@rm install/ -rf
 #
 install:
-	@mkdir -p install/rawiamges
-	@mkdir -p install/update
-	@cp solutions/${SRCDIR}/generated/images/*  install/rawiamges/
-	@for j in `find install/rawiamges/ -type f`;do	\
-		${Q}python3 boards/tools/common/raw2cimg.py $$j install/update `find install/rawiamges/ -name "*.xml"`; \
-	done
-	@python boards/tools/common/generate_partion_xml.py --file_path=solutions/${SRCDIR}/generated/images/config.yaml --dst_path=install/config.xml
-	cp install/rawiamges/fip.bin install/update/
-	cp `find install/rawiamges/ -name "*.xml"` install/update/
+

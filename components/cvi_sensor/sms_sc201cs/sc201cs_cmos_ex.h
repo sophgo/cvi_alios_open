@@ -21,6 +21,9 @@ extern "C" {
 
 #define syslog(level, fmt, ...)	printf(fmt, ##__VA_ARGS__)
 
+#define SC201CS_I2C_ADDR_1 0x30
+#define SC201CS_I2C_ADDR_2 0x32
+
 enum sc201cs_linear_regs_e {
 	LINEAR_SHS1_0_ADDR,
 	LINEAR_SHS1_1_ADDR,
@@ -64,6 +67,9 @@ extern ISP_SNS_STATE_S *g_pastSc201cs[VI_MAX_PIPE_NUM];
 extern ISP_SNS_COMMBUS_U g_aunSc201cs_BusInfo[];
 extern ISP_SNS_MIRRORFLIP_TYPE_E g_aeSc201cs_MirrorFip[VI_MAX_PIPE_NUM];
 extern CVI_U8 sc201cs_i2c_addr;
+extern CVI_U8 sc201cs_i2c_addr_list[];
+extern CVI_S8 sc201cs_i2c_dev_list[];
+extern CVI_U8 sc201cs_cur_idx;
 extern const CVI_U32 sc201cs_addr_byte;
 extern const CVI_U32 sc201cs_data_byte;
 extern void sc201cs_init(VI_PIPE ViPipe);
@@ -74,6 +80,7 @@ extern void sc201cs_mirror_flip(VI_PIPE ViPipe, ISP_SNS_MIRRORFLIP_TYPE_E eSnsMi
 extern int  sc201cs_write_register(VI_PIPE ViPipe, int addr, int data);
 extern int  sc201cs_read_register(VI_PIPE ViPipe, int addr);
 extern int  sc201cs_probe(VI_PIPE ViPipe);
+extern int  sc201cs_set_i2c_cfg(VI_PIPE ViPipe, CVI_U8 i2c_addr, CVI_S8 i2c_dev);
 
 #ifdef __cplusplus
 #if __cplusplus

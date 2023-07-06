@@ -11,7 +11,7 @@
 static int cli_update_norflash_by_name(int argc, char** argv) {
     int ret = 0;
     char fileName[32] = {0};
-    char writeBuf[4096] = {0};
+    char writeBuf[512] = {0};
     int writeLen = 0;
     int readFd = 0;
     partition_t partitionFd = 0;
@@ -58,9 +58,6 @@ static int cli_update_norflash_by_name(int argc, char** argv) {
 #if CONFIG_PARTITION_SUPPORT_EMMC
     ret = partition_erase(partitionFd, 0x0,
                           partitionInfo->length / partitionInfo->block_size);
-#elif CONFIG_PARTITION_SUPPORT_SPINORFLASH
-    ret = partition_erase(partitionFd, 0x0,
-                          partitionInfo->length / partitionInfo->sector_size);
 #else
     ret = partition_erase(partitionFd, 0x0,
                           partitionInfo->length / partitionInfo->sector_size);
@@ -69,8 +66,6 @@ static int cli_update_norflash_by_name(int argc, char** argv) {
         printf("partition_erase block %lu failed.\n",
 #if CONFIG_PARTITION_SUPPORT_EMMC
                 partitionInfo->length / partitionInfo->block_size);
-#elif CONFIG_PARTITION_SUPPORT_SPINORFLASH
-                partitionInfo->length / partitionInfo->sector_size);
 #else
                 partitionInfo->length / partitionInfo->sector_size);
 #endif

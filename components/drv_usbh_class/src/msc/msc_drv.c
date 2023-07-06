@@ -72,8 +72,6 @@ static int _usb_read(rvm_dev_t *dev, void *buffer, uint32_t start_block, uint32_
         ret = usbh_msc_scsi_read10(usb->msc_class, start_block, buffer, block_cnt);
     }
 
-    // printf("%s start_block %d, block_cnt %d, ret %d\r\n", __func__, start_block, block_cnt, ret);
-
     return ret;
 }
 
@@ -88,8 +86,6 @@ static int _usb_write(rvm_dev_t *dev, void *buffer, uint32_t start_block, uint32
     if (usb->msc_class) {
         ret = usbh_msc_scsi_write10(usb->msc_class, start_block, buffer, block_cnt);
     }
-
-    // printf("%s start_block %d, block_cnt %d, ret %d\r\n", __func__, start_block, block_cnt, ret);
 
     return ret;
 }

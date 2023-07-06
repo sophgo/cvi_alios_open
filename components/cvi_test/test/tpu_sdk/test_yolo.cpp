@@ -72,16 +72,15 @@ int argmax(const T *data,
           size_t len,
           size_t stride = 1)
 {
-	int maxIndex = 0;
-	for (size_t i = 1; i < len; i++)
-	{
-		int idx = i * stride;
-		if (data[maxIndex * stride] < data[idx])
-		{
-			maxIndex = i;
-		}
-	}
-	return maxIndex;
+  int maxIndex = 0;
+  float maxValue = data[0];
+  for (size_t i = 1; i < len; i++) {
+    if (data[i *stride] > maxValue) {
+      maxIndex = i;
+      maxValue = data[i * stride];
+    }   
+  }
+  return maxIndex;
 }
 
 static float sigmoid(float x)
@@ -180,49 +179,57 @@ int getDetections(detectLayer *layer,
                   int classes_num,
                   float conf_thresh,
                   std::vector<detection> &dets) {
-    CVI_TENSOR *output = layer->output;
-    float *output_ptr  = (float *)CVI_NN_TensorPtr(output);
-    int count          = 0;
-    int w_stride       = layer->bbox_len;
-    int h_stride       = layer->w * w_stride;
-    int a_stride       = layer->h * h_stride;
-    int b_stride       = layer->num_anchors * a_stride;
-    float down_stride  = input_width / layer->w;
-    for (int b = 0; b < layer->batch; b++) {
-        for (int a = 0; a < layer->num_anchors; ++a) {
-            for (int i = 0; i < layer->w * layer->h; ++i) {
-                int col          = i % layer->w;
-                int row          = i / layer->w;
-                float *obj       = output_ptr + b * b_stride + a * a_stride + row * h_stride + col * w_stride + 4;
-                float objectness = sigmoid(obj[0]);
-                float *scores    = obj + 1;
-                int category     = argmax(scores, classes_num);
-                objectness *= sigmoid(scores[category]);
-
-                if (objectness <= conf_thresh) {
-                    continue;
-                }
-
-                float x               = *(obj - 4);
-                float y               = *(obj - 3);
-                float w               = *(obj - 2);
-                float h               = *(obj - 1);
-                dets.emplace_back();
-                detection &det = dets.back();
-                det.score     = objectness;
-                det.cls       = category;
-                det.batch_idx = b;
-
-                det.bbox.x = (sigmoid(x) * 2 + col - 0.5) * down_stride;
-                det.bbox.y = (sigmoid(y) * 2 + row - 0.5) * down_stride;
-                det.bbox.w = pow(sigmoid(w) * 2, 2) * anchors_[layer->layer_idx][a][0];
-                det.bbox.h = pow(sigmoid(h) * 2, 2) * anchors_[layer->layer_idx][a][1];
-
-                ++count;
-            }
+  CVI_TENSOR *output = layer->output;
+  float *output_ptr = (float *)CVI_NN_TensorPtr(output);
+  int count = 0;
+  int w_stride = 1;
+  int h_stride = layer->w * w_stride;
+  int o_stride = layer->h * h_stride;
+  int a_stride = layer->bbox_len * o_stride;
+  int b_stride = layer->num_anchors * a_stride;
+  float down_stride = input_width / layer->w;
+  for (int b = 0; b < layer->batch; b++) {
+    for (int a = 0; a < layer->num_anchors; ++a) {
+      for (int i = 0; i < layer->w * layer->h; ++i) {
+        int col = i % layer->w;
+        int row = i / layer->w;
+        float *obj = output_ptr + b * b_stride + a * a_stride + row * h_stride +
+                     col * w_stride + 4 * o_stride;
+        float objectness = sigmoid(obj[0]);
+        if (objectness <= conf_thresh) {
+          continue;
         }
+        float *scores = obj + 1 * o_stride;
+        int category = argmax(scores, classes_num, o_stride);
+        objectness *= sigmoid(scores[category * o_stride]);
+
+        if (objectness <= conf_thresh) {
+          continue;
+        }
+        // printf("objectness:%f, score:%f\n", sigmoid(obj[0]), sigmoid(scores[category]));
+
+        float x = *(obj - 4 * o_stride);
+        float y = *(obj - 3 * o_stride);
+        float w = *(obj - 2 * o_stride);
+        float h = *(obj - 1 * o_stride);
+        detection det_obj;
+        det_obj.score = objectness;
+        det_obj.cls = category;
+        det_obj.batch_idx = b;
+
+        det_obj.bbox.x = (sigmoid(x) * 2 + col - 0.5) * down_stride;
+        det_obj.bbox.y = (sigmoid(y) * 2 + row - 0.5) * down_stride;
+        det_obj.bbox.w =
+            pow(sigmoid(w) * 2, 2) * anchors_[layer->layer_idx][a][0];
+        det_obj.bbox.h =
+            pow(sigmoid(h) * 2, 2) * anchors_[layer->layer_idx][a][1];
+        dets.emplace_back(std::move(det_obj));
+
+        ++count;
+      }
     }
-    return count;
+  }
+  return count;
 }
 
 #ifndef USE_VPSS
@@ -583,9 +590,9 @@ int test_yolo(int argc, char **argv) {
       detectLayer layer;
       layer.output = &output[i];
       layer.bbox_len = bbox_len;
-      layer.num_anchors = output_shape[i].dim[1];
+      layer.num_anchors = 3;
       layer.h = output_shape[i].dim[2];
-      layer.w = (int)(output_shape[i].dim[3] / bbox_len);
+      layer.w = output_shape[i].dim[3];
       layer.layer_idx = i;
       layers.push_back(layer);
 
@@ -601,13 +608,9 @@ int test_yolo(int argc, char **argv) {
 
     // print bbox
     for (int i = 0; i < det_num; i++) {
-      box b = dets[i].bbox;
-      // xywh2xyxy
-      int x1 = (b.x - b.w / 2);
-      int y1 = (b.y - b.h / 2);
-      int x2 = (b.x + b.w / 2);
-      int y2 = (b.y + b.h / 2);
-      printf("det object:[xywh:%d, %d, %d, %d] name:%s  confidence:%f\n", x1, y1, x2 - x1, y2 - y1, coco_names[dets[i].cls], dets[i].score);
+      printf("obj %d: [%f %f %f %f] score:%f cls:%s \n", i, dets[i].bbox.x,
+             dets[i].bbox.y, dets[i].bbox.w, dets[i].bbox.h, dets[i].score,
+             coco_names[dets[i].cls]);
     }
 
     printf("------\n");

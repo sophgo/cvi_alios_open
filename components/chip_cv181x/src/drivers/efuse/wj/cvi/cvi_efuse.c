@@ -199,13 +199,13 @@ csi_error_t cvi_efuse_sd_dl_config(enum SD_USB_UART_DL_MODE_E mode)
         switch (data) {
         case 0x0:
             break;
-        case 0x01:
+        case 0x1:
             ret = cvi_efuse_program_bit(0xb, 23);
             break;
-        case 0x10:
+        case 0x2:
             ret = cvi_efuse_program_bit(0xb, 22);
             break;
-        case 0x11:
+        case 0x3:
             break;
         default:
             ret = CSI_ERROR;
@@ -217,12 +217,12 @@ csi_error_t cvi_efuse_sd_dl_config(enum SD_USB_UART_DL_MODE_E mode)
         case 0x0:
             ret = cvi_efuse_program_bit(0xb, 22);
             break;
-        case 0x01:
+        case 0x1:
             break;
-        case 0x10:
+        case 0x2:
             ret = CSI_ERROR;
             break;
-        case 0x11:
+        case 0x3:
             ret = CSI_ERROR;
             break;
         default:
@@ -235,12 +235,12 @@ csi_error_t cvi_efuse_sd_dl_config(enum SD_USB_UART_DL_MODE_E mode)
         case 0x0:
             ret = cvi_efuse_program_bit(0xb, 23);
             break;
-        case 0x01:
+        case 0x1:
             ret = CSI_ERROR;
             break;
-        case 0x10:
+        case 0x2:
             break;
-        case 0x11:
+        case 0x3:
             ret = CSI_ERROR;
             break;
         default:
@@ -317,13 +317,13 @@ csi_error_t cvi_efuse_usb_dl_config(enum SD_USB_UART_DL_MODE_E mode)
         switch (data) {
         case 0x0:
             break;
-        case 0x01:
+        case 0x1:
             ret = cvi_efuse_program_bit(0xb, 25);
             break;
-        case 0x10:
+        case 0x2:
             ret = cvi_efuse_program_bit(0xb, 24);
             break;
-        case 0x11:
+        case 0x3:
             break;
         default:
             ret = CSI_ERROR;
@@ -335,12 +335,12 @@ csi_error_t cvi_efuse_usb_dl_config(enum SD_USB_UART_DL_MODE_E mode)
         case 0x0:
             ret = cvi_efuse_program_bit(0xb, 24);
             break;
-        case 0x01:
+        case 0x1:
             break;
-        case 0x10:
+        case 0x2:
             ret = CSI_ERROR;
             break;
-        case 0x11:
+        case 0x3:
             ret = CSI_ERROR;
             break;
         default:
@@ -353,12 +353,12 @@ csi_error_t cvi_efuse_usb_dl_config(enum SD_USB_UART_DL_MODE_E mode)
         case 0x0:
             ret = cvi_efuse_program_bit(0xb, 25);
             break;
-        case 0x01:
+        case 0x1:
             ret = CSI_ERROR;
             break;
-        case 0x10:
+        case 0x2:
             break;
-        case 0x11:
+        case 0x3:
             ret = CSI_ERROR;
             break;
         default:
@@ -390,13 +390,13 @@ csi_error_t cvi_efuse_uart_dl_config(enum SD_USB_UART_DL_MODE_E mode)
         switch (data) {
         case 0x0:
             break;
-        case 0x01:
+        case 0x1:
             ret = cvi_efuse_program_bit(0xb, 27);
             break;
-        case 0x10:
+        case 0x2:
             ret = cvi_efuse_program_bit(0xb, 26);
             break;
-        case 0x11:
+        case 0x3:
             break;
         default:
             ret = CSI_ERROR;
@@ -408,12 +408,12 @@ csi_error_t cvi_efuse_uart_dl_config(enum SD_USB_UART_DL_MODE_E mode)
         case 0x0:
             ret = cvi_efuse_program_bit(0xb, 26);
             break;
-        case 0x01:
+        case 0x1:
             break;
-        case 0x10:
+        case 0x2:
             ret = CSI_ERROR;
             break;
-        case 0x11:
+        case 0x3:
             ret = CSI_ERROR;
             break;
         default:
@@ -426,12 +426,12 @@ csi_error_t cvi_efuse_uart_dl_config(enum SD_USB_UART_DL_MODE_E mode)
         case 0x0:
             ret = cvi_efuse_program_bit(0xb, 27);
             break;
-        case 0x01:
+        case 0x1:
             ret = CSI_ERROR;
             break;
-        case 0x10:
+        case 0x2:
             break;
-        case 0x11:
+        case 0x3:
             ret = CSI_ERROR;
             break;
         default:

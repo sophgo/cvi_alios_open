@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
 #ifndef CONFIG_MAX_PARTITION_NUM
-#define CONFIG_MAX_PARTITION_NUM 12
+#define CONFIG_MAX_PARTITION_NUM 16
 #endif
 
 #ifndef CONFIG_PARITION_NO_VERIFY

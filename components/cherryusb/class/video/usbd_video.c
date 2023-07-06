@@ -314,6 +314,7 @@ static int usbd_video_control_unit_terminal_request_handler(struct usb_setup_pac
                             switch (setup->bRequest) {
                                 case VIDEO_REQUEST_SET_CUR: {
                                     uint16_t wBrightness = (uint16_t)(*data)[1] << 8 | (uint16_t)(*data)[0];
+                                    (void)wBrightness;
                                     USB_LOG_INFO("Video set brightness:%d\r\n", wBrightness);
                                 } break;
                                 case VIDEO_REQUEST_GET_CUR: {
