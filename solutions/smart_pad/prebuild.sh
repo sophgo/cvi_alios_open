@@ -1,1 +1,0 @@
-../../scripts/prebuild.sh

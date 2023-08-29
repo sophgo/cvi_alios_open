@@ -10,7 +10,7 @@ void test_tempsen(int32_t argc, char **argv)
 	unsigned int temp;
 	for (int i = 0; i < 10; ++i) {
 		temp = csi_tempsen_read_temp(&tps);
-		aos_cli_printf("temp = %d mC\n", temp);
+		printf("temp = %d mC\n", temp);
 		mdelay(1000);
 	}
 	csi_tempsen_uninit(&tps);

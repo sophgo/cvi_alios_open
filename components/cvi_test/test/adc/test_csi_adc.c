@@ -7,8 +7,8 @@ void test_adc(int32_t argc, char **argv)
 {
     /**
      * for example:
-     * testadc 0
-     * testadc 0(adc bank)
+     * testadc 0 1  # test adc, channel 1
+     * testadc 1 1  # test rtc_adc, channel 1
      */
 
     csi_adc_t adc;
@@ -18,15 +18,21 @@ void test_adc(int32_t argc, char **argv)
     #if ADC_IRQ_TEST
     static uint32_t result;
     #endif
-    if (argc < 2) {
-        aos_cli_printf("please run(example): testadc 0\r\n");
+    if (argc < 3) {
+        aos_cli_printf("please run(example): testadc 0 1\r\n");
         return;
     }
-    csi_adc_init(&adc, 0);
+
+    int chip_id = atoi(argv[1]);
+    int ch_id = atoi(argv[2]);
+
+    // enable adc chip
+    csi_adc_init(&adc, chip_id);
     #if (!ADC_IRQ_TEST)
     // csi_adc_freq_div(&adc, 3);
     // freq = csi_adc_get_freq(&adc);
-    csi_adc_channel_enable(&adc, atoi(argv[1]), true);
+    // enable adc channel
+    csi_adc_channel_enable(&adc, ch_id, true);
     csi_adc_start(&adc);
     value = csi_adc_read(&adc);
     aos_cli_printf("adc get value: %d\n", value);

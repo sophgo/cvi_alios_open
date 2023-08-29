@@ -15,6 +15,12 @@ static void _SensorPinmux()
 static void _MipiRxPinmux(void)
 {
 //mipi rx pinmux
+    PINMUX_CONFIG(PAD_MIPIRX4P, XGPIOC_3);
+    PINMUX_CONFIG(PAD_MIPIRX4N, XGPIOC_2);
+    PINMUX_CONFIG(PAD_MIPIRX3P, XGPIOC_5);
+    PINMUX_CONFIG(PAD_MIPIRX3N, XGPIOC_4);
+    PINMUX_CONFIG(PAD_MIPIRX2P, XGPIOC_7);
+    PINMUX_CONFIG(PAD_MIPIRX2N, XGPIOC_6);
 }
 
 static void _MipiTxPinmux(void)

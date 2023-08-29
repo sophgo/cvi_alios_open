@@ -1,4 +1,0 @@
-<physical_partition type="spinor">
-    <partition label="boot0" size_in_kb="800" readonly="false" file="fip_fsbl.bin"/>
-    <partition label="prim" size_in_kb="4096" file="yoc.bin" />
-</physical_partition>

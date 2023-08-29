@@ -1554,9 +1554,9 @@ status_t SD_CardInit(sd_card_t *card)
     }
 
     /* allow user select the work voltage, if not select, sdmmc will handle it automatically */
-    if (kSDMMCHOST_SupportV180 != SDMMCHOST_NOT_SUPPORT) {
-        applicationCommand41Argument |= kSD_OcrSwitch18RequestFlag;
-    }
+    // if (kSDMMCHOST_SupportV180 != SDMMCHOST_NOT_SUPPORT) {
+    //     applicationCommand41Argument |= kSD_OcrSwitch18RequestFlag;
+    // }
 
     /* Check card's supported interface condition. */
     if (kStatus_Success == SD_SendInterfaceCondition(card)) {

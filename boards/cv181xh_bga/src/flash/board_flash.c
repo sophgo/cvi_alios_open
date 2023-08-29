@@ -16,7 +16,7 @@ void board_flash_init(void)
 	rvm_hal_mmc_config_t mmc_config;
 	memset(&mmc_config, 0, sizeof(rvm_hal_mmc_config_t));
 	mmc_config.sdif = CONFIG_EMMC_SDIF;
-	mmc_config.hostVoltageWindowVCC = kMMC_VoltageWindows270to360;
+	mmc_config.hostVoltageWindowVCC = kMMC_VoltageWindow170to195;
 	mmc_config.default_busWidth = kMMC_DataBusWidth4bit;
 	mmc_config.use_default_busWidth = 1;
 	rvm_mmc_drv_register(0, &mmc_config);
