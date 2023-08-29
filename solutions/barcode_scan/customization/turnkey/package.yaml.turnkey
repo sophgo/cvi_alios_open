@@ -146,7 +146,7 @@ build_config:
 source_file:
   - application/*.c
   - application/common/src/*.c
-  - customization/turnkey/cv180xb_qfn_qfn_param/*.c
+  - customization/turnkey/cv180xb_evb_qfn_param/*.c
   - customization/turnkey/src/*.c
 
 

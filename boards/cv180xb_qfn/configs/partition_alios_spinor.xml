@@ -1,0 +1,8 @@
+<physical_partition type="spinor">
+    <partition label="boot0" size_in_kb="48" readonly="false" file="fip_fsbl.bin"/>
+    <partition label="boot" size_in_kb="128" readonly="false" file="boot"/>
+    <partition label="imtb" size_in_kb="8" file="imtb" />
+    <partition label="prim" size_in_kb="4096" file="yoc.bin" />
+    <partition label="spiffs" size_in_kb="48" file="lfs.bin" />
+</physical_partition>
+

@@ -221,7 +221,7 @@ static int rndis_data_tx(void *data, uint32_t len)
         return -1;
     }
 
-    usbh_bulk_urb_fill(&rndis_bulkout_urb, rndis_class->bulkout, data, len, 0, NULL, NULL);
+    usbh_bulk_urb_fill(&rndis_bulkout_urb, rndis_class->bulkout, data, len, 1000, NULL, NULL);
     ret = usbh_submit_urb(&rndis_bulkout_urb);
     if (ret < 0) {
         LOGE(TAG, "bulk out error,ret:%d", ret);

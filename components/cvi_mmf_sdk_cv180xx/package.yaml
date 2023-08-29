@@ -50,7 +50,7 @@ build_config:
     - include/cvi_tpu/include/bmkernel
     - include/cvi_tpu/include/cvi_kernel
     - include/cvi_tpu/include/cvikernel/cv180x
-    - include/cvi_tpu/include/cvikernel/mars
+    - include/cvi_tpu/include/cvikernel/cv181x
     - include/cvi_tpu/include/cvikernel
     - include/cvi_tpu/include/
     - include/cvi_miniz/include

@@ -143,7 +143,7 @@ void dfs_ext_mkfs()
     char *img = "mmc";
     static struct ext4_fs fs;
     static struct ext4_mkfs_info info = {
-        .block_size = 1024,
+        .block_size = 4096,
         .journal = true,
     };
 

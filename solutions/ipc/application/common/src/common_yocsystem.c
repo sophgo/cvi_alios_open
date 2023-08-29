@@ -43,11 +43,11 @@ void YOC_SYSTEM_FsVfsInit()
         //    LOGE("app", "lfs register failed(%d)", ret);
         //} else
         //    LOGE("app", "lfs register succeed.");
-        ret = aos_kv_init("kv");
-        if (ret != 0) {
-            LOGE("app", "aos_kv_init failed(%d)", ret);
-        } else
-            LOGE("app", "aos_kv_init succeed.");
+        //ret = aos_kv_init("kv");
+        //if (ret != 0) {
+        //    LOGE("app", "aos_kv_init failed(%d)", ret);
+        //} else
+        //    LOGE("app", "aos_kv_init succeed.");
     }
     else
         printf("partition_init failed! ret = %d\n" , ret);
