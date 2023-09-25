@@ -1,21 +1,3 @@
-<style>
-img[src*="#w100"] {
- width: 100%;
-}
-img[src*="#w80"] {
- width: 80%;
-}
-img[src*="#w60"] {
- width: 60%;
-}
-img[src*="#w40"] {
- width: 40%;
-}
-img[src*="#w20"] {
- width: 20%;
-}
-</style>
-
 <!-- 简体中文 | [English](README-en.md) -->
 
 # 目录
