@@ -15,6 +15,10 @@
 #include <devices/impl/net_impl.h>
 #include <devices/impl/ethernet_impl.h>
 
+#include "yoc/netmgr.h"
+#include "uservice/uservice.h"
+#include "yoc/netmgr_service.h"
+
 #if !defined(MIN)
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #endif
@@ -259,5 +263,18 @@ void drv_rndis_device_eth_register()
 
     if (ret < 0) {
         LOGI(TAG, "ether device register error");
+    }
+}
+
+void rndis_device_init()
+{
+    drv_rndis_device_eth_register();
+    netmgr_dev_eth_init();
+    netmgr_hdl_t app_netmgr_hdl;
+    app_netmgr_hdl = netmgr_dev_eth_init();
+    if (app_netmgr_hdl) {
+    	utask_t *task = utask_new("netmgr", 10 * 1024, QUEUE_MSG_COUNT, AOS_DEFAULT_APP_PRI);
+    	netmgr_service_init(task);
+    	netmgr_start(app_netmgr_hdl);
     }
 }

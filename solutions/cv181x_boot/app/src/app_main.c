@@ -80,9 +80,12 @@ void boot_load_and_jump(void)
 #if defined(CONFIG_OTA_AB) && (CONFIG_OTA_AB > 0)
     image_size = part_info->length;
 #endif
+
+#if defined(CONFIG_SECUREBOOT) && (CONFIG_SECUREBOOT > 0)
     if (security_is_tee_enabled()) {
         image_size = security_pad(image_size);
     }
+#endif
 
 #if defined(CONFIG_DEBUG) && (CONFIG_DEBUG > 0)
     printf("load&jump 0x%lx,0x%lx,%d\n", static_addr, load_addr, image_size);
@@ -96,11 +99,13 @@ void boot_load_and_jump(void)
     partition_read(part, 0, (void *)uzip_addr, image_size);
     //partition_flash_read(NULL, static_addr, (void *)uzip_addr, image_size);
 
+#if defined(CONFIG_SECUREBOOT) && (CONFIG_SECUREBOOT > 0)
     ret = dec_verify_image((void *)uzip_addr, image_size, 0, NULL);
     if (ret < 0) {
         printf("decrypt and verify %s failed : %d\n", jump_to, ret);
         return;
     }
+#endif
 
     if (memcmp((uint8_t *)(uzip_addr), "ULZ4", 4) == 0) {
         while(*(uint8_t *)(uzip_addr + 4 + i) != 0x0a)

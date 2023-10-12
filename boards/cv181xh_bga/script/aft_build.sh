@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 BASE_PWD=`pwd`
 MK_BOARD_PATH=$BOARD_PATH
@@ -90,7 +90,9 @@ ${PRODUCT} image ${MK_GENERATED_PATH}/images.zip -e ${MK_GENERATED_PATH} -x
 
 #fota image
 echo "fota image generate..."
-$PRODUCT diff -f ${MK_GENERATED_PATH}/images.zip ${MK_GENERATED_PATH}/images.zip -r -v "1.1" -o ${MK_GENERATED_PATH}/fota.bin
+if [ ${MK_SOLUTION_PARTITION_NAME} != "smart_pad" ]; then
+	$PRODUCT diff -f ${MK_GENERATED_PATH}/images.zip ${MK_GENERATED_PATH}/images.zip -r -v "1.1" -o ${MK_GENERATED_PATH}/fota.bin
+fi
 
 if [ ! -f gdbinitflash ]; then
     cp -arf $MK_BOARD_PATH/script/gdbinitflash $BASE_PWD

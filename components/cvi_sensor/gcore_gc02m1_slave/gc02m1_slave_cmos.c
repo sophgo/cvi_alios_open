@@ -73,6 +73,8 @@ static CVI_S32 cmos_get_wdr_size(VI_PIPE ViPipe, ISP_SNS_ISP_INFO_S *pstIspCfg);
 #define GC02M1_SLAVE_PAGE_0_ADDR			0xfe
 #define GC02M1_SLAVE_EXP_H_ADDR			0x03 //bit[13:8]
 #define GC02M1_SLAVE_EXP_L_ADDR			0x04
+#define GC02M1_SLAVE_DGAIN_ADDR_H		0xb1
+#define GC02M1_SLAVE_DGAIN_ADDR_L		0xb2
 
 #define GC02M1_SLAVE_AGAIN_ADDR			0xb6 //bit[4:0]
 
@@ -296,6 +298,24 @@ static CVI_U32 gain_table[] = {
 	16 * 646,
 };
 
+static CVI_U32 dgainRegValTable[] = {
+	1024,
+	2032,
+	2512,
+	3072,
+	3616,
+	4144,
+	4592,
+	5088,
+	5696,
+	6256,
+	6704,
+	7200,
+	7680,
+	8208,
+	9216,
+};
+
 
 static CVI_S32 cmos_again_calc_table(VI_PIPE ViPipe, CVI_U32 *pu32AgainLin, CVI_U32 *pu32AgainDb)
 {
@@ -323,14 +343,28 @@ static CVI_S32 cmos_again_calc_table(VI_PIPE ViPipe, CVI_U32 *pu32AgainLin, CVI_
 
 static CVI_S32 cmos_dgain_calc_table(VI_PIPE ViPipe, CVI_U32 *pu32DgainLin, CVI_U32 *pu32DgainDb)
 {
+	int i;
 	CMOS_CHECK_POINTER(pu32DgainLin);
 	CMOS_CHECK_POINTER(pu32DgainDb);
 	UNUSED(ViPipe);
+	int total = sizeof(dgainRegValTable) / sizeof(dgainRegValTable[0]);
 
-	*pu32DgainLin = 1024;
-	*pu32DgainDb = 0;
+	if (*pu32DgainLin >= dgainRegValTable[total - 1]) {
+			*pu32DgainDb = total - 1;
+			*pu32DgainLin = dgainRegValTable[total - 1];
+			return CVI_SUCCESS;
+	}
+
+	for (i = 0; i < total; i++) {
+			if (*pu32DgainLin < dgainRegValTable[i]) {
+					*pu32DgainDb = i - 1;
+					break;
+			}
+	}
+	*pu32DgainLin = dgainRegValTable[i - 1];
 	return CVI_SUCCESS;
 }
+
 
 static CVI_S32 cmos_gains_update(VI_PIPE ViPipe, CVI_U32 *pu32Again, CVI_U32 *pu32Dgain)
 {
@@ -339,6 +373,7 @@ static CVI_S32 cmos_gains_update(VI_PIPE ViPipe, CVI_U32 *pu32Again, CVI_U32 *pu
 	ISP_SNS_STATE_S *pstSnsState = CVI_NULL;
 	ISP_SNS_REGS_INFO_S *pstSnsRegsInfo = CVI_NULL;
 	CVI_U32 u32Again;
+	CVI_U32 u32Dgain;
 
 	GC02M1_SLAVE_SENSOR_GET_CTX(ViPipe, pstSnsState);
 	CMOS_CHECK_POINTER(pstSnsState);
@@ -347,9 +382,12 @@ static CVI_S32 cmos_gains_update(VI_PIPE ViPipe, CVI_U32 *pu32Again, CVI_U32 *pu
 	pstSnsRegsInfo = &pstSnsState->astSyncInfo[0].snsCfg;
 	/* only surpport linear mode */
 	u32Again = pu32Again[0];
+	u32Dgain = pu32Dgain[0];
 
 	if (pstSnsState->enWDRMode == WDR_MODE_NONE) {
 		pstSnsRegsInfo->astI2cData[LINEAR_AGAIN].u32Data = regValTable[u32Again];
+		pstSnsRegsInfo->astI2cData[LINEAR_DGAIN_H].u32Data = dgainRegValTable[u32Dgain] >> 8;
+		pstSnsRegsInfo->astI2cData[LINEAR_DGAIN_L].u32Data = dgainRegValTable[u32Dgain] & 0xff;
 	} else {
 		CVI_TRACE_SNS(CVI_DBG_ERR, "Unsupport WDRMode: %d\n", pstSnsState->enWDRMode);
 		return CVI_FAILURE;
@@ -541,6 +579,8 @@ static CVI_S32 cmos_get_sns_regs_info(VI_PIPE ViPipe, ISP_SNS_SYNC_INFO_S *pstSn
 		pstI2c_data[LINEAR_EXP_H].u32RegAddr = GC02M1_SLAVE_EXP_H_ADDR;
 		pstI2c_data[LINEAR_EXP_L].u32RegAddr = GC02M1_SLAVE_EXP_L_ADDR;
 		pstI2c_data[LINEAR_AGAIN].u32RegAddr = GC02M1_SLAVE_AGAIN_ADDR;
+	 	pstI2c_data[LINEAR_DGAIN_H].u32RegAddr = GC02M1_SLAVE_DGAIN_ADDR_H;
+		pstI2c_data[LINEAR_DGAIN_L].u32RegAddr = GC02M1_SLAVE_DGAIN_ADDR_L;
 		pstI2c_data[LINEAR_VTS_H].u32RegAddr = GC02M1_SLAVE_VTS_H_ADDR;
 		pstI2c_data[LINEAR_VTS_L].u32RegAddr = GC02M1_SLAVE_VTS_L_ADDR;
 		pstI2c_data[LINEAR_MIRROR_FLIP].u32RegAddr = GC02M1_SLAVE_MIRROR_FLIP_ADDR;
@@ -558,7 +598,7 @@ static CVI_S32 cmos_get_sns_regs_info(VI_PIPE ViPipe, ISP_SNS_SYNC_INFO_S *pstSn
 			if (pstCfg0->snsCfg.astI2cData[i].u32Data == pstCfg1->snsCfg.astI2cData[i].u32Data) {
 				pstCfg0->snsCfg.astI2cData[i].bUpdate = CVI_FALSE;
 			} else {
-				if ((i == LINEAR_AGAIN))
+				if ((i == LINEAR_AGAIN) || (i == LINEAR_DGAIN_H) || (i == LINEAR_DGAIN_L))
 					gainsUpdate = 1;
 
 				if (i <= LINEAR_EXP_L && i >= LINEAR_EXP_H)
@@ -574,6 +614,8 @@ static CVI_S32 cmos_get_sns_regs_info(VI_PIPE ViPipe, ISP_SNS_SYNC_INFO_S *pstSn
 
 		if (gainsUpdate) {
 			pstCfg0->snsCfg.astI2cData[LINEAR_AGAIN].bUpdate = CVI_TRUE;
+			pstCfg0->snsCfg.astI2cData[LINEAR_DGAIN_H].bUpdate = CVI_TRUE;
+			pstCfg0->snsCfg.astI2cData[LINEAR_DGAIN_L].bUpdate = CVI_TRUE;
 		}
 		if (shutterUpdate) {
 			pstCfg0->snsCfg.astI2cData[LINEAR_EXP_H].bUpdate = CVI_TRUE;
