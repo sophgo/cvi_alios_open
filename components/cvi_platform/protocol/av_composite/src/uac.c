@@ -5,7 +5,7 @@
 #include "usbd_core.h"
 #include "usbd_audio.h"
 #include "cvi_type.h"
-#include "ringfifo.h" 
+#include "ringfifo.h"
 #include "audio.h"
 #include "uac.h"
 #include "uac_descriptor.h"
@@ -59,7 +59,7 @@ void usbd_audio_open(uint8_t intf)
     // FIXME: interface number is hard-coded
     if (intf == 3) {
         rx_flag = 1;
-        usbd_ep_start_read(AUDIO_OUT_EP, out_buffer, 16);
+        usbd_ep_start_read(AUDIO_OUT_EP, out_buffer, AUDIO_OUT_PACKET);
         ep_rx_busy_flag = false;
     } else {
         tx_flag = 1;
@@ -122,7 +122,7 @@ void usbd_audio_in_callback(uint8_t ep, uint32_t nbytes)
     ep_tx_busy_flag = false;
 }
 
-int uac_ringfifo_init(void) 
+int uac_ringfifo_init(void)
 {
     for (int i = 0; i<2; i++) {
         f_lock[i] = (pthread_mutex_t *)aos_malloc(sizeof(pthread_mutex_t));

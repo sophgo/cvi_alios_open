@@ -62,6 +62,11 @@
 #error "please select CONFIG_USB_DWC2_PORT with FS_PORT or HS_PORT"
 #endif
 
+// TODO
+#if ((CONFIG_USB_DWC2_DMA_ENABLE) && (CONFIG_RNDIS_DEVICE_ETH))
+#error "FIXME: Rndis currently does not support dma mode."
+#endif
+
 #if CONFIG_USB_DWC2_PORT == FS_PORT
 #ifndef USBD_IRQHandler
 #define USBD_IRQHandler OTG_FS_IRQHandler
@@ -124,7 +129,7 @@
 
 // #define CONFIG_USB_DWC2_DMA_ENABLE
 
-#ifdef CONFIG_USB_DWC2_DMA_ENABLE
+#if CONFIG_USB_DWC2_DMA_ENABLE
 #if defined(STM32F7) || defined(STM32H7)
 #warning "if you enable dcache,please add .nocacheble section in your sct or ld or icf"
 #endif
@@ -211,7 +216,7 @@ void usbd_dump_reg_info()
     aos_debug_printf("doepctl:%08x\n", USB_OTG_OUTEP(ep_idx)->DOEPCTL);
     aos_debug_printf("ods:%08x ids:%08x sp:%08x\n",USB_OTG_OUTEP(ep_idx)->DOEPTSIZ,USB_OTG_OUTEP(3)->DOEPTSIZ,USB_OTG_GLB->GRXSTSR);
      aos_debug_printf("GINTSTS :%08x \r\n",USB_OTG_GLB->GINTSTS);
-    
+
     // aos_debug_printf("rx fifo info:%08x\n", USB_OTG_GLB->GRXSTSP);
 }
 
@@ -425,7 +430,7 @@ static void dwc2_ep0_start_read_setup(uint8_t *psetup)
     USB_OTG_OUTEP(0U)->DOEPTSIZ |= (3U * 8U);
     USB_OTG_OUTEP(0U)->DOEPTSIZ |= USB_OTG_DOEPTSIZ_STUPCNT;
 
-#ifdef CONFIG_USB_DWC2_DMA_ENABLE
+#if CONFIG_USB_DWC2_DMA_ENABLE
     USB_OTG_OUTEP(0U)->DOEPDMA = (intptr_t)psetup;
     /* EP enable */
     //USB_OTG_OUTEP(0U)->DOEPCTL |= USB_OTG_DOEPCTL_CNAK;
@@ -662,7 +667,7 @@ int usb_dc_init(void)
     USB_OTG_GLB->GINTMSK = USB_OTG_GINTMSK_USBRST | USB_OTG_GINTMSK_ENUMDNEM |
                            USB_OTG_GINTMSK_OEPINT | USB_OTG_GINTMSK_IEPINT |
                            USB_OTG_GINTMSK_IISOIXFRM | USB_OTG_GINTMSK_PXFRM_IISOOXFRM;
-#ifdef CONFIG_USB_DWC2_DMA_ENABLE
+#if CONFIG_USB_DWC2_DMA_ENABLE
     USB_OTG_GLB->GAHBCFG |= USB_OTG_GAHBCFG_HBSTLEN_2;
     USB_OTG_GLB->GAHBCFG |= USB_OTG_GAHBCFG_DMAEN;
 #else
@@ -913,7 +918,7 @@ int usbd_ep_set_stall(const uint8_t ep)
         }
         USB_OTG_INEP(ep_idx)->DIEPCTL |= USB_OTG_DIEPCTL_STALL;
     }
-#ifdef CONFIG_USB_DWC2_DMA_ENABLE
+#if CONFIG_USB_DWC2_DMA_ENABLE
     if (ep_idx == 0) {
         dwc2_ep0_start_read_setup((uint8_t *)&g_dwc2_udc.setup);
     }
@@ -960,7 +965,7 @@ int usbd_ep_start_write(const uint8_t ep, const uint8_t *data, uint32_t data_len
     if (!g_dwc2_udc.in_ep[ep_idx].ep_enable) {
         return -2;
     }
-#ifdef CONFIG_USB_DWC2_DMA_ENABLE
+#if CONFIG_USB_DWC2_DMA_ENABLE
     if ((intptr_t)data & (CONFIG_USB_ALIGN_SIZE - 1)) {
         USB_LOG_ERR("DWC2 DMA write address NOT aligned, address:%p\n", data);
         return -3;
@@ -1013,7 +1018,7 @@ int usbd_ep_start_write(const uint8_t ep, const uint8_t *data, uint32_t data_len
         }
     }
 
-#ifdef CONFIG_USB_DWC2_DMA_ENABLE
+#if CONFIG_USB_DWC2_DMA_ENABLE
     USB_OTG_INEP(ep_idx)->DIEPDMA = (intptr_t)data;
     csi_dcache_clean_range( (uint64_t *)data,
                         roundup(data_len, 64 /* ARCH_DMA_MINALIGN */));
@@ -1026,7 +1031,7 @@ int usbd_ep_start_write(const uint8_t ep, const uint8_t *data, uint32_t data_len
     USB_OTG_INEP(ep_idx)->DIEPCTL &= ~(USB_OTG_DIEPCTL_EPDIS | USB_OTG_DIEPCTL_SNAK);
     USB_OTG_INEP(ep_idx)->DIEPCTL |= (USB_OTG_DIEPCTL_CNAK | USB_OTG_DIEPCTL_EPENA);
 
-#ifndef CONFIG_USB_DWC2_DMA_ENABLE
+#if (!CONFIG_USB_DWC2_DMA_ENABLE)
     /* Enable the Tx FIFO Empty Interrupt for this EP */
     if (data_len > 0U) {
         USB_OTG_DEV->DIEPEMPMSK |= 1UL << (ep_idx & 0x0f);
@@ -1066,7 +1071,7 @@ int usbd_ep_start_read(const uint8_t ep, uint8_t *data, uint32_t data_len)
         if (data_len > g_dwc2_udc.out_ep[ep_idx].ep_mps) {
             data_len = g_dwc2_udc.out_ep[ep_idx].ep_mps;
         }
-        g_dwc2_udc.in_ep[ep_idx].xfer_len = data_len;
+        g_dwc2_udc.out_ep[ep_idx].xfer_len = data_len;
         USB_OTG_OUTEP(ep_idx)->DOEPTSIZ |= (USB_OTG_DOEPTSIZ_PKTCNT & (1U << 19));
         USB_OTG_OUTEP(ep_idx)->DOEPTSIZ |= (USB_OTG_DOEPTSIZ_XFRSIZ & data_len);
     } else {
@@ -1076,7 +1081,7 @@ int usbd_ep_start_read(const uint8_t ep, uint8_t *data, uint32_t data_len)
         USB_OTG_OUTEP(ep_idx)->DOEPTSIZ |= (USB_OTG_DOEPTSIZ_XFRSIZ & data_len);
     }
 
-#ifdef CONFIG_USB_DWC2_DMA_ENABLE
+#if CONFIG_USB_DWC2_DMA_ENABLE
     if (((intptr_t)data) & (CONFIG_USB_ALIGN_SIZE - 1)) {
         USB_LOG_ERR("DWC2 DMA read address NOT aligned, original address:%p, temp buffer:%p\n", data, read_buffer);
         data = read_buffer;
@@ -1109,7 +1114,7 @@ int usbd_ep_start_read(const uint8_t ep, uint8_t *data, uint32_t data_len)
 void USBD_IRQHandler(void)
 {
     uint32_t gint_status, temp, ep_idx, ep_intr, epint,daintmask;
-#ifndef CONFIG_USB_DWC2_DMA_ENABLE
+#if (!CONFIG_USB_DWC2_DMA_ENABLE)
     uint32_t read_count;
 #endif
     gint_status = dwc2_get_glb_intstatus();
@@ -1120,7 +1125,7 @@ void USBD_IRQHandler(void)
             return;
         }
 
-#ifndef CONFIG_USB_DWC2_DMA_ENABLE
+#if (!CONFIG_USB_DWC2_DMA_ENABLE)
         /* Handle RxQLevel Interrupt */
         if (gint_status & USB_OTG_GINTSTS_RXFLVL) {
             USB_MASK_INTERRUPT(USB_OTG_GLB, USB_OTG_GINTSTS_RXFLVL);
@@ -1154,10 +1159,10 @@ void USBD_IRQHandler(void)
                     if ((epint & USB_OTG_DOEPINT_XFRC) == USB_OTG_DOEPINT_XFRC) {
                         if (ep_idx == 0) {
                             if (g_dwc2_udc.out_ep[ep_idx].xfer_len == 0) {
-                            //     if((epint & USB_OTG_DOEPINT_STUP) == USB_OTG_DOEPINT_STUP 
+                            //     if((epint & USB_OTG_DOEPINT_STUP) == USB_OTG_DOEPINT_STUP
                             //         || ((epint & USB_OTG_DOEPINT_STUP) != USB_OTG_DOEPINT_STUP && (epint & USB_OTG_DOEPINT_STPKTRX) == USB_OTG_DOEPINT_STPKTRX )){
-                            //             #ifdef CONFIG_USB_DWC2_DMA_ENABLE
-                            //             csi_dcache_invalid_range((uint64_t *)&g_dwc2_udc.setup,roundup(sizeof(g_dwc2_udc.setup),64));    
+                            //             #if CONFIG_USB_DWC2_DMA_ENABLE
+                            //             csi_dcache_invalid_range((uint64_t *)&g_dwc2_udc.setup,roundup(sizeof(g_dwc2_udc.setup),64));
                             //             #endif
                             //             usbd_event_ep0_setup_complete_handler((uint8_t *)&g_dwc2_udc.setup);
                             //         }else{
@@ -1173,14 +1178,14 @@ void USBD_IRQHandler(void)
                             } else {
                                 g_dwc2_udc.out_ep[ep_idx].actual_xfer_len = g_dwc2_udc.out_ep[ep_idx].xfer_len - ((USB_OTG_OUTEP(ep_idx)->DOEPTSIZ) & USB_OTG_DOEPTSIZ_XFRSIZ);
                                 g_dwc2_udc.out_ep[ep_idx].xfer_len = 0;
-                                #ifdef CONFIG_USB_DWC2_DMA_ENABLE
-                            
+                                #if CONFIG_USB_DWC2_DMA_ENABLE
+
                                 if (USB_OTG_OUTEP(ep_idx)->DOEPDMA !=
                                     roundup((intptr_t)g_dwc2_udc.out_ep[ep_idx].xfer_buf + g_dwc2_udc.out_ep[ep_idx].actual_xfer_len, 4)) {
                                     csi_dcache_invalid_range((void *)(uint64_t)USB_OTG_OUTEP(ep_idx)->DOEPDMA,roundup(g_dwc2_udc.out_ep[ep_idx].actual_xfer_len, 64 /* ARCH_DMA_MINALIGN */));
                                     memcpy(g_dwc2_udc.out_ep[ep_idx].xfer_buf, (void *)(uint64_t)USB_OTG_OUTEP(ep_idx)->DOEPDMA,
                                         g_dwc2_udc.out_ep[ep_idx].actual_xfer_len);
-                                    
+
                                     USB_LOG_INFO("[%s:%d] %p, %08x, %u\n", __FUNCTION__, __LINE__,
                                         g_dwc2_udc.out_ep[ep_idx].xfer_buf, USB_OTG_OUTEP(ep_idx)->DOEPDMA,
                                         g_dwc2_udc.out_ep[ep_idx].actual_xfer_len);
@@ -1194,7 +1199,7 @@ void USBD_IRQHandler(void)
                             g_dwc2_udc.out_ep[ep_idx].actual_xfer_len = g_dwc2_udc.out_ep[ep_idx].xfer_len - ((USB_OTG_OUTEP(ep_idx)->DOEPTSIZ) & USB_OTG_DOEPTSIZ_XFRSIZ);
                             g_dwc2_udc.out_ep[ep_idx].xfer_len = 0;
 
-                            #ifdef CONFIG_USB_DWC2_DMA_ENABLE
+                            #if CONFIG_USB_DWC2_DMA_ENABLE
                             if (USB_OTG_OUTEP(ep_idx)->DOEPDMA !=
                                 roundup((intptr_t)g_dwc2_udc.out_ep[ep_idx].xfer_buf + g_dwc2_udc.out_ep[ep_idx].actual_xfer_len, 4)) {
                                 csi_dcache_invalid_range((void *)(uint64_t)USB_OTG_OUTEP(ep_idx)->DOEPDMA,roundup(g_dwc2_udc.out_ep[ep_idx].actual_xfer_len, 64 /* ARCH_DMA_MINALIGN */));
@@ -1210,7 +1215,7 @@ void USBD_IRQHandler(void)
                     }
 
                     if ((epint & USB_OTG_DOEPINT_STUP) == USB_OTG_DOEPINT_STUP) {
-                        #ifdef CONFIG_USB_DWC2_DMA_ENABLE
+                        #if CONFIG_USB_DWC2_DMA_ENABLE
                         csi_dcache_invalid_range( (uint64_t *)&g_dwc2_udc.setup,
                                                 roundup(sizeof(g_dwc2_udc.setup), 64 /* ARCH_DMA_MINALIGN */));
                         #endif
@@ -1247,7 +1252,7 @@ void USBD_IRQHandler(void)
                                 dwc2_ep0_start_read_setup((uint8_t *)&g_dwc2_udc.setup);
                             }
                         } else {
-                            
+
                             g_dwc2_udc.in_ep[ep_idx].actual_xfer_len = g_dwc2_udc.in_ep[ep_idx].xfer_len - ((USB_OTG_INEP(ep_idx)->DIEPTSIZ) & USB_OTG_DIEPTSIZ_XFRSIZ);
                             g_dwc2_udc.in_ep[ep_idx].xfer_len = 0;
                             usbd_event_ep_in_complete_handler(ep_idx | 0x80, g_dwc2_udc.in_ep[ep_idx].actual_xfer_len);
@@ -1320,7 +1325,7 @@ void USBD_IRQHandler(void)
         if (gint_status & USB_OTG_GINTSTS_SOF) {
             USB_OTG_GLB->GINTSTS |= USB_OTG_GINTSTS_SOF;
         }
-        
+
         if (gint_status & USB_OTG_GINTSTS_PXFR_INCOMPISOOUT) {
 
             daintmask = USB_OTG_DEV->DAINTMSK;
@@ -1341,10 +1346,10 @@ void USBD_IRQHandler(void)
                     USB_OTG_OUTEP(ep_idx)->DOEPCTL |= USB_OTG_DOEPCTL_SODDFRM;
                 }
           }
-          
+
             USB_OTG_GLB->GINTSTS |= USB_OTG_GINTSTS_PXFR_INCOMPISOOUT;
         }
-        
+
         if (gint_status & USB_OTG_GINTSTS_IISOIXFR) {
 
             daintmask = USB_OTG_DEV->DAINTMSK;
@@ -1368,7 +1373,7 @@ void USBD_IRQHandler(void)
           }
              USB_OTG_GLB->GINTSTS |= USB_OTG_GINTSTS_IISOIXFR;
          }
-       
+
         if (gint_status & USB_OTG_GINTSTS_USBSUSP) {
             USB_OTG_GLB->GINTSTS |= USB_OTG_GINTSTS_USBSUSP;
         }
@@ -1385,4 +1390,3 @@ void USBD_IRQHandler(void)
     }
 }
 
- 

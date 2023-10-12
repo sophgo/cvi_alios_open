@@ -53,7 +53,7 @@ static const GC02M1_SLAVE_MODE_S g_astGc02m1_Slave_mode[GC02M1_SLAVE_MODE_NUM] =
 		},
 		.stDgain[0] = {
 			.u32Min = 1024,
-			.u32Max = 1024,
+			.u32Max = 9216,
 			.u32Def = 1024,
 			.u32Step = 1,
 		},
@@ -94,7 +94,7 @@ static const GC02M1_SLAVE_MODE_S g_astGc02m1_Slave_mode[GC02M1_SLAVE_MODE_NUM] =
 		},
 		.stDgain[0] = {
 			.u32Min = 1024,
-			.u32Max = 1024,
+			.u32Max = 9216,
 			.u32Def = 1024,
 			.u32Step = 1,
 		},
