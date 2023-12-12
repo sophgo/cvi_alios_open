@@ -86,6 +86,7 @@ source_file:
   - test/tydb_adb/*.c ? <CONFIG_SUPPORT_TEST_TYDB_ADB>
   - test/ramfs/*.c ? <CONFIG_SUPPORT_TEST_RAMFS>
   - test/tempsen/*.c ? <CONFIG_SUPPORT_TEMPSEN_TEST>
+  - test/usb/usbd_cdc_acm_test.c ? <CONFIG_USBD_CDC_ACM_UART>
 # - ./hichannel_test/
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项

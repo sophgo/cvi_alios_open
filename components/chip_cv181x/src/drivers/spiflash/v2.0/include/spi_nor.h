@@ -189,6 +189,8 @@ struct flash_info {
 #define SECT_4K			BIT(15)
 #define NOR_4B_OPCODES		BIT(16)
 #define _10_DUMMY_CYCLE          BIT(17)
+#define NO_QE			BIT(18)
+#define ADJUST_DUMMY		BIT(19)
 
 #define RD_FULL			(RD_SINGLE | RD_DUAL | RD_DUALIO |\
 		RD_QUAD | RD_QUADIO)

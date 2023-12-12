@@ -650,18 +650,18 @@ void dump_vi_register(int32_t argc, char **argv)
 
 ALIOS_CLI_CMD_REGISTER(dump_vi_register, dump_vi_register, dump vi register function);
 
-static int call_back_test0(uint64_t data)
+static int call_back_test0(VI_SYNC_TASK_DATA_S *data)
 {
-	int local_data = data;
+	int local_data = data->ViPipe;
 
 	aos_debug_printf("call_back_test0 0x%x\n", local_data);
 
 	return 0;
 }
 
-static int call_back_test1(uint64_t data)
+static int call_back_test1(VI_SYNC_TASK_DATA_S *data)
 {
-	int local_data = data;
+	int local_data = data->ViPipe;
 
 	aos_debug_printf("call_back_test1 0x%x\n", local_data);
 

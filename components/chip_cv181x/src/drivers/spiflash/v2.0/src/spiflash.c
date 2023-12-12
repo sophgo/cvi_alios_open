@@ -17,9 +17,12 @@ int hal_spiflash_init(void)
 
 	if (spif->io_base == NULL)
 		spif->io_base = (void *)SPI_NOR_REGBASE;
-
+#ifdef	CONFIG_HS_SPEED_SUPPORT_SPINORFLASH
+	cvi_spif_clk_setup(spif, 0);
+#else
 	/* set clk to 75M */
 	cvi_spif_clk_setup(spif, 1);
+#endif
 	cvi_spif_setup_flash(spif);
 
 	if (spi_nor_rescan(&spif->nor)) {

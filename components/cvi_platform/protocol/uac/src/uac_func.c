@@ -5,20 +5,20 @@
 #include "usbd_core.h"
 #include "usbd_audio.h"
 #include "cvi_type.h"
-#include "ringfifo.h" 
+#include "ringfifo.h"
 #include "audio.h"
 
 #ifdef DUMP_PCM_RAW_DATA
 #include "fatfs_vfs.h"
 #include "vfs.h"
-#endif 
+#endif
 
 #define USBD_VID           0xffff
 #define USBD_PID           0xffff
 #define USBD_MAX_POWER     100
 #define USBD_LANGID_STRING 1033
 
-#ifdef CONFIG_USB_HS
+#if CONFIG_USB_HS
 #define EP_INTERVAL 0x04
 #else
 #define EP_INTERVAL 0x01
@@ -124,7 +124,7 @@ const uint8_t audio_descriptor[] = {
     '0', 0x00,                  /* wcChar7 */
     '0', 0x00,                  /* wcChar8 */
     '1', 0x00,                  /* wcChar9 */
-#ifdef CONFIG_USB_HS
+#if CONFIG_USB_HS
     ///////////////////////////////////////
     /// device qualifier descriptor
     ///////////////////////////////////////
@@ -187,7 +187,7 @@ void usbd_audio_close(uint8_t intf)
     }
 }
 
-#ifdef CONFIG_USB_HS
+#if CONFIG_USB_HS
 #define AUDIO_OUT_EP_MPS 512
 #else
 #define AUDIO_OUT_EP_MPS 64
@@ -256,7 +256,7 @@ void uac_audio_init()
 
 
 
-int uac_ringfifo_init(void) 
+int uac_ringfifo_init(void)
 {
     for (int i = 0; i<2; i++) {
         f_lock[i] = (pthread_mutex_t *)aos_malloc(sizeof(pthread_mutex_t));
@@ -476,7 +476,7 @@ static void audio_write(void *arg)
             if (ret == 0) {
                 //aos_debug_printf("uac_dequeue speaker fail\r\n");
                 aos_msleep(1);
-                continue;            
+                continue;
             }
             audio_pcm_write(buf,ret);
 

@@ -233,7 +233,7 @@ void uvc_media_update(){
 		MEDIA_VIDEO_VencInit(pstVencCfg);
 }
 
-void uvc_streaming_on(int is_on) {
+void uvc_streaming_on(uint8_t intf, int is_on) {
 //    aos_debug_printf("streaming %s\n", is_on ? "on" : "off");
 
     tx_flag = is_on;

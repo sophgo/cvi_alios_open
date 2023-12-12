@@ -288,6 +288,8 @@ typedef struct _WBInfo {
 	CVI_BOOL bStable;
 	CVI_BOOL bEnableSmoothAWB;
 	CVI_U8 u8Saturation[4];
+	CVI_U8 u8AdjCASaturation;
+	CVI_U8 u8AdjCASatLuma;
 } sWBInfo;
 
 typedef enum _AWB_POINT_TYPE {
@@ -374,6 +376,21 @@ struct ST_SSKY_RB {
 	CVI_U16 b_max;
 	CVI_U16 b_min;
 };
+
+typedef struct _ZONE_INFO {
+	CVI_U64 u64MaxZoneRgain;
+	CVI_U64 u64MaxZoneGgain;
+	CVI_U64 u64MaxZoneBgain;
+	CVI_U64 u64MaxBinTotalWeight;
+	CVI_U64 u64MaxGrayTotalCnt;
+	CVI_U64 u64MaxSumInx;
+	CVI_U64 u64SubZoneRgain;
+	CVI_U64 u64SubZoneGgain;
+	CVI_U64 u64SubZoneBgain;
+	CVI_U64 u64SubBinTotalWeight;
+	CVI_U64 u64SubGrayTotalCnt;
+	CVI_U64 u64SubSumInx;
+} stZone_Info;
 
 CVI_S32 awbInit(VI_PIPE ViPipe, const ISP_AWB_PARAM_S *pstAwbParam);
 

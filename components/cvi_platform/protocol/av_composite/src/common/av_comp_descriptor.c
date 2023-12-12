@@ -5,6 +5,8 @@
 #include "uac_descriptor.h"
 #include "io.h"
 
+#include "multi_av_composite.h"
+
 /* --------------------------------------------------------------------------
  * Device descriptor
  */
@@ -37,7 +39,11 @@ struct usb_config_descriptor uvc_config_descriptor = {
     .bLength                = USB_DT_CONFIG_SIZE,
     .bDescriptorType        = USB_DT_CONFIG,
     .wTotalLength           = 0, /* dynamic */
+#ifdef CONFIG_MULTI_AV_COMP_SUPPORT
+    .bNumInterfaces         = 9,
+#else
     .bNumInterfaces         = 5,
+#endif
     .bConfigurationValue    = 1,
     .iConfiguration         = 0,
     .bmAttributes           = USB_CONFIG_ATT_ONE,
@@ -57,7 +63,7 @@ static const struct UVC_HEADER_DESCRIPTOR(1) uvc_control_header = {
     .baInterfaceNr[0]    = 0, /* dynamic */
 };
 
-static const struct uvc_camera_terminal_descriptor uvc_camera_terminal = {
+static struct uvc_camera_terminal_descriptor uvc_camera_terminal = {
     .bLength        = UVC_DT_CAMERA_TERMINAL_SIZE(3),
     .bDescriptorType    = USB_DT_CS_INTERFACE,
     .bDescriptorSubType    = UVC_VC_INPUT_TERMINAL,
@@ -74,7 +80,7 @@ static const struct uvc_camera_terminal_descriptor uvc_camera_terminal = {
     .bmControls[2]        = 0,
 };
 
-static const struct uvc_processing_unit_descriptor uvc_processing = {
+static struct uvc_processing_unit_descriptor uvc_processing = {
     .bLength        = UVC_DT_PROCESSING_UNIT_SIZE(2),
     .bDescriptorType    = USB_DT_CS_INTERFACE,
     .bDescriptorSubType    = UVC_VC_PROCESSING_UNIT,
@@ -88,7 +94,7 @@ static const struct uvc_processing_unit_descriptor uvc_processing = {
     .bmVideoStandards   = 0,
 };
 
-static const struct uvc_output_terminal_descriptor uvc_output_terminal = {
+static struct uvc_output_terminal_descriptor uvc_output_terminal = {
     .bLength        = UVC_DT_OUTPUT_TERMINAL_SIZE,
     .bDescriptorType    = USB_DT_CS_INTERFACE,
     .bDescriptorSubType    = UVC_VC_OUTPUT_TERMINAL,
@@ -232,9 +238,41 @@ struct uvc_format_framebased uvc_format_h264 = {
     .bVariableSize      = 1,
 };
 
+struct uvc_format_framebased uvc_format_h265 = {
+    .bLength            = UVC_DT_FORMAT_FRAMEBASED_SIZE,
+    .bDescriptorType    = USB_DT_CS_INTERFACE,
+    .bDescriptorSubType = UVC_VS_FORMAT_FRAME_BASED,
+    .bFormatIndex           = 0, /* dynamic */
+    .bNumFrameDescriptors   = 0,/* dynamic */
+    .guidFormat         = { VIDEO_GUID_H265 },
+    .bBitsPerPixel      = 16,
+    .bDefaultFrameIndex = 1,
+    .bAspectRatioX      = 0,
+    .bAspectRatioY      = 0,
+    .bmInterfaceFlags   = 0,
+    .bCopyProtect       = 0,
+    .bVariableSize      = 1,
+};
+
 DECLARE_UVC_FRAME_FRAMEBASED(1);
 
 static const struct UVC_FRAME_FRAMEBASED(1) uvc_frame_h264_default = {
+    .bLength                = UVC_DT_FRAME_FRAMEBASED_SIZE(1),
+    .bDescriptorType        = USB_DT_CS_INTERFACE,
+    .bDescriptorSubType     = UVC_VS_FRAME_FRAME_BASED,
+    .bFrameIndex            = 0, /* dynamic */
+    .bmCapabilities         = 0,
+    .wWidth                 = cpu_to_le16(1920),
+    .wHeight                = cpu_to_le16(1080),
+    .dwMinBitRate           = cpu_to_le32(200000000),
+    .dwMaxBitRate           = cpu_to_le32(995328000),
+    .dwDefaultFrameInterval = cpu_to_le32(FRAME_INTERVAL_FPS(30)),
+    .bFrameIntervalType     = 1,
+    .dwBytesPerLine         = 0,
+    .dwFrameInterval[0]     = cpu_to_le32(FRAME_INTERVAL_FPS(30)),
+};
+
+static const struct UVC_FRAME_FRAMEBASED(1) uvc_frame_h265_default = {
     .bLength                = UVC_DT_FRAME_FRAMEBASED_SIZE(1),
     .bDescriptorType        = USB_DT_CS_INTERFACE,
     .bDescriptorSubType     = UVC_VS_FRAME_FRAME_BASED,
@@ -259,7 +297,7 @@ static const struct uvc_color_matching_descriptor uvc_color_matching = {
     .bMatrixCoefficients    = 4,
 };
 
-static const struct uvc_descriptor_header * const uvc_fs_control_cls[] = {
+static const struct uvc_descriptor_header * uvc_fs_control_cls[] = {
     (const struct uvc_descriptor_header *) &uvc_control_header,
     (const struct uvc_descriptor_header *) &uvc_camera_terminal,
     (const struct uvc_descriptor_header *) &uvc_processing,
@@ -463,7 +501,7 @@ static const struct usb_descriptor_header * const uvc_string_descriptors[] = {
     NULL,
 };
 
-#ifdef CONFIG_USB_HS
+#if CONFIG_USB_HS
 struct usb_qualifier_descriptor uvc_qual_descriptor = {
     .bLength             = USB_DT_QUALIFIER_SIZE,
     .bDescriptorType     = USB_DESCRIPTOR_TYPE_DEVICE_QUALIFIER,
@@ -494,6 +532,9 @@ struct usb_qualifier_descriptor uvc_qual_descriptor = {
         } \
     } while (0)
 
+static uint32_t av_interface_total = 0;
+static uint32_t av_terminal_total = 0;
+
 static struct uvc_descriptor_header *
 uvc_alloc_format_descriptor(uint32_t format_type, uint32_t format_index, uint32_t frame_cnt)
 {
@@ -509,6 +550,9 @@ uvc_alloc_format_descriptor(uint32_t format_type, uint32_t format_index, uint32_
         break;
     case UVC_FORMAT_H264:
         template_header = (struct uvc_format_descriptor_header *)&uvc_format_h264;
+        break;
+    case UVC_FORMAT_H265:
+        template_header = (struct uvc_format_descriptor_header *)&uvc_format_h265;
         break;
     case UVC_FORMAT_NV21:
         template_header = (struct uvc_format_descriptor_header *)&uvc_format_nv21;
@@ -618,6 +662,23 @@ uvc_alloc_frame_descriptor(uint32_t format_type,
         }
         break;
     }
+    case UVC_FORMAT_H265:
+    {
+        uvc_frame = (struct uvc_descriptor_header *)malloc(uvc_frame_h265_default.bLength);
+        if (uvc_frame) {
+            memcpy(uvc_frame, &uvc_frame_h265_default, uvc_frame_h265_default.bLength);
+            ((struct UVC_FRAME_FRAMEBASED(1) *)uvc_frame)->bFrameIndex = frame_index;
+            ((struct UVC_FRAME_FRAMEBASED(1) *)uvc_frame)->wWidth
+                                                        = cpu_to_le16(width);
+            ((struct UVC_FRAME_FRAMEBASED(1) *)uvc_frame)->wHeight
+                                                        = cpu_to_le16(height);
+            ((struct UVC_FRAME_FRAMEBASED(1) *)uvc_frame)->dwDefaultFrameInterval
+                                                        = cpu_to_le32(FRAME_INTERVAL_FPS(fps));
+            ((struct UVC_FRAME_FRAMEBASED(1) *)uvc_frame)->dwFrameInterval[0]
+                                                        = cpu_to_le32(FRAME_INTERVAL_FPS(fps));
+        }
+        break;
+    }
     default:
         break;
     }
@@ -665,7 +726,7 @@ uvc_create_streaming_class(struct uvc_format_info_st *format_info,
         uvc_streaming_cls[pos++] =
             uvc_alloc_format_descriptor(format_type, i + 1, frame_cnt);
         for(uint32_t j = 0; j < frame_cnt; j++) {
-            uvc_streaming_cls[pos++] = 
+            uvc_streaming_cls[pos++] =
                 uvc_alloc_frame_descriptor(format_type, j + 1, &format_info[i].frames[j]);
         }
     }
@@ -754,26 +815,46 @@ uvc_build_descriptor(struct uvc_format_info_st *format_info,
     hdr = mem;
     dst = mem + bytes;
 
+    uvc_iad.bFirstInterface = av_interface_total;
     UVC_COPY_DESCRIPTOR(mem, dst, &uvc_iad);
+
+    //VedioControl I/F
+    uvc_control_intf.bInterfaceNumber = av_interface_total;
+    av_interface_total++;
     UVC_COPY_DESCRIPTOR(mem, dst, &uvc_control_intf);
+
+    av_terminal_total++;
+    uvc_camera_terminal.bTerminalID = av_terminal_total;
+    av_terminal_total++;
+    uvc_processing.bSourceID = uvc_camera_terminal.bTerminalID;
+    uvc_processing.bUnitID = av_terminal_total;
+    av_terminal_total++;
+    uvc_output_terminal.bSourceID = uvc_processing.bUnitID;
+    uvc_output_terminal.bTerminalID = av_terminal_total;
 
     uvc_control_header = mem;
     UVC_COPY_DESCRIPTORS(mem, dst,
         (const struct usb_descriptor_header **)uvc_control_desc);
     uvc_control_header->wTotalLength = cpu_to_le16(control_size);
     uvc_control_header->bInCollection = 1;
-    uvc_control_header->baInterfaceNr[0] = 1;
+    uvc_control_header->baInterfaceNr[0] = av_interface_total;
 
+    //VedioStreaming I/F
+    uvc_streaming_intf_alt0.bInterfaceNumber = av_interface_total;
     UVC_COPY_DESCRIPTOR(mem, dst, &uvc_streaming_intf_alt0);
 
     uvc_streaming_header = mem;
     UVC_COPY_DESCRIPTORS(mem, dst,
         (const struct usb_descriptor_header**)uvc_streaming_cls);
+    uvc_streaming_header->bTerminalLink = uvc_output_terminal.bTerminalID;
     uvc_streaming_header->wTotalLength = cpu_to_le16(streaming_size);
-    uvc_streaming_header->bEndpointAddress = VIDEO_IN_EP;
+    uvc_streaming_header->bEndpointAddress = 0x81 + av_interface_total/2;
 
+    uvc_streaming_intf_alt1.bInterfaceNumber = av_interface_total;;
+    uvc_hs_streaming_ep.bEndpointAddress = 0x81 + av_interface_total/2;
     UVC_COPY_DESCRIPTORS(mem, dst, uvc_streaming_std);
 
+    av_interface_total++;
     ((uint8_t *)mem)[0] = 0x00;
 
     *dst = NULL;
@@ -836,7 +917,7 @@ uint8_t *av_comp_build_descriptors(struct uvc_format_info_st *format_info, uint3
     for (src = uvc_string_descriptors; *src; ++src) {
         bytes += (*src)->bLength;
     }
-#ifdef CONFIG_USB_HS
+#if CONFIG_USB_HS
     bytes += uvc_qual_descriptor.bLength;
 #endif
 
@@ -858,7 +939,7 @@ uint8_t *av_comp_build_descriptors(struct uvc_format_info_st *format_info, uint3
     mem += audio_desc_len;
 
     UVC_COPY_DESCRIPTORS(mem, dst, uvc_string_descriptors);
-#ifdef CONFIG_USB_HS
+#if CONFIG_USB_HS
     UVC_COPY_DESCRIPTOR(mem, dst, &uvc_qual_descriptor);
 #endif
     ((uint32_t *)mem)[0] = 0x00;
@@ -866,6 +947,79 @@ uint8_t *av_comp_build_descriptors(struct uvc_format_info_st *format_info, uint3
 
     uac_destroy_descriptor(audio_desc);
     uvc_destroy_descriptor(video_desc);
+
+    return av_desc;
+}
+
+uint8_t *multi_av_comp_build_descriptors(struct uvc_device_info *uvc)
+{
+    uint8_t *av_desc = NULL;
+    uint8_t *video_desc[AV_COMP_UVC_NUM] = {NULL};
+    uint8_t *audio_desc = NULL;
+    uint32_t av_desc_len = 0;
+    uint32_t video_desc_len[AV_COMP_UVC_NUM] = {0};
+    uint32_t audio_desc_len = 0;
+    uint32_t bytes = 0;
+    uint32_t n_desc = 15;
+    void *mem = NULL;
+    const struct usb_descriptor_header * const *src;
+    struct usb_descriptor_header **dst;
+    struct usb_config_descriptor *uvc_config_header;
+
+    audio_desc = uac_build_descriptor(&audio_desc_len);
+    if (audio_desc != NULL
+        && audio_desc_len > 0) {
+            av_desc_len += audio_desc_len;
+    }
+
+    for(int i = 0; i < AV_COMP_UVC_NUM; i ++) {
+        struct uvc_device_info *info = uvc + i;
+        printf("%p ep addr %x\n", info, info->ep);
+        video_desc[i] = uvc_build_descriptor(info->format_info, info->formats, &video_desc_len[i]);
+        if (video_desc[i] != NULL
+            && video_desc_len[i] > 0) {
+            av_desc_len += video_desc_len[i];
+        }
+    }
+
+    av_desc_len += uvc_config_descriptor.bLength;
+    bytes += av_desc_len;
+    bytes += uvc_device_descriptor.bLength;
+    for (src = uvc_string_descriptors; *src; ++src) {
+        bytes += (*src)->bLength;
+    }
+#ifdef CONFIG_USB_HS
+    bytes += uvc_qual_descriptor.bLength;
+#endif
+
+    av_desc = malloc(bytes + 1 + n_desc * sizeof(*src));
+    mem = av_desc;
+    dst = mem + bytes + 1;
+    /* Copy the descriptors. */
+    UVC_COPY_DESCRIPTOR(mem, dst, &uvc_device_descriptor);
+
+    uvc_config_header = mem;
+    UVC_COPY_DESCRIPTOR(mem, dst, &uvc_config_descriptor);
+    uvc_config_header->wTotalLength = cpu_to_le16(av_desc_len);
+
+    // Copy uvc iad
+    for(int i = 0; i < AV_COMP_UVC_NUM; i ++) {
+        memcpy(mem, video_desc[i], video_desc_len[i]);
+        mem += video_desc_len[i];
+        //uvc_destroy_descriptor(video_desc[i]);
+    }
+    // Copy uac iad
+    memcpy(mem, audio_desc, audio_desc_len);
+    mem += audio_desc_len;
+
+    UVC_COPY_DESCRIPTORS(mem, dst, uvc_string_descriptors);
+#ifdef CONFIG_USB_HS
+    UVC_COPY_DESCRIPTOR(mem, dst, &uvc_qual_descriptor);
+#endif
+    ((uint32_t *)mem)[0] = 0x00;
+
+
+    uac_destroy_descriptor(audio_desc);
 
     return av_desc;
 }

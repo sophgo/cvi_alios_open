@@ -120,7 +120,7 @@ static const uint8_t cdc_descriptor[] = {
     '4', 0x00,                  /* wcChar7 */
     '5', 0x00,                  /* wcChar8 */
     '6', 0x00,                  /* wcChar9 */
-#ifdef CONFIG_USB_HS
+#if CONFIG_USB_HS
     ///////////////////////////////////////
     /// device qualifier descriptor
     ///////////////////////////////////////

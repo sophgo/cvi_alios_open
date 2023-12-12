@@ -91,6 +91,8 @@ const struct flash_info spi_flash_ids[] = {
 		RD_FULL | WR_QPP | SECT_4K) },
 	{ "P25Q64SH", INFO(0x856017, 0x0, 64 * 1024, 128,
 		RD_FULL | WR_QPP | SECT_4K) },
+	{ "GD25F64F", INFO(0xc84317, 0x0, 64 * 1024, 128,
+		RD_FULL | WR_QPP | SECT_4K | _10_DUMMY_CYCLE | NO_QE | ADJUST_DUMMY) },
 
 	{},     /* Empty entry to terminate the list */
 
@@ -249,7 +251,7 @@ void match_read_op(struct spi_nor *nor, uint32_t flags)
 		read->data.buswidth = 4;
 		read->cmd.opcode = CVI_SPINOR_OP_READ_1_1_4;
 	}
-#if 0
+
 	if (info->flags & RD_QUADIO) {
 		read->dummy.clks = 6;
 		read->addr.buswidth = 4;
@@ -260,7 +262,6 @@ void match_read_op(struct spi_nor *nor, uint32_t flags)
 		else
 			read->dummy.clks = 6;
 	}
-#endif
 }
 
 void match_write_op(struct spi_nor *nor, uint32_t flags)
@@ -367,6 +368,19 @@ static int read_sr2(struct spi_nor *nor, uint8_t *val)
 	return ret;
 }
 
+static int read_sr3(struct spi_nor *nor, uint8_t *val)
+{
+	int ret = 0;
+
+	ret = nor->read_reg(nor, 0x15, val, 1);
+	if (ret < 0) {
+		printf("error %d reading SR\n", (int) ret);
+		return ret;
+	}
+
+	return ret;
+}
+
 /*
  * return value : 1 means that flash is ready, 0 means that flash is busy.
  */
@@ -449,6 +463,21 @@ static int write_sr2(struct spi_nor *nor, uint8_t sr)
 	return 0;
 }
 
+static int write_sr3(struct spi_nor *nor, uint8_t sr)
+{
+	ssize_t ret;
+	write_enable(nor);
+	ret = nor->write_reg(nor, 0x11, &sr, 1);
+	if (ret < 0) {
+		return -1;
+	}
+	ret = spi_nor_ready(nor);
+	if (ret) {
+		return ret;
+	}
+	return 0;
+}
+
 static int write_sr(struct spi_nor *nor, uint8_t sr)
 {
 	ssize_t ret;
@@ -463,6 +492,34 @@ static int write_sr(struct spi_nor *nor, uint8_t sr)
 	if (ret) {
 		return ret;
 	}
+	return 0;
+}
+
+int set_dummy(struct spi_nor *nor)
+{
+	int ret;
+	uint8_t val = 0;
+	ret = read_sr3(nor, &val);
+	if (ret < 0)
+		return ret;
+
+	if ((val & 0x3) == 0x3) {
+		return 0;
+	}
+
+	write_enable(nor);
+	write_sr3(nor, val | 0x3);
+	ret = spi_nor_ready(nor);
+	if (ret)
+		return ret;
+
+	val = 0;
+	ret = read_sr3(nor, &val);
+	if (!(ret >= 0 && (val & 0x3))) {
+		printf("SPINOR: SR3[0-1] dummy clk bit was set failed!\n");
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -763,8 +820,11 @@ int spi_nor_rescan(struct spi_nor *nor)
 	match_read_op(nor, info->flags);
 	match_write_op(nor, info->flags);
 
-	if (info->flags & (RD_QUADIO | WR_QUAD | RD_QUAD))
+	if (!(info->flags & NO_QE) && (info->flags & (RD_QUADIO | WR_QUAD | RD_QUAD)))
 		set_quad_mode(nor);
+
+	if (info->flags & ADJUST_DUMMY)
+		set_dummy(nor);
 
 #ifndef USE_4K_ERASE_SECTION
 	nor->erase_opcode = CVI_SPINOR_OP_SE;

@@ -6,32 +6,32 @@
  *   ....
  */
 #include "custom_param.h"
+extern unsigned int gc2093_gc2053_rgb_ir_cvi_isp_default_param_length;
+extern unsigned char gc2093_gc2053_rgb_ir_cvi_isp_default_param[];
 PARAM_CLASSDEFINE(PARAM_SNS_CFG_S,SENSORCFG,CTX,Sensor)[] = {
     {
         .enSnsType = CONFIG_SNS0_TYPE,
         .s32I2cAddr = -1,
         .s8I2cDev = 2,
-        .u32Rst_port_idx = 4,//GPIOC_13
-        .u32Rst_pin = 18,
+        .u32Rst_port_idx = 2,//GPIOC_13
+        .u32Rst_pin = 13,
         .u32Rst_pol = OF_GPIO_ACTIVE_LOW,
         .bSetDevAttr = 1,
-        .u8MclkCam = 0,
+        .u8MclkCam = 1,
         .u8MclkFreq = CAMPLL_FREQ_27M,
         .s16MacClk = RX_MAC_CLK_200M,
-        .s32Framerate = 25,
     },
     {
         .enSnsType = CONFIG_SNS1_TYPE,
         .s32I2cAddr = -1,
         .s8I2cDev = 2,
-        .u32Rst_port_idx = 4,//GPIOC_13
-        .u32Rst_pin = 18,
+        .u32Rst_port_idx = 2,//GPIOC_13
+        .u32Rst_pin = 13,
         .u32Rst_pol = OF_GPIO_ACTIVE_LOW,
         .bSetDevAttr = 1,
-        .u8MclkCam = 0,
+        .u8MclkCam = 1,
         .u8MclkFreq = CAMPLL_FREQ_27M,
         .s16MacClk = RX_MAC_CLK_200M,
-        .s32Framerate = 25,
     },
 };
 
@@ -41,17 +41,7 @@ PARAM_CLASSDEFINE(PARAM_ISP_CFG_S,ISPCFG,CTX,ISP)[] = {
         .bUseSingleBin = 0,
         .stPQBinDes =
         {
-            .pIspBinData = NULL,
-            .u32IspBinDataLen = 0,
-        },
-    },
-    {
-        .bMonoSet = {0},
-        .bUseSingleBin = 0,
-        .stPQBinDes =
-        {
-            .pIspBinData = NULL,
-            .u32IspBinDataLen = 0,
+            .pIspBinData = gc2093_gc2053_rgb_ir_cvi_isp_default_param,
         },
     },
 };
@@ -63,6 +53,7 @@ PARAM_VI_CFG_S g_stViCtx = {
 };
 
 PARAM_VI_CFG_S * PARAM_GET_VI_CFG(void) {
+    g_stViCtx.pstIspCfg[0].stPQBinDes.u32IspBinDataLen = gc2093_gc2053_rgb_ir_cvi_isp_default_param_length;
     return &g_stViCtx;
 }
 

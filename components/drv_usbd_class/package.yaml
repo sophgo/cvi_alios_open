@@ -45,6 +45,7 @@ build_config:
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
 source_file:
   - src/rndis_device/*.c ? <CONFIG_RNDIS_DEVICE_ETH>
+  - src/cdc_acm/*.c ? <CONFIG_USBD_CDC_ACM_UART>
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项
 #   CONFIG_DEBUG: y

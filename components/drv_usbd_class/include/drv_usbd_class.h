@@ -14,6 +14,17 @@ extern "C" {
  */
 void rndis_device_init();
 
+/**
+ * init cdc acm uart device driver
+ * @return      void
+ */
+void cdc_acm_uart_drv_init(uint8_t idx);
+
+/**
+ * uninit cdc acm uart device driver
+ * @return      void
+ */
+void cdc_acm_uart_drv_uninit();
 
 #ifdef __cplusplus
 }
