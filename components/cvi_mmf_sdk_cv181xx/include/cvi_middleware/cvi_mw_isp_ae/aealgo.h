@@ -43,7 +43,7 @@ extern "C" {
 #define UNUSED(x) (void)(x)
 #endif
 
-#define AE_SENSOR_NUM 2
+#define AE_SENSOR_NUM 3
 
 #define AE_GAIN_BASE 1024
 #define AE_EVBIAS_BASE 1024
@@ -80,7 +80,7 @@ extern "C" {
 #define SUNSET_LV	(600)
 #define NIGHT_LV	(400)
 
-#define TV_ENTRY_WITH_ISPDGAIN_COMPENSATION		(EVTT_ENTRY_1_960SEC)
+#define TV_ENTRY_WITH_ISPDGAIN_COMPENSATION		(EVTT_ENTRY_1_240SEC)
 
 #define AAA_LIMIT(var, min, max) ((var) = ((var) < (min)) ? (min) : (((var) > (max)) ? (max) : (var)))
 #define AAA_ABS(a) ((a) > 0 ? (a) : -(a))

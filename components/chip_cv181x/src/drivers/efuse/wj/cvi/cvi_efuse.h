@@ -22,6 +22,23 @@ extern "C" {
 #define EFUSE_SW_INFO_USB_DL_SHIFT      24
 #define EFUSE_SW_INFO_UART_DL_SHIFT     26
 
+typedef enum {
+    CVI_EFUSE_AREA_USER = 0,
+    CVI_EFUSE_AREA_DEVICE_ID,
+    CVI_EFUSE_AREA_HASH0_PUBLIC,
+    CVI_EFUSE_AREA_LOADER_EK,
+    CVI_EFUSE_AREA_DEVICE_EK,
+    CVI_EFUSE_AREA_CHIP_SN,
+    CVI_EFUSE_AREA_LAST
+} CVI_EFUSE_AREA_E;
+
+typedef enum {
+    CVI_EFUSE_LOCK_HASH0_PUBLIC,
+    CVI_EFUSE_LOCK_LOADER_EK,
+    CVI_EFUSE_LOCK_DEVICE_EK,
+    CVI_EFUSE_LOCK_LAST
+} CVI_EFUSE_LOCK_E;
+
 enum SD_USB_UART_DL_MODE_E {
     SD_USB_UART_DL_ENABLE,
     SD_USB_UART_DL_FASTBOOT,
@@ -44,6 +61,17 @@ uint32_t cvi_efuse_get_sd_dl_config();
 uint32_t cvi_efuse_get_usb_dl_config();
 uint32_t cvi_efuse_get_uart_dl_config();
 CVI_S32 cvi_efuse_get_chip_sn(void *data, uint32_t *size);
+
+
+CVI_S32 CVI_EFUSE_GetSize(CVI_EFUSE_AREA_E area, CVI_U32 *size);
+CVI_S32 CVI_EFUSE_Read(CVI_EFUSE_AREA_E area, CVI_U8 *buf, CVI_U32 buf_size);
+CVI_S32 CVI_EFUSE_Write(CVI_EFUSE_AREA_E area, const CVI_U8 *buf,
+                        CVI_U32 buf_size);
+
+CVI_S32 CVI_EFUSE_Lock(CVI_EFUSE_LOCK_E lock);
+CVI_S32 CVI_EFUSE_IsLocked(CVI_EFUSE_LOCK_E lock);
+CVI_S32 CVI_EFUSE_LockWrite(CVI_EFUSE_LOCK_E lock);
+CVI_S32 CVI_EFUSE_IsWriteLocked(CVI_EFUSE_LOCK_E lock);
 
 #ifdef __cplusplus
 }

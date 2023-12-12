@@ -104,8 +104,11 @@ build_config:
     - sony_imx307
     - sony_imx327
     - byd_bf314a
+    - byd_bf2253l
     - sms_sc1336_2L
     - ov_ov5647
+    - sms_sc202cs
+    - sms_sc202cs_slave
 
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
@@ -130,8 +133,11 @@ source_file:
   - sony_imx307/*.c
   - sony_imx327/*.c
   - byd_bf314a/*.c
+  - byd_bf2253l/*.c
   - sms_sc1336_2L/*.c
   - ov_ov5647/*.c
+  - sms_sc202cs/*.c
+  - sms_sc202cs_slave/*.c
 
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项

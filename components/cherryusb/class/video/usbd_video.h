@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 typedef struct uvc_event_callbacks {
-    void (*uvc_event_stream_on)(int is_on);
+    void (*uvc_event_stream_on)(uint8_t intf, int is_on);
     void (*uvc_event_setup_class_control)(struct usb_setup_packet *setup, uint8_t **data, uint32_t *len);
     void (*uvc_event_setup_class_streaming)(struct usb_setup_packet *setup, uint8_t **data, uint32_t *len);
     void (*uvc_event_data_out)(struct usb_setup_packet *setup, uint8_t **data, uint32_t *len);
@@ -22,6 +22,14 @@ typedef struct uvc_event_callbacks {
 
 /* Init video interface driver */
 struct usbd_interface *usbd_video_init_intf(struct usbd_interface *intf,
+                                            uint32_t dwFrameInterval,
+                                            uint32_t dwMaxVideoFrameSize,
+                                            uint32_t dwMaxPayloadTransferSize);
+struct usbd_interface *usbd_video_control_init_intf(struct usbd_interface *intf,
+                                            uint32_t dwFrameInterval,
+                                            uint32_t dwMaxVideoFrameSize,
+                                            uint32_t dwMaxPayloadTransferSize);
+struct usbd_interface *usbd_video_stream_init_intf(struct usbd_interface *intf,
                                             uint32_t dwFrameInterval,
                                             uint32_t dwMaxVideoFrameSize,
                                             uint32_t dwMaxPayloadTransferSize);

@@ -437,7 +437,7 @@ static bool usbd_set_interface(uint8_t iface, uint8_t alt_setting)
                     if_desc = (void *)p;
                 }
 
-                USB_LOG_DBG("Current iface %u alt setting %u",
+                USB_LOG_DBG("Current iface %u alt setting %u\n",
                             cur_iface, cur_alt_setting);
                 break;
 
@@ -744,7 +744,7 @@ static int usbd_class_request_handler(struct usb_setup_packet *setup, uint8_t **
         {
             struct usbd_interface *intf = usb_slist_entry(i, struct usbd_interface, list);
 
-            if (intf->class_endpoint_handler && (intf->intf_num == ((setup->wIndex >> 8) & 0xFF))) {
+            if (intf && intf->class_endpoint_handler) {
                 return intf->class_endpoint_handler(setup, data, len);
             }
         }
