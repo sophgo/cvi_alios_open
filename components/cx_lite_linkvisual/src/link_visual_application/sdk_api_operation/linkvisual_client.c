@@ -482,7 +482,7 @@ static void log_print(lv_log_level_e level, const char *file_name, int line, con
     char *tmp_buff = malloc(2048);
     va_list args;
     va_start(args, fmt);
-    vsprintf(tmp_buff, fmt, args);
+    vsnprintf(tmp_buff, 2048, fmt, args);
     va_end(args);
     LOGD(LOGGER_LEVEL_NAME[level - LV_LOG_ERROR], "%s", tmp_buff);
     free(tmp_buff);

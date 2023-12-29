@@ -1109,9 +1109,13 @@ struct usb_qualifier_descriptor {
 
 /*-------------------------------------------------------------------------*/
 
-#ifdef CONFIG_USB_HS
+#if CONFIG_USB_HS
 #define MAX_PAYLOAD_SIZE_PER_TRANSACTION (1024)
+#if CONFIG_MULTI_AV_COMP_SUPPORT
+#define TRANSACTION_PER_MICROFRAME (1)
+#else
 #define TRANSACTION_PER_MICROFRAME (3)
+#endif
 #else
 #define MAX_PAYLOAD_SIZE_PER_TRANSACTION (1023)
 #define TRANSACTION_PER_MICROFRAME (1)
@@ -1128,7 +1132,8 @@ typedef enum _UVC_FORMAT_E {
     UVC_FORMAT_MJPEG = 0,
     UVC_FORMAT_H264,
     UVC_FORMAT_YUY2,
-    UVC_FORMAT_NV21
+    UVC_FORMAT_NV21,
+    UVC_FORMAT_H265,
 } UVC_FORMAT_E;
 
 struct uvc_frame_info_st

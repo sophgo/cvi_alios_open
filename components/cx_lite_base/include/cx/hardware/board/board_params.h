@@ -23,7 +23,7 @@ struct SensorConfig {
             INVALID = 0,
             NAME_VALID,
             ID_VALID
-        }        tagType;
+        }        tagType = INVALID;
 
         std::string name;
         uint32_t    id;
@@ -37,14 +37,32 @@ struct SensorConfig {
 
             return false;
         }
+
+        bool valid()
+        {
+            return tagType != INVALID;
+        }
         
-    }        tag;
-    ImageSize size;
-    bool onlineMode;
+    }           tag;
+    ImageSize   size;
+    uint16_t    fps;
+    PixelFormat format;
+    bool        onlineMode;
 };
 
 struct BoardConfig {
     std::vector<SensorConfig>   sensors;
+
+    SensorConfig *GetSensorConfig(SensorConfig::Tag tag)
+    {
+        for (auto &sensorConfig : sensors) {
+            if (sensorConfig.tag == tag) {
+                return &sensorConfig;
+            }
+        }
+
+        return nullptr;
+    }
 };
 
 /**

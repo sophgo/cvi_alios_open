@@ -27,6 +27,7 @@ typedef struct _cvi_adc_t {
     cvi_error_t             (*stop)(struct _cvi_adc_t *adc);   ///< Stop function
     cvi_state_t             state;       ///< ADC current state
     void                    *priv;
+    uint8_t                 ch_id;
 } cvi_adc_t;
 
 cvi_error_t cvi_adc_init(cvi_adc_t *adc);

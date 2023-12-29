@@ -9,14 +9,14 @@
 /* ================ USB common Configuration ================ */
 #ifndef CONFIG_USB_PRINTF
 extern int aos_debug_printf(const char *fmt, ...);
-#define CONFIG_USB_PRINTF printf
+#define CONFIG_USB_PRINTF aos_debug_printf
 #endif
 
 #define usb_malloc(size) malloc(size)
 #define usb_free(ptr)    free(ptr)
 
 #ifndef CONFIG_USB_DBG_LEVEL
-#define CONFIG_USB_DBG_LEVEL USB_DBG_LOG
+#define CONFIG_USB_DBG_LEVEL USB_DBG_ERROR
 #endif
 
 /* Enable print with color */
@@ -33,7 +33,11 @@ extern int aos_debug_printf(const char *fmt, ...);
 /* ================= USB Device Stack Configuration ================ */
 
 /* Ep0 max transfer buffer, specially for receiving data from ep0 out */
-#define CONFIG_USBDEV_REQUEST_BUFFER_LEN 1024
+#if CONFIG_MULTI_AV_COMP_SUPPORT
+#define CONFIG_USBDEV_REQUEST_BUFFER_LEN 4096
+#else
+#define CONFIG_USBDEV_REQUEST_BUFFER_LEN 2048
+#endif
 
 /* Setup packet log for debug */
 // #define CONFIG_USBDEV_SETUP_LOG_PRINT

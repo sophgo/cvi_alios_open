@@ -140,15 +140,6 @@ int TMAudioInputCvi::Stop()
     return TMResult::TM_OK;
 }
 
-static int data_channel_2_to_1(int16_t *data_in, int16_t *data_out, int len)
-{
-    for(int i = 0; i < len / 4; i++) {
-        data_out[i] = data_in[i * 2];
-    }
-
-    return (len / 2);
-}
-
 int TMAudioInputCvi::RecvFrame(TMAudioFrame &frame, int timeout)              
 {
     pthread_mutex_lock(&mMutex);
@@ -175,10 +166,14 @@ int TMAudioInputCvi::RecvFrame(TMAudioFrame &frame, int timeout)
 
     struct timespec     ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    frame.mPTS = ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
+
+    TMClock_t pts;
+    pts.timestamp = ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
+    pts.time_base = 1000000;
+    frame.mPTS.Set(pts);
     
     if(frame.mData[0] == NULL) {
-        int ret = frame.PrepareBuffer(0);
+        int ret = frame.PrepareBuffer(TMBUFFER_TYPE_USER_MALLOC, 0, 0, 0);
         if(ret != TMResult::TM_OK) {
             TMEDIA_PRINTF("Audio prepare buffer err:%d\n", ret);
             pthread_mutex_unlock(&mMutex);
@@ -186,10 +181,16 @@ int TMAudioInputCvi::RecvFrame(TMAudioFrame &frame, int timeout)
         }
     }
 
-    int lenPoint, lenBytes;
     int16_t audio_data_recv[AUDIO_PERIOD_TIME * (SAMPLE_RATE/1000) * AUDIO_CHANNEL  * 2 / 2];
-    lenPoint = aos_pcm_readi(capture_handle, audio_data_recv, PERIOD_FRAMES_SIZE);  //输出为 双通道 16bits 交织数据 
-    lenBytes = aos_pcm_frames_to_bytes(capture_handle, lenPoint);
+    int ret;
+
+    // FIXME: workaround for cvitek bug, aos_pcm_readi would return 0 when no enough frames
+    do {
+        ret = aos_pcm_readi(capture_handle, audio_data_recv, PERIOD_FRAMES_SIZE);  //输出为 双通道 16bits 交织数据 
+        if (ret == 0) {
+            usleep(1000);
+        }
+    } while (ret == 0);
 
     for(int i = 0; i< AUDIO_PERIOD_TIME/10; i++) {  //每次处理10ms
         for (int j = 0; j < CVIAUDIO_AEC_LENGTH; j++) {
@@ -213,11 +214,5 @@ int TMAudioInputCvi::RecvFrame(TMAudioFrame &frame, int timeout)
     pthread_mutex_unlock(&mMutex);
     return TMResult::TM_OK;
 }
-
-int TMAudioInputCvi::ReleaseFrame(TMAudioFrame &frame) 
-{
-    frame.UnRef();
-    return TMResult::TM_OK;
-}                    
 
 REGISTER_AUDIO_INPUT_CLASS(TMMediaInfo::DeviceID::MIC, TMAudioInputCvi)

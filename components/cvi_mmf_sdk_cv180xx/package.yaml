@@ -50,7 +50,7 @@ build_config:
     - include/cvi_tpu/include/bmkernel
     - include/cvi_tpu/include/cvi_kernel
     - include/cvi_tpu/include/cvikernel/cv180x
-    - include/cvi_tpu/include/cvikernel/mars
+    - include/cvi_tpu/include/cvikernel/cv181x
     - include/cvi_tpu/include/cvikernel
     - include/cvi_tpu/include/
     - include/cvi_miniz/include
@@ -88,7 +88,16 @@ build_config:
     - cvi_miniz
     - cvi_json_c
     - cviai
-    - cvi_osdrv
+    - cvi_osdrv_vo
+    - cvi_osdrv_tpu
+    - cvi_osdrv_vcodec
+    - cvi_osdrv_cif
+    - cvi_osdrv_vpss
+    - cvi_osdrv_ldc
+    - cvi_osdrv_sys
+    - cvi_osdrv_vi
+    - cvi_osdrv_base
+    - cvi_osdrv_rgn
     - cvi_mw_isp_bin
     - cvi_mw_isp_algo
     - cvi_mw_audio

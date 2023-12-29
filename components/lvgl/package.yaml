@@ -38,7 +38,7 @@ license: MIT license                                # <可选项> 源代码的�
 #   libpath:                               # 指定静态库所在的路径（相对于该组件路径）
 #     - libs                               #   -Llibs
 build_config:
-  cflag: '-Wno-nonnull-compare'
+  cflag: '-Wno-nonnull-compare -O3'
   include:
     - .
     - src

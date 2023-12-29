@@ -37,6 +37,7 @@ license: Apache license v2.0                        # <可选项> 源代码的�
 #   libpath:                               # 指定静态库所在的路径（相对于该组件路径）
 #     - libs                               #   -Llibs
 build_config:
+  #cflag: -g -O0
   include:
     - include
     - include/<arch>/<cpu_num>
@@ -50,7 +51,6 @@ source_file:
   - "src/<arch>/<cpu_num>/dump_backtrace.c"
   - "src/<arch>/<cpu_num>/port_s.S"
   - "src/<arch>/<cpu_num>/port_c.c"
-  - "src/<arch>/<cpu_num>/atomic.c"
 
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项

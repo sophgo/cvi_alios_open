@@ -44,7 +44,6 @@ public:
 
     int SendFrame(TMVideoFrame &frame, int timeout) final override;
     int RecvFrame(TMVideoFrame &frame, int timeout) final override;
-    int ReleaseFrame(TMVideoFrame &frame)           final override;
 
 private:
     static void VpssTableInfoPrint(void) {
@@ -69,7 +68,7 @@ private:
     map<int, TMSinkPadCvi *>mCviSinkPad;
     bool mOnlineMode;
     bool mFilterFrameFlag;
-    static const int mAvaliableFrameID = 6;
+    int  mStartFrame;
 
     static int ReleaseFrameInternal(TMVideoFrame &frame);
     int GetAvaliableVpssGrp(VPSS_GRP &vpssGrp);

@@ -46,7 +46,6 @@ build_config:
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
 source_file:
   - src/ec200a/*.c ? <CONFIG_APP_GPRS_SUPPORT>
-  - "src/rndis_device/*.c"
   - "src/usb_serial/*.c"
   - "src/msc/*.c"
   - src/esp32/*.c ? <CONFIG_APP_ESP32_SUPPORT>

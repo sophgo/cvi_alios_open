@@ -39,4 +39,4 @@ protected:
     TMMediaInfo::WorkMode mWorkMode;
 };
 
-#endif  // TM_CODEC_H
+#endif  /* TM_CODEC_H */

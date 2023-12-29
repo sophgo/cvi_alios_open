@@ -15,6 +15,8 @@
 		}																		 \
 	} while (0)
 
+int MEDIA_AV_Init();
+int MEDIA_AV_DeInit();
 int MEDIA_UVC_Init();
 int MEDIA_UVC_DEInit();
 

@@ -31,7 +31,7 @@ extern void soc_irq_end(uint32_t irq_num);
 #define CSI_INTRPT_EXIT()
 #endif
 
-uint32_t  g_irq_nested_level;
+volatile uint32_t  g_irq_nested_level;
 csi_dev_t *g_irq_table[CONFIG_IRQ_NUM];
 csi_dev_t g_irq_dev_table[CONFIG_REAL_IRQ_CNT];
 
@@ -94,7 +94,11 @@ __WEAK void do_irq(void)
 
     CSI_INTRPT_ENTER();
 
+#if defined(CONFIG_RISCV_SMODE) && CONFIG_RISCV_SMODE
+    irqnc = (__get_SCAUSE() & 0x3FF);
+#else
     irqnc = (__get_MCAUSE() & 0x3FF);
+#endif
     irqn = irqnc;
     if (irqnc != CORET_IRQn) {                  // FIXME:
         irqn = soc_irq_get_irq_num();

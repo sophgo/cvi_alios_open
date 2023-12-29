@@ -13,7 +13,7 @@
 
 static void sc201cs_slave_linear_1200p30_init(VI_PIPE ViPipe);
 
-CVI_U8 sc201cs_slave_i2c_addr = 0x30;
+CVI_U8 sc201cs_slave_i2c_addr = 0x32;
 const CVI_U32 sc201cs_slave_addr_byte = 2;
 const CVI_U32 sc201cs_slave_data_byte = 1;
 
@@ -47,25 +47,25 @@ int sc201cs_slave_write_register(VI_PIPE ViPipe, int addr, int data)
 		(CVI_U32)data, sc201cs_slave_data_byte);
 }
 
-static void delay_ms(int ms)
-{
-	udelay(ms * 1000);
-}
+// static void delay_ms(int ms)
+// {
+// 	udelay(ms * 1000);
+// }
 
 void sc201cs_slave_standby(VI_PIPE ViPipe)
 {
+	sc201cs_slave_write_register(ViPipe, 0x3019, 0xff);
 	sc201cs_slave_write_register(ViPipe, 0x0100, 0x00);
 
-	printf("%s\n", __func__);
+	// printf("%s\n", __func__);
 }
 
 void sc201cs_slave_restart(VI_PIPE ViPipe)
 {
-	sc201cs_slave_write_register(ViPipe, 0x0100, 0x00);
-	delay_ms(20);
+	sc201cs_slave_write_register(ViPipe, 0x3019, 0xfe);
 	sc201cs_slave_write_register(ViPipe, 0x0100, 0x01);
 
-	printf("%s\n", __func__);
+	// printf("%s\n", __func__);
 }
 
 void sc201cs_slave_default_reg_init(VI_PIPE ViPipe)
@@ -104,6 +104,9 @@ void sc201cs_slave_mirror_flip(VI_PIPE ViPipe, ISP_SNS_MIRRORFLIP_TYPE_E eSnsMir
 
 int sc201cs_slave_probe(VI_PIPE ViPipe)
 {
+#if CONFIG_SENSOR_QUICK_STARTUP
+	return CVI_SUCCESS;
+#endif
 	int nVal;
 	int nVal2;
 
@@ -128,7 +131,9 @@ int sc201cs_slave_probe(VI_PIPE ViPipe)
 
 void sc201cs_slave_init(VI_PIPE ViPipe)
 {
-	// sc201cs_slave_i2c_init(ViPipe);
+#if CONFIG_SENSOR_QUICK_STARTUP
+	sc201cs_slave_i2c_init(ViPipe);
+#endif
 
 	sc201cs_slave_linear_1200p30_init(ViPipe);
 
@@ -142,6 +147,9 @@ void sc201cs_slave_exit(VI_PIPE ViPipe)
 
 static void sc201cs_slave_linear_1200p30_init(VI_PIPE ViPipe)
 {
+#if CONFIG_SENSOR_QUICK_STARTUP
+	return;
+#endif
 	sc201cs_slave_write_register(ViPipe, 0x0103, 0x01);
 	sc201cs_slave_write_register(ViPipe, 0x0100, 0x00);
 	sc201cs_slave_write_register(ViPipe, 0x36e9, 0x80);
@@ -220,8 +228,13 @@ static void sc201cs_slave_linear_1200p30_init(VI_PIPE ViPipe)
 	sc201cs_slave_write_register(ViPipe, 0x3e02, 0xe0);
 	sc201cs_slave_write_register(ViPipe, 0x4502, 0x34);
 	sc201cs_slave_write_register(ViPipe, 0x4509, 0x30);
-	sc201cs_slave_write_register(ViPipe, 0x0100, 0x01);
 
+#if CONFIG_SENSOR_DUAL_SWITCH
+	sc201cs_slave_write_register(ViPipe, 0x3019, 0xff);
+	sc201cs_slave_write_register(ViPipe, 0x0100, 0x00);
+#else
+	sc201cs_slave_write_register(ViPipe, 0x0100, 0x01);
+#endif
 	sc201cs_slave_default_reg_init(ViPipe);
 
 	printf("ViPipe:%d,===SC201CS_SLAVE 1200P 30fps 10bit LINEAR Init OK!===\n", ViPipe);

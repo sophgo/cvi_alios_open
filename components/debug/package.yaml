@@ -48,18 +48,18 @@ build_config:
 source_file:
   - src/debug_panic.c
   - src/debug_print.c
-  - src/debug_overview.c
-  - src/debug_backtrace.c
-  - src/debug_infoget.c
-  - src/debug_cpuusage.c
+  - src/debug_overview.c ? <CONFIG_KERNEL_RHINO>
+  - src/debug_backtrace.c ? <CONFIG_KERNEL_RHINO>
+  - src/debug_infoget.c ? <CONFIG_KERNEL_RHINO>
+  - src/debug_cpuusage.c ? <CONFIG_KERNEL_RHINO>
   - src/debug_test.c ? <DEBUG_TEST_CMDS_ENABLE>
-  - src/debug_dumpsys.c ? <AOS_COMP_CLI>
-  - src/debug_cli_cmd.c ? <AOS_COMP_CLI>
+  - src/debug_dumpsys.c ? <CONFIG_KERNEL_RHINO>
+  - src/debug_cli_cmd.c
   - src/debug_lastword.c ? <DEBUG_LAST_WORD_ENABLE>
   - src/debug.c
   - src/debug_weak.c
-  - src/arch/<arch>/<cpu_num>/panic.c
-  - src/arch/<arch>/<cpu_num>/backtrace.c
+  - src/arch/<arch>/<cpu_num>/panic.c ? <CONFIG_KERNEL_RHINO>
+  - src/arch/<arch>/<cpu_num>/backtrace.c ? <CONFIG_KERNEL_RHINO>
   #- example/*.c ? <AOS_COMP_CLI>
 
 ## 第五部分：配置信息

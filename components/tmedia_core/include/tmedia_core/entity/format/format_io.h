@@ -33,7 +33,6 @@ public:
     virtual int Start()                                                  = 0;
     virtual int Stop()                                                   = 0;
     virtual int RecvFrame(TMVideoFrame &frame, int timeout)              = 0;
-    virtual int ReleaseFrame(TMVideoFrame &frame)                        = 0;
 };
 
 class TMVideoOutput : public TMFormat, public TMSinkEntity
@@ -62,7 +61,6 @@ public:
     virtual int Start()                                                  = 0;
     virtual int Stop()                                                   = 0;
     virtual int SendFrame(TMVideoFrame &frame, int timeout)              = 0;
-    virtual int ReleaseFrame(TMVideoFrame &frame)                        = 0;
 };
 
 class TMAudioInput : public TMFormat, public TMSrcEntity
@@ -90,7 +88,6 @@ public:
     virtual int Start()                                                  = 0;
     virtual int Stop()                                                   = 0;
     virtual int RecvFrame(TMAudioFrame &frame, int timeout)              = 0;
-    virtual int ReleaseFrame(TMAudioFrame &frame)                        = 0;
 };
 
 class TMAudioOutput : public TMFormat, public TMSinkEntity
@@ -117,7 +114,6 @@ public:
     virtual int Start()                                                  = 0;
     virtual int Stop()                                                   = 0;
     virtual int SendFrame(TMAudioFrame &frame, int timeout)              = 0;
-    virtual int ReleaseFrame(TMAudioFrame &frame)                        = 0;
 };
 
-#endif  // TM_FORMAT_IO_H
+#endif  /* TM_FORMAT_IO_H */

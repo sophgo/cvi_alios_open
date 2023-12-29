@@ -54,7 +54,7 @@ int hal_cvi_rtc_get_time_sec(uintptr_t rtc_base,unsigned long *ret_sec)
 	sec = mmio_read_32(rtc_base + CVI_RTC_SEC_CNTR_VALUE);
 	sec_ro_t = mmio_read_32(rtc_base + RTC_MACRO_RO_T);
 
-	rtc_dbg("sec=%llx, sec_ro_t=%llx\n", sec, sec_ro_t);
+	rtc_dbg("sec=%lx, sec_ro_t=%lx\n", sec, sec_ro_t);
 
 	if (sec_ro_t > 0x30000000) {
 			sec = sec_ro_t;
@@ -201,7 +201,7 @@ void hal_cvi_rtc_32k_fine_value_calib(uintptr_t rtc_base)
 	//freq = 256000000000 / 40;
 	freq = 6400000000 * frac_ext;
 	freq = div_u64_rem(freq, fc_fine_value, &remainder);
-	rtc_dbg("freq = %llx\n", freq);
+	rtc_dbg("freq = %lx\n", freq);
 
 	sec_cnt = ((freq / frac_ext) << 8) + (((freq % frac_ext) * 256) / frac_ext & 0xFF);
 	rtc_dbg("sec_cnt = 0x%x\n", sec_cnt);

@@ -26,6 +26,7 @@ CVI_S32 CVI_VI_Resume(void);
 /* 1 for vi device */
 CVI_S32 CVI_VI_SetDevNum(CVI_U32 devNum);
 CVI_S32 CVI_VI_GetDevNum(CVI_U32 *devNum);
+CVI_S32 CVI_VI_GetDevState(VI_PIPE ViPipe);
 CVI_S32 CVI_VI_EnablePatt(VI_PIPE ViPipe);
 CVI_S32 CVI_VI_SetDevAttr(VI_DEV ViDev, const VI_DEV_ATTR_S *pstDevAttr);
 CVI_S32 CVI_VI_GetDevAttr(VI_DEV ViDev, VI_DEV_ATTR_S *pstDevAttr);

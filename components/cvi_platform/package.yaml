@@ -65,11 +65,14 @@ source_file:
   - netctrl/wifi/src/*.c ? <CONFIG_APP_WIFI_SUPPORT>
   - netctrl/bt/src/*.c ? <CONFIG_APP_BT_SUPPORT>
   - netctrl/gprs/src/*.c ? <CONFIG_APP_GPRS_SUPPORT>
-  - protocol/linkvisual/src/*.c
+  # - protocol/linkvisual/src/*.c
   - protocol/rtsp/src/*.c ? <CONFIG_APP_RTSP_SUPPORT>
   - protocol/uvc/src/*.c ? <CONFIG_APP_UVC_SUPPORT>
   - protocol/uac/src/*.c ? <CONFIG_APP_UAC_SUPPORT>
-  - protocol/av_composite/src/*.c ? <CONFIG_APP_AV_COMP_SUPPORT>
+  - protocol/av_composite/src/common/*.c ? <CONFIG_APP_AV_COMP_SUPPORT>
+  - protocol/av_composite/src/av_comp_app.c ? <CONFIG_APP_AV_COMP_SUPPORT>
+  - protocol/av_composite/src/common/*.c ? <CONFIG_MULTI_AV_COMP_SUPPORT>
+  - protocol/av_composite/src/multi_av_comp_app.c ? <CONFIG_MULTI_AV_COMP_SUPPORT>
   - util/src/*.c
   - gui/littlevGL/src/*.c ? <CONFIG_APP_GUI_SUPPORT>
   - ai/src/*.c ? <CONFIG_APP_AI_SUPPORT>

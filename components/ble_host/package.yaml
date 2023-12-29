@@ -87,7 +87,7 @@ license: Apache license v2.0                        # <可选项> 源代码的�
 #     - libs                               #   -Llibs
 build_config:
   libs:                                  # 该组件中支持的二进制静态库,如：libxxx.a, libyyy.a
-    - t_head_voice_call ?<CONFIG_BT_HFP_HF>                      #   -lxxx
+    - t_head_voice_call ?<CONFIG_BT_HFP_AUDIO_I2S>                      #   -lxxx
   libpath:                               # 指定静态库所在的路径（相对于该组件路径）
     - bt_host/audio/aec/<cpu>                               #   -Llibs
   internal_include:

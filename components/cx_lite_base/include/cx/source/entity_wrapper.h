@@ -20,37 +20,31 @@ namespace source {
 
 struct VpssWrapper {
     bool                    valid;      // if this vpss is valid
-    int                     in_use;
-    uint16_t                groupId;
-    uint16_t                chanId;
+    // int                     in_use;
+    std::string             label;
 
-    ImageSize               inputSize;
+    // ImageSize               inputSize;
     ImageSize               outputSize;
     uint16_t                outputFps;
     int16_t                 rotationAngle;
-    PixelFormat             inputFormat;
+    int16_t                 startFrame;
+    // PixelFormat             inputFormat;
     PixelFormat             outputFormat;
-    /* this is an accumulated value, for the sum of the rotation angle through the path*/
-    int16_t                 accumRotationAngle;
 
-    bool                    cropValid;           
+    // bool                    cropValid;           
     CropType                cropType;
-    uint32_t                cropX;          
-    uint32_t                cropY;          
-    uint32_t                cropW;          
-    uint32_t                cropH;          
+    // uint32_t                cropX;          
+    // uint32_t                cropY;          
+    // uint32_t                cropW;          
+    // uint32_t                cropH;          
 
     std::shared_ptr<TMVpss> entity;
 
     /* record the number of channels each group used, group index is the vector index */
-    static std::vector<int> groupChanOccupied;
+    // static std::vector<int> groupChanOccupied;
 
-    const static uint16_t MAX_GROUP_NUM = 16;
-    const static uint16_t MAX_CHANN_NUM = 3;
-    int16_t                 srcBindCount;
-    int16_t                 sinkBindCount;
-    bool                    endPoint;
-    bool                    notMergeFlag;
+    int16_t                 inPadNum;
+    int16_t                 outPadCnt;
 };
 
 struct ViWrapper {
@@ -62,7 +56,9 @@ struct ViWrapper {
     std::shared_ptr<TMCamera>   entity;
     board::SensorConfig::Tag    tag;
     ImageSize                   size;
+    uint16_t                    fps;
     PixelFormat                 format;
+    int16_t                     outPadCnt;
 };
 
 struct VoWrapper {
@@ -77,6 +73,10 @@ struct VoWrapper {
 
 struct EncodeWrapper {
     bool                             valid;
+    VencoderType                     type;
+    uint16_t                         targetBitRate;
+    int16_t                          inPadNum;
+    
     std::shared_ptr<TMVideoEncoder>  videoEntity;
     std::shared_ptr<TMAudioEncoder>  audioEntity;
 };

@@ -6,6 +6,10 @@
 #define TM_FORMAT_DEMUXER_H
 
 #include <string>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <unistd.h>
 
 #ifdef __linux__
 #include <tmedia_config.h>
@@ -16,39 +20,35 @@
 #include <tmedia_core/entity/format/format.h>
 #include <tmedia_core/bind/bind_inc.h>
 #include <tmedia_core/entity/entity.h>
-#include <tmedia_core/bind/event_handler.h>
 
 using namespace std;
 
-typedef enum {
-	DEMUXER_EVENT_TYPE_INVALID = 0,
-	DEMUXER_EVENT_TYPE_EOF     = 1 << 0,
-	DEMUXER_EVENT_TYPE_EORROR  = 1 << 1,
+typedef enum
+{
+    DEMUXER_EVENT_TYPE_INVALID = 0,
+    DEMUXER_EVENT_TYPE_EOF     = 1 << 0,
+    DEMUXER_EVENT_TYPE_EORROR  = 1 << 1,
 } formatdemuxer_event_type_e;
 
-typedef struct {
-	formatdemuxer_event_type_e type;
-	unsigned int id;	/* bitmasks */
+typedef struct
+{
+    formatdemuxer_event_type_e type;
+    unsigned int id; /* bitmasks */
 } TMFormatDemuxerEventSubscription_s;
 
 
 class TMFormatDemuxer : public TMFormat,
-                        public TMSrcEntity,
-                        public TMEventHandler
+    public TMSrcEntity
 {
 public:
     TMFormatDemuxer();
     virtual ~TMFormatDemuxer();
 
     // TMFormat interface
-
-    // TMSrcEntity interface
-    virtual TMSrcPad *GetSrcPad(int padID = 0) = 0;
-
-    virtual int Open(string fileName, TMPropertyList *propList = NULL) = 0;
+    virtual int Open(string fileName = "", TMPropertyList *propList = NULL) = 0;
     virtual int Close()                                   = 0;
     virtual int GetFormatInfo(TMFormatInfo &fmtInfo)      = 0;
-    virtual int GetCodecParam(TMCodecParams& codecParams) = 0;
+    virtual int GetCodecParam(TMCodecParams &codecParams) = 0;
 
     virtual int SetConfig(TMPropertyList &propertyList)   = 0;
     virtual int GetConfig(TMPropertyList &propertyList)   = 0;
@@ -58,14 +58,35 @@ public:
     virtual int Seek(int64_t timestamp)                   = 0;
     virtual int ReadPacket(TMPacket &packet)              = 0;
 
-    TMEventHandler mEventHandler;
+    // TMSrcEntity interface
+    TMSrcPad *GetSrcPad(TMData::Type dataType, int streamID = -1);
+
+    // TMEntity interface
+    virtual int PipeStart()  final override;
+    virtual int PipePause()  final override;
+    virtual int PipeStop()   final override;
 
 protected:
     TMMediaInfo::FormatID mFormatID;
 
     TMPropertyList mDefaultPropertyList;
     TMPropertyList mCurrentPropertyList;
-    virtual void InitDefaultPropertyList()                 = 0;
+    virtual void InitDefaultPropertyList()                = 0;
+
+    virtual int CreatePads() final override;
+    virtual int DestoryPads() final override;
+
+private:
+    thread *mThread;
+    bool mThreadRunFlag;
+    std::mutex mPipeMutex;
+    std::condition_variable mPipeCondition;
+
+    void ThreadRoutine();
+
+    int StartProcessData();
+    int PauseProcessData();
+    int StopProcessData();
 };
 
-#endif  // TM_FORMAT_DEMUXER_H
+#endif  /* TM_FORMAT_DEMUXER_H */

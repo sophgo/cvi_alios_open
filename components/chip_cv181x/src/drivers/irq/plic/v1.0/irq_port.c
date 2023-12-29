@@ -69,7 +69,7 @@ uint32_t soc_irq_get_irq_num(void)
     return ((__get_PSR() >> 16U) & 0xFFU) - 32U;
 #elif defined(__riscv)
 #if defined(CONFIG_CPU_C906) || defined(CONFIG_CPU_C910)
-#ifdef CONFIG_MMU
+#if defined(CONFIG_RISCV_SMODE) && CONFIG_RISCV_SMODE
     uint32_t num = PLIC->PLIC_H0_SCLAIM;
 #else
     uint32_t num = PLIC->PLIC_H0_MCLAIM;
@@ -84,7 +84,7 @@ void soc_irq_end(uint32_t irq_num)
 {
 #if defined(__riscv)
 #if defined(CONFIG_CPU_C906) || defined(CONFIG_CPU_C910)
-#ifdef CONFIG_MMU
+#if defined(CONFIG_RISCV_SMODE) && CONFIG_RISCV_SMODE
     PLIC->PLIC_H0_SCLAIM = irq_num;
 #else
     PLIC->PLIC_H0_MCLAIM = irq_num;

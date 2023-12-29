@@ -1,20 +1,21 @@
 #include "common_yocsystem.h"
 #include <stdbool.h>
-#include <aos/kv.h>
+// #include <aos/kv.h>
 #include <debug/dbg.h>
 #include <aos/cli.h>
-#include <uservice/uservice.h>
+// #include <uservice/uservice.h>
 #include <yoc/partition.h>
 #include <yoc/init.h>
 #include <drv/dma.h>
 #include "board.h"
-#include "fatfs_vfs.h"
-#include "littlefs_vfs.h"
+// #include "fatfs_vfs.h"
+// #include "littlefs_vfs.h"
 #include "vfs.h"
 #include "disk_sd.h"
 #include "vfs_api.h"
-#include "littlefs_vfs.h"
+// #include "littlefs_vfs.h"
 #include "debug/debug_cli_cmd.h"
+
 
 void YOC_SYSTEM_FsVfsInit()
 {
@@ -37,16 +38,15 @@ void YOC_SYSTEM_FsVfsInit()
         //    LOGE("app", "lfs register failed(%d)", ret);
         //} else
         //    LOGE("app", "lfs register succeed.");
-        ret = aos_kv_init("kv");
-        if (ret != 0) {
-            LOGE("app", "aos_kv_init failed(%d)", ret);
-        } else
-            LOGE("app", "aos_kv_init succeed.");
+        // ret = aos_kv_init("kv");
+        // if (ret != 0) {
+        //     LOGE("app", "aos_kv_init failed(%d)", ret);
+        // } else
+        //     LOGE("app", "aos_kv_init succeed.");
     }
     else
         printf("partition_init failed! ret = %d\n" , ret);
 #endif
-
 }
 
 
@@ -95,14 +95,14 @@ void YOC_SYSTEM_ToolInit()
     cli_reg_cmd_mv();
     cli_reg_cmd_ext4();
 #endif
-    cli_reg_cmd_iperf();
-    cli_reg_cmd_ifconfig();
+    // cli_reg_cmd_iperf();
+    // cli_reg_cmd_ifconfig();
 #if (CONFIG_SUPPORT_TEST_TYDB_ADB == 1)
     cli_reg_cmd_adb_config();
 #endif
     ulog_init();
     aos_set_log_level(AOS_LL_INFO);
-    event_service_init(NULL);
+    // event_service_init(NULL);
 }
 
 void cli_dump_isp_param(int argc,char **argv)

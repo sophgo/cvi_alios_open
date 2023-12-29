@@ -1,8 +1,9 @@
 /*
  * Copyright (C) 2021-2022 Alibaba Group Holding Limited
  */
-#ifndef BS_READ_H
-#define BS_READ_H
+
+#ifndef TM_BS_READ_H
+#define TM_BS_READ_H
 
 #include <cstdint>
 
@@ -20,4 +21,4 @@ uint32_t bs_read1(bs_t *s);
 int bs_read_ue(bs_t *s);
 int bs_read_se(bs_t *s);
 
-#endif  // BS_READ_H
+#endif  /* TM_BS_READ_H */

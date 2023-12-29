@@ -46,4 +46,4 @@ public:
     };\
 const VpssRegister class_name##Register::reg(class_name##Register::NewInstance);
 
-#endif  // TM_VPSS_FACTORY_H
+#endif  /* TM_VPSS_FACTORY_H */

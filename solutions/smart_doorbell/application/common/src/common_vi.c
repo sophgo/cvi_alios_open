@@ -1,8 +1,8 @@
 #include "common_vi.h"
 
-#define MAX_SENSOR_NUM	2
-#define SNS0_TYPE	CONFIG_SNS0_TYPE
-#define SNS1_TYPE	CONFIG_SNS1_TYPE
+#define MAX_SENSOR_NUM  3
+
+static int g_sns_type[MAX_SENSOR_NUM] = {CONFIG_SNS0_TYPE, CONFIG_SNS1_TYPE, CONFIG_SNS2_TYPE};
 
 typedef struct _SNS_CONFIG_S {
 	SIZE_S			stSize;
@@ -75,27 +75,23 @@ VI_CHN_ATTR_S vi_chn_attr_base = {
 
 CVI_S32 get_sensor_type(CVI_S32 dev_id)
 {
-	if (dev_id == 0) {
-		return SNS0_TYPE;
-	} else {
-		return SNS1_TYPE;
-	}
-}
+    if (dev_id >= MAX_SENSOR_NUM)
+        return SNS_TYPE_NONE;
 
+    return g_sns_type[dev_id];
+}
 
 CVI_S32 getSnsType(CVI_S32 *snsr_type, CVI_U8 *devNum)
 {
-	if ((SNS1_TYPE < SNS_TYPE_WDR_BUTT) && (SNS1_TYPE != SNS_TYPE_NONE)) {
-		*devNum = 2;
-	} else {
-		*devNum = 1;
-	}
+    for (CVI_U8 i = 0; i < MAX_SENSOR_NUM; i++) {
+        if (g_sns_type[i] != SNS_TYPE_NONE)
+            *devNum += 1;
+    }
+    for (CVI_U8 i = 0; i < *devNum; i++) {
+        snsr_type[i] = get_sensor_type(i);
+    }
 
-	for (CVI_U8 i = 0; i < *devNum; i++) {
-		snsr_type[i] = get_sensor_type(i);
-	}
-
-	return CVI_SUCCESS;
+    return CVI_SUCCESS;
 }
 
 ISP_SNS_OBJ_S *getSnsObj(SNS_TYPE_E enSnsType)
@@ -157,6 +153,22 @@ ISP_SNS_OBJ_S *getSnsObj(SNS_TYPE_E enSnsType)
 	case SMS_SC201CS_SLAVE_MIPI_2M_30FPS_10BIT:
 		return &stSnsSC201CS_SLAVE_Obj;
 #endif
+#if CONFIG_SENSOR_SMS_SC201CS_MULTI
+	case SMS_SC201CS_MULTI_MIPI_2M_30FPS_10BIT:
+		return &stSnsSC201CS_MULTI_Obj;
+#endif
+#if CONFIG_SENSOR_SMS_SC202CS
+	case SMS_SC202CS_MIPI_2M_30FPS_10BIT:
+		return &stSnsSC202CS_Obj;
+#endif
+#if CONFIG_SENSOR_SMS_SC202CS_SLAVE
+	case SMS_SC202CS_SLAVE_MIPI_2M_30FPS_10BIT:
+		return &stSnsSC202CS_SLAVE_Obj;
+#endif
+#if CONFIG_SENSOR_SMS_SC202CS_MULTI
+	case SMS_SC202CS_MULTI_MIPI_2M_30FPS_10BIT:
+		return &stSnsSC202CS_MULTI_Obj;
+#endif
 #if CONFIG_SENSOR_SMS_SC031IOT
 	case SMS_SC031IOT_MIPI_480P_30FPS_8BIT:
 		return &stSnsSC031IOT_Obj;
@@ -188,6 +200,18 @@ ISP_SNS_OBJ_S *getSnsObj(SNS_TYPE_E enSnsType)
 #if CONFIG_SENSOR_BYD_BF314A
 	case BYD_BF314A_MIPI_720P_30FPS_10BIT:
 		return &stSnsBf314a_Obj;
+#endif
+#if CONFIG_SENSOR_BYD_BF2253L
+	case BYD_BF2253L_MIPI_1200P_30FPS_10BIT:
+		return &stSnsBF2253L_Obj;
+#endif
+#if CONFIG_SENSOR_BYD_BF2257CS
+	case BYD_BF2257CS_MIPI_1200P_30FPS_10BIT:
+		return &stSnsBF2257CS_Obj;
+#endif
+#if CONFIG_SENSOR_BYD_BF2257CS_SLAVE
+	case BYD_BF2257CS_SLAVE_MIPI_1200P_30FPS_10BIT:
+		return &stSnsBF2257CS_Slave_Obj;
 #endif
 	default:
 		return CVI_NULL;
@@ -232,7 +256,13 @@ CVI_S32 getPicSize(CVI_S32 dev_id, SNS_SIZE_S *pstSize)
 	case GCORE_GC02M1_MIPI_2M_30FPS_10BIT:
 	case GCORE_GC02M1_SLAVE_MIPI_2M_30FPS_10BIT:
 	case SMS_SC201CS_MIPI_2M_30FPS_10BIT:
-	case SMS_SC201CS_SLAVE_MIPI_2M_30FPS_10BIT:
+	case SMS_SC201CS_MULTI_MIPI_2M_30FPS_10BIT:
+	case BYD_BF2253L_MIPI_1200P_30FPS_10BIT:
+	case BYD_BF2257CS_MIPI_1200P_30FPS_10BIT:
+	case BYD_BF2257CS_SLAVE_MIPI_1200P_30FPS_10BIT:
+	case SMS_SC202CS_MIPI_2M_30FPS_10BIT:
+	case SMS_SC202CS_SLAVE_MIPI_2M_30FPS_10BIT:
+	case SMS_SC202CS_MULTI_MIPI_2M_30FPS_10BIT:
 		pstSize->u32Width  = 1600;
 		pstSize->u32Height = 1200;
 		break;

@@ -7,8 +7,8 @@
  */
 #include "ir_custom_param.h"
 
-extern unsigned char cvi_isp_default_param[];
-extern unsigned int default_length;
+// extern unsigned char cvi_isp_default_param[];
+// extern unsigned int default_length;
 void * g_ViDmaBuf = NULL;
 unsigned int g_ViDmaBufSize = 13 * 1024 * 1024;
 
@@ -40,11 +40,11 @@ PARAM_CLASSDEFINE(PARAM_ISP_CFG_S,ISPCFG,CTX,ISP)[] = {
     {
         .bMonoSet = {1, 1},
         .bUseSingleBin = 1,
-        .stPQBinDes = 
-        {
-            .pIspBinData = cvi_isp_default_param,
-            .u32IspBinDataLen = 0,
-        },
+        // .stPQBinDes =
+        // {
+        //     .pIspBinData = cvi_isp_default_param,
+        //     .u32IspBinDataLen = 0,
+        // },
     }
 };
 
@@ -71,6 +71,6 @@ PARAM_VI_CFG_S * IR_PARAM_GET_VI_CFG(void)
     }
     g_stFcViCtx.pstDevInfo->pViDmaBuf = g_ViDmaBuf;
     g_stFcViCtx.pstDevInfo[0].u32ViDmaBufSize = g_ViDmaBufSize;
-    g_stFcViCtx.pstIspCfg[0].stPQBinDes.u32IspBinDataLen = default_length;//非常量无法直接初始化
+    // g_stFcViCtx.pstIspCfg[0].stPQBinDes.u32IspBinDataLen = default_length;//非常量无法直接初始化
     return &g_stFcViCtx;
 }

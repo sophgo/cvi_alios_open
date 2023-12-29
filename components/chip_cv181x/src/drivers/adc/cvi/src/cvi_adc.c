@@ -109,7 +109,7 @@ cvi_error_t cvi_adc_init(cvi_adc_t *adc)
 	adc->start           = NULL;
 	adc->stop            = NULL;
 
-	if (reg_base && irqn)
+	if (reg_base)
 	{
 		pr_debug("adc init ok! reg_base: 0x%x, bank: %d, irq_num: %d\n", reg_base, GET_DEV_IDX(adc), irqn);
 		return CVI_OK;
@@ -234,14 +234,28 @@ cvi_error_t cvi_adc_channel_enable(cvi_adc_t *adc, uint8_t ch_id, bool is_enable
 
     unsigned reg_base = GET_DEV_REG_BASE(adc);
 
-    if (ch_id < 1 || ch_id > 3) {
+#if CONFIG_BOARD_CV181XC
+    if (adc->dev.idx == 0 && ch_id != 1) {
+#elif CONFIG_BOARD_CV180XC
+    if (adc->dev.idx == 0 && ch_id > 2) {
+#elif CONFIG_BOARD_CV180XB
+    if (adc->dev.idx == 1) {
+#else
+    if (0) {
+#endif
+        pr_err("invalid ch_id\n");
+        return CVI_ERROR;
+    }
+
+    if (ch_id < 1 || ch_id > 3 || (adc->dev.idx == 1 && ch_id > 2)) {
         pr_err("invalid ch_id\n");
         ret = CVI_ERROR;
     } else {
+        adc->ch_id = ch_id;
         if (is_enable)
-            adc_set_sel_channel(reg_base, ((uint32_t)1U << (ADC_CTRL_ADC_SEL_Pos + ch_id)));
+            adc_set_sel_channel(reg_base, ((uint32_t)ch_id << (ADC_CTRL_ADC_SEL_Pos + 1)));
         else
-            adc_reset_sel_channel(reg_base, ((uint32_t)1U << (ADC_CTRL_ADC_SEL_Pos + ch_id)));
+            adc_reset_sel_channel(reg_base, ((uint32_t)ch_id << (ADC_CTRL_ADC_SEL_Pos + 1)));
     }
 
     return ret;
@@ -297,7 +311,7 @@ int32_t cvi_adc_read(cvi_adc_t *adc)
     }
 
     if (ret == CVI_OK) {
-        ret = (int32_t)adc_get_channel1_data(reg_base);
+        ret = (int32_t)adc_get_channel_data_ch(reg_base, adc->ch_id);
     }
 
     return ret;

@@ -2,7 +2,8 @@
  * Copyright (C) 2021 Alibaba Group Holding Limited
  */
 
-#pragma once
+#ifndef TM_RTSP_MUXER_H
+#define TM_RTSP_MUXER_H
 
 #include <string>
 
@@ -35,3 +36,4 @@ public:
     virtual void WritePacket(TMPacket &packet);
 };
 
+#endif  /* TM_RTSP_MUXER_H */

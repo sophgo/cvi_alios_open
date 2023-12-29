@@ -137,8 +137,8 @@ int linkvisual_start_audio_encode(int start)
 
 int linkvisual_get_video_attributes(lv_video_param_s *param)
 {
-    param->format = lv::MapEncodeFormat_CX2LV(GetCurrentVideoChan()->mConfig.encoder);
-    param->fps = GetCurrentVideoChan()->mConfig.outputFps;
+    param->format = lv::MapEncodeFormat_CX2LV(GetCurrentVideoChan()->GetConfig()->encoder);
+    param->fps = GetCurrentVideoChan()->GetConfig()->outputFps;
 
     return 0;
 }
@@ -167,7 +167,7 @@ int linkvisual_get_encoded_video(void *data, uint32_t max_size, int *is_iframe, 
     }
 
     *is_iframe = lv::MapVideoFrameType_CX2LV(pkt->data.mPictureType);
-    *timestamp = pkt->data.mPTS/1000;
+    *timestamp = pkt->data.mPTS.Get().timestamp/1000;
     len = pkt->data.mDataLength;
 
     pkt->data.UnRef();
@@ -185,7 +185,7 @@ int linkvisual_get_encoded_audio(void *data, uint32_t max_size, long long *times
     }
     ret = packet->data.mDataLength;
 
-    *timestamp = packet->data.mPTS/1000;
+    *timestamp = packet->data.mPTS.Get().timestamp/1000;
     if(max_size < (uint32_t)ret) {
         CX_LOGD(TAG, "size too big %d", ret);
         return -1;

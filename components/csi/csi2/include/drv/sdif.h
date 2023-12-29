@@ -133,8 +133,13 @@ typedef enum {
     SDIF_SUPPORT_DMA_SPEED      = 0x2U,         ///< Support DMA
     SDIF_SUPPORT_USPEND_RESUME  = 0x4U,         ///< Support suspend/resume
     SDIF_SUPPORT_V330           = 0x8U,         ///< Support voltage 3.3V
-    SDIF_SUPPORT_4BIT           = 0x10U,        ///< Support 4 bit mode
-    SDIF_SUPPORT_8BIT           = 0x20U,        ///< Support 8 bit mode
+    SDIF_SUPPORT_V180           = 0x10U,        ///< Support voltag 1.8V
+    SDIF_SUPPORT_4BIT           = 0x20U,        ///< Support 4 bit mode
+    SDIF_SUPPORT_8BIT           = 0x40U,        ///< Support 8 bit mode
+    SDIF_SUPPORT_DDR50          = 0x80U,        ///< Support DDR50
+    SDIF_SUPPORT_SDR104         = 0x100U,       ///< Support SDR104
+    SDIF_SUPPORT_SDR50          = 0x200U,       ///< Support SDR50
+    SDIF_SUPPORT_HS200          = 0x400U,       ///< Support HS200
 } sdif_capability_flag_e;
 
 /* \brief define the internal DMA mode */

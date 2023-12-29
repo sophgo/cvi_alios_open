@@ -124,7 +124,14 @@
 #ifndef CONFIG_BT_PAGE_TIMEOUT
 /* This option sets the page timeout value. Value is selected as
           (N * 0.625) ms, 0x0001~0xffff */
-#define CONFIG_BT_PAGE_TIMEOUT 0x2000
+#define CONFIG_BT_PAGE_TIMEOUT 0x6000
+#endif
+
+#ifndef CONFIG_BT_CONN_WINDOW
+#define CONFIG_BT_CONN_WINDOW       0x0012
+#endif
+#ifndef CONFIG_BT_CONN_INTERVAL
+#define CONFIG_BT_CONN_INTERVAL     0x0800
 #endif
 
 #endif //#if defined(CONFIG_BT_BREDR) && CONFIG_BT_BREDR

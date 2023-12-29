@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2021-2022 Alibaba Group Holding Limited
  */
+
 #ifndef TM_PROPERTY_H
 #define TM_PROPERTY_H
 
@@ -219,4 +220,4 @@ int TMPropertyList::Assign(T1 propId, T2 value)
     return 0;
 }
 
-#endif  // TM_PROPERTY_H
+#endif  /* TM_PROPERTY_H */

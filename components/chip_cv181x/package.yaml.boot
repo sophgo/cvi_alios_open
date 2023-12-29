@@ -99,7 +99,7 @@ build_config:
     - src/drivers/wdt/cvi/include
     - src/drivers/rtc/cvi/include
     - src/drivers/uart/dw/v1.0/include
-    - src/drivers/iic/dw/include
+   # - src/drivers/iic/dw/include
     - src/drivers/adc/cvi/include
     - src/drivers/pwm/cvi/v1.0/include
     - src/drivers/sha/cvi/include
@@ -108,6 +108,7 @@ build_config:
 
     - src/hal/dma/cvi/include
     - src/drivers/spiflash/v2.0/include
+    - src/drivers/spinand/v2.0/include
     - src/drivers/spi/dw/v2.0/include
 
     - src/hal/pin/cvi/include
@@ -145,21 +146,22 @@ source_file:
   - src/drivers/irq/plic/v1.0/irq_port.c
 #  - src/drivers/tick/csitimer/tick.c
   - src/drivers/uart/dw/v1.0/src/*.c
-  # - src/drivers/iic/dw/src/*.c
+  #- src/drivers/iic/dw/src/*.c
   # - src/drivers/iic/i2c_tool/*.c
   # - src/drivers/pin/cvi/src/*.c
   # - src/drivers/gpio/cvi/src/*.c
   # - src/drivers/adc/cvi/src/*.c
-  - src/drivers/pwm/cvi/v1.0/src/*.c
+ # - src/drivers/pwm/cvi/v1.0/src/*.c
   - src/drivers/wdt/cvi/src/*.c
   - src/drivers/dma/cvi/src/cvi_dma.c
   - src/drivers/dma/cvi/src/csi_dma.c
   - src/drivers/spiflash/v2.0/src/*.c
+ # - src/drivers/spinand/v2.0/src/*.c
   - src/drivers/spi/dw/v2.0/src/*.c
   - src/drivers/timer/cvi/v1/src/*.c
-  - src/drivers/rtc/cvi/src/cvi_rtc.c
-  - src/drivers/rtc/cvi/src/csi_rtc.c
-  - src/drivers/rtc/cvi/src/rtc_lib.c
+ # - src/drivers/rtc/cvi/src/cvi_rtc.c
+ # - src/drivers/rtc/cvi/src/csi_rtc.c
+ # - src/drivers/rtc/cvi/src/rtc_lib.c
   - src/drivers/dma/cvi/src/sysdma_remap.c
   # - src/drivers/net/ethernet/dw/src/dw_gmac_mars.c
   # - src/drivers/net/phy/src/phy.c
@@ -168,10 +170,10 @@ source_file:
 #  - src/drivers/timer/dw/v1.0/timer.c
   # - src/hal/pin/cvi/src/*.c
   # - src/hal/gpio/cvi/src/hal_gpio.c
-  - src/hal/adc/cvi/src/hal_adc.c
+ # - src/hal/adc/cvi/src/hal_adc.c
   - src/hal/dma/cvi/src/hal_dma.c
   - src/hal/timer/cvi/src/hal_timer.c
-  - src/hal/rtc/cvi/src/hal_rtc.c
+ # - src/hal/rtc/cvi/src/hal_rtc.c
 
   # - src/drivers/i2s/dw/src/dw_i2s.c
   # - src/drivers/i2s/dw/src/i2s.c
@@ -180,7 +182,7 @@ source_file:
   # - src/drivers/codec/cvitek/src/codec.c
   - src/drivers/common/ringbuffer.c
   - src/drivers/sdif/dw/v1.0/*.c
-  - src/drivers/sha/cvi/src/*.c
+ # - src/drivers/sha/cvi/src/*.c
   # - src/drivers/aes/cvi/src/*.c
   # - src/drivers/efuse/wj/cvi/*.c
   # - src/drivers/rng/cvi/src/*.c

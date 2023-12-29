@@ -16,7 +16,7 @@
 boot_reason_t soc_get_boot_reason(void)
 {
     // FIXME:
-    return BOOTREASON_SOFT;
+    return BOOTREASON_OTHER;
 }
 
 __attribute__((weak)) void reboot_pre_hook(void)

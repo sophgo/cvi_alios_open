@@ -1,3 +1,4 @@
+
 #include "media_osd.h"
 #include <sys/prctl.h>
 #include <pthread.h>
@@ -7,7 +8,7 @@
 #include <unistd.h>
 #include "loadbmp.h"
 #include <math.h>
-#include "fatfs_vfs.h"
+// #include "fatfs_vfs.h"
 #if (CONFIG_DEBUG_CVITEST_CLIMODE == 0)
 #include <fontmod.h>
 #else
@@ -23,6 +24,10 @@ extern unsigned char g_fontLib[];
 #endif
 #if !defined(MAX)
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif
+
+#ifndef SD_FATFS_MOUNTPOINT
+#define SD_FATFS_MOUNTPOINT "/mnt/sd"
 #endif
 #define BYTE_BITS				8
 #define NOASCII_CHARACTER_BYTES 2

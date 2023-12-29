@@ -14,27 +14,25 @@ depends:                                       # 该组件依赖其他的组件
   - chip_cv181x: develop
   - boot: develop
   - partition: develop
-  - sec_crypto: develop
-  - key_mgr: develop
-  - bootab: develop
-  - xz: develop
-  - drv_sdmmc: develop
+ # - sec_crypto: develop
+ # - key_mgr: develop
+ # - bootab: develop
+ # - xz: develop
+ # - drv_sdmmc: develop
+ # - secureboot: develop
 
 # 编译参数
 build_config:
   include:
     - app/include
-    - secure_boot/include
     - board/include
     - lib/lz4
     - lib/utils
     - lib/lzma
-    - lib/libtomcrypt/src/headers
-    - lib/BigDigits
   cflag: >
         -c -g -Os -ffunction-sections -fdata-sections -Wall -fno-common -fno-asynchronous-unwind-tables
   asmflag: -c -g -ffunction-sections -fdata-sections -Wall
-  ldflag: -Wl,--gc-sections -lstdc++ -lsupc++ -lm -lc -lgcc -lnosys -nostartfiles --specs=nosys.specs -Wl,-Map="boot.map" -fno-asynchronous-unwind-tables 
+  ldflag: -Wl,--gc-sections -lstdc++ -lsupc++ -lm -lc -lgcc -lnosys -nostartfiles --specs=nosys.specs -Wl,-Map="boot.map" -fno-asynchronous-unwind-tables
   cxxflag: >
         -D_GLIBCXX_HAS_GTHREADS
         -std=gnu++11 -fno-common -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer -fpermissive -g -Os
@@ -43,31 +41,30 @@ build_config:
 # 源文件
 source_file:
   - app/src/*.c
-  - secure_boot/src/*.c
   - porting/flash_ops.c ? <CONFIG_PARTITION_SUPPORT_SPINORFLASH>
   - porting/emmc_ops.c ? <CONFIG_PARTITION_SUPPORT_EMMC>
   - porting/sd_ops.c ? <CONFIG_PARTITION_SUPPORT_SD>
   - board/src/*.c
-  - lib/lz4/lz4_all.c
-  - lib/lz4/xxhash.c
-  - lib/lzma/LzmaDec.c 
-  - lib/utils/decompress.c
-  - lib/BigDigits/bigdigits.c
-  - lib/libtomcrypt/src/hashes/sha2/sha256.c
+  - board/src/iic/*.c
+  - board/src/sensor/*.c
+#  - lib/lz4/lz4_all.c
+#  - lib/lz4/xxhash.c
+#  - lib/lzma/LzmaDec.c
+#  - lib/utils/decompress.c
 
 def_config:
   CONFIG_DEBUG: 0
   SHOW_PART_INFO_EN: 0
   CONFIG_OTA_AB: 0
   CONFIG_NEWLIB_STUB: 1
-  CONFIG_NO_OTA_UPGRADE: 0
+  CONFIG_NO_OTA_UPGRADE: 1
   CONFIG_OTA_NO_DIFF: 1
-  CONFIG_PARITION_NO_VERIFY: 0
+  CONFIG_PARITION_NO_VERIFY: 1
   CONFIG_FOTA_IMG_AUTHENTICITY_NOT_CHECK: 1
   CONFIG_NOT_SUPORRT_SASC: 1
   CONFIG_TB_KP: 1
   CONFIG_KP_BUFFER_LEN: 4096
-  CONFIG_KEY_MGR_KP_PROTECT: 1
+  CONFIG_KEY_MGR_KP_PROTECT: 0
   CONFIG_IMG_AUTHENTICITY_NOT_CHECK: 0
   # CONFIG_SHOW_KEY_IN_KP: y
   CONFIG_MANTB_VERSION: 4
@@ -75,15 +72,19 @@ def_config:
   CONFIG_ARCH_MAINSTACK: 16384
   CONFIG_SYSTEM_SECURE: 1
   #sec_crypto
-  CONFIG_SEC_CRYPTO_AES_SW: 1
-  CONFIG_SEC_CRYPTO_SHA_SW: 1
-  CONFIG_SEC_CRYPTO_RSA_SW: 1
+ # CONFIG_SEC_CRYPTO_AES_SW: 1
+ # CONFIG_SEC_CRYPTO_SHA_SW: 1
+ # CONFIG_SEC_CRYPTO_RSA_SW: 1
   # CONFIG_SEC_CRYPTO_RNG_SW: 1
+  CONFIG_SENSOR_QUICK_STARTUP: 1
 
   CONFIG_MLIBC_PATH: stdio2
   CONFIG_SYSTICK_HZ: 100
   # CONFIG_WDT_TIMEOUT: 10000
   CONFIG_MAX_PARTITION_NUM: 16
+  CONFIG_SPINOR_CLK_75M: 0
+  CONFIG_SPINOR_CLK_93M: 0
+  CONFIG_SPINOR_CLK_125M: 1
 
   USE_4K_ERASE_SECTION: 1
   CONFIG_PARTITION_SUPPORT_BLOCK_OR_MULTI_DEV: 1
@@ -98,13 +99,11 @@ def_config:
   CONFIG_SDIO_SDIF: 0
   CONFIG_SD_SDIF: 1
 
-  # secure boot use
-  NO_ALLOCS: y
-  ARGTYPE: 3
-  LTC_NO_FILE: y
-  LTM_NO_FILE: y
-  LTM_DESC: y
-  LTC_SOURCE: y
+  CONFIG_SECUREBOOT: 0
 
-  CONFIG_CV181X: 1
-  CONFIG_CV180X: 0
+  # SENSOR
+  CONFIG_SENSOR_DUAL_SWITCH: 1
+  CONFIG_SENSOR_GCORE_GC2093: 0
+  CONFIG_SENSOR_SMS_SC201CS: 1
+  CONFIG_SENSOR_SMS_SC201CS_MULTI: 1
+  CONFIG_SENSOR_SMS_SC201CS_SLAVE: 1

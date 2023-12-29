@@ -16,7 +16,11 @@ void board_flash_init(void)
 	rvm_hal_mmc_config_t mmc_config;
 	memset(&mmc_config, 0, sizeof(rvm_hal_mmc_config_t));
 	mmc_config.sdif = CONFIG_EMMC_SDIF;
+#if CONFIG_SUPPORT_EMMC_1_8V
+	mmc_config.hostVoltageWindowVCC = kMMC_VoltageWindow170to195;
+#else
 	mmc_config.hostVoltageWindowVCC = kMMC_VoltageWindows270to360;
+#endif
 	mmc_config.default_busWidth = kMMC_DataBusWidth4bit;
 	mmc_config.use_default_busWidth = 1;
 	rvm_mmc_drv_register(0, &mmc_config);
@@ -24,4 +28,8 @@ void board_flash_init(void)
     rvm_hal_sd_config_t sd_config;
     sd_config.sdif = CONFIG_SD_SDIF;
     rvm_sd_drv_register(0, &sd_config);
+
+#if CONFIG_PARTITION_SUPPORT_SPINANDFLASH
+	rvm_spinandflash_drv_register(0);
+#endif
 }

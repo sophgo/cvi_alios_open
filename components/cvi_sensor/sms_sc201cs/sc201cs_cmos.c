@@ -28,7 +28,9 @@
 #define DIV_0_TO_1(a)   ((0 == (a)) ? 1 : (a))
 #define DIV_0_TO_1_FLOAT(a) ((((a) < 1E-10) && ((a) > -1E-10)) ? 1 : (a))
 #define SC201CS_ID 0xeb2c
-#define SC201CS_I2C_ADDR_IS_VALID(addr)      ((addr) == SC201CS_I2C_ADDR_1 || (addr) == SC201CS_I2C_ADDR_2)
+#define SC201CS_I2C_ADDR_1 0x30
+#define SC201CS_I2C_ADDR_2 0x32
+#define SC201CS_I2C_ADDR_IS_VALID(addr) ((addr) == SC201CS_I2C_ADDR_1 || (addr) == SC201CS_I2C_ADDR_2)
 
 /****************************************************************************
  * global variables                                                         *
@@ -131,7 +133,8 @@ static CVI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSns
 		pstAeSnsDft->u32AEResponseFrame = 4;
 		pstAeSnsDft->enAeExpMode = AE_EXP_HIGHLIGHT_PRIOR;
 		pstAeSnsDft->u32InitExposure = g_au32InitExposure[ViPipe] ?
-			g_au32InitExposure[ViPipe] : g_astSc201cs_mode[SC201CS_MODE_1600X1200P30].stExp[0].u16Def;
+			g_au32InitExposure[ViPipe] :
+			g_astSc201cs_mode[SC201CS_MODE_1600X1200P30].stExp[0].u16Def;
 
 		pstAeSnsDft->u32MaxIntTime = pstSnsState->u32FLStd - 8;
 		pstAeSnsDft->u32MinIntTime = g_astSc201cs_mode[SC201CS_MODE_1600X1200P30].stExp[0].u16Min;
@@ -858,40 +861,6 @@ static CVI_S32 sensor_probe(VI_PIPE ViPipe)
 	return sc201cs_probe(ViPipe);
 }
 
-static CVI_S32 sc201cs_dual_switch(CVI_U8 idx)
-{
-	CVI_S32 ret;
-	VI_PIPE ViPipe = 0;
-	ISP_SNS_STATE_S *pstSnsState = CVI_NULL;
-	SC201CS_SENSOR_GET_CTX(ViPipe, pstSnsState);
-	CMOS_CHECK_POINTER(pstSnsState);
-
-	if (idx > 2 || sc201cs_cur_idx == idx) {
-		return CVI_FAILURE;
-	}
-
-	ret = sc201cs_set_i2c_cfg(ViPipe, sc201cs_i2c_addr_list[!idx], sc201cs_i2c_dev_list[!idx]);
-	if (ret != CVI_SUCCESS) {
-		printf("i2c set cfg(%d) failed\n", !idx);
-		return CVI_FAILURE;
-	}
-	sc201cs_standby(ViPipe);
-
-	ret = sc201cs_set_i2c_cfg(ViPipe, sc201cs_i2c_addr_list[idx], sc201cs_i2c_dev_list[idx]);
-	if (ret != CVI_SUCCESS) {
-		printf("i2c set cfg(%d) failed\n", idx);
-		return CVI_FAILURE;
-	}
-	sc201cs_restart(ViPipe);
-
-	// update i2c param
-	pstSnsState->bSyncInit = CVI_FALSE;
-
-	sc201cs_cur_idx = idx;
-
-	return CVI_SUCCESS;
-}
-
 ISP_SNS_OBJ_S stSnsSC201CS_Obj = {
 	.pfnRegisterCallback    = sensor_register_callback,
 	.pfnUnRegisterCallback  = sensor_unregister_callback,
@@ -908,6 +877,5 @@ ISP_SNS_OBJ_S stSnsSC201CS_Obj = {
 	.pfnExpSensorCb         = cmos_init_sensor_exp_function,
 	.pfnExpAeCb             = cmos_init_ae_exp_function,
 	.pfnSnsProbe            = sensor_probe,
-	.pfnSnsDualSwitch       = sc201cs_dual_switch,
 };
 

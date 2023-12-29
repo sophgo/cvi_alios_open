@@ -11,42 +11,11 @@
 #define SC201CS_CHIP_ID_ADDR_L	0x3108
 #define SC201CS_CHIP_ID		0xeb2c
 
-#if CONFIG_SENSOR_DUAL_SWITCH
-static void sc201cs_linear_1200p30_dual_switch_init(VI_PIPE ViPipe);
-#else
 static void sc201cs_linear_1200p30_init(VI_PIPE ViPipe);
-#endif
 
-CVI_U8 sc201cs_i2c_addr_list[] = {SC201CS_I2C_ADDR_1, SC201CS_I2C_ADDR_2};
-CVI_S8 sc201cs_i2c_dev_list[] = {1, 1};
-CVI_U8 sc201cs_cur_idx = 0;
-
-CVI_U8 sc201cs_i2c_addr = 0x32;
+CVI_U8 sc201cs_i2c_addr = 0x30;
 const CVI_U32 sc201cs_addr_byte = 2;
 const CVI_U32 sc201cs_data_byte = 1;
-
-int sc201cs_set_i2c_cfg(VI_PIPE ViPipe, CVI_U8 i2c_addr, CVI_S8 i2c_dev)
-{
-	static CVI_BOOL i2c_dev_init_flag = CVI_FALSE;
-	int ret;
-
-	// Different dev needs to reinitialize i2c
-	if (i2c_dev != (CVI_U8)g_aunSc201cs_BusInfo[ViPipe].s8I2cDev && !i2c_dev_init_flag) {
-		ret = sensor_i2c_init(i2c_dev);
-		if (ret != CVI_SUCCESS) {
-			printf("i2c dev%d init failed\n", i2c_dev);
-			return CVI_FAILURE;
-		}
-		i2c_dev_init_flag = CVI_TRUE;
-		g_aunSc201cs_BusInfo[ViPipe].s8I2cDev = i2c_dev;
-	}
-
-	sc201cs_i2c_addr = i2c_addr;
-
-	printf("%s i2c_addr:%#x, i2c_dev:%d\n", __FUNCTION__, i2c_addr, i2c_dev);
-
-	return CVI_SUCCESS;
-}
 
 int sc201cs_i2c_init(VI_PIPE ViPipe)
 {
@@ -78,12 +47,17 @@ int sc201cs_write_register(VI_PIPE ViPipe, int addr, int data)
 		(CVI_U32)data, sc201cs_data_byte);
 }
 
+// static void delay_ms(int ms)
+// {
+// 	udelay(ms * 1000);
+// }
+
 void sc201cs_standby(VI_PIPE ViPipe)
 {
 	sc201cs_write_register(ViPipe, 0x3019, 0xff);
 	sc201cs_write_register(ViPipe, 0x0100, 0x00);
 
-	printf("%s i2c_addr:%x, i2c_dev:%d\n", __func__, sc201cs_i2c_addr, g_aunSc201cs_BusInfo[ViPipe].s8I2cDev);
+	// printf("%s\n", __func__);
 }
 
 void sc201cs_restart(VI_PIPE ViPipe)
@@ -91,7 +65,7 @@ void sc201cs_restart(VI_PIPE ViPipe)
 	sc201cs_write_register(ViPipe, 0x3019, 0xfe);
 	sc201cs_write_register(ViPipe, 0x0100, 0x01);
 
-	printf("%s i2c_addr:%x, i2c_dev:%d\n", __func__, sc201cs_i2c_addr, g_aunSc201cs_BusInfo[ViPipe].s8I2cDev);
+	// printf("%s\n", __func__);
 }
 
 void sc201cs_default_reg_init(VI_PIPE ViPipe)
@@ -130,6 +104,9 @@ void sc201cs_mirror_flip(VI_PIPE ViPipe, ISP_SNS_MIRRORFLIP_TYPE_E eSnsMirrorFli
 
 int sc201cs_probe(VI_PIPE ViPipe)
 {
+#if CONFIG_SENSOR_QUICK_STARTUP
+	return CVI_SUCCESS;
+#endif
 	int nVal;
 	int nVal2;
 
@@ -154,12 +131,11 @@ int sc201cs_probe(VI_PIPE ViPipe)
 
 void sc201cs_init(VI_PIPE ViPipe)
 {
-	// sc201cs_i2c_init(ViPipe);
-#if CONFIG_SENSOR_DUAL_SWITCH
-	sc201cs_linear_1200p30_dual_switch_init(ViPipe);
-#else
-	sc201cs_linear_1200p30_init(ViPipe);
+#if CONFIG_SENSOR_QUICK_STARTUP
+	sc201cs_i2c_init(ViPipe);
 #endif
+
+	sc201cs_linear_1200p30_init(ViPipe);
 
 	g_pastSc201cs[ViPipe]->bInit = CVI_TRUE;
 }
@@ -169,119 +145,11 @@ void sc201cs_exit(VI_PIPE ViPipe)
 	sc201cs_i2c_exit(ViPipe);
 }
 
-#if CONFIG_SENSOR_DUAL_SWITCH
-static void sc201cs_linear_1200p30_dual_switch_init(VI_PIPE ViPipe)
-{
-	int ret;
-
-	for (CVI_U8 i = 0; i < 2; i++) {
-		ret = sc201cs_set_i2c_cfg(ViPipe, sc201cs_i2c_addr_list[i], sc201cs_i2c_dev_list[i]);
-		if (ret != CVI_SUCCESS) {
-			printf("i2c set cfg(%d) failed\n", i);
-			return ;
-		}
-
-		sc201cs_write_register(ViPipe, 0x0103, 0x01);
-		sc201cs_write_register(ViPipe, 0x0100, 0x00);
-		sc201cs_write_register(ViPipe, 0x36e9, 0x80);
-		sc201cs_write_register(ViPipe, 0x36ea, 0x0f);
-		sc201cs_write_register(ViPipe, 0x36eb, 0x25);
-		sc201cs_write_register(ViPipe, 0x36ed, 0x04);
-		sc201cs_write_register(ViPipe, 0x36e9, 0x01);
-		sc201cs_write_register(ViPipe, 0x3019, 0xff); // mipi lane off
-		sc201cs_write_register(ViPipe, 0x301f, 0x01);
-		sc201cs_write_register(ViPipe, 0x3248, 0x02);
-		sc201cs_write_register(ViPipe, 0x3253, 0x0a);
-		sc201cs_write_register(ViPipe, 0x3301, 0xff);
-		sc201cs_write_register(ViPipe, 0x3302, 0xff);
-		sc201cs_write_register(ViPipe, 0x3303, 0x10);
-		sc201cs_write_register(ViPipe, 0x3306, 0x28);
-		sc201cs_write_register(ViPipe, 0x3307, 0x02);
-		sc201cs_write_register(ViPipe, 0x330a, 0x00);
-		sc201cs_write_register(ViPipe, 0x330b, 0xb0);
-		sc201cs_write_register(ViPipe, 0x3318, 0x02);
-		sc201cs_write_register(ViPipe, 0x3320, 0x06);
-		sc201cs_write_register(ViPipe, 0x3321, 0x02);
-		sc201cs_write_register(ViPipe, 0x3326, 0x12);
-		sc201cs_write_register(ViPipe, 0x3327, 0x0e);
-		sc201cs_write_register(ViPipe, 0x3328, 0x03);
-		sc201cs_write_register(ViPipe, 0x3329, 0x0f);
-		sc201cs_write_register(ViPipe, 0x3364, 0x0f);
-		sc201cs_write_register(ViPipe, 0x33b3, 0x40);
-		sc201cs_write_register(ViPipe, 0x33f9, 0x2c);
-		sc201cs_write_register(ViPipe, 0x33fb, 0x38);
-		sc201cs_write_register(ViPipe, 0x33fc, 0x0f);
-		sc201cs_write_register(ViPipe, 0x33fd, 0x1f);
-		sc201cs_write_register(ViPipe, 0x349f, 0x03);
-		sc201cs_write_register(ViPipe, 0x34a6, 0x01);
-		sc201cs_write_register(ViPipe, 0x34a7, 0x1f);
-		sc201cs_write_register(ViPipe, 0x34a8, 0x40);
-		sc201cs_write_register(ViPipe, 0x34a9, 0x30);
-		sc201cs_write_register(ViPipe, 0x34ab, 0xa6);
-		sc201cs_write_register(ViPipe, 0x34ad, 0xa6);
-		sc201cs_write_register(ViPipe, 0x3622, 0x60);
-		sc201cs_write_register(ViPipe, 0x3625, 0x08);
-		sc201cs_write_register(ViPipe, 0x3630, 0xa8);
-		sc201cs_write_register(ViPipe, 0x3631, 0x84);
-		sc201cs_write_register(ViPipe, 0x3632, 0x90);
-		sc201cs_write_register(ViPipe, 0x3633, 0x43);
-		sc201cs_write_register(ViPipe, 0x3634, 0x09);
-		sc201cs_write_register(ViPipe, 0x3635, 0x82);
-		sc201cs_write_register(ViPipe, 0x3636, 0x48);
-		sc201cs_write_register(ViPipe, 0x3637, 0xe4);
-		sc201cs_write_register(ViPipe, 0x3641, 0x22);
-		sc201cs_write_register(ViPipe, 0x3670, 0x0e);
-		sc201cs_write_register(ViPipe, 0x3674, 0xc0);
-		sc201cs_write_register(ViPipe, 0x3675, 0xc0);
-		sc201cs_write_register(ViPipe, 0x3676, 0xc0);
-		sc201cs_write_register(ViPipe, 0x3677, 0x86);
-		sc201cs_write_register(ViPipe, 0x3678, 0x88);
-		sc201cs_write_register(ViPipe, 0x3679, 0x8c);
-		sc201cs_write_register(ViPipe, 0x367c, 0x01);
-		sc201cs_write_register(ViPipe, 0x367d, 0x0f);
-		sc201cs_write_register(ViPipe, 0x367e, 0x01);
-		sc201cs_write_register(ViPipe, 0x367f, 0x0f);
-		sc201cs_write_register(ViPipe, 0x3690, 0x43);
-		sc201cs_write_register(ViPipe, 0x3691, 0x43);
-		sc201cs_write_register(ViPipe, 0x3692, 0x53);
-		sc201cs_write_register(ViPipe, 0x369c, 0x01);
-		sc201cs_write_register(ViPipe, 0x369d, 0x1f);
-		sc201cs_write_register(ViPipe, 0x3900, 0x0d);
-		sc201cs_write_register(ViPipe, 0x3904, 0x06);
-		sc201cs_write_register(ViPipe, 0x3905, 0x98);
-		sc201cs_write_register(ViPipe, 0x391b, 0x81);
-		sc201cs_write_register(ViPipe, 0x391c, 0x10);
-		sc201cs_write_register(ViPipe, 0x391d, 0x19);
-		sc201cs_write_register(ViPipe, 0x3949, 0xc8);
-		sc201cs_write_register(ViPipe, 0x394b, 0x64);
-		sc201cs_write_register(ViPipe, 0x3952, 0x02);
-		sc201cs_write_register(ViPipe, 0x3e00, 0x00);
-		sc201cs_write_register(ViPipe, 0x3e01, 0x4d);
-		sc201cs_write_register(ViPipe, 0x3e02, 0xe0);
-		sc201cs_write_register(ViPipe, 0x4502, 0x34);
-		sc201cs_write_register(ViPipe, 0x4509, 0x30);
-
-		sc201cs_write_register(ViPipe, 0x0100, 0x00); // standby
-
-		sc201cs_default_reg_init(ViPipe);
-
-		printf("ViPipe:%d, ===DUAL SC201CS %d 1200P 30fps 10bit LINEAR Init OK!===\n", ViPipe, i);
-
-		if (i == sc201cs_cur_idx) {
-			sc201cs_restart(ViPipe);
-		}
-	}
-
-	ret = sc201cs_set_i2c_cfg(ViPipe, sc201cs_i2c_addr_list[sc201cs_cur_idx],
-		sc201cs_i2c_dev_list[sc201cs_cur_idx]);
-	if (ret != CVI_SUCCESS) {
-		printf("i2c set cfg(%d) failed\n", sc201cs_cur_idx);
-		return ;
-	}
-}
-#else
 static void sc201cs_linear_1200p30_init(VI_PIPE ViPipe)
 {
+#if CONFIG_SENSOR_QUICK_STARTUP
+	return;
+#endif
 	sc201cs_write_register(ViPipe, 0x0103, 0x01);
 	sc201cs_write_register(ViPipe, 0x0100, 0x00);
 	sc201cs_write_register(ViPipe, 0x36e9, 0x80);
@@ -366,4 +234,3 @@ static void sc201cs_linear_1200p30_init(VI_PIPE ViPipe)
 
 	printf("ViPipe:%d,===SC201CS 1200P 30fps 10bit LINEAR Init OK!===\n", ViPipe);
 }
-#endif

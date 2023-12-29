@@ -41,4 +41,4 @@ public:
 };
 
 
-#endif  // TM_FILESRC_H
+#endif  /* TM_FILESRC_H */

@@ -363,6 +363,14 @@ typedef struct _VI_DEV_ATTR_S {
 	CVI_U64 phy_addr; /*if it not equals 0, vi osdrv will use the memory*/
 
 	CVI_U32 phy_size;
+
+	CVI_BOOL isMux; /* multi sensor use same dev*/
+
+	CVI_U8 switchGpioIdx; /* gpio bank, -1 means not use gpio */
+	CVI_U8 switchGpioPin; /* gpio pin -1 means not use gpio */
+	CVI_U8 switchGPioPol; /* gpio value[0,1] -1 means not use gpio */
+	CVI_BOOL isFrmCtrl; /* enable frame ctrl */
+	CVI_U8 dstFrm; /* set dst frm for switch */
 } VI_DEV_ATTR_S;
 
 /* Information of pipe binded to device */
@@ -416,6 +424,7 @@ typedef struct _VI_PIPE_ATTR_S {
 	FRAME_RATE_CTRL_S stFrameRate; /* RW;Frame rate */
 	CVI_BOOL bDiscardProPic;
 	CVI_BOOL bYuvBypassPath; /* RW;ISP YUV bypass enable */
+	CVI_BOOL b3dnrBypass; /* RW;ISP 3ndr bypass enable */
 } VI_PIPE_ATTR_S;
 // -------- If you want to change these interfaces, please contact the isp team. --------
 
@@ -828,8 +837,23 @@ typedef struct _VI_SMOOTH_RAW_DUMP_INFO_S {
 	RECT_S  stCropRect;
 } VI_SMOOTH_RAW_DUMP_INFO_S;
 
+typedef enum _VI_SYNC_EVENT_E {
+	VI_SYNC_EVENT_BASE,
+	VI_SYNC_EVENT_FE_DONE,
+	VI_SYNC_EVENT_BE_DONE,
+	VI_SYNC_EVENT_POST_DONE,
+	VI_SYNC_EVENT_MAX,
+} VI_SYNC_EVENT_E;
+
+typedef struct _VI_SYNC_TASK_DATA_S {
+	VI_PIPE ViPipe;
+	VI_SYNC_EVENT_E sync_event;
+	void *data;
+	int value;
+} VI_SYNC_TASK_DATA_S;
+
 typedef struct _VI_SYNC_TASK_NODE_S {
-	CVI_S32 (*isp_sync_task_call_back)(CVI_U64 data);
+	CVI_S32 (*isp_sync_task_call_back)(VI_SYNC_TASK_DATA_S *data);
 	CVI_U64 data;
 	CVI_CHAR *name;
 	struct dlist_s list;

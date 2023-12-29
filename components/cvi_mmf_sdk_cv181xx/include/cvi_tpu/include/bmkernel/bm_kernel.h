@@ -62,7 +62,7 @@ typedef cvk_fmt_t fmt_t;
 typedef enum _Cmdbuf_Head_Magic {
   CMDBUF_HDR_MAGIC_1880v2   = 0xA5,
   CMDBUF_HDR_MAGIC_1822     = 0xA6,
-  CMDBUF_HDR_MAGIC_MARS     = 0xA7,
+  CMDBUF_HDR_MAGIC_181X     = 0xA7,
   CMDBUF_HDR_MAGIC_180X     = 0xA8,
 } Cmdbuf_Head_Magic;
 

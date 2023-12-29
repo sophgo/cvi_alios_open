@@ -15,6 +15,10 @@ struct CxVideoFrame {
     TMVideoFrame data;
 };
 
+struct CxPacket {
+    TMPacket data;
+};
+
 struct CxVideoPacket {
     TMVideoPacket data;
 };

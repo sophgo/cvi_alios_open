@@ -41,9 +41,6 @@ public:
     TMSinkPadCvi(TMEntity *entity, TMPad::Param_s *param);
     ~TMSinkPadCvi() {}
 
-    int Bind(TMPad *pad) override;  // Bind with peer TMPad
-    int UnBind() override;                   // UnBind with peer TMPad
-
     void SetConfig(MMF_CHN_S chn);
     MMF_CHN_S GetConfig(void);
     void DumpInfo() override;

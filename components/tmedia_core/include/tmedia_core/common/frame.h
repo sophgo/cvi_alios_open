@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022 Alibaba Group Holding Limited
+ * Copyright (C) 2021-2023 Alibaba Group Holding Limited
  */
 
 #ifndef TM_FRAME_H
@@ -16,6 +16,8 @@
 #include <tmedia_core/memory/buffer.h>
 #include <tmedia_core/memory/buffer_pool.h>
 #include <tmedia_core/memory/default_buffer_allocator.h>
+#include <tmedia_core/common/data.h>
+#include <tmedia_core/common/clock.h>
 
 using namespace std;
 
@@ -39,13 +41,19 @@ public:
 };
 
 
-class TMFrame
+typedef int (* TMFrameReleaseFunc)(void *frame);
+
+
+class TMFrame : public TMData
 {
 public:
     TMFrame();
     virtual ~TMFrame();
+    TMFrame(const TMFrame& frame);
+    TMFrame& operator=(const TMFrame& frame);
+
     virtual void Init();
-    int SetBuffer(TMBuffer *buffer, int align = 0);
+    int SetBuffer(TMBuffer *buffer, int align = 0, int stride = 0);
     TMBuffer *GetBuffer() const;
     int SetNativeFrameCtx(TMBuffer *buffer);
     TMBuffer *GetNativeFrameCtx() const;
@@ -56,27 +64,30 @@ public:
     int UnRef();
     int MoveRef(TMFrame *frame);
 
-    virtual int CalcBufferSize(int align = 0) const = 0;
-    virtual int PrepareBuffer(int align = 0, TMBufferType bufType = TMBUFFER_TYPE_USER_MALLOC, int flags = 0) = 0;
+    virtual int CalcBufferSize(int align = 0, int stride = 0) const = 0;
+    virtual int PrepareBuffer(TMBufferType bufType = TMBUFFER_TYPE_USER_MALLOC, int flags = 0, int addrAlign = 0, int strideAlign = 0) = 0;
 
 protected:
     virtual int CopyProperty(const TMFrame *frame) = 0;
     virtual int CopyData(const TMFrame *frame);
     virtual int CopyDataPointer(const TMFrame *frame);
-    virtual int MapDataPointer(int align);
+    virtual int MapDataPointer(int addrAlign = 0, int strideAlign = 0);
     virtual int UnmapDataPointer();
 
 public:
+    TMClock mPTS;
     uint8_t *mData[TMFRAME_MAX_PLANE];
     uint32_t mPlanes;
+
+    void *mPlatformPriv;
+    void *mUsrPtr;
 
 protected:
     TMBuffer *mBuffer;
     TMBuffer *mNativeFrameCtx;
-};
 
-class TMVideoFrame;
-typedef int (* TMVideoFrameReleaseFunc)(TMVideoFrame &videoFrame);
+    TMFrameReleaseFunc mReleaseFunc;
+};
 
 
 class TMVideoFrame : public TMFrame
@@ -84,35 +95,31 @@ class TMVideoFrame : public TMFrame
 public:
     TMVideoFrame();
     virtual ~TMVideoFrame();
+    TMVideoFrame& operator=(const TMVideoFrame& frame);
     virtual void Init();
-    int  RegisterReleaseFunc(TMVideoFrameReleaseFunc releaseFunc);
+    int  RegisterReleaseFunc(TMFrameReleaseFunc releaseFunc);
 
-    int  Release();
     void Dump();
 
-    virtual int CalcBufferSize(int align = 0) const;
-    virtual int PrepareBuffer(int align = 0, TMBufferType bufType = TMBUFFER_TYPE_USER_MALLOC, int flags = 0);
+    virtual int CalcBufferSize(int align = 0, int stride = 0) const;
+    virtual int PrepareBuffer(TMBufferType bufType = TMBUFFER_TYPE_USER_MALLOC, int flags = 0, int addrAlign = 0, int strideAlign = 0);
+    virtual int PrepareBuffer(TMBuffer *buffer, int addrAlign = 0, int strideAlign = 0);
 
 protected:
     virtual int CopyProperty(const TMFrame *frame);
     virtual int CopyData(const TMFrame *frame);
     virtual int CopyDataPointer(const TMFrame *frame);
-    virtual int MapDataPointer(int align);
+    virtual int MapDataPointer(int addrAlign = 0, int strideAlign = 0);
     virtual int UnmapDataPointer();
+    int  Release();
 
 public:
     TMImageInfo::PixelFormat mPixelFormat;
 
     int mStride[TMFRAME_MAX_PLANE];
+    int mOffset[TMFRAME_MAX_PLANE];
     int mWidth;
     int mHeight;
-
-    void *mPlatformPriv;
-
-    uint64_t mPTS;
-
-private:
-    TMVideoFrameReleaseFunc mReleaseFunc;
 };
 
 class TMAudioFrame : public TMFrame
@@ -122,18 +129,17 @@ public:
     virtual ~TMAudioFrame();
     virtual void Init();
 
-    virtual int PrepareBuffer(int align = 0, TMBufferType bufType = TMBUFFER_TYPE_USER_MALLOC, int flags = 0);
+    virtual int PrepareBuffer(TMBufferType bufType = TMBUFFER_TYPE_USER_MALLOC, int flags = 0, int addrAlign = 0, int strideAlign = 0);
 
 protected:
     virtual int CopyProperty(const TMFrame *frame);
     virtual int CopyData(const TMFrame *frame);
     virtual int CopyDataPointer(const TMFrame *frame);
-    virtual int CalcBufferSize(int align = 0) const;
-    virtual int MapDataPointer(int align);
+    virtual int CalcBufferSize(int align = 0, int stride = 0) const;
+    virtual int MapDataPointer(int addrAlign = 0, int strideAlign = 0);
     virtual int UnmapDataPointer();
 
 public:
-    uint64_t mPTS;
     int mSampleRate;
     int mSampleCount;
     AudioSampleBits_e       mSampleBits;
@@ -142,4 +148,4 @@ public:
     void *mPlatformPriv;
 };
 
-#endif  // TM_FRAME_H
+#endif  /* TM_FRAME_H */

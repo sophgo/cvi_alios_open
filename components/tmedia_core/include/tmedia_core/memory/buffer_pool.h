@@ -1,8 +1,9 @@
 /*
  * Copyright (C) 2022 Alibaba Group Holding Limited
  */
-#ifndef _TMBUFFER_POOL_H
-#define _TMBUFFER_POOL_H
+
+#ifndef TM_BUFFER_POOL_H
+#define TM_BUFFER_POOL_H
 
 
 #include "buffer.h"
@@ -112,6 +113,6 @@ extern "C" {
 
 #if __cplusplus
 }
-#endif
+#endif  /* __cplusplus */
 
-#endif
+#endif  /* TM_BUFFER_POOL_H */

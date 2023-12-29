@@ -30,21 +30,19 @@ PARAM_CLASSDEFINE(PARAM_SNS_CFG_S,SENSORCFG,CTX,Sensor)[] = {
 
 PARAM_CLASSDEFINE(PARAM_ISP_CFG_S,ISPCFG,CTX,ISP)[] = {
     {
-        .bMonoSet = {0},
+        .bMonoSet = {0, 0},
         .bUseSingleBin = 0,
-        .stPQBinDes =
+        .astPQBinDes[0] =
         {
             .pIspBinData = rgb_color_mode_param,
+            .binID = CVI_BIN_ID_ISP0,
         },
-    },
-    {
-        .bMonoSet = {0},
-        .bUseSingleBin = 0,
-        .stPQBinDes =
+        .astPQBinDes[1] =
         {
             .pIspBinData = rgb_mono_mode_param,
+            .binID = CVI_BIN_ID_ISP1,
         },
-    }
+    },
 };
 
 PARAM_CLASSDEFINE(PARAM_DEV_CFG_S,VIDEVCFG,CTX,VI)[] = {
@@ -69,7 +67,7 @@ PARAM_VI_CFG_S * PARAM_GET_VI_CFG(void) {
     }
     g_stViCtx.pstDevInfo[0].pViDmaBuf = g_ViDmaBuf;
     g_stViCtx.pstDevInfo[0].u32ViDmaBufSize = g_ViDmaBufSize;
-    g_stViCtx.pstIspCfg[0].stPQBinDes.u32IspBinDataLen = rgb_color_len;
-    g_stViCtx.pstIspCfg[1].stPQBinDes.u32IspBinDataLen = rgb_mono_len;
+    g_stViCtx.pstIspCfg[0].astPQBinDes[0].u32IspBinDataLen = rgb_color_len;
+    g_stViCtx.pstIspCfg[0].astPQBinDes[1].u32IspBinDataLen = rgb_mono_len;
     return &g_stViCtx;
 }

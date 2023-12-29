@@ -2,7 +2,9 @@
  * Copyright (C) 2021-2022 Alibaba Group Holding Limited
  */
 
-#pragma once
+#ifndef TM_FORMAT_INFO_H
+#define TM_FORMAT_INFO_H
+
 #include <string>
 #include <map>
 
@@ -34,3 +36,4 @@ public:
     int  GetImageSize(TMImageInfo::ImageSize_t &imgSize);
 };
 
+#endif  /* TM_FORMAT_INFO_H */

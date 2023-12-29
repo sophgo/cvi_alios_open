@@ -38,21 +38,17 @@ depends:                                 # <可选项> 该组件依赖其他的�
 #   libpath:                               # 指定静态库所在的路径（相对于该组件路径）
 #     - libs                               #   -Llibs
 build_config:
-  cflag: '-Wno-nonnull-compare'
+  cflag: '-Wno-nonnull-compare -Wno-unused-function -Wno-unused-variable'
+  cxxflag: '-Wno-nonnull-compare -Wno-unused-function -Wno-unused-variable'
   include:
     - .
-  # libs:
-  #   - cxvision_v2.0
-  # libpath:
-  #   - libs/<cpu>
+  libs:
+    - cxvision_prebuild
+  libpath:
+    - libs/<chip>/<cpu>
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
 source_file:
-  - cxvision/*.cc
-  - cxvision/base/*.cc
-  - cxvision/graph/*.cc
-  - cxvision/plugin/*.cc
-  - cxvision/proto/*.cc ? <CXVISION_USE_PROTOBUF>
 
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项

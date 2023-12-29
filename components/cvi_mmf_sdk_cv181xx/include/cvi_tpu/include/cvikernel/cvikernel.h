@@ -32,7 +32,7 @@ typedef enum CVIKERNEL_FMT_E {
  */
 #define CVI_TPU_VERSION_183X  "cv183x"
 #define CVI_TPU_VERSION_182X  "cv182x"
-#define CVI_TPU_VERSION_MARS  "cv181x"
+#define CVI_TPU_VERSION_181X  "cv181x"
 #define CVI_TPU_VERSION_180X  "cv180x"
 
 /*

@@ -41,25 +41,13 @@ build_config:
   cflag: '-Wno-nonnull-compare'
   include:
     - .
-  # libs:
-  #   - posto_v2.0
-  # libpath:
-  #   - libs/<cpu>
+  libs:
+    - posto_prebuild
+  libpath:
+    - libs/<chip>/<cpu>
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
 source_file:
-  - posto/*.cc
-  - posto/base/*.cc
-  - posto/discovery/*.cc
-  - posto/domain/*.cc
-  - posto/entity/*.cc
-  - posto/message/*.cc
-  - posto/participant/*.cc
-  - posto/profile/*.cc
-  - posto/scheduler/*.cc
-  - posto/transport/amp/*.cc
-  - posto/transport/ioblock/*.cc
-  - posto/transport/reader/*.cc
 
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项

@@ -64,6 +64,7 @@ hw_info:
   vendor_name: cvitek
   ld_script: gcc_flash.ld
   flash_program: flash.elf
+  # flash_program: flash_nand.elf
   # flash_program: flash_emmc.elf
 
 ## 第四部分：编译连接信息
@@ -148,6 +149,7 @@ source_file:
   - src/sys/weak.c
   - src/sys/startup.S
   - src/sys/vectors.S
+  - src/sys/mmu_config.c
 
 #  - src/sys/cache.c
   - src/sys/devices.c
@@ -174,9 +176,9 @@ source_file:
   - src/drivers/rtc/cvi/src/csi_rtc.c
   - src/drivers/rtc/cvi/src/rtc_lib.c
   - src/drivers/dma/cvi/src/sysdma_remap.c
-  - src/drivers/net/ethernet/dw/src/dw_gmac_mars.c
-  - src/drivers/net/phy/src/phy.c
-  - src/drivers/net/phy/src/cvitek.c
+  - src/drivers/net/ethernet/dw/src/dw_gmac_mars.c ? <CONFIG_APP_ETHERNET_SUPPORT>
+  - src/drivers/net/phy/src/phy.c ? <CONFIG_APP_ETHERNET_SUPPORT>
+  - src/drivers/net/phy/src/cvitek.c ? <CONFIG_APP_ETHERNET_SUPPORT>
 #  - src/drivers/pinmux/wj/sparrow_v1.0/pinmux.c
 #  - src/drivers/timer/dw/v1.0/timer.c
   - src/hal/pin/cvi/src/*.c
@@ -210,6 +212,7 @@ source_file:
 #   CONFIG_PARAM_NOT_CHECK: y
 #   CONFIG_CLI: y
 def_config:
+  CONFIG_RISCV_SMODE: 0
   CONFIG_VIC_TSPDR: 0x74000000
   CONFIG_LOG_DEFAULT_LEVEL: 2
   HAVE_INIT_ARRAY_LD: y

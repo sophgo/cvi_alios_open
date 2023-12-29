@@ -7,8 +7,8 @@
  */
 #include "custom_param.h"
 
-#define BIN_DATA_SIZE 173417
-extern unsigned char gc2053_ir_gc2093_rgb_cvi_isp_default_param[];
+// #define BIN_DATA_SIZE 173417
+// extern unsigned char gc2053_ir_gc2093_rgb_cvi_isp_default_param[];
 
 PARAM_CLASSDEFINE(PARAM_SNS_CFG_S,SENSORCFG,CTX,Sensor)[] = {
     {
@@ -71,11 +71,34 @@ PARAM_CLASSDEFINE(PARAM_ISP_CFG_S,ISPCFG,CTX,ISP)[] = {
     {
         .bMonoSet = {1,0},
         .bUseSingleBin = 0,
-        .stPQBinDes =
-        {
-            .pIspBinData = gc2053_ir_gc2093_rgb_cvi_isp_default_param,
-            .u32IspBinDataLen = BIN_DATA_SIZE,
-        },
+        // .stPQBinDes =
+        // {
+        //     .pIspBinData = gc2053_ir_gc2093_rgb_cvi_isp_default_param,
+        //     .u32IspBinDataLen = BIN_DATA_SIZE,
+        // },
+    }
+};
+
+PARAM_CLASSDEFINE(PARAM_DEV_CFG_S,VIDEVCFG,CTX,VI)[] = {
+    {
+        .pViDmaBuf = NULL,
+        .u32ViDmaBufSize = 0,
+    #if CONFIG_SENSOR_DUAL_SWITCH
+        .isMux = true,
+        .u8AttachDev = 0,
+        .switchGpioIdx = -1,
+        .switchGpioPin = -1,
+        .switchGPioPol = -1,
+    #endif
+    },
+    {
+    #if CONFIG_SENSOR_DUAL_SWITCH
+        .isMux = true,
+        .u8AttachDev = 1,
+        .switchGpioIdx = -1,
+        .switchGpioPin = -1,
+        .switchGPioPol = -1,
+    #endif
     }
 };
 
@@ -83,6 +106,7 @@ PARAM_VI_CFG_S g_stViCtx = {
     .u32WorkSnsCnt = 2,
     .pstSensorCfg = PARAM_CLASS(SENSORCFG,CTX,Sensor),
     .pstIspCfg = PARAM_CLASS(ISPCFG,CTX,ISP),
+    .pstDevInfo = PARAM_CLASS(VIDEVCFG,CTX,VI)
 };
 
 PARAM_VI_CFG_S * PARAM_GET_VI_CFG(void) {

@@ -38,6 +38,7 @@ public:
 
 private:
     static void *AsyncTaskThread(void *arg);
+    static std::atomic<uint32_t> mServiceId;
 
     pthread_t       mTid;
     bool            mCbTaskRunning;

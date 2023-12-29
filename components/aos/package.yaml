@@ -71,6 +71,7 @@ def_config:
   CONFIG_OPT_FOOTPRINT_LEVEL: 0                # 0~5, 0 means non-opt for footprint
   CONFIG_INIT_TASK_STACK_SIZE: 8192
   CONFIG_AOS_NEWLINE_SUPPORT: 1
+  CONFIG_DEVICEID_FROM_KV: 1
 
 ## 第六部分：安装信息
 # install:

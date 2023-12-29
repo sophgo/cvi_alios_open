@@ -26,7 +26,7 @@ public:
     int Start()                                                  final override;
     int Stop()                                                   final override;
     int SendFrame(TMVideoFrame &frame, int timeout)              final override;
-    int ReleaseFrame(TMVideoFrame &frame)                        final override;
+
 private:
     map<int, TMSinkPadCvi *>mCviSinkPad;
     int mDeviceID;

@@ -64,6 +64,7 @@ depends:
   - wifi_provisioning: develop
   - ble_host: develop
   - av_limited: develop
+  - tiny_bbm: develop
 
   - cvi_mmf_sdk_cv181xx: develop
 ## 第三部分：板级信息

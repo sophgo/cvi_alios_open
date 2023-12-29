@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#ifdef CONFIG_USB_HS
+#if CONFIG_USB_HS
 #define EP_INTERVAL 0x04
 #else
 #define EP_INTERVAL 0x01
@@ -23,10 +23,16 @@
 #define AUDIO_IN_PACKET ((uint32_t)((AUDIO_FREQ * 2 * AUDIO_CHANNEL_NUM) / 1000))
 
 /* AUDIO ep address*/
+#if CONFIG_MULTI_AV_COMP_SUPPORT
+#define AUDIO_IN_EP  0x85
+#define AUDIO_OUT_EP 0x04
+#define AUDIO_FIRST_INTERFACE 6
+#else
 #define AUDIO_IN_EP  0x83
 #define AUDIO_OUT_EP 0x02
-
 #define AUDIO_FIRST_INTERFACE 2
+#endif
+
 #define AUDIO_INTERFACE_COUNT 3
 #define AUDIO_STREAM_INTF_COUNT 2
 

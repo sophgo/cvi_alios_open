@@ -32,6 +32,10 @@ TMMediaInfo::CodecID     Util_MapAudioEncodeType(AudioEncoderType type);
 AudioSampleBits_e        MapAudioSampleBits(AudioSampleBits inParam);
 AudioPcmDataType_e       MapAudioPcmDataType(AudioPcmDataType inParam);
 AudioSampleChannels_e    MapAudioSampleChannels(AudioSampleChannels inParam);
+
+
+int Util_String2Int(const std::string &str, int &val);
+
 }
 
 

@@ -1,7 +1,6 @@
 #ifndef CVI_SPINAND_H
 #define CVI_SPINAND_H
 #include <io.h>
-#include <debug/dbg.h>
 
 #define SPI_NAND_READ_FROM_CACHE_MODE_X1 0
 #define SPI_NAND_READ_FROM_CACHE_MODE_X2 1
@@ -340,11 +339,14 @@ typedef enum{
 }spinand_msg_prio_e;
 
 extern spinand_msg_prio_e SPINAND_PRINTK_LEVEL;
+#if 0
 #define spinand_printf(level, fmt, arg...) \
 		do { \
 			if (level <= SPINAND_PRINTK_LEVEL) \
-				aos_debug_printf("[%s():%d] " fmt, __FUNCTION__, __LINE__, ## arg); \
+				printf("[%s():%d] " fmt, __FUNCTION__, __LINE__, ## arg); \
 		} while (0)
+#endif
+#define spinand_printf(level, fmt, arg...)
 
 #define spinand_writel(addr, val) (writel(val, addr))
 #define spinand_readl(addr) (readl(addr))

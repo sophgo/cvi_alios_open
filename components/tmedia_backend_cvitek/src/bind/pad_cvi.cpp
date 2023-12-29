@@ -38,7 +38,7 @@ int TMSrcPadCvi::Bind(TMPad *pad)
         return TMResult::TM_EINVAL;
     }
     cviPeerPad = sinkPad;
-    TMEDIA_PRINTF("## Bind ##\n");
+    TMEDIA_PRINTF("## Bind ## src=%d:%d dst=%d:%d \n", cviSrcChan.s32DevId, cviSrcChan.s32ChnId, sinkPad->cviSinkChan.s32DevId, sinkPad->cviSinkChan.s32ChnId);
     this->DumpInfo();
 
     return TMResult::TM_OK;
@@ -95,52 +95,6 @@ void TMSrcPadCvi::DumpInfo()
 TMSinkPadCvi::TMSinkPadCvi(TMEntity *entity, TMPad::Param_s *param)
     : TMSinkPad(entity, param), cviPeerPad(NULL)
 {
-}
-
-int TMSinkPadCvi::Bind(TMPad *pad)
-{
-    if (pad == NULL)
-    {
-        TMEDIA_PRINTF("Error: pad is NULL\n");
-        return TMResult::TM_EINVAL;
-    }
-
-    TMSrcPadCvi *srcPad = dynamic_cast<TMSrcPadCvi *>(pad);
-    if (srcPad == NULL)
-    {
-        TMEDIA_PRINTF("Error: pad is not TMSrcPadCvi\n");
-        return TMResult::TM_EINVAL;
-    }
-
-    int ret = CVI_SYS_Bind(&srcPad->cviSrcChan, &cviSinkChan);
-    if (ret != 0) 
-    {
-        TMEDIA_PRINTF("Error: cvi bind failed\n");
-        return TMResult::TM_EINVAL;
-    }
-    cviPeerPad = srcPad;
-    TMEDIA_PRINTF("## Bind ##\n");
-    this->DumpInfo();
-    return TMResult::TM_OK;
-}
-
-int TMSinkPadCvi::UnBind()
-{
-    if (cviPeerPad == NULL) {
-        TMEDIA_PRINTF("Error: no peer pad\n");
-        return TMResult::TM_EINVAL;
-    }
-    TMEDIA_PRINTF("## Unbind ##\n");
-    this->DumpInfo();
-    int ret = CVI_SYS_UnBind(&cviPeerPad->cviSrcChan, &cviSinkChan);
-    if (ret != 0) 
-    {
-        TMEDIA_PRINTF("Error: cvi bind failed\n");
-        return TMResult::TM_EINVAL;
-    }
-    cviPeerPad = NULL;
-
-    return TMResult::TM_OK;
 }
 
 void TMSinkPadCvi::SetConfig(MMF_CHN_S chn)

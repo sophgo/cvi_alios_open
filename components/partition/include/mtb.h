@@ -293,8 +293,11 @@ typedef struct {
 } img_info_t;
 
 typedef enum {
-	CAR_NULL = 0,
-	CAR_XZ
+    CAR_NULL = 0,
+    CAR_XZ,
+    CAR_LZMA,
+    CAR_LZ4,
+    CAR_LZOL
 } car_e; /* Compression Alogrithm Routine */
 
 typedef struct {

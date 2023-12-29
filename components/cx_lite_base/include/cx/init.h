@@ -7,6 +7,7 @@
 #define CX_INIT_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,9 +39,10 @@ int cx_hardware_config(const char *config);
 /**
  * @description: init chixiao services
  * @param [in] service_config:  service configuration in json format
+ * @param [in] input_config:  video input configuration in json format
  * @return                      0: Success, < 0: Error code.
  */
-int cx_service_init(const char *service_config);
+int cx_service_init(const char *service_config, const char *input_config);
 
 /**
  * @description: deinit chixiao framework and all services
@@ -54,6 +56,17 @@ int cx_deinit(void);
  */
 const char *cx_get_version(void);
 
+/**
+ * @description: check if this is a preview edition
+ * @return       true: preview edition, false: release edition
+ */
+bool cx_is_preview_edition(void);
+
+/**
+ * @description: get preview expire time, format is YYYYMM
+ * @return       >= 0: Expire time, < 0: No expire time
+ */
+int cx_get_preview_expire_time(void);
 
 #ifdef __cplusplus
 }

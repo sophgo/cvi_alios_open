@@ -27,7 +27,7 @@ public:
     int Start()                                                  final override;
     int Stop()                                                   final override;
     int RecvFrame(TMAudioFrame &frame, int timeout)              final override;
-    int ReleaseFrame(TMAudioFrame &frame)                        final override;
+
 private:
     const static uint16_t AUDIO_CHANNEL = 2;
     const static uint16_t AUDIO_PERIOD_TIME = 40;

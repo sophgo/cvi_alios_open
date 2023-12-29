@@ -42,7 +42,7 @@ typedef enum {
     Supervisor_Software_IRQn        =  1U,
     Machine_Software_IRQn           =  3U,
     Supervisor_Timer_IRQn           =  5U,
-    CORET_IRQn                      =  7U,
+    Machine_Timer_IRQn              =  7U,
     Supervisor_External_IRQn        =  9U,
     Machine_External_IRQn           =  11U,
 
@@ -71,6 +71,11 @@ typedef enum {
     SD1_INTR                        =  38U,
     SD2_INTR                        =  34U,
     WDT1_INTR                       =  58U,
+#if defined(CONFIG_RISCV_SMODE) && CONFIG_RISCV_SMODE
+    CORET_IRQn                      =  Supervisor_Timer_IRQn,
+#else
+    CORET_IRQn                      =  Machine_Timer_IRQn,
+#endif	
     TEMPSEN_INTR                    =  16U,
 } irqn_type_t;
 

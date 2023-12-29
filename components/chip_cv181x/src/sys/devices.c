@@ -57,6 +57,7 @@ const csi_perip_info_t g_soc_info[] = {
     {CVI_PWM3_BASE,            0,                        3,    DEV_CVI_PWM_TAG},
     {DW_MAC_BASE,              DW_MAC_IRQn,              0,    DEV_DW_MAC_TAG},
     {ADC_BASE,                 ADC_IRQn,                 0,    DEV_CVI_ADC_TAG},
+    {RTC_ADC_BASE,             0,                        1,    DEV_CVI_ADC_TAG},
     {DW_SDIO0_BASE,            SD0_INTR,                 0,    DEV_DW_SDMMC_TAG,},
     {DW_SDIO1_BASE,            SD1_INTR,                 1,    DEV_DW_SDMMC_TAG,},
     {DW_SDIO2_BASE,            SD2_INTR,                 2,    DEV_DW_SDMMC_TAG,},

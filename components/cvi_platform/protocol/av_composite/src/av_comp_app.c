@@ -29,6 +29,7 @@
 #define H264_FORMAT_INDEX   (2)
 #define YUYV_FORMAT_INDEX   (3)
 #define NV21_FORMAT_INDEX   (4)
+#define H265_FORMAT_INDEX   (5)
 
 static int UVC_VENC_CHN = 0;
 static int UVC_VPSS_CHN = 0;
@@ -73,15 +74,24 @@ static struct uvc_frame_info_st yuy2_frame_info[] = {
 };
 
 static struct uvc_frame_info_st mjpeg_frame_info[] = {
-    {1, 800, 600, 30, 0},
-    {2, 640, 480, 30, 0},
-    {3, 1280, 720, 30, 0},
-    {4, 1920, 1080, 30, 0},
-    {5, 480, 320, 30, 0},
-    {6, 400, 300, 30, 0},
+    {1, 240, 320, 30, 0},
+    {2, 320, 240, 30, 0},
+    {3, 480, 320, 30, 0},
+    {4, 800, 480, 30, 0},
+    {5, 864, 480, 30, 0},
+    {6, 1280, 720, 30, 0},
+    {7, 1920, 1080, 30, 0},
 };
 
 static struct uvc_frame_info_st h264_frame_info[] = {
+    {1, 800, 600, 30, 0},
+    {2, 1280, 720, 30, 0},
+    {3, 640, 480, 30, 0},
+    {4, 400, 300, 30, 0},
+    {5, 1920, 1080, 30, 0},
+};
+
+static struct uvc_frame_info_st h265_frame_info[] = {
     {1, 800, 600, 30, 0},
     {2, 1280, 720, 30, 0},
     {3, 640, 480, 30, 0},
@@ -100,6 +110,7 @@ static struct uvc_format_info_st uvc_format_info[] = {
     {H264_FORMAT_INDEX, UVC_FORMAT_H264, 1, ARRAY_SIZE(h264_frame_info), h264_frame_info},
     {YUYV_FORMAT_INDEX, UVC_FORMAT_YUY2, 1, ARRAY_SIZE(yuy2_frame_info), yuy2_frame_info},
     {NV21_FORMAT_INDEX, UVC_FORMAT_NV21, 1, ARRAY_SIZE(nv21_frame_info), nv21_frame_info},
+    {H265_FORMAT_INDEX, UVC_FORMAT_H265, 1, ARRAY_SIZE(h265_frame_info), h265_frame_info},
 };
 
 CVI_S32 is_media_info_update(){
@@ -149,6 +160,9 @@ CVI_S32 is_media_info_update(){
 		break;
 	case H264_FORMAT_INDEX:
 		enType = PT_H264;
+		break;
+	case H265_FORMAT_INDEX:
+		enType = PT_H265;
 		break;
 	default:
 		enType = PT_BUTT;
@@ -201,6 +215,7 @@ void uvc_media_update(){
 	PIXEL_FORMAT_E enPixelFormat;
 	PARAM_VENC_CFG_S *pstVencCfg = PARAM_getVencCtx();
 	VPSS_CHN_ATTR_S stVpssChnAttr;
+	VENC_RECV_PIC_PARAM_S stRecvParam = {0};
 	CVI_U8 u8VencInitStatus = pstVencCfg->pstVencChnCfg[UVC_VENC_CHN].stChnParam.u8InitStatus;
 
 
@@ -225,9 +240,18 @@ void uvc_media_update(){
 	switch(uvc_format_info.format_index){
 	case MJPEG_FORMAT_INDEX:
 		enType = PT_MJPEG;
+		pstVencCfg->pstVencChnCfg[UVC_VENC_CHN].stRcParam.u16BitRate = 20480;
+		pstVencCfg->pstVencChnCfg[UVC_VENC_CHN].stRcParam.u16RcMode = VENC_RC_MODE_MJPEGCBR;
 		break;
 	case H264_FORMAT_INDEX:
 		enType = PT_H264;
+		pstVencCfg->pstVencChnCfg[UVC_VENC_CHN].stRcParam.u16BitRate = 2048;
+		pstVencCfg->pstVencChnCfg[UVC_VENC_CHN].stRcParam.u16RcMode = VENC_RC_MODE_H264CBR;
+		break;
+	case H265_FORMAT_INDEX:
+		enType = PT_H265;
+		pstVencCfg->pstVencChnCfg[UVC_VENC_CHN].stRcParam.u16BitRate = 2048;
+		pstVencCfg->pstVencChnCfg[UVC_VENC_CHN].stRcParam.u16RcMode = VENC_RC_MODE_H265CBR;
 		break;
 	default:
 		enType = PT_MJPEG;
@@ -246,14 +270,20 @@ void uvc_media_update(){
 	pstVencCfg->pstVencChnCfg[UVC_VENC_CHN].stChnParam.u16Width = uvc_frame_info.width;
 	pstVencCfg->pstVencChnCfg[UVC_VENC_CHN].stChnParam.u16Height = uvc_frame_info.height;
 	pstVencCfg->pstVencChnCfg[UVC_VENC_CHN].stChnParam.u16EnType = enType;
-	pstVencCfg->pstVencChnCfg[UVC_VENC_CHN].stRcParam.u16BitRate = (enType == PT_MJPEG)?20480:2048;
-	pstVencCfg->pstVencChnCfg[UVC_VENC_CHN].stRcParam.u16RcMode = (enType == PT_MJPEG)?VENC_RC_MODE_MJPEGCBR:VENC_RC_MODE_H264CBR;
+	pstVencCfg->pstVencChnCfg[UVC_VENC_CHN].stChnParam.u8DevId = UVC_VPSS_GRP;
+	pstVencCfg->pstVencChnCfg[UVC_VENC_CHN].stChnParam.u8DevChnid = UVC_VPSS_CHN;
 
-	if(MJPEG_FORMAT_INDEX == uvc_format_info.format_index || H264_FORMAT_INDEX == uvc_format_info.format_index)
-		MEDIA_VIDEO_VencInit(pstVencCfg);
+	if(MJPEG_FORMAT_INDEX == uvc_format_info.format_index || H264_FORMAT_INDEX == uvc_format_info.format_index
+		|| H265_FORMAT_INDEX == uvc_format_info.format_index)
+		{
+			MEDIA_VIDEO_VencInit(pstVencCfg);
+			stRecvParam.s32RecvPicNum = -1;
+			CVI_VENC_StartRecvFrame(UVC_VENC_CHN, &stRecvParam);
+			pstVencCfg->pstVencChnCfg[UVC_VENC_CHN].stChnParam.u8InitStatus = 1;
+		}
 }
 
-void uvc_streaming_on(int is_on) {
+void uvc_streaming_on(uint8_t intf, int is_on) {
 	USB_LOG_INFO("streaming %s\n", is_on ? "on" : "off");
 	tx_flag = is_on;
 
@@ -352,9 +382,9 @@ static void *send_to_uvc()
 				uvc_update = 0;
 			}
 
-
 			if(H264_FORMAT_INDEX == uvc_format_info.format_index ||
-				MJPEG_FORMAT_INDEX == uvc_format_info.format_index){
+				MJPEG_FORMAT_INDEX == uvc_format_info.format_index ||
+				H265_FORMAT_INDEX == uvc_format_info.format_index){
 
 		        ret = MEDIA_VIDEO_VencGetStream(UVC_VENC_CHN,pstStream,2000);
 				if(ret != CVI_SUCCESS){

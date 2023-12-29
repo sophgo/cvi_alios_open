@@ -17,7 +17,8 @@
 #include <tmedia_core/entity/format/mp4_demuxer.h>
 #include <tmedia_core/entity/format/rtsp_demuxer.h>
 
-#include <tmedia_core/entity/format/format_muxer.h>
 #include <tmedia_core/entity/format/camera.h>
 
-#endif  // TM_FORMAT_INC_H
+#include <tmedia_core/entity/format/ts_demuxer.h>
+#include <tmedia_core/entity/format/ts_muxer.h>
+#endif  /* TM_FORMAT_INC_H */

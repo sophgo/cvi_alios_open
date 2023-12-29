@@ -478,7 +478,7 @@ static csi_error_t spinand_page_write(csi_spinand_t *spinand,csi_nand_pos_t *nan
         return ret;
     }
 
-    ret = spinand_ecc_enable(spinand,0);
+    ret = spinand_ecc_enable(spinand,1);
     if(ret){
         return ret;
     }
@@ -513,10 +513,10 @@ static int32_t spinand_page_read(csi_spinand_t *spinand, csi_nand_pos_t *nand_po
 
     do {
 
-        //ret = spinand_ecc_enable(spinand,1);
-        //if(ret){
-        //   return ret;
-        //}
+        ret = spinand_ecc_enable(spinand,1);
+        if(ret){
+          return ret;
+        }
 
         /*   load page */
         ret = spinand_load_page(spinand,nand_pos);
@@ -637,7 +637,7 @@ int32_t csi_spinand_read_spare_data(csi_spinand_t *spinand,uint64_t page_addr,ui
     temp_addr = page_addr & (~(pMemOrg->pagesize-1));
     spinand_offset_to_nandpos(spinand,temp_addr,&nand_pos);
     nand_pos.offset = pMemOrg->pagesize + spare_offset;
-    ret = spinand_page_read(spinand,&nand_pos,data,size,0);
+    ret = spinand_page_read(spinand,&nand_pos,data,size,1);
     return (ret)?ret:size;
 }
 int32_t csi_spinand_write_spare_data(csi_spinand_t *spinand,uint64_t page_addr,uint32_t spare_offset,void *data, uint32_t size)

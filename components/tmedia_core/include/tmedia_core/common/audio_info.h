@@ -1,8 +1,9 @@
 /*
  * Copyright (C) 2022 Alibaba Group Holding Limited
  */
-#ifndef AUDIO_INFO_H
-#define AUDIO_INFO_H
+
+#ifndef TM_AUDIO_INFO_H
+#define TM_AUDIO_INFO_H
 
 
 #define AUDIO_ALIGN_DEFAULT   32
@@ -33,4 +34,4 @@ typedef enum {
     G711_TYPE_U,
 } G711CodecType_e;
 
-#endif  // AUDIO_INFO_H
+#endif  /* TM_AUDIO_INFO_H */

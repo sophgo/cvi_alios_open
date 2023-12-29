@@ -26,6 +26,13 @@ public:
 
     // return channel id
     int AddChannelConfig(const VidChannelConfig &config);
+
+    std::shared_ptr<board::BoardConfig> GetBoardConfig(void)
+    {
+        return mBoardConfig;
+    }
+
+
     shared_ptr<VidChannel> CreateChannel(int chanId);
 
     void ChannelInfoDump(void);
@@ -34,27 +41,20 @@ public:
     static VidSrcManager *GetInstance(void) {
         return pObj;
     }
-    /* channels linked to the same sensor */
-    struct ChannelGroup {
-        board::SensorConfig::Tag sensorTag;
-        std::vector<ChannelPtr> chans;
-    };
-    vector<ChannelGroup> GetChannelGroup(void) {
-        return mChanGroup;
+
+    std::vector<ChannelPtr> GetAllChannels(void) {
+        return mChannels;
     }
 private:
 
     VidSrcManager();
     ~VidSrcManager();
 
-    void VidChannelProcessRescale(vector<channelConfig> &rescaleList, vector<channelConfig> &cropList, shared_ptr<VpssWrapper> &baseVpss);
-    void VidChanneProcesslCrop(std::vector<pair<double, vector<channelConfig>>> &cropList, cx::CropType type);
-    int VidChannelCheckMerge(void);
+    std::vector<VidChannelConfig>               mChannelConfigs;  
+    std::vector<ChannelPtr>                     mChannels;
 
-    std::unique_ptr<std::vector<std::pair<VidChannelConfig, ChannelPtr>>> mChannels;
     std::shared_ptr<board::BoardConfig>         mBoardConfig;
     pthread_mutex_t mMutex;
-    vector<ChannelGroup> mChanGroup;
     static VidSrcManager *pObj;
 };
 
