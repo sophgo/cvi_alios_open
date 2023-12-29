@@ -77,7 +77,7 @@ static int __rtc_set_time(struct cvi_rtc *rtc, const cvi_rtc_time_t *tm, unsigne
 
 	rtc_dbg("%s %lx, %d\n", __func__, sec, __LINE__);
 
-	rtc_dbg("time set to %llx. %d/%d/%d %d:%02x:%02x\n",
+	rtc_dbg("time set to %lx. %d/%d/%d %d:%02x:%02x\n",
 		sec,
 		tm->tm_mon+1,
 		tm->tm_mday,
@@ -132,12 +132,12 @@ int cvi_rtc_set_time(struct cvi_rtc *rtc, const cvi_rtc_time_t *tm)
 	}
 
 	if(ret || sec != cur_sec){
-		printf("loop_count=%d\n", loop_count);
-		printf("ret=%d, sec=%lu, cur_sec=%lu\n", ret, sec, cur_sec);
+		rtc_dbg("loop_count=%d\n", loop_count);
+		rtc_dbg("ret=%d, sec=%lu, cur_sec=%lu\n", ret, sec, cur_sec);
 		return -EFAULT;
 	}
 
-	rtc_dbg("cvi_rtc_set_time:%llx\n", cur_sec);
+	rtc_dbg("cvi_rtc_set_time:%lx\n", cur_sec);
 
     return 0;
 }
@@ -153,7 +153,7 @@ int cvi_rtc_set_time_no_wait(struct cvi_rtc*rtc, const cvi_rtc_time_t *tm)
 	if(ret)
 		return ret;
 
-	rtc_dbg("cvi_rtc_set_time_no_wait:%llx\n", sec);
+	rtc_dbg("cvi_rtc_set_time_no_wait:%lx\n", sec);
 
 	return 0;
 }

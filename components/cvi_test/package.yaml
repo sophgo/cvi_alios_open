@@ -70,6 +70,7 @@ source_file:
   - test/pwm/*.c ? <CONFIG_APP_TEST>
   - test/timer/*.c ? <CONFIG_APP_TEST>
   - test/wdt/*.c ? <CONFIG_APP_TEST>
+  - test/rtc/*.c ? <CONFIG_APP_TEST>
   - test/cviai/*.c ? <CONFIG_SUPPORT_TEST_AI>
   - test/rng/*.c ? <CONFIG_APP_TEST>
   - test/adc/*.c ? <CONFIG_APP_TEST>

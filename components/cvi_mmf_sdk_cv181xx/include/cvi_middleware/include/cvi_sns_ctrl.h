@@ -141,6 +141,7 @@ typedef enum _SNS_TYPE_E {
 	SMS_SC201CS_SLAVE_MIPI_2M_30FPS_10BIT,
 	SMS_SC202CS_MIPI_2M_30FPS_10BIT,
 	SMS_SC202CS_SLAVE_MIPI_2M_30FPS_10BIT,
+	SMS_SC202CS_MULTI_MIPI_2M_30FPS_10BIT,
 	SMS_SC031IOT_MIPI_480P_30FPS_8BIT,
 	SMS_SC031IOT_MIPI_RAW_480P_30FPS_8BIT,
 	BYD_BF314A_MIPI_720P_30FPS_10BIT,
@@ -158,7 +159,7 @@ typedef enum _SNS_TYPE_E {
 	SMS_SC200AI_MIPI_2M_30FPS_10BIT_WDR2TO1,
 	/* ------ WDR 2TO1 END ------*/
 	SNS_TYPE_WDR_BUTT,
-	
+
 } SNS_TYPE_E;
 
 #if CONFIG_SENSOR_GCORE_GC1054
@@ -209,6 +210,9 @@ extern ISP_SNS_OBJ_S stSnsSC202CS_Obj;
 #if CONFIG_SENSOR_SMS_SC202CS_SLAVE
 extern ISP_SNS_OBJ_S stSnsSC202CS_SLAVE_Obj;
 #endif
+#if CONFIG_SENSOR_SMS_SC202CS_MULTI
+extern ISP_SNS_OBJ_S stSnsSC202CS_MULTI_Obj;
+#endif
 #if CONFIG_SENSOR_SMS_SC031IOT
 extern ISP_SNS_OBJ_S stSnsSC031IOT_Obj;
 #endif
@@ -243,7 +247,7 @@ extern ISP_SNS_OBJ_S stSnsOv5647_Obj;
 #define CMOS_CHECK_POINTER(ptr)\
 	do {\
 		if (ptr == CVI_NULL) {\
-			syslog(LOG_ERR, "Null Pointer!\n");\
+			syslog(LOG_ERR, "[%s:%d]Null Pointer!\n", __FUNCTION__, __LINE__);\
 			return CVI_ERR_VI_INVALID_NULL_PTR;\
 		} \
 	} while (0)
@@ -251,7 +255,7 @@ extern ISP_SNS_OBJ_S stSnsOv5647_Obj;
 #define CMOS_CHECK_POINTER_VOID(ptr)\
 	do {\
 		if (ptr == CVI_NULL) {\
-			syslog(LOG_ERR, "Null Pointer!\n");\
+			syslog(LOG_ERR, "[%s:%d]Null Pointer!\n", __FUNCTION__, __LINE__);\
 			return;\
 		} \
 	} while (0)

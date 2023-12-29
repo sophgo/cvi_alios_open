@@ -39,11 +39,7 @@ struct usb_config_descriptor uvc_config_descriptor = {
     .bLength                = USB_DT_CONFIG_SIZE,
     .bDescriptorType        = USB_DT_CONFIG,
     .wTotalLength           = 0, /* dynamic */
-#ifdef CONFIG_MULTI_AV_COMP_SUPPORT
-    .bNumInterfaces         = 9,
-#else
-    .bNumInterfaces         = 5,
-#endif
+    .bNumInterfaces         = 3,
     .bConfigurationValue    = 1,
     .iConfiguration         = 0,
     .bmAttributes           = USB_CONFIG_ATT_ONE,
@@ -911,6 +907,8 @@ uint8_t *av_comp_build_descriptors(struct uvc_format_info_st *format_info, uint3
     if (video_desc != NULL
         && video_desc_len > 0) {
     }
+    uvc_config_descriptor.bNumInterfaces += 2;
+
     av_desc_len = video_desc_len + audio_desc_len + uvc_config_descriptor.bLength;
     bytes += av_desc_len;
     bytes += uvc_device_descriptor.bLength;
@@ -951,13 +949,14 @@ uint8_t *av_comp_build_descriptors(struct uvc_format_info_st *format_info, uint3
     return av_desc;
 }
 
+#if CONFIG_MULTI_AV_COMP_SUPPORT
 uint8_t *multi_av_comp_build_descriptors(struct uvc_device_info *uvc)
 {
     uint8_t *av_desc = NULL;
-    uint8_t *video_desc[AV_COMP_UVC_NUM] = {NULL};
+    uint8_t *video_desc[CONFIG_MULTI_AV_COMP_UVC_NUM] = {NULL};
     uint8_t *audio_desc = NULL;
     uint32_t av_desc_len = 0;
-    uint32_t video_desc_len[AV_COMP_UVC_NUM] = {0};
+    uint32_t video_desc_len[CONFIG_MULTI_AV_COMP_UVC_NUM] = {0};
     uint32_t audio_desc_len = 0;
     uint32_t bytes = 0;
     uint32_t n_desc = 15;
@@ -972,7 +971,7 @@ uint8_t *multi_av_comp_build_descriptors(struct uvc_device_info *uvc)
             av_desc_len += audio_desc_len;
     }
 
-    for(int i = 0; i < AV_COMP_UVC_NUM; i ++) {
+    for(int i = 0; i < CONFIG_MULTI_AV_COMP_UVC_NUM; i ++) {
         struct uvc_device_info *info = uvc + i;
         printf("%p ep addr %x\n", info, info->ep);
         video_desc[i] = uvc_build_descriptor(info->format_info, info->formats, &video_desc_len[i]);
@@ -980,6 +979,7 @@ uint8_t *multi_av_comp_build_descriptors(struct uvc_device_info *uvc)
             && video_desc_len[i] > 0) {
             av_desc_len += video_desc_len[i];
         }
+        uvc_config_descriptor.bNumInterfaces += 2;
     }
 
     av_desc_len += uvc_config_descriptor.bLength;
@@ -988,7 +988,7 @@ uint8_t *multi_av_comp_build_descriptors(struct uvc_device_info *uvc)
     for (src = uvc_string_descriptors; *src; ++src) {
         bytes += (*src)->bLength;
     }
-#ifdef CONFIG_USB_HS
+#if CONFIG_USB_HS
     bytes += uvc_qual_descriptor.bLength;
 #endif
 
@@ -1003,7 +1003,7 @@ uint8_t *multi_av_comp_build_descriptors(struct uvc_device_info *uvc)
     uvc_config_header->wTotalLength = cpu_to_le16(av_desc_len);
 
     // Copy uvc iad
-    for(int i = 0; i < AV_COMP_UVC_NUM; i ++) {
+    for(int i = 0; i < CONFIG_MULTI_AV_COMP_UVC_NUM; i ++) {
         memcpy(mem, video_desc[i], video_desc_len[i]);
         mem += video_desc_len[i];
         //uvc_destroy_descriptor(video_desc[i]);
@@ -1013,7 +1013,7 @@ uint8_t *multi_av_comp_build_descriptors(struct uvc_device_info *uvc)
     mem += audio_desc_len;
 
     UVC_COPY_DESCRIPTORS(mem, dst, uvc_string_descriptors);
-#ifdef CONFIG_USB_HS
+#if CONFIG_USB_HS
     UVC_COPY_DESCRIPTOR(mem, dst, &uvc_qual_descriptor);
 #endif
     ((uint32_t *)mem)[0] = 0x00;
@@ -1023,6 +1023,7 @@ uint8_t *multi_av_comp_build_descriptors(struct uvc_device_info *uvc)
 
     return av_desc;
 }
+#endif
 
 void av_comp_destroy_descriptors(uint8_t *descriptors)
 {

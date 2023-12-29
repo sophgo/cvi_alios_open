@@ -47,8 +47,11 @@ int main(int argc, char *argv[])
 	MEDIA_VIDEO_Init();
 	//media_audio
 	MEDIA_AUDIO_Init();
+
+	#if CONFIG_NIGHT_VISION_SUPPORT
 	//night_vision
 	MEDIA_NightVisionInit();
+	#endif
 	//network
 	#if (CONFIG_APP_ETHERNET_SUPPORT == 1)
 	ethernet_init();

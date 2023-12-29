@@ -5,7 +5,7 @@
 #include "cvi_param.h"
 #include "cvi_comm_venc.h"
 
-//#define MEDIABUG_PRINTF(fmt,...) printf(fmt,##__VA_ARGS__)
+// #define MEDIABUG_PRINTF(fmt,...) printf(fmt,##__VA_ARGS__)
 #define MEDIABUG_PRINTF(fmt,...)
 
 #define MEDIA_CHECK_RET(actual, fmt, arg...)                                   \

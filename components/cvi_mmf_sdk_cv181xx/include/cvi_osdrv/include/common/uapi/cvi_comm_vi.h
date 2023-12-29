@@ -366,10 +366,10 @@ typedef struct _VI_DEV_ATTR_S {
 
 	CVI_BOOL isMux; /* multi sensor use same dev*/
 
-	CVI_U8 switchGpioIdx;
-	CVI_U8 switchGpioPin;
-	CVI_U8 switchGPioPol;
-	CVI_BOOL isFrmCtrl;
+	CVI_U8 switchGpioIdx; /* gpio bank, -1 means not use gpio */
+	CVI_U8 switchGpioPin; /* gpio pin -1 means not use gpio */
+	CVI_U8 switchGPioPol; /* gpio value[0,1] -1 means not use gpio */
+	CVI_BOOL isFrmCtrl; /* enable frame ctrl */
 	CVI_U8 dstFrm; /* set dst frm for switch */
 } VI_DEV_ATTR_S;
 

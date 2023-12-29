@@ -277,8 +277,9 @@ static int _meida_sensor_init(PARAM_VI_CFG_S * pstViCtx,CVI_U8 *devNum)
 {
     //Sensor
     SNS_COMBO_DEV_ATTR_S devAttr = {0};
-    CVI_S32 snsr_type[2];
-    ISP_SNS_OBJ_S *pSnsObj[2];
+    CVI_S32 snsr_type[VI_MAX_DEV_NUM];
+    VI_DEV ViDev;
+    ISP_SNS_OBJ_S *pSnsObj[VI_MAX_DEV_NUM];
     ISP_CMOS_SENSOR_IMAGE_MODE_S stSnsrMode[2];
     CVI_U8 dev_num;
     ISP_SNS_COMMBUS_U unSnsrBusInfo = {0};
@@ -306,10 +307,14 @@ static int _meida_sensor_init(PARAM_VI_CFG_S * pstViCtx,CVI_U8 *devNum)
     InitAttr.enGainMode = SNS_GAIN_MODE_SHARE;
 
     for (CVI_U8  i = 0; i < *devNum; ++i) {
+        ViDev = pstViCtx->pstDevInfo[i].u8AttachDev > 0 ?
+        VI_MAX_PHY_DEV_NUM + pstViCtx->pstDevInfo[i].u8AttachDev - 1 : i;
+
         if (!pSnsObj[i]) {
             MEDIABUG_PRINTF("sns obj[%d] is null.\n", i);
             return CVI_FAILURE;
         }
+        pstViCtx->pstSensorCfg[i].pSnsObj = pSnsObj[i];
         unSnsrBusInfo.s8I2cDev = pstViCtx->pstSensorCfg[i].s8I2cDev;
         snsr_gpio.snsr_rst_port_idx = pstViCtx->pstSensorCfg[i].u32Rst_port_idx;
         snsr_gpio.snsr_rst_pin = pstViCtx->pstSensorCfg[i].u32Rst_pin;
@@ -319,21 +324,24 @@ static int _meida_sensor_init(PARAM_VI_CFG_S * pstViCtx,CVI_U8 *devNum)
         if(pstViCtx->pstSensorCfg[i].s32I2cAddr != -1) {
             pSnsObj[i]->pfnPatchI2cAddr(pstViCtx->pstSensorCfg[i].s32I2cAddr);
         }
-        pSnsObj[i]->pfnSetInit(i, &InitAttr);
+        pSnsObj[i]->pfnSetInit(ViDev, &InitAttr);
         MEDIABUG_PRINTF("bus info:%d\n", unSnsrBusInfo.s8I2cDev);
-        pSnsObj[i]->pfnSetBusInfo(i, unSnsrBusInfo);
-        pSnsObj[i]->pfnRegisterCallback(i, &stAeLib, &stAwbLib);
+        pSnsObj[i]->pfnSetBusInfo(ViDev, unSnsrBusInfo);
+        pSnsObj[i]->pfnRegisterCallback(ViDev, &stAeLib, &stAwbLib);
         pSnsObj[i]->pfnExpSensorCb(&stSnsrSensorFunc[i]);
-        stSnsrSensorFunc[i].pfn_cmos_sensor_global_init(i);
-        s32Ret = stSnsrSensorFunc[i].pfn_cmos_set_image_mode(i, &stSnsrMode[i]);
+        stSnsrSensorFunc[i].pfn_cmos_sensor_global_init(ViDev);
+        s32Ret = stSnsrSensorFunc[i].pfn_cmos_set_image_mode(ViDev, &stSnsrMode[i]);
         if (s32Ret != CVI_SUCCESS) {
             MEDIABUG_PRINTF("sensor set image mode failed!\n");
             return CVI_FAILURE;
         }
-        s32Ret = stSnsrSensorFunc[i].pfn_cmos_set_wdr_mode(i, stSnsrMode[i].u8SnsMode);
+        s32Ret = stSnsrSensorFunc[i].pfn_cmos_set_wdr_mode(ViDev, stSnsrMode[i].u8SnsMode);
         if (s32Ret != CVI_SUCCESS) {
             MEDIABUG_PRINTF("sensor set wdr mode failed!\n");
             return CVI_FAILURE;
+        }
+        if (ViDev >= VI_MAX_PHY_DEV_NUM) {
+            break;
         }
         if(pstViCtx->pstSensorCfg[i].u8DisableRst != CVI_TRUE) {
             cif_reset_snsr_gpio(i, 1);
@@ -357,6 +365,11 @@ static int _meida_sensor_init(PARAM_VI_CFG_S * pstViCtx,CVI_U8 *devNum)
         cif_set_dev_attr(&devAttr);
     }
     for (CVI_U8  i = 0; i < *devNum; ++i) {
+        ViDev = pstViCtx->pstDevInfo[i].u8AttachDev > 0 ?
+                VI_MAX_PHY_DEV_NUM + pstViCtx->pstDevInfo[i].u8AttachDev - 1 : i;
+        if (ViDev >= VI_MAX_PHY_DEV_NUM) {
+            break;
+        }
         if (!pSnsObj[i]) {
             continue;
         }
@@ -399,6 +412,36 @@ static int setFastConvergeAttr(VI_PIPE ViPipe, CVI_BOOL en)
     return CVI_SUCCESS;
 }
 
+#if CONFIG_SENSOR_DUAL_SWITCH
+CVI_S32 dual_sns_sync_task_callback(VI_SYNC_TASK_DATA_S *data)
+{
+    if (data->sync_event != VI_SYNC_EVENT_FE_DONE) {
+        return 0;
+    }
+
+    PARAM_VI_CFG_S * pstViCfg = PARAM_getViCtx();
+    ISP_SNS_OBJ_S *pSnsObj = pstViCfg->pstSensorCfg[0].pSnsObj;
+    ISP_SNS_OBJ_S *pSnsObj2 = pstViCfg->pstSensorCfg[1].pSnsObj;
+
+    if (!pSnsObj || !pSnsObj2) {
+        MEDIABUG_PRINTF("pSnsObj is NULL %p, %p\n", pSnsObj, pSnsObj2);
+        return 0;
+    }
+
+    if (data->ViPipe == data->value)
+        return 0;
+
+    if (data->value == 0) {
+        pSnsObj2->pfnStandby(0);
+        pSnsObj->pfnRestart(0);
+    } else {
+        pSnsObj->pfnStandby(0);
+        pSnsObj2->pfnRestart(0);
+    }
+    return 0;
+}
+#endif
+
 static int _MEDIA_VIDEO_ViInit()
 {
     PARAM_VI_CFG_S * pstViCfg = PARAM_getViCtx();
@@ -435,7 +478,20 @@ int MEDIA_VIDEO_ViInit(PARAM_VI_CFG_S * pstViCfg)
 
     for (int i = 0; i < devNum; i++) {
         ViDev = i;
-        MEDIA_CHECK_RET(getDevAttr(ViDev, &stViDevAttr[ViDev]), "getDevAttr fail");
+
+        ViDev = pstViCfg->pstDevInfo[i].u8AttachDev > 0 ?
+                VI_MAX_PHY_DEV_NUM + pstViCfg->pstDevInfo[i].u8AttachDev - 1 : i;
+
+        MEDIA_CHECK_RET(getDevAttr(i, &stViDevAttr[ViDev]), "getDevAttr fail");
+        if (pstViCfg->pstDevInfo[i].isMux) {
+            stViDevAttr[ViDev].isMux = pstViCfg->pstDevInfo[i].isMux;
+            stViDevAttr[ViDev].switchGpioIdx = pstViCfg->pstDevInfo[i].switchGpioIdx;
+            stViDevAttr[ViDev].switchGpioPin = pstViCfg->pstDevInfo[i].switchGpioPin;
+            stViDevAttr[ViDev].switchGPioPol = pstViCfg->pstDevInfo[i].switchGPioPol;
+            stViDevAttr[ViDev].dstFrm = pstViCfg->pstDevInfo[i].dstFrm;
+            stViDevAttr[ViDev].isFrmCtrl = pstViCfg->pstDevInfo[i].isFrmCtrl;;
+        }
+
         MEDIA_CHECK_RET(getSnsMode(i, &stSnsrMode[i]), "stSnsrMode fail");
         if(ViDev == 0 && pstViCfg->pstDevInfo && pstViCfg->pstDevInfo->pViDmaBuf != NULL) {
             stViDevAttr[ViDev].phy_addr = (intptr_t)pstViCfg->pstDevInfo->pViDmaBuf;
@@ -449,8 +505,9 @@ int MEDIA_VIDEO_ViInit(PARAM_VI_CFG_S * pstViCfg)
     VI_PIPE_ATTR_S stPipeAttr;
 
     for (int i = 0; i < devNum; i++) {
-        ViDev = i;
-        MEDIA_CHECK_RET(getPipeAttr(ViDev, &stPipeAttr), "getPipeAttr fail");
+        ViDev = pstViCfg->pstDevInfo[i].u8AttachDev > 0 ?
+                VI_MAX_PHY_DEV_NUM + pstViCfg->pstDevInfo[i].u8AttachDev - 1 : i;
+        MEDIA_CHECK_RET(getPipeAttr(i, &stPipeAttr), "getPipeAttr fail");
         MEDIA_CHECK_RET(CVI_VI_CreatePipe(ViDev, &stPipeAttr), "CVI_VI_CreatePipe fail");
         MEDIA_CHECK_RET(CVI_VI_StartPipe(ViDev), "CVI_VI_StartPipe fail");
         if (pstViCfg->bFastConverge == CVI_TRUE)
@@ -458,25 +515,29 @@ int MEDIA_VIDEO_ViInit(PARAM_VI_CFG_S * pstViCfg)
     }
 
     for (int i = 0; i < devNum; i++) {
+        ViDev = pstViCfg->pstDevInfo[i].u8AttachDev > 0 ?
+                VI_MAX_PHY_DEV_NUM + pstViCfg->pstDevInfo[i].u8AttachDev - 1 : i;
         ISP_PUB_ATTR_S stPubAttr = { 0 };
 
-        stPubAttr.stWndRect.u32Width = stPubAttr.stSnsSize.u32Width = stViDevAttr[i].stSize.u32Width;
-        stPubAttr.stWndRect.u32Height = stPubAttr.stSnsSize.u32Height = stViDevAttr[i].stSize.u32Height;
+        stPubAttr.stWndRect.u32Width = stPubAttr.stSnsSize.u32Width = stViDevAttr[ViDev].stSize.u32Width;
+        stPubAttr.stWndRect.u32Height = stPubAttr.stSnsSize.u32Height = stViDevAttr[ViDev].stSize.u32Height;
         if (pstViCfg->pstSensorCfg[i].s32Framerate != 0) {
             stPubAttr.f32FrameRate = pstViCfg->pstSensorCfg[i].s32Framerate;
         } else {
             stPubAttr.f32FrameRate = 30;
         }
-        stPubAttr.enBayer = stViDevAttr[i].enBayerFormat;
-        stPubAttr.enWDRMode = stViDevAttr[i].stWDRAttr.enWDRMode;
-        MEDIA_CHECK_RET(start_isp(stPubAttr, i),"start_isp fail");
+        stPubAttr.enBayer = stViDevAttr[ViDev].enBayerFormat;
+        stPubAttr.enWDRMode = stViDevAttr[ViDev].stWDRAttr.enWDRMode;
+        MEDIA_CHECK_RET(start_isp(stPubAttr, ViDev),"start_isp fail");
     }
 
     VI_CHN_ATTR_S stChnAttr = {0};
 
     for (int i = 0; i < devNum; i++) {
-        ViChn = ViDev = i;
-        MEDIA_CHECK_RET(getChnAttr(ViDev, &stChnAttr), "getChnAttr fail");
+        ViChn = i;
+        ViDev = pstViCfg->pstDevInfo[i].u8AttachDev > 0 ?
+                VI_MAX_PHY_DEV_NUM + pstViCfg->pstDevInfo[i].u8AttachDev - 1 : i;
+        MEDIA_CHECK_RET(getChnAttr(i, &stChnAttr), "getChnAttr fail");
         MEDIA_CHECK_RET(CVI_VI_SetChnAttr(ViDev, ViChn, &stChnAttr), "CVI_VI_SetChnAttr fail");
         if(pSnsObj[i]->pfnMirrorFlip) {
             CVI_VI_RegChnFlipMirrorCallBack(i,ViDev,(void *)pSnsObj[i]->pfnMirrorFlip);
@@ -492,13 +553,37 @@ int MEDIA_VIDEO_ViInit(PARAM_VI_CFG_S * pstViCfg)
     }
 
     int scene_mode = PARAM_getSceneMode();
-    CVI_BIN_ImportBinData(pstViCfg->pstIspCfg[scene_mode].stPQBinDes.pIspBinData, pstViCfg->pstIspCfg[scene_mode].stPQBinDes.u32IspBinDataLen);
 
     for (int i = 0; i < devNum; i++) {
+        if (pstViCfg->pstIspCfg[scene_mode].astPQBinDes[i].pIspBinData && pstViCfg->pstIspCfg[scene_mode].astPQBinDes[i].u32IspBinDataLen > 0) {
+            MEDIA_CHECK_RET(CVI_BIN_LoadParamFromBinEx(pstViCfg->pstIspCfg[scene_mode].astPQBinDes[i].binID,
+                pstViCfg->pstIspCfg[scene_mode].astPQBinDes[i].pIspBinData,
+                pstViCfg->pstIspCfg[scene_mode].astPQBinDes[i].u32IspBinDataLen),
+                "CVI_BIN_LoadParamFromBinEx(%d) fail", pstViCfg->pstIspCfg[scene_mode].astPQBinDes[i].binID);
+        }
+
+    }
+
+    for (int i = 0; i < devNum; i++) {
+        ViDev = pstViCfg->pstDevInfo[i].u8AttachDev > 0 ?
+                VI_MAX_PHY_DEV_NUM + pstViCfg->pstDevInfo[i].u8AttachDev - 1 : i;
         if(pstViCfg->pstIspCfg[scene_mode].bMonoSet[i]) {
-            MEDIA_VIDEO_ViSetImageMono(i);
+            MEDIA_VIDEO_ViSetImageMono(ViDev);
         }
     }
+
+#if CONFIG_SENSOR_DUAL_SWITCH
+    static VI_SYNC_TASK_NODE_S stSyncTask;
+    stSyncTask.name = "sns_switch0";
+    stSyncTask.isp_sync_task_call_back = dual_sns_sync_task_callback;
+
+    static VI_SYNC_TASK_NODE_S stSyncTask1;
+    stSyncTask1.name = "sns_switch1";
+    stSyncTask1.isp_sync_task_call_back = dual_sns_sync_task_callback;
+
+    MEDIA_CHECK_RET(CVI_VI_RegSyncTask(0, &stSyncTask), "CVI_VI_RegSyncTask fail");
+    MEDIA_CHECK_RET(CVI_VI_RegSyncTask(2, &stSyncTask1), "CVI_VI_RegSyncTask fail");
+#endif
     return CVI_SUCCESS;
 }
 

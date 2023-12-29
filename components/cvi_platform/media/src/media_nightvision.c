@@ -50,10 +50,9 @@ int MEDIA_NigthVision_RunAutoIr(int DevId)
         CVI_ISP_IrAutoRunOnce(DevId, &g_stIrAttr[DevId]);
         if(g_stIrAttr[DevId].enIrSwitch == ISP_IR_SWITCH_TO_IR) {
             //load rgb mono param
-            if(pstViCfg->u32IspSceneNum >= 2 && pstViCfg->pstIspCfg[1].stPQBinDes.
-            pIspBinData) {
-                CVI_BIN_ImportBinData(pstViCfg->pstIspCfg[1].stPQBinDes.pIspBinData,
-                pstViCfg->pstIspCfg[1].stPQBinDes.u32IspBinDataLen);
+            if(pstViCfg->u32IspSceneNum >= 2 && pstViCfg->pstIspCfg[1].astPQBinDes[0].pIspBinData) {
+                CVI_BIN_LoadParamFromBinEx(pstViCfg->pstIspCfg[1].astPQBinDes[0].binID, pstViCfg->pstIspCfg[1].astPQBinDes[0].pIspBinData,
+                pstViCfg->pstIspCfg[1].astPQBinDes[0].u32IspBinDataLen);
             } else {
                 //path路径
                 //CVI_BIN_LoadParamFromBin
@@ -64,10 +63,9 @@ int MEDIA_NigthVision_RunAutoIr(int DevId)
             usleep(100 * 1000);
         } else if(g_stIrAttr[DevId].enIrSwitch == ISP_IR_SWITCH_TO_NORMAL) {
             // load rgb param
-            if(pstViCfg->u32IspSceneNum >= 1 && pstViCfg->pstIspCfg[0].
-            stPQBinDes.pIspBinData) {
-                CVI_BIN_ImportBinData(pstViCfg->pstIspCfg[0].stPQBinDes.pIspBinData,
-                pstViCfg->pstIspCfg[0].stPQBinDes.u32IspBinDataLen);
+            if(pstViCfg->u32IspSceneNum >= 1 && pstViCfg->pstIspCfg[0].astPQBinDes[0].pIspBinData) {
+                CVI_BIN_LoadParamFromBinEx(pstViCfg->pstIspCfg[0].astPQBinDes[0].binID, pstViCfg->pstIspCfg[0].astPQBinDes[0].pIspBinData,
+                pstViCfg->pstIspCfg[0].astPQBinDes[0].u32IspBinDataLen);
             } else {
                 //path路径
                 //CVI_BIN_LoadParamFromBin
@@ -159,8 +157,8 @@ void cli_switch_led(int argc,char **argv)
 		{
 			PLATFORM_IrCutCtl(10000);
 		}
-	} 
-    else 
+	}
+    else
     {
         printf("usage: cli_switch_led 0/1\r\n");
     }

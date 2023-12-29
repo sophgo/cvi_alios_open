@@ -41,8 +41,24 @@ void board_clk_init(void)
     //soc_clk_init();
     //soc_clk_enable(BUS_UART1_CLK);
 
-    /* adjust uart clock source to 170MHz */
-    mmio_write_32(0x30020a8, 0x70109);
+    /* config uart clk */
+#if CONSOLE_UART_CLK == 1188000000
+    mmio_write_32(DIV_CLK_CAM0_200 , BIT_DIV_RESET_CONT | BIT_SELT_DIV_REG | BIT_CLK_SRC |
+	 BIT_CLK_DIV_FACT_16);
+#elif CONSOLE_UART_CLK == 594000000
+    mmio_write_32(DIV_CLK_CAM0_200 , BIT_DIV_RESET_CONT | BIT_SELT_DIV_REG | BIT_CLK_SRC |
+	 BIT_CLK_DIV_FACT_17);
+#elif CONSOLE_UART_CLK == 396000000
+    mmio_write_32(DIV_CLK_CAM0_200 , BIT_DIV_RESET_CONT | BIT_SELT_DIV_REG | BIT_CLK_SRC |
+	 BIT_CLK_DIV_FACT_16 | BIT_CLK_DIV_FACT_17);
+#elif CONSOLE_UART_CLK == 297000000
+    mmio_write_32(DIV_CLK_CAM0_200 , BIT_DIV_RESET_CONT | BIT_SELT_DIV_REG | BIT_CLK_SRC |
+	 BIT_CLK_DIV_FACT_18);
+#else
+    //default 170M
+    mmio_write_32(DIV_CLK_CAM0_200 , BIT_DIV_RESET_CONT | BIT_SELT_DIV_REG | BIT_CLK_SRC |
+	 BIT_CLK_DIV_FACT_16 | BIT_CLK_DIV_FACT_17 | BIT_CLK_DIV_FACT_18);
+#endif
 }
 
 void reboot_pre_hook(void)

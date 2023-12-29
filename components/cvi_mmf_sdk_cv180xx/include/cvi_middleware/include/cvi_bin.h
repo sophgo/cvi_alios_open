@@ -36,6 +36,8 @@ extern "C" {
 #define CVI_BIN_READ_ERROR  0xCB000014 /*read para from file fail*/
 #define CVI_BIN_FILE_ERROR  0xCB000015 /*PQbin file is invalid.*/
 #define CVI_BIN_SENSORNUM_ERROR  0xCB000016 /*Sensor number exceeds specified sensor number in the current bin file.*/
+#define CVI_BIN_MODULE_NOT_REGISTER_ERROR  0xCB000017 /*Sensor isn't registered in the current board.*/
+#define CVI_BIN_MODULE_IS_EMPTY_ERROR  0xCB000018 /*Current module id is empty in the bin file.*/
 
 enum CVI_BIN_SECTION_ID {
 	CVI_BIN_ID_MIN = 0,
@@ -83,6 +85,8 @@ CVI_S32 CVI_BIN_SaveParamToBin(FILE *fp, CVI_BIN_EXTRA_S *extraInfo);
 CVI_S32 CVI_BIN_LoadParamFromBin(enum CVI_BIN_SECTION_ID id, CVI_U8 *buf);
 CVI_S32 CVI_BIN_SetBinName(WDR_MODE_E wdrMode, const CVI_CHAR *binName);
 CVI_S32 CVI_BIN_GetBinName(CVI_CHAR *binName);
+CVI_S32 CVI_BIN_GetSingleISPBinLen(enum CVI_BIN_SECTION_ID id);
+CVI_S32 CVI_BIN_ExportSingleISPBinData(enum CVI_BIN_SECTION_ID id, CVI_U8 *pu8Buffer, CVI_U32 u32DataLength);
 
 /* CVI_BIN_LoadParamFromBinEx:
  *   get bin data from buffer

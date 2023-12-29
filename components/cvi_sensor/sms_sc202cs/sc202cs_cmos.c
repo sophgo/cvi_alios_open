@@ -42,8 +42,8 @@ ISP_SNS_STATE_S *g_pastSc202cs[VI_MAX_PIPE_NUM] = {CVI_NULL};
 #define SC202CS_SENSOR_RESET_CTX(dev)         (g_pastSc202cs[dev] = CVI_NULL)
 
 ISP_SNS_COMMBUS_U g_aunSc202cs_BusInfo[VI_MAX_PIPE_NUM] = {
-	[0] = { .s8I2cDev = 2},
-	[1 ... VI_MAX_PIPE_NUM - 1] = { .s8I2cDev = -1}
+	[0 ... 1] = { .s8I2cDev = 1},
+	[2 ... VI_MAX_PIPE_NUM - 1] = { .s8I2cDev = -1}
 };
 
 ISP_SNS_MIRRORFLIP_TYPE_E g_aeSc202cs_MirrorFip[VI_MAX_PIPE_NUM] = {ISP_SNS_NORMAL};
@@ -222,7 +222,7 @@ typedef struct gain_tbl_info_s {
 
 static struct gain_tbl_info_s DgainInfo[] = {
 	{
-		.gainMax = 2016,	
+		.gainMax = 2016,
 		.idxBase = 0,
 		.regGain = 0x00,
 		.regGainFineBase = 0x80,

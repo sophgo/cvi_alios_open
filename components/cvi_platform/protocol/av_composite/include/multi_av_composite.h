@@ -19,13 +19,18 @@ struct uvc_device_info {
     volatile bool xfer_flag;
     volatile uint32_t xfer_len;
     volatile uint32_t xfer_offset;
+    volatile bool update_flag;
     struct video_source video;
     struct uvc_format_info_st *format_info;
 	uint8_t *packet_buffer_uvc;
+    bool header_flip;
+
 
 	// interval max_frame_size max_payload_size
 };
 
-#define AV_COMP_UVC_NUM 3
+#ifndef CONFIG_MULTI_AV_COMP_UVC_NUM
+#define CONFIG_MULTI_AV_COMP_UVC_NUM 3
+#endif
 
 #endif

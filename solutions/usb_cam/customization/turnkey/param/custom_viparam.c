@@ -21,18 +21,38 @@ PARAM_CLASSDEFINE(PARAM_ISP_CFG_S,ISPCFG,CTX,ISP)[] = {
     {
         .bMonoSet = {0},
         .bUseSingleBin = 0,
-        .stPQBinDes =
-        {
-            .pIspBinData = NULL,
-            .u32IspBinDataLen = 0,
-        },
     },
+};
+
+PARAM_CLASSDEFINE(PARAM_DEV_CFG_S,VIDEVCFG,CTX,VI)[] = {
+    {
+        .pViDmaBuf = NULL,
+        .u32ViDmaBufSize = 0,
+    #if CONFIG_SENSOR_DUAL_SWITCH
+        .isMux = true,
+        .u8AttachDev = 0,
+        .switchGpioIdx = -1,
+        .switchGpioPin = -1,
+        .switchGPioPol = -1,
+    #endif
+    },
+    {
+    #if CONFIG_SENSOR_DUAL_SWITCH
+        .isMux = true,
+        .u8AttachDev = 1,
+        .switchGpioIdx = -1,
+        .switchGpioPin = -1,
+        .switchGPioPol = -1,
+    #endif
+    }
 };
 
 PARAM_VI_CFG_S g_stViCtx = {
     .u32WorkSnsCnt = 1,
     .pstSensorCfg = PARAM_CLASS(SENSORCFG,CTX,Sensor),
     .pstIspCfg = PARAM_CLASS(ISPCFG,CTX,ISP),
+    .pstDevInfo = PARAM_CLASS(VIDEVCFG,CTX,VI)
+
 };
 
 PARAM_VI_CFG_S * PARAM_GET_VI_CFG(void) {
