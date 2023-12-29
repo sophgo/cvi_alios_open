@@ -33,7 +33,7 @@ extern int aos_debug_printf(const char *fmt, ...);
 /* ================= USB Device Stack Configuration ================ */
 
 /* Ep0 max transfer buffer, specially for receiving data from ep0 out */
-#ifdef CONFIG_MULTI_AV_COMP_SUPPORT
+#if CONFIG_MULTI_AV_COMP_SUPPORT
 #define CONFIG_USBDEV_REQUEST_BUFFER_LEN 4096
 #else
 #define CONFIG_USBDEV_REQUEST_BUFFER_LEN 2048

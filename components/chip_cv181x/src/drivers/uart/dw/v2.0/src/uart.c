@@ -23,7 +23,7 @@
 
 #include "board.h"
 
-#define UART_SCLK 170000000/* 170MHz */
+#define UART_SCLK CONSOLE_UART_CLK
 
 #define TX_RINGBUFFER_SIZE 4096
 

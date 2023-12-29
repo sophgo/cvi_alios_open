@@ -115,7 +115,7 @@ int fifo_dma_mode = OFF;
 
 #define USB_RAM_SIZE 4096 /* define with minimum value*/
 
-#ifdef CONFIG_MULTI_AV_COMP_SUPPORT
+#if CONFIG_MULTI_AV_COMP_SUPPORT
 #define CONFIG_USB_DWC2_TX1_FIFO_SIZE (1024)
 #define CONFIG_USB_DWC2_TX2_FIFO_SIZE (1024)
 #define CONFIG_USB_DWC2_TX3_FIFO_SIZE (1024)
@@ -247,7 +247,7 @@ static inline int dwc2_reset(void)
 static inline int dwc2_core_init(void)
 {
     int ret;
-#if defined(CONFIG_USB_HS)
+#if (CONFIG_USB_HS)
     USB_OTG_GLB->GCCFG &= ~(USB_OTG_GCCFG_PWRDWN);
 
     /* Init The ULPI Interface */
@@ -634,7 +634,7 @@ int usb_dc_init(void)
     USB_OTG_DEV->DCFG |= DCFG_FRAME_INTERVAL_80;
 
 #if CONFIG_USB_DWC2_PORT == HS_PORT
-#if defined(CONFIG_USB_HS)
+#if (CONFIG_USB_HS)
     /* Set Core speed to High speed mode */
     USB_OTG_DEV->DCFG |= USB_OTG_SPEED_HIGH;
 #else
