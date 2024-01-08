@@ -88,6 +88,7 @@ build_config:
     - sensor_i2c
     - gcore_gc02m1
     - gcore_gc02m1_slave
+    - gcore_gc02m1_multi
     - gcore_gc2053
     - gcore_gc2053_1L
     - gcore_gc2093
@@ -118,6 +119,7 @@ source_file:
   - sensor_i2c/*.c
   - gcore_gc02m1/*.c
   - gcore_gc02m1_slave/*.c
+  - gcore_gc02m1_multi/*.c
   - gcore_gc2053/*.c
   - gcore_gc2053_1L/*.c
   - gcore_gc2093/*.c

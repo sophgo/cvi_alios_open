@@ -367,21 +367,19 @@ static int _meida_sensor_init(PARAM_VI_CFG_S * pstViCtx,CVI_U8 *devNum)
     for (CVI_U8  i = 0; i < *devNum; ++i) {
         ViDev = pstViCtx->pstDevInfo[i].u8AttachDev > 0 ?
                 VI_MAX_PHY_DEV_NUM + pstViCtx->pstDevInfo[i].u8AttachDev - 1 : i;
-        if (ViDev >= VI_MAX_PHY_DEV_NUM) {
-            break;
+
+        if (ViDev < VI_MAX_PHY_DEV_NUM) {
+            if(pstViCtx->pstSensorCfg[i].u8DisableRst != CVI_TRUE) {
+                pSnsObj[i]->pfnGetRxAttr(i, &devAttr);
+                cif_enable_snsr_clk(i, 1);
+                usleep(100);
+                cif_reset_snsr_gpio(i, 0);
+                udelay(100);
+            }
         }
-        if (!pSnsObj[i]) {
-            continue;
-        }
-        if(pstViCtx->pstSensorCfg[i].u8DisableRst != CVI_TRUE) {
-            pSnsObj[i]->pfnGetRxAttr(i, &devAttr);
-            cif_enable_snsr_clk(i, 1);
-            usleep(100);
-            cif_reset_snsr_gpio(i, 0);
-            udelay(100);
-        }
+
         if (pSnsObj[i]->pfnSnsProbe) {
-            s32Ret = pSnsObj[i]->pfnSnsProbe(i);
+            s32Ret = pSnsObj[i]->pfnSnsProbe(ViDev);
             if (s32Ret) {
                 MEDIABUG_PRINTF("sensor probe failed!\n");
                 return CVI_FAILURE;
@@ -424,7 +422,7 @@ CVI_S32 dual_sns_sync_task_callback(VI_SYNC_TASK_DATA_S *data)
     ISP_SNS_OBJ_S *pSnsObj2 = pstViCfg->pstSensorCfg[1].pSnsObj;
 
     if (!pSnsObj || !pSnsObj2) {
-        MEDIABUG_PRINTF("pSnsObj is NULL %p, %p\n", pSnsObj, pSnsObj2);
+        aos_debug_printf("pSnsObj is NULL %p, %p\n", pSnsObj, pSnsObj2);
         return 0;
     }
 
@@ -432,11 +430,11 @@ CVI_S32 dual_sns_sync_task_callback(VI_SYNC_TASK_DATA_S *data)
         return 0;
 
     if (data->value == 0) {
-        pSnsObj2->pfnStandby(0);
+        pSnsObj2->pfnStandby(2);
         pSnsObj->pfnRestart(0);
     } else {
         pSnsObj->pfnStandby(0);
-        pSnsObj2->pfnRestart(0);
+        pSnsObj2->pfnRestart(2);
     }
     return 0;
 }
