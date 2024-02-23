@@ -68,40 +68,12 @@ int gc02m1_write_register(VI_PIPE ViPipe, int addr, int data)
 
 void gc02m1_standby(VI_PIPE ViPipe)
 {
-	int nVal;
-
-	gc02m1_write_register(ViPipe, 0xfe, 0x00);
-
-	nVal = gc02m1_read_register(ViPipe, 0x3e);
-	nVal &= ~(0x1 << 7);
-	nVal &= ~(0x1 << 4);
-	gc02m1_write_register(ViPipe, 0x3e, nVal);
-	gc02m1_write_register(ViPipe, 0xfc, 0x01);
-
-	nVal = gc02m1_read_register(ViPipe, 0xf9);
-	nVal |= (0x1 << 0);
-	gc02m1_write_register(ViPipe, 0xf9, nVal);
-
-	printf("gc02m1_standby\n");
+	gc02m1_write_register(ViPipe, 0x3e, 0x00);
 }
 
 void gc02m1_restart(VI_PIPE ViPipe)
 {
-	int nVal;
-
-	nVal = gc02m1_read_register(ViPipe, 0xf9);
-	nVal &= ~(0x1 << 0);
-	gc02m1_write_register(ViPipe, 0xf9, nVal);
-
-	udelay(1);
-	gc02m1_write_register(ViPipe, 0xfc, 0x8e);
-	gc02m1_write_register(ViPipe, 0xfe, 0x00);
-	nVal = gc02m1_read_register(ViPipe, 0x3e);
-	nVal |= (0x1 << 7);
-	nVal |= (0x1 << 4);
-	gc02m1_write_register(ViPipe, 0x3e, nVal);
-
-	printf("gc02m1_restart\n");
+	gc02m1_write_register(ViPipe, 0x3e, 0x90);
 }
 
 void gc02m1_default_reg_init(VI_PIPE ViPipe)

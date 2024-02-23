@@ -80,7 +80,7 @@ PARAM_CLASSDEFINE(PARAM_DEV_CFG_S,VIDEVCFG,CTX,VI)[] = {
 };
 
 PARAM_VI_CFG_S g_stViCtx = {
-    .u32WorkSnsCnt = 1,
+    .u32WorkSnsCnt = 2,
     .pstSensorCfg = PARAM_CLASS(SENSORCFG,CTX,Sensor),
     .pstIspCfg = PARAM_CLASS(ISPCFG,CTX,ISP),
     .pstDevInfo = PARAM_CLASS(VIDEVCFG,CTX,VI)

@@ -26,7 +26,7 @@ csi_error_t csi_pwm_init(csi_pwm_t *pwm, uint32_t idx)
         ret = CSI_ERROR;
     }
 
-    pr_debug("pwm %d reg_base 0x%x\n", pwm->dev.idx, pwm->dev.reg_base);
+    pr_debug("pwm %d reg_base 0x%lx\n", pwm->dev.idx, pwm->dev.reg_base);
 
     return ret;
 }
@@ -50,8 +50,8 @@ void csi_pwm_uninit(csi_pwm_t *pwm)
 */
 csi_error_t csi_pwm_out_config(csi_pwm_t *pwm,
                                uint32_t  channel,
-                               uint32_t period_us,
-                               uint32_t pulse_width_us,
+                               uint32_t period_ns,
+                               uint32_t pulse_width_ns,
                                csi_pwm_polarity_t polarity)
 {
     CSI_PARAM_CHK(pwm, CSI_ERROR);
@@ -60,26 +60,28 @@ csi_error_t csi_pwm_out_config(csi_pwm_t *pwm,
     unsigned long reg_base = HANDLE_REG_BASE(pwm);
 
     // uint32_t count_unit = soc_get_pwm_freq((uint32_t)pwm->dev.idx) / 1000000U;
-    const uint32_t count_unit = 100000000U / 1000000U;  // a count per us
-    // const uint32_t count_tmp = count_unit * period_us;
-    int duty_clk, period_clk;
+    const uint64_t count_unit = 100000000;  // 100M count per second
+    const uint64_t NSEC_COUNT = 1000000000;  // ns
+    // const uint32_t count_tmp = count_unit * period_ns;
+    unsigned long long duty_clk, period_clk;
 
     ret = CVI_PWM_CHECK_CHANNEL_NUM(channel);
 
-    if (period_us < pulse_width_us) {
-        pr_err("pulse_width_us %d large than period_us %d\n", pulse_width_us, period_us);
+    if (period_ns < pulse_width_ns) {
+        pr_err("pulse_width_ns %d large than period_ns %d\n", pulse_width_ns, period_ns);
         ret = CSI_ERROR;
     }
 
-    period_clk = period_us*count_unit;   // clk = 100 MHz, so  per us
+    pr_debug("========period_ns: %u, duty_ns:%u=======\n", period_ns, pulse_width_ns);
+    period_clk = (period_ns * count_unit) / NSEC_COUNT;   
 
     switch (polarity) {
         case PWM_POLARITY_LOW:
-            duty_clk = pulse_width_us;
+            duty_clk = pulse_width_ns;
             break;
 
         case PWM_POLARITY_HIGH:
-            duty_clk = period_us - pulse_width_us;
+            duty_clk = period_ns - pulse_width_ns;
             break;
 
         default:
@@ -90,7 +92,8 @@ csi_error_t csi_pwm_out_config(csi_pwm_t *pwm,
     if (CSI_OK == ret) {
         cvi_pwm_set_polarity_low_ch(reg_base, (channel & 0x3));
 
-        duty_clk *= count_unit;
+        duty_clk = (duty_clk * count_unit) / NSEC_COUNT;
+        pr_debug("========period_clk: %llu, duty_clk:%llu=======\n", period_clk, duty_clk);
         cvi_pwm_set_high_period_ch(reg_base, (channel & 0x3), duty_clk);
         cvi_pwm_set_period_ch(reg_base, (channel & 0x3), period_clk);
         cvi_pwm_output_en_ch(reg_base, (channel & 0x3));

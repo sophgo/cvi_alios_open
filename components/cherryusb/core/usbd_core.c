@@ -892,23 +892,12 @@ static bool usbd_setup_request_handler(struct usb_setup_packet *setup, uint8_t *
 static void usbd_class_event_notify_handler(uint8_t event, void *arg)
 {
     usb_slist_t *i;
-    struct usb_setup_packet *setup = (struct usb_setup_packet *)arg;
-    // FIXME: why wIndex is wrong when printing
-    uint16_t wInterface = setup ? (setup->wIndex & 0x01) : -1;
-    if (event == USBD_EVENT_SET_INTERFACE) {
-        wInterface = setup ? (setup->wValue & 0xff) : -1;
-    }
-
-    if (setup) {
-        usbd_print_setup(setup);
-    } else {
-        USB_LOG_INFO("NULL ptr\n");
-    }
+    struct usb_interface_descriptor *if_desc = (struct usb_interface_descriptor *)arg;
 
     usb_slist_for_each(i, &usbd_intf_head)
     {
         struct usbd_interface *intf = usb_slist_entry(i, struct usbd_interface, list);
-        if (event == USBD_EVENT_SET_INTERFACE && intf->intf_num != wInterface) {
+        if (event == USBD_EVENT_SET_INTERFACE && intf->intf_num != if_desc->bInterfaceNumber) {
             continue;
         }
 

@@ -3,17 +3,16 @@
 // #include <aos/kv.h>
 #include <debug/dbg.h>
 #include <aos/cli.h>
-// #include <uservice/uservice.h>
+#include <uservice/uservice.h>
 #include <yoc/partition.h>
 #include <yoc/init.h>
 #include <drv/dma.h>
 #include "board.h"
 // #include "fatfs_vfs.h"
-// #include "littlefs_vfs.h"
 #include "vfs.h"
 #include "disk_sd.h"
 #include "vfs_api.h"
-// #include "littlefs_vfs.h"
+#include "littlefs_vfs.h"
 #include "debug/debug_cli_cmd.h"
 
 
@@ -33,11 +32,13 @@ void YOC_SYSTEM_FsVfsInit()
     {
         fatfs_en = app_sd_detect_check();
         LOGE("app", fatfs_en ? "fatfs enable.\n" : "fatfs disable.\n");
-        //ret = vfs_lfs_register("spiffs");
-        //if (ret != 0) {
-        //    LOGE("app", "lfs register failed(%d)", ret);
-        //} else
-        //    LOGE("app", "lfs register succeed.");
+    #if CONFIG_SPIFFS_SUPPORT
+        ret = vfs_lfs_register("spiffs");
+        if (ret != 0) {
+           LOGE("app", "lfs register failed(%d)", ret);
+        } else
+           LOGE("app", "lfs register succeed.");
+    #endif
         // ret = aos_kv_init("kv");
         // if (ret != 0) {
         //     LOGE("app", "aos_kv_init failed(%d)", ret);
@@ -95,14 +96,18 @@ void YOC_SYSTEM_ToolInit()
     cli_reg_cmd_mv();
     cli_reg_cmd_ext4();
 #endif
-    // cli_reg_cmd_iperf();
-    // cli_reg_cmd_ifconfig();
+#if (CONFIG_APP_ETHERNET_SUPPORT || CONFIG_APP_WIFI_SUPPORT || CONFIG_USBD_CDC_RNDIS)
+    cli_reg_cmd_iperf();
+    cli_reg_cmd_ifconfig();
+#endif
 #if (CONFIG_SUPPORT_TEST_TYDB_ADB == 1)
     cli_reg_cmd_adb_config();
 #endif
     ulog_init();
     aos_set_log_level(AOS_LL_INFO);
-    // event_service_init(NULL);
+#if (CONFIG_APP_ETHERNET_SUPPORT || CONFIG_APP_WIFI_SUPPORT || CONFIG_USBD_CDC_RNDIS)
+    event_service_init(NULL);
+#endif
 }
 
 void cli_dump_isp_param(int argc,char **argv)

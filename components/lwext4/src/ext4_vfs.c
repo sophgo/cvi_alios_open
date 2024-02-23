@@ -60,11 +60,33 @@ static char *path_convert(const char *path)
 static int _ext4_open(vfs_file_t *fp, const char *path, int flags)
 {
     int rc;
+    uint32_t mode;
     ext4_file *file;
 
     char *target_path = path_convert(path);
     if (target_path == NULL) {
         return -EINVAL;
+    }
+
+    rc = ext4_mode_get(target_path, &mode);
+    if ((rc != ENOENT) && (flags & O_CREAT) && (flags & O_EXCL)) {
+        printf("%s, %d, EEXIST\n", __func__, __LINE__);
+        aos_free(target_path);
+        return -EEXIST;
+    }
+    if (rc != 0 && rc != ENOENT) {
+        aos_free(target_path);
+        return -rc;
+    }
+    if (rc != ENOENT) {
+        if (!(mode & S_IRUSR) && ((flags & O_RDONLY) == O_RDONLY || (flags & O_RDWR) == O_RDWR)) {
+            aos_free(target_path);
+            return -EACCES;
+        }
+        if (!(mode & S_IWUSR) && ((flags & O_WRONLY) == O_WRONLY || (flags & O_RDWR) == O_RDWR)) {
+            aos_free(target_path);
+            return -EACCES;
+        }
     }
 
     file = aos_malloc(sizeof(ext4_file));
@@ -132,23 +154,37 @@ static long int _ext4_tell(vfs_file_t *fp)
 static int _ext4_access(vfs_file_t *fp, const char *path, int amode)
 {
     int rc;
-    ext4_file file;
+    uint32_t mode;
 
     char *target_path = path_convert(path);
     if (target_path == NULL) {
         return -EINVAL;
     }
 
-    rc = ext4_fopen(&file, target_path, "rb");
-    if (rc == 0) {
-        ext4_fclose(&file);
+    rc = ext4_mode_get(target_path, &mode);
+    if (rc != 0) {
         aos_free(target_path);
-        return 0;
+        return -rc;
+    } else {
+        switch(amode) {
+            default:
+            case F_OK:
+                rc = 0;
+                break;
+            case R_OK:
+                rc = mode & S_IRUSR ? 0 : 1;
+                break;
+            case W_OK:
+                rc = mode & S_IWUSR ? 0 : 1;
+                break;
+            case X_OK:
+                rc = mode & S_IXUSR ? 0 : 1;
+                break;
+        }
     }
-
     aos_free(target_path);
 
-    return -rc;
+    return rc;
 }
 
 static off_t _ext4_lseek(vfs_file_t *fp, off_t off, int whence)

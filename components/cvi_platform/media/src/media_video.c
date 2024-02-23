@@ -49,7 +49,7 @@
 #include "cvi_sys.h"
 #include "gui_display.h"
 
-#if CONFIG_APP_VI_DUMP_FRAME
+#if CONFIG_APP_DUMP_FRAME
 #include <drv/tick.h>
 #include "fatfs_vfs.h"
 #include "vfs.h"
@@ -378,23 +378,21 @@ static int _meida_sensor_init(PARAM_VI_CFG_S * pstViCtx,CVI_U8 *devNum)
     for (CVI_U8  i = 0; i < *devNum; ++i) {
         ViDev = pstViCtx->pstDevInfo[i].u8AttachDev > 0 ?
                 VI_MAX_PHY_DEV_NUM + pstViCtx->pstDevInfo[i].u8AttachDev - 1 : i;
-        if (ViDev >= VI_MAX_PHY_DEV_NUM) {
-            break;
+
+        if (ViDev < VI_MAX_PHY_DEV_NUM) {
+            if(pstViCtx->pstSensorCfg[i].u8DisableRst != CVI_TRUE) {
+                pSnsObj[i]->pfnGetRxAttr(i, &devAttr);
+                cif_enable_snsr_clk(i, 1);
+                usleep(100);
+            #if (!CONFIG_SENSOR_QUICK_STARTUP)
+                cif_reset_snsr_gpio(i, 0);
+                udelay(100);
+            #endif
+            }
         }
-        if (!pSnsObj[i]) {
-            continue;
-        }
-        if(pstViCtx->pstSensorCfg[i].u8DisableRst != CVI_TRUE) {
-            pSnsObj[i]->pfnGetRxAttr(i, &devAttr);
-            cif_enable_snsr_clk(i, 1);
-            usleep(100);
-        #if (!CONFIG_SENSOR_QUICK_STARTUP)
-            cif_reset_snsr_gpio(i, 0);
-            udelay(100);
-        #endif
-        }
+
         if (pSnsObj[i]->pfnSnsProbe) {
-            s32Ret = pSnsObj[i]->pfnSnsProbe(i);
+            s32Ret = pSnsObj[i]->pfnSnsProbe(ViDev);
             if (s32Ret) {
                 MEDIABUG_PRINTF("sensor probe failed!\n");
                 return CVI_FAILURE;
@@ -426,7 +424,7 @@ static int setFastConvergeAttr(VI_PIPE ViPipe, CVI_BOOL en)
 }
 
 
-#if CONFIG_APP_VI_DUMP_FRAME
+#if CONFIG_APP_DUMP_FRAME
 static void getFmtName(PIXEL_FORMAT_E enPixFmt, CVI_CHAR *szName)
 {
 	switch (enPixFmt)
@@ -493,7 +491,27 @@ static void getFmtName(PIXEL_FORMAT_E enPixFmt, CVI_CHAR *szName)
 
 }
 
-static void viDumpFrame(VI_PIPE ViPipe, VI_CHN ViChn, CVI_U32 u32FrameCnt)
+static CVI_S32 _getFrame(MMF_CHN_S *pstChn, VIDEO_FRAME_INFO_S *pstFrameInfo, CVI_S32 s32MilliSec)
+{
+    if (pstChn->enModId == CVI_ID_VI) {
+        return CVI_VI_GetChnFrame(pstChn->s32DevId, pstChn->s32ChnId, pstFrameInfo, s32MilliSec);
+    }
+    else {
+        return CVI_VPSS_GetChnFrame(pstChn->s32DevId, pstChn->s32ChnId, pstFrameInfo, s32MilliSec);
+    }
+}
+
+static CVI_S32 _releaseFrame(MMF_CHN_S *pstChn, VIDEO_FRAME_INFO_S *pstFrameInfo)
+{
+    if (pstChn->enModId == CVI_ID_VI) {
+        return CVI_VI_ReleaseChnFrame(pstChn->s32DevId, pstChn->s32ChnId, pstFrameInfo);
+    }
+    else {
+        return CVI_VI_ReleaseChnFrame(pstChn->s32DevId, pstChn->s32ChnId, pstFrameInfo);
+    }
+}
+
+static void dumpFrame(MMF_CHN_S *pstChn, CVI_U32 u32FrameCnt)
 {
 	CVI_S32 s32MilliSec = 1000;
 	CVI_U32 u32Cnt = u32FrameCnt;
@@ -519,14 +537,13 @@ static void viDumpFrame(VI_PIPE ViPipe, VI_CHN ViChn, CVI_U32 u32FrameCnt)
 
 	/* get frame  */
 	while (u32Cnt--) {
-		if (CVI_VI_GetChnFrame(ViPipe, ViChn, &stFrameInfo, s32MilliSec) != CVI_SUCCESS) {
+		if (_getFrame(pstChn, &stFrameInfo, s32MilliSec) != CVI_SUCCESS) {
 			printf("Get frame fail \n");
 			usleep(1000);
 			continue;
 		}
 
-        printf("vi dump frame %d done. ##cur_ms:%d\n", u32Cnt, csi_tick_get_ms());
-
+        printf("dump frame %d done. ##cur_ms:%d\n", u32Cnt, csi_tick_get_ms());
 
 		for (i = 0; i < 3; ++i) {
 			u32DataLen = stFrameInfo.stVFrame.u32Stride[i] * stFrameInfo.stVFrame.u32Height;
@@ -548,14 +565,14 @@ static void viDumpFrame(VI_PIPE ViPipe, VI_CHN ViChn, CVI_U32 u32FrameCnt)
 			// aos_write(fd, (CVI_U8 *)stFrameInfo.stVFrame.u64PhyAddr[i], u32DataLen);
 		}
 
-		if (CVI_VI_ReleaseChnFrame(ViPipe, ViChn, &stFrameInfo) != CVI_SUCCESS)
-			printf("CVI_VI_ReleaseChnFrame fail\n");
+		if (_releaseFrame(pstChn, &stFrameInfo) != CVI_SUCCESS)
+			printf("_releaseFrame fail\n");
 	}
 
     if (bFlag) {
         /* make file name */
         getFmtName(stFrameInfo.stVFrame.enPixelFormat, szPixFrm);
-        snprintf(szFrameName, 128, SD_FATFS_MOUNTPOINT"/vi_pipe%d_chn%d_%dx%d_%s_%d.yuv", ViPipe, ViChn,
+        snprintf(szFrameName, 128, SD_FATFS_MOUNTPOINT"/pipe%d_chn%d_%dx%d_%s_%d.yuv", pstChn->s32DevId, pstChn->s32ChnId,
                     stFrameInfo.stVFrame.u32Width, stFrameInfo.stVFrame.u32Height,
                     szPixFrm, u32FrameCnt);
 
@@ -566,7 +583,7 @@ static void viDumpFrame(VI_PIPE ViPipe, VI_CHN ViChn, CVI_U32 u32FrameCnt)
                 free(image_buf);
 				image_buf = NULL;
             }
-            CVI_VI_ReleaseChnFrame(ViPipe, ViChn, &stFrameInfo);
+            _releaseFrame(pstChn, &stFrameInfo);
             return;
         }
         bFlag = CVI_FALSE;
@@ -592,12 +609,23 @@ CVI_S32 dual_sns_sync_task_callback(VI_SYNC_TASK_DATA_S *data)
         return 0;
     }
 
+    ISP_SNS_OBJ_S *pSnsObj = NULL;
+    ISP_SNS_OBJ_S *pSnsObj2 = NULL;
     PARAM_VI_CFG_S * pstViCfg = PARAM_getViCtx();
-    ISP_SNS_OBJ_S *pSnsObj = pstViCfg->pstSensorCfg[0].pSnsObj;
-    ISP_SNS_OBJ_S *pSnsObj2 = pstViCfg->pstSensorCfg[2].pSnsObj;
+
+    for (CVI_U32 i = 0; i < pstViCfg->u32WorkSnsCnt; i++) {
+        if (pstViCfg->pstSensorCfg[i].bDualSwitch) {
+            if (!pSnsObj) {
+                pSnsObj = pstViCfg->pstSensorCfg[i].pSnsObj;
+            }
+            else if (!pSnsObj2) {
+                pSnsObj2 = pstViCfg->pstSensorCfg[i].pSnsObj;
+            }
+        }
+    }
 
     if (!pSnsObj || !pSnsObj2) {
-        MEDIABUG_PRINTF("pSnsObj is NULL %p, %p\n", pSnsObj, pSnsObj2);
+        aos_debug_printf("pSnsObj is NULL %p, %p\n", pSnsObj, pSnsObj2);
         return 0;
     }
 
@@ -605,11 +633,11 @@ CVI_S32 dual_sns_sync_task_callback(VI_SYNC_TASK_DATA_S *data)
         return 0;
 
     if (data->value == 0) {
-        pSnsObj2->pfnStandby(0);
+        pSnsObj2->pfnStandby(2);
         pSnsObj->pfnRestart(0);
     } else {
         pSnsObj->pfnStandby(0);
-        pSnsObj2->pfnRestart(0);
+        pSnsObj2->pfnRestart(2);
     }
     return 0;
 }
@@ -845,6 +873,8 @@ int MEDIA_VIDEO_SysVbInit(PARAM_SYS_CFG_S * pstSysCtx)
     CVI_U32 	u32RotBlkSize;
     VB_CONFIG_S stVbConfig;
     CVI_U32 i = 0;
+    CVI_U16 width;
+    CVI_U16 height;
 
     if(pstSysCtx == NULL) {
         return CVI_SUCCESS;
@@ -863,10 +893,12 @@ int MEDIA_VIDEO_SysVbInit(PARAM_SYS_CFG_S * pstSysCtx)
     memset(&stVbConfig, 0, sizeof(VB_CONFIG_S));
     stVbConfig.u32MaxPoolCnt = pstSysCtx->u8VbPoolCnt;
     for(i = 0 ; i<stVbConfig.u32MaxPoolCnt ; i++) {
-        u32BlkSize = COMMON_GetPicBufferSize(pstSysCtx->pstVbPool[i].u16width,pstSysCtx->pstVbPool[i].u16height,pstSysCtx->pstVbPool[i].fmt,
-        pstSysCtx->pstVbPool[i].enBitWidth,pstSysCtx->pstVbPool[i].enCmpMode,DEFAULT_ALIGN);
-        u32RotBlkSize = COMMON_GetPicBufferSize(pstSysCtx->pstVbPool[i].u16height,pstSysCtx->pstVbPool[i].u16width,pstSysCtx->pstVbPool[i].fmt,
-        pstSysCtx->pstVbPool[i].enBitWidth,pstSysCtx->pstVbPool[i].enCmpMode,DEFAULT_ALIGN);
+        width = ALIGN(pstSysCtx->pstVbPool[i].u16width, DEFAULT_ALIGN);
+        height = ALIGN(pstSysCtx->pstVbPool[i].u16height, DEFAULT_ALIGN);
+        u32BlkSize = COMMON_GetPicBufferSize(width, height, pstSysCtx->pstVbPool[i].fmt,
+            pstSysCtx->pstVbPool[i].enBitWidth, pstSysCtx->pstVbPool[i].enCmpMode, DEFAULT_ALIGN);
+        u32RotBlkSize = COMMON_GetPicBufferSize(height, width,pstSysCtx->pstVbPool[i].fmt,
+            pstSysCtx->pstVbPool[i].enBitWidth, pstSysCtx->pstVbPool[i].enCmpMode, DEFAULT_ALIGN);
         u32BlkSize = MAX2(u32BlkSize, u32RotBlkSize);
         stVbConfig.astCommPool[i].u32BlkSize	= u32BlkSize;
         stVbConfig.astCommPool[i].u32BlkCnt = pstSysCtx->pstVbPool[i].u8VbBlkCnt;
@@ -920,6 +952,12 @@ int MEDIA_VIDEO_VpssInit(PARAM_VPSS_CFG_S * pstVpssCtx)
             }
         }
         MEDIA_CHECK_RET(CVI_VPSS_CreateGrp(VpssGrp, pstVpssGrp), "CVI_VPSS_CreateGrp failed\n");
+
+		// Set Vpss Grp[i] Crop Configuration
+		if(pstVpssCtx->pstVpssGrpCfg[i].stVpssGrpCropInfo.bEnable == CVI_TRUE) {
+			MEDIA_CHECK_RET(CVI_VPSS_SetGrpCrop(VpssGrp, &pstVpssCtx->pstVpssGrpCfg[i].stVpssGrpCropInfo), "CVI_VPSS_SetGrpCrop failed\n");
+		}
+
         for(j = 0; j < pstVpssCtx->pstVpssGrpCfg[i].u8ChnCnt; j++) {
             pstVpssChn = &pstVpssCtx->pstVpssGrpCfg[i].pstChnCfg[j].stVpssChnAttr;
             MEDIA_CHECK_RET(CVI_VPSS_SetChnAttr(VpssGrp, j, pstVpssChn), "CVI_VPSS_SetChnAttr failed\n");
@@ -927,11 +965,12 @@ int MEDIA_VIDEO_VpssInit(PARAM_VPSS_CFG_S * pstVpssCtx)
             if(pstVpssCtx->pstVpssGrpCfg[i].pstChnCfg[j].u8Rotation != ROTATION_0) {
                 CVI_VPSS_SetChnRotation(VpssGrp, j, pstVpssCtx->pstVpssGrpCfg[i].pstChnCfg[j].u8Rotation);
             }
+			// Set VPSS Grp[i] Chn[j] Crop Configuration
+			if (pstVpssCtx->pstVpssGrpCfg[i].pstChnCfg[j].stVpssChnCropInfo.bEnable == CVI_TRUE) {
+				MEDIA_CHECK_RET(CVI_VPSS_SetChnCrop(VpssGrp, j, &pstVpssCtx->pstVpssGrpCfg[i].pstChnCfg[j].stVpssChnCropInfo), "CVI_VPSS_SetChnCrop failed\n");
+			}
         }
         MEDIA_CHECK_RET(CVI_VPSS_StartGrp(VpssGrp), "CVI_VPSS_StartGrp failed\n");
-        if(pstVpssCtx->pstVpssGrpCfg[i].stVpssGrpCropInfo.bEnable == CVI_TRUE) {
-            CVI_VPSS_SetGrpCrop(VpssGrp, &pstVpssCtx->pstVpssGrpCfg[i].stVpssGrpCropInfo);
-        }
         if(pstVpssCtx->pstVpssGrpCfg[i].bBindMode == CVI_TRUE) {
             MEDIA_CHECK_RET(CVI_SYS_Bind(&pstVpssCtx->pstVpssGrpCfg[i].astChn[0], &pstVpssCtx->pstVpssGrpCfg[i].astChn[1]), "CVI_SYS_Bind err");
         }
@@ -1231,7 +1270,7 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
     VENC_H264_ENTROPY_S stH264EntropyEnc = {0};
     VENC_H264_VUI_S stH264Vui = {0};
     VENC_JPEG_PARAM_S stJpegParam = {0};
-#if !(CONFIG_APP_UVC_SUPPORT || CONFIG_APP_AV_COMP_SUPPORT)
+#if !(CONFIG_USBD_UVC)
     VENC_RECV_PIC_PARAM_S stRecvParam = {0};
 #endif
     VPSS_CHN_ATTR_S stVpssChnAttr = {0};
@@ -1289,14 +1328,14 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
                 stAttr.stRcAttr.stH264Cbr.bVariFpsEn = pstVecncChnCtx->stRcParam.u8VariFpsEn;
                 stAttr.stRcAttr.stH264Cbr.u32SrcFrameRate = pstVecncChnCtx->stRcParam.u8SrcFrameRate;
                 stAttr.stRcAttr.stH264Cbr.fr32DstFrameRate = pstVecncChnCtx->stRcParam.u8DstFrameRate;
-                stAttr.stRcAttr.stH264Cbr.u32BitRate = pstVecncChnCtx->stRcParam.u16BitRate;
+                stAttr.stRcAttr.stH264Cbr.u32BitRate = pstVecncChnCtx->stRcParam.u32BitRate;
                 stAttr.stRcAttr.stH264Cbr.u32Gop = pstVecncChnCtx->stRcParam.u16Gop;
                 stAttr.stRcAttr.stH264Cbr.u32StatTime = pstVecncChnCtx->stRcParam.u8StartTime;
             } else if (stAttr.stRcAttr.enRcMode == VENC_RC_MODE_H264VBR) {
                 stAttr.stRcAttr.stH264Vbr.bVariFpsEn = pstVecncChnCtx->stRcParam.u8VariFpsEn;
                 stAttr.stRcAttr.stH264Vbr.u32SrcFrameRate = pstVecncChnCtx->stRcParam.u8SrcFrameRate;
                 stAttr.stRcAttr.stH264Vbr.fr32DstFrameRate = pstVecncChnCtx->stRcParam.u8DstFrameRate;
-                stAttr.stRcAttr.stH264Vbr.u32MaxBitRate = pstVecncChnCtx->stRcParam.u16BitRate;
+                stAttr.stRcAttr.stH264Vbr.u32MaxBitRate = pstVecncChnCtx->stRcParam.u32BitRate;
                 stAttr.stRcAttr.stH264Vbr.u32Gop = pstVecncChnCtx->stRcParam.u16Gop;
                 stAttr.stRcAttr.stH264Vbr.u32StatTime = pstVecncChnCtx->stRcParam.u8StartTime;
             } else {
@@ -1311,14 +1350,14 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
                 stAttr.stRcAttr.stH265Cbr.bVariFpsEn = pstVecncChnCtx->stRcParam.u8VariFpsEn;
                 stAttr.stRcAttr.stH265Cbr.u32SrcFrameRate = pstVecncChnCtx->stRcParam.u8SrcFrameRate;
                 stAttr.stRcAttr.stH265Cbr.fr32DstFrameRate = pstVecncChnCtx->stRcParam.u8DstFrameRate;
-                stAttr.stRcAttr.stH265Cbr.u32BitRate = pstVecncChnCtx->stRcParam.u16BitRate;
+                stAttr.stRcAttr.stH265Cbr.u32BitRate = pstVecncChnCtx->stRcParam.u32BitRate;
                 stAttr.stRcAttr.stH265Cbr.u32Gop = pstVecncChnCtx->stRcParam.u16Gop;
                 stAttr.stRcAttr.stH265Cbr.u32StatTime = pstVecncChnCtx->stRcParam.u8StartTime;
             } else if (stAttr.stRcAttr.enRcMode == VENC_RC_MODE_H265VBR) {
                 stAttr.stRcAttr.stH265Vbr.bVariFpsEn = pstVecncChnCtx->stRcParam.u8VariFpsEn;
                 stAttr.stRcAttr.stH265Vbr.u32SrcFrameRate = pstVecncChnCtx->stRcParam.u8SrcFrameRate;
                 stAttr.stRcAttr.stH265Vbr.fr32DstFrameRate = pstVecncChnCtx->stRcParam.u8DstFrameRate;
-                stAttr.stRcAttr.stH265Vbr.u32MaxBitRate = pstVecncChnCtx->stRcParam.u16BitRate;
+                stAttr.stRcAttr.stH265Vbr.u32MaxBitRate = pstVecncChnCtx->stRcParam.u32BitRate;
                 stAttr.stRcAttr.stH265Vbr.u32Gop = pstVecncChnCtx->stRcParam.u16Gop;
                 stAttr.stRcAttr.stH265Vbr.u32StatTime = pstVecncChnCtx->stRcParam.u8StartTime;
             } else {
@@ -1331,7 +1370,7 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
             if (stAttr.stRcAttr.enRcMode == VENC_RC_MODE_MJPEGCBR) {
                 stAttr.stRcAttr.stMjpegCbr.bVariFpsEn = pstVecncChnCtx->stRcParam.u8VariFpsEn;
                 stAttr.stRcAttr.stMjpegCbr.fr32DstFrameRate = pstVecncChnCtx->stRcParam.u8DstFrameRate;
-                stAttr.stRcAttr.stMjpegCbr.u32BitRate = pstVecncChnCtx->stRcParam.u16BitRate;
+                stAttr.stRcAttr.stMjpegCbr.u32BitRate = pstVecncChnCtx->stRcParam.u32BitRate;
                 stAttr.stRcAttr.stMjpegCbr.u32StatTime = pstVecncChnCtx->stRcParam.u8StartTime;
             } else if (stAttr.stRcAttr.enRcMode == VENC_RC_MODE_MJPEGVBR) {
                 return CVI_FAILURE;
@@ -1356,7 +1395,7 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
     stAttr.stGopAttr.stNormalP.s32IPQpDelta = pstVecncChnCtx->stGopParam.s8IPQpDelta;
 
     MEDIA_CHECK_RET(CVI_VENC_GetModParam(&stModParam), "CVI_VENC_GetModParam");
-#if(CONFIG_APP_AV_COMP_SUPPORT || CONFIG_APP_UVC_SUPPORT)
+#if (CONFIG_USBD_UVC)
 	stModParam.enVencModType = MODTYPE_JPEGE;
     stModParam.stJpegeModParam.enJpegeFormat = JPEGE_FORMAT_CUSTOM;
     stModParam.stJpegeModParam.JpegMarkerOrder[0] = JPEGE_MARKER_SOI;
@@ -1509,7 +1548,7 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
         MEDIA_CHECK_RET(CVI_SYS_Bind(&stSrcChn, &stDestChn), "CVI_SYS_Bind err");
     }
 
-#if !(CONFIG_APP_UVC_SUPPORT || CONFIG_APP_AV_COMP_SUPPORT)
+#if !(CONFIG_USBD_UVC)
     stRecvParam.s32RecvPicNum = -1;
     MEDIA_CHECK_RET(CVI_VENC_StartRecvFrame(VencChn, &stRecvParam), "CVI_VENC_StartRecvFrame");
     pstVecncChnCtx->stChnParam.u8InitStatus = 1;
@@ -1748,9 +1787,18 @@ static int _MEDIA_VIDEO_Step1Init()
     }
     MEDIA_CHECK_RET(_MEDIA_VIDEO_SysVbInit(),"MEDIA_VIDEO_SysVbInit failed");
     MEDIA_CHECK_RET(_MEDIA_VIDEO_ViInit(),"MEDIA_VIDEO_ViInit failed");
-
-#if CONFIG_APP_VI_DUMP_FRAME
-    viDumpFrame(0, 0, 1);
+    MEDIA_CHECK_RET(_MEDIA_VIDEO_VpssInit(),"MEDIA_VIDEO_VpssInit failed");
+#if CONFIG_APP_DUMP_FRAME
+    PARAM_SYS_CFG_S *pstSysCtx = PARAM_GET_SYS_CFG();
+    MMF_CHN_S stChn = {
+        .s32DevId = 0,
+        .s32ChnId = 0,
+        .enModId = CVI_ID_VI,
+    };
+    if (pstSysCtx->stVIVPSSMode.aenMode[0] == VI_OFFLINE_VPSS_ONLINE) {
+        stChn.enModId = CVI_ID_VPSS;
+    }
+    dumpFrame(&stChn, 1);
 #endif
     return CVI_SUCCESS;
 }
@@ -1761,7 +1809,7 @@ static int _MEDIA_VIDEO_Step2Init()
         printf("Media_Video_Init please deinit and try again \n");
         return 0;
     }
-    MEDIA_CHECK_RET(_MEDIA_VIDEO_VpssInit(),"MEDIA_VIDEO_VpssInit failed");
+
     MEDIA_CHECK_RET(_MEDIA_VIDEO_VoInit(),"MEDIA_VIDEO_VoInit failed");
 #if (CONFIG_APP_GUI_SUPPORT == 1)
     GUI_Display_Start();

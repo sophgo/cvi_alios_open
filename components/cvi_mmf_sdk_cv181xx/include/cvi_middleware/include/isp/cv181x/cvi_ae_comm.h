@@ -113,6 +113,7 @@ typedef struct _AE_SENSOR_DEFAULT_S {
 	CVI_FLOAT f32MinFps;
 	CVI_U32 denom;
 	CVI_U32 u32AEResponseFrame;
+	CVI_U32 u32SnsResponseFrame;
 	CVI_U32 u32SnsStableFrame;	/* delay for stable statistic after sensor init. (unit: frame) */
 	AE_BLC_TYPE_E enBlcType;
 	ISP_SNS_GAIN_MODE_E	enWDRGainMode;

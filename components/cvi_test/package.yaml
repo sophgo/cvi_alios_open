@@ -72,6 +72,7 @@ source_file:
   - test/wdt/*.c ? <CONFIG_APP_TEST>
   - test/rtc/*.c ? <CONFIG_APP_TEST>
   - test/cviai/*.c ? <CONFIG_SUPPORT_TEST_AI>
+  - test/cviai/object_detection.c ? <CONFIG_SUPPORT_OBJECT_DETECTION>
   - test/rng/*.c ? <CONFIG_APP_TEST>
   - test/adc/*.c ? <CONFIG_APP_TEST>
   - test/disk_sd/*.c ? <CONFIG_SUPPORT_TEST_DISK>
@@ -87,7 +88,7 @@ source_file:
   - test/tydb_adb/*.c ? <CONFIG_SUPPORT_TEST_TYDB_ADB>
   - test/ramfs/*.c ? <CONFIG_SUPPORT_TEST_RAMFS>
   - test/tempsen/*.c ? <CONFIG_SUPPORT_TEMPSEN_TEST>
-  - test/usb/usbd_cdc_acm_test.c ? <CONFIG_USBD_CDC_ACM_UART>
+  - test/usb/usbd_cdc_acm_test.c ? <CONFIG_USBD_CDC_UART>
 # - ./hichannel_test/
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项
@@ -97,6 +98,7 @@ source_file:
 def_config:
   CONFIG_APP_TEST: 0
   CONFIG_SUPPORT_TEST_DISK: 0
+  CONFIG_SUPPORT_OBJECT_DETECTION: 0
   CONFIG_SUPPORT_TEST_AI: 0
   CONFIG_SUPPORT_TEST_G711: 0
   CONFIG_SUPPORT_TEST_AAC: 0

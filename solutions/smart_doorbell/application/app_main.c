@@ -16,15 +16,15 @@
 #include "cvi_param.h"
 #include "ethernet_init.h"
 #include "media_nightvision.h"
-// #include "yoc/netmgr.h"
-// #include "uservice/uservice.h"
-// #include "yoc/netmgr_service.h"
+#include "usbd_comp.h"
+
+
+#if CONFIG_USBD_CDC_RNDIS
+#include "usbd_cdc_rndis.h"
+#endif
 
 #if CONFIG_APP_WIFI_SUPPORT
 #include "wifi_if.h"
-#endif
-#if CONFIG_APP_AV_COMP_SUPPORT
-#include "av_comp_app.h"
 #endif
 
 #define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
@@ -34,9 +34,6 @@ extern int csi_uart_set_output_stat(int stat);
 #if CONFIG_PQTOOL_SUPPORT
 #include "cvi_ispd2.h"
 #include "raw_dump.h"
-#endif
-#if CONFIG_RNDIS_DEVICE_ETH
-#include "drv_usbd_class.h"
 #endif
 
 #define TAG "app"
@@ -121,8 +118,10 @@ int main(int argc, char *argv[])
 	MEDIA_VIDEO_Init();
 	//media_audio
 	MEDIA_AUDIO_Init();
-#if CONFIG_APP_AV_COMP_SUPPORT
-	MEDIA_AV_Init();
+
+#if CONFIG_SUPPORT_USB_DC
+	// usb composite device
+	usbd_comp_init();
 #endif
 #if CONFIG_NIGHT_VISION_SUPPORT
 	//night_vision
@@ -138,7 +137,7 @@ int main(int argc, char *argv[])
 	//cli and ulog init
 	YOC_SYSTEM_ToolInit();
 
-#if CONFIG_RNDIS_DEVICE_ETH
+#if CONFIG_USBD_CDC_RNDIS
 	rndis_device_init();
 #endif
 

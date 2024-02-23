@@ -1,5 +1,5 @@
 #include <aos/cli.h>
-#include "drv_usbd_class.h"
+// #include "drv_usbd_class.h"
 #include "devices/impl/uart_impl.h"
 #include <sys/prctl.h>
 #include <pthread.h>
@@ -16,7 +16,7 @@ static void *test_cdc_acm_uart_recv(void *args)
 {
 	struct cdc_acm_ctx *ctx = (struct cdc_acm_ctx *)args;
 	rvm_dev_t *dev = ctx->dev;
-	uint8_t read_buf[512] = {0};
+	uint8_t read_buf[64] = {0};
 	uint32_t read_buf_len = 0;
 
 	prctl(PR_SET_NAME, "test_cdc_acm_uart_recv");
@@ -52,7 +52,7 @@ static void test_cdc_acm_uart_send(int argc, char **argv)
 		return;
 	}
 
-	uint8_t send_buf[512] = {0};
+	uint8_t send_buf[64] = {0};
 	uint32_t size = sizeof(send_buf);
 	for (int i = 0; i < size; i++) {
 		send_buf[i] = i;
@@ -69,7 +69,6 @@ static void test_cdc_acm_uart_init(int argc, char **argv)
 		return;
 	}
 
-	cdc_acm_uart_drv_init(0);
 	s_cdc_acm_ctx.dev = rvm_hal_device_open("usb_serial0");
 	if (!s_cdc_acm_ctx.dev) {
 		printf("usb_serial0 dev is null\n");
@@ -95,6 +94,5 @@ static void test_cdc_acm_uart_uninit(int argc, char **argv)
 	pthread_join(s_cdc_acm_ctx.thread_id, NULL);
 	rvm_hal_device_close(s_cdc_acm_ctx.dev);
 	s_cdc_acm_ctx.dev = NULL;
-	cdc_acm_uart_drv_uninit();
 }
 ALIOS_CLI_CMD_REGISTER(test_cdc_acm_uart_uninit, test_cdc_acm_uart_uninit, test_cdc_acm_uart_uninit);

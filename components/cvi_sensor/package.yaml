@@ -88,6 +88,7 @@ build_config:
     - sensor_i2c
     - gcore_gc02m1
     - gcore_gc02m1_slave
+    - gcore_gc02m1_multi
     - gcore_gc2053
     - gcore_gc2053_1L
     - gcore_gc2093
@@ -95,6 +96,9 @@ build_config:
     - opnous_opn8018
     - sms_sc200ai
     - sms_sc2336
+    - sms_sc2336_1L
+    - sms_sc2336p
+    - sms_sc2336p_1L
     - sms_sc3336
     - sms_sc030iot
     - sms_sc201cs
@@ -111,6 +115,14 @@ build_config:
     - sms_sc202cs
     - sms_sc202cs_slave
     - sms_sc202cs_multi
+    - sms_sc301iot
+    - byd_bf2257cs
+    - byd_bf2257cs_slave
+    - spix_sp2509
+    - sms_sc530ai_4L
+    - sms_sc230ai
+    - sms_sc230ai_slave
+    - ov_ov02b10
 
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
@@ -119,6 +131,7 @@ source_file:
   - sensor_i2c/*.c
   - gcore_gc02m1/*.c ? <CONFIG_SENSOR_GCORE_GC02M1>
   - gcore_gc02m1_slave/*.c ? <CONFIG_SENSOR_GCORE_GC02M1_SLAVE>
+  - gcore_gc02m1_multi/*.c ? <CONFIG_SENSOR_GCORE_GC02M1_MULTI>
   - gcore_gc2053/*.c ? <CONFIG_SENSOR_GCORE_GC2053>
   - gcore_gc2053_1L/*.c ? <CONFIG_SENSOR_GCORE_GC2053_1L>
   - gcore_gc2093/*.c ? <CONFIG_SENSOR_GCORE_GC2093>
@@ -126,6 +139,9 @@ source_file:
   - opnous_opn8018/*.c ? <CONFIG_SENSOR_OPNOUS_OPN8018>
   - sms_sc200ai/*.c ? <CONFIG_SENSOR_SMS_SC200AI>
   - sms_sc2336/*.c ? <CONFIG_SENSOR_SMS_SC2336>
+  - sms_sc2336_1L/*.c ? <CONFIG_SENSOR_SMS_SC2336_1L>
+  - sms_sc2336p/*.c ? <CONFIG_SENSOR_SMS_SC2336P>
+  - sms_sc2336p_1L/*.c ? <CONFIG_SENSOR_SMS_SC2336P_1L>
   - sms_sc3336/*.c ? <CONFIG_SENSOR_SMS_SC3336>
   - sms_sc030iot/*.c ? <CONFIG_SENSOR_SMS_SC030IOT>
   - sms_sc201cs/*.c ? <CONFIG_SENSOR_SMS_SC201CS>
@@ -142,8 +158,14 @@ source_file:
   - sms_sc202cs/*.c ? <CONFIG_SENSOR_SMS_SC202CS>
   - sms_sc202cs_slave/*.c ? <CONFIG_SENSOR_SMS_SC202CS_SLAVE>
   - sms_sc202cs_multi/*.c ? <CONFIG_SENSOR_SMS_SC202CS_MULTI>
+  - sms_sc230ai/*.c ? <CONFIG_SENSOR_SMS_SC230AI>
+  - sms_sc230ai_slave/*.c ? <CONFIG_SENSOR_SMS_SC230AI_SLAVE>
+  - sms_sc301iot/*.c ? <CONFIG_SENSOR_SMS_SC301IOT>
+  - sms_sc530ai_4L/*.c ? <CONFIG_SENSOR_SMS_SC530AI_4L>
   - byd_bf2257cs/*.c ? <CONFIG_SENSOR_BYD_BF2257CS>
   - byd_bf2257cs_slave/*.c ? <CONFIG_SENSOR_BYD_BF2257CS_SLAVE>
+  - spix_sp2509/*.c ? <CONFIG_SENSOR_SPIX_SP2509>
+  - ov_ov02b10/*.c ? <CONFIG_SENSOR_OV_OV02B10>
 
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项

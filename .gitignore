@@ -83,8 +83,6 @@ components/partition/SConscript
 components/rhino/SConscript
 components/sec_crypto/SConscript
 components/cvi_mmf_sdk/cvi_middleware/cvi_mw_isp_daemon/src/cvi_pqtool_json.h
-*.mk
-*.txt
 *.cdkws
 solutions/**/pqtool_definition.json
 solutions/**/.sconsign.dblite

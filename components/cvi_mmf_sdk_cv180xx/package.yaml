@@ -19,8 +19,13 @@ build_config:
     - include/cviai/include/core/core
     - include/cviai/include/core/face
     - include/cviai/include/core/utils
+    - include/cviai/include/core/deepsort
     - include/cviai/include/core
     - include/cviai/include/cviai
+    - include/cviai/include/service
+    - include/cviai/include/cvi_tdl_evaluation
+    - include/cviai/include/cvi_tdl_app/capture
+    - include/cviai/include/cvi_tdl_app
     - include/cviai/include/
     - include/cvi_middleware/include/cvi_mw_isp_bin
     - include/cvi_middleware/include/cvi_mw_isp_algo

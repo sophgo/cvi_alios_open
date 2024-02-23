@@ -21,14 +21,14 @@ PARAM_CLASSDEFINE(PARAM_VB_CFG_S,VBPOOL,CTX,VB)[] = {
 
 PARAM_SYS_CFG_S  g_stSysCtx = {
     .u8VbPoolCnt = 1,
-    .u8ViCnt = 1,
-    .stVIVPSSMode.aenMode[0] = VI_OFFLINE_VPSS_OFFLINE,
-    .stVIVPSSMode.aenMode[1] = VI_OFFLINE_VPSS_OFFLINE,
+    .u8ViCnt = 2,
+    .stVIVPSSMode.aenMode[0] = VI_OFFLINE_VPSS_ONLINE,
+    .stVIVPSSMode.aenMode[1] = VI_OFFLINE_VPSS_ONLINE,
     .stVPSSMode.ViPipe[0] = 0,
     .stVPSSMode.aenInput[0] = VPSS_INPUT_MEM,
     .stVPSSMode.enMode = VPSS_MODE_DUAL,
     .stVPSSMode.ViPipe[1] = 0,
-    .stVPSSMode.aenInput[1] = VPSS_INPUT_MEM,
+    .stVPSSMode.aenInput[1] = VPSS_INPUT_ISP,
     .pstVbPool = PARAM_CLASS(VBPOOL,CTX,VB),
 };
 

@@ -21,9 +21,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 
-#define VI_MAX_ADCHN_NUM (4UL)
+#define VI_MAX_ADCHN_NUM 4
 
-#define VI_COMPMASK_NUM (2UL)
+#define VI_COMPMASK_NUM 2
 #define VI_PRO_MAX_FRAME_NUM (8UL)
 #define VI_SHARPEN_GAIN_NUM 32
 #define VI_AUTO_ISO_STRENGTH_NUM 16
@@ -295,6 +295,16 @@ typedef enum _VI_DATA_TYPE_E {
 	VI_DATA_TYPE_BUTT
 } VI_DATA_TYPE_E;
 
+typedef enum _VI_PATH_MODE_E {
+	VI_PATH_DEFAULT = 0,
+	VI_PATH_FE_DRAM,
+	VI_PATH_FE_BE_DRAM,
+	/*useless below here*/
+	VI_PATH_FE_BE_SLICE_POST,
+	VI_PATH_FE_BE_POST,
+	VI_PATH_MODE_BUTT,
+} VI_PATH_MODE_E;
+
 /* Attribute of wdr */
 typedef struct _VI_WDR_ATTR_S {
 	WDR_MODE_E enWDRMode; /* RW; WDR mode.*/
@@ -350,6 +360,8 @@ typedef struct _VI_DEV_ATTR_S {
 
 	VI_DATA_TYPE_E enInputDataType;
 
+	VI_PATH_MODE_E enPathMode; /* only single sensor is useful, not support multi sensor*/
+
 	SIZE_S stSize; /* RW;Input size */
 
 	VI_WDR_ATTR_S stWDRAttr; /* RW;Attribute of WDR */
@@ -366,10 +378,10 @@ typedef struct _VI_DEV_ATTR_S {
 
 	CVI_BOOL isMux; /* multi sensor use same dev*/
 
-	CVI_U8 switchGpioIdx; /* gpio bank, -1 means not use gpio */
-	CVI_U8 switchGpioPin; /* gpio pin -1 means not use gpio */
-	CVI_U8 switchGPioPol; /* gpio value[0,1] -1 means not use gpio */
-	CVI_BOOL isFrmCtrl; /* enable frame ctrl */
+	CVI_U8 switchGpioIdx; /* for mipi switch gpio*/
+	CVI_U8 switchGpioPin;
+	CVI_U8 switchGPioPol;
+	CVI_BOOL isFrmCtrl; /* mipi switch frame ctrl by user*/
 	CVI_U8 dstFrm; /* set dst frm for switch */
 } VI_DEV_ATTR_S;
 
@@ -414,8 +426,8 @@ typedef struct _VI_PIPE_ATTR_S {
 	VI_PIPE_BYPASS_MODE_E enPipeBypassMode;
 	CVI_BOOL bYuvSkip; /* RW;YUV skip enable */
 	CVI_BOOL bIspBypass; /* RW;ISP bypass enable */
-	CVI_U32 u32MaxW; /* RW;Range[VI_PIPE_MIN_WIDTH,VI_PIPE_MAX_WIDTH];Maximum width */
-	CVI_U32 u32MaxH; /* RW;Range[VI_PIPE_MIN_HEIGHT,VI_PIPE_MAX_HEIGHT];Maximum height */
+	CVI_U32 u32MaxW; /* RW;Maximum width */
+	CVI_U32 u32MaxH; /* RW;Range Maximum height */
 	PIXEL_FORMAT_E enPixFmt; /* RW;Pixel format */
 	COMPRESS_MODE_E enCompressMode; /* RW;Compress mode.*/
 	DATA_BITWIDTH_E enBitWidth; /* RW;Bit width*/
@@ -683,7 +695,7 @@ typedef struct _VI_CHN_ATTR_S {
 	COMPRESS_MODE_E enCompressMode; /* RW;256B Segment compress or no compress. */
 	CVI_BOOL bMirror; /* RW;Mirror enable */
 	CVI_BOOL bFlip; /* RW;Flip enable */
-	CVI_U32 u32Depth; /* RW;Range [0,8];Depth */
+	CVI_U32 u32Depth; /* RW;Range:[0,8];Depth */
 	FRAME_RATE_CTRL_S stFrameRate; /* RW;Frame rate */
 } VI_CHN_ATTR_S;
 
@@ -726,7 +738,7 @@ typedef struct _VI_EXT_CHN_ATTR_S {
 	VI_CHN s32BindChn; /* RW;Range [VI_CHN0, VI_MAX_PHY_CHN_NUM);The channel num which extend channel will bind to*/
 	SIZE_S stSize; /* RW;Channel out put size */
 	PIXEL_FORMAT_E enPixelFormat; /* RW;Pixel format */
-	CVI_U32 u32Depth; /* RW;Range [0,8];Depth */
+	CVI_U32 u32Depth; /* RW;Range:[0,8];Depth */
 	FRAME_RATE_CTRL_S stFrameRate; /* RW;Frame rate */
 } VI_EXT_CHN_ATTR_S;
 
@@ -776,7 +788,7 @@ typedef enum _VI_DUMP_TYPE_E {
 // ++++++++ If you want to change these interfaces, please contact the isp team. ++++++++
 typedef struct _VI_DUMP_ATTR_S {
 	CVI_BOOL bEnable; /* RW;Whether dump is enable */
-	CVI_U32 u32Depth; /* RW;Range [0,8];Depth */
+	CVI_U32 u32Depth; /* RW;Range:[0,8];Depth */
 	VI_DUMP_TYPE_E enDumpType;
 } VI_DUMP_ATTR_S;
 // -------- If you want to change these interfaces, please contact the isp team. --------
@@ -835,6 +847,7 @@ typedef struct _VI_SMOOTH_RAW_DUMP_INFO_S {
 	CVI_U8  u8BlkCnt;	// ring buffer number
 	CVI_U64 *phy_addr_list;	// ring buffer addr
 	RECT_S  stCropRect;
+	COMPRESS_MODE_E  enDumpRaw;
 } VI_SMOOTH_RAW_DUMP_INFO_S;
 
 typedef enum _VI_SYNC_EVENT_E {

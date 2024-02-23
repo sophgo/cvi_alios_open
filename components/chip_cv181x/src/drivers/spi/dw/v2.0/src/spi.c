@@ -257,14 +257,15 @@ static int dma_transfer(csi_spi_t *spi)
 		spi_enable_dma(dws, 0, 1);
 		soc_dcache_clean_invalid_range((unsigned long)dws->rx, dws->rx_len);
 	}
+	/* rx must be started before tx due to spi instinct */
+	if (dws->rx) {
+		csi_dma_ch_start(spi->rx_dma, (void *)(dws->regs + CVI_DW_SPI_DR), dws->rx, dws->rx_len);
+	}
 
 	if (dws->tx) {
 		csi_dma_ch_start(spi->tx_dma, (void *)dws->tx, (void *)(dws->regs + CVI_DW_SPI_DR), dws->tx_len);
 	}
 
-	if (dws->rx) {
-		csi_dma_ch_start(spi->rx_dma, (void *)(dws->regs + CVI_DW_SPI_DR), dws->rx, dws->rx_len);
-	}
 	return 0;
 }
 

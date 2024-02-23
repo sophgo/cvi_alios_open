@@ -13,7 +13,11 @@ PARAM_CLASSDEFINE(PARAM_VENC_CHN_CFG_S,VENCCFG,CTX,VENC)[] = {
         .stChnParam = {
             .u8InitStatus = 0,
             .u8VencChn = 0,
+        #if !(CONFIG_USBD_UVC)
             .u8ModId = CVI_ID_VPSS,
+         #else
+            .u8ModId = 0,
+        #endif
             .u8DevId = 0,
             .u8DevChnid = 0,
             .u8Profile = 0,
@@ -31,7 +35,7 @@ PARAM_CLASSDEFINE(PARAM_VENC_CHN_CFG_S,VENCCFG,CTX,VENC)[] = {
             .u16Gop = 30,
             .u8SrcFrameRate = 30,
             .u8DstFrameRate = 30,
-            .u16BitRate = 2048,
+            .u32BitRate = 2048,
             .u8Qfactor = 60,
             .u32MaxBitRate = CVI_H26X_FRAME_BITS_DEFAULT,
             .u8VariFpsEn = 0,
@@ -57,7 +61,11 @@ PARAM_CLASSDEFINE(PARAM_VENC_CHN_CFG_S,VENCCFG,CTX,VENC)[] = {
         .stChnParam = {
             .u8InitStatus = 0,
             .u8VencChn = 1,
+        #if !(CONFIG_USBD_UVC)
             .u8ModId = CVI_ID_VPSS,
+        #else
+            .u8ModId = 0,
+        #endif
             .u8DevId = 1,
             .u8DevChnid = 0,
             .u8Profile = 0,
@@ -75,7 +83,7 @@ PARAM_CLASSDEFINE(PARAM_VENC_CHN_CFG_S,VENCCFG,CTX,VENC)[] = {
             .u16Gop = 30,
             .u8SrcFrameRate = 30,
             .u8DstFrameRate = 30,
-            .u16BitRate = 1024,
+            .u32BitRate = 1024,
             .u8Qfactor = 60,
             .u32MaxBitRate = CVI_H26X_FRAME_BITS_DEFAULT,
             .u8VariFpsEn = 0,
@@ -100,7 +108,7 @@ PARAM_CLASSDEFINE(PARAM_VENC_CHN_CFG_S,VENCCFG,CTX,VENC)[] = {
 };
 
 PARAM_VENC_CFG_S  g_stVencCtx = {
-    .s32VencChnCnt = 1,
+    .s32VencChnCnt = 2,
     .pstVencChnCfg = PARAM_CLASS(VENCCFG,CTX,VENC),
 };
 
