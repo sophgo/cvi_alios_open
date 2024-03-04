@@ -254,6 +254,10 @@ ISP_SNS_OBJ_S *getSnsObj(SNS_TYPE_E enSnsType)
 	case OV_OV02B10_MIPI_600P_30FPS_10BIT:
         return &stSnsOv02b10_Obj;
 #endif
+#if CONFIG_SENSOR_CISTA_C2599
+	case CISTA_C2599_MIPI_1200P_30FPS_10BIT:
+		return &stSnsC2599_Obj;
+#endif
 	default:
 		return CVI_NULL;
 	}
@@ -315,6 +319,7 @@ CVI_S32 getPicSize(CVI_S32 dev_id, SNS_SIZE_S *pstSize)
 	case SMS_SC202CS_MULTI_MIPI_2M_30FPS_10BIT:
 	case SPIX_SP2509_MIPI_2M_30FPS_10BIT:
 	case OV_OV02B10_MIPI_2M_30FPS_10BIT:
+	case CISTA_C2599_MIPI_1200P_30FPS_10BIT:
 		pstSize->u32Width  = 1600;
 		pstSize->u32Height = 1200;
 		break;

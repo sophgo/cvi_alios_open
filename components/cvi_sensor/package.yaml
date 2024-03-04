@@ -89,6 +89,7 @@ build_config:
     - gcore_gc02m1
     - gcore_gc02m1_slave
     - gcore_gc02m1_multi
+    - gcore_gc1054
     - gcore_gc2053
     - gcore_gc2053_1L
     - gcore_gc2093
@@ -123,7 +124,7 @@ build_config:
     - sms_sc230ai
     - sms_sc230ai_slave
     - ov_ov02b10
-
+    - cista_c2599
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
 source_file:
@@ -132,6 +133,7 @@ source_file:
   - gcore_gc02m1/*.c ? <CONFIG_SENSOR_GCORE_GC02M1>
   - gcore_gc02m1_slave/*.c ? <CONFIG_SENSOR_GCORE_GC02M1_SLAVE>
   - gcore_gc02m1_multi/*.c ? <CONFIG_SENSOR_GCORE_GC02M1_MULTI>
+  - gcore_gc1054/*.c ? <CONFIG_SENSOR_GCORE_GC1054>
   - gcore_gc2053/*.c ? <CONFIG_SENSOR_GCORE_GC2053>
   - gcore_gc2053_1L/*.c ? <CONFIG_SENSOR_GCORE_GC2053_1L>
   - gcore_gc2093/*.c ? <CONFIG_SENSOR_GCORE_GC2093>
@@ -166,7 +168,7 @@ source_file:
   - byd_bf2257cs_slave/*.c ? <CONFIG_SENSOR_BYD_BF2257CS_SLAVE>
   - spix_sp2509/*.c ? <CONFIG_SENSOR_SPIX_SP2509>
   - ov_ov02b10/*.c ? <CONFIG_SENSOR_OV_OV02B10>
-
+  - cista_c2599/*.c ? <CONFIG_SENSOR_CISTA_C2599>
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项
 #   CONFIG_DEBUG: y

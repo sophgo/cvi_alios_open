@@ -239,6 +239,7 @@ struct cvi_vip_isp_raw_blk {
 	__u8  is_timeout;
 	__u8  is_sig_int;
 	__u8  compress_mode;
+	__u8  is_unuse;
 };
 
 struct cvi_vip_isp_smooth_raw_param {

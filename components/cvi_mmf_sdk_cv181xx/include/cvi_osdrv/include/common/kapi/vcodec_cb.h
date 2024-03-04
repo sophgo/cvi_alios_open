@@ -11,6 +11,7 @@ enum VCODEC_CB_CMD {
 	VCODEC_CB_SEND_FRM,
 	VCODEC_CB_SKIP_FRM,
 	VCODEC_CB_SNAP_JPG_FRM,
+	VCODEC_CB_SWITCH_CHN,
 	VCODEC_CB_MAX
 };
 
@@ -27,6 +28,11 @@ struct venc_snap_frm_info {
 	CVI_S32 vpss_grp;
 	CVI_S32 vpss_chn;
 	CVI_U32 skip_frm_cnt;
+};
+
+struct venc_switch_chn {
+	CVI_S32 vpss_grp;
+	CVI_S32 vpss_chn;
 };
 
 #ifdef __cplusplus

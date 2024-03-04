@@ -177,7 +177,7 @@ void boot_load_and_jump(void)
     } else {
         func = (void (*)(void))(*(unsigned long *)load_addr);
     }
-    // printf("j 0x%08lx\n", (unsigned long)(*func));
+    printf("j 0x%08lx\n", (unsigned long)(*func));
     // printf("##cur_ms:%d\n", csi_tick_get_ms());
 
     csi_tick_uninit();
@@ -214,7 +214,9 @@ int main(int argc, char *argv[0])
 #if CONFIG_SENSOR_QUICK_STARTUP
     sensor_init();
 #endif
+#if CONFIG_QUICK_STARTUP_SUPPORT
     clk_axi4_reconfig();
+#endif
     ret = boot_main(argc, argv);
     return ret;
 }

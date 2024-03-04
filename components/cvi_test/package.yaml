@@ -73,6 +73,7 @@ source_file:
   - test/rtc/*.c ? <CONFIG_APP_TEST>
   - test/cviai/*.c ? <CONFIG_SUPPORT_TEST_AI>
   - test/cviai/object_detection.c ? <CONFIG_SUPPORT_OBJECT_DETECTION>
+  - test/cviai/aud_detect.c ? <CONFIG_SUPPORT_AUD_DETECTION>
   - test/rng/*.c ? <CONFIG_APP_TEST>
   - test/adc/*.c ? <CONFIG_APP_TEST>
   - test/disk_sd/*.c ? <CONFIG_SUPPORT_TEST_DISK>
@@ -99,6 +100,7 @@ def_config:
   CONFIG_APP_TEST: 0
   CONFIG_SUPPORT_TEST_DISK: 0
   CONFIG_SUPPORT_OBJECT_DETECTION: 0
+  CONFIG_SUPPORT_AUD_DETECTION: 0
   CONFIG_SUPPORT_TEST_AI: 0
   CONFIG_SUPPORT_TEST_G711: 0
   CONFIG_SUPPORT_TEST_AAC: 0
