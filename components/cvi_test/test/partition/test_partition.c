@@ -109,7 +109,7 @@ static int cli_update_partition_flash(int argc, char** argv) {
     int writeLen = 0;
     int readFd = 0;
     partition_device_ops_t* partitionFd = NULL;
-    struct aos_stat fileStat = {0};
+    aos_stat_t fileStat = {0};
 
     if (argc != 3) {
         printf("update_flash [start addr] [file name]\n");

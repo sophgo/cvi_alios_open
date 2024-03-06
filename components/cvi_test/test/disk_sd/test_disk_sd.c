@@ -130,7 +130,7 @@ void sd_rw_test(int32_t argc, char **argv)
 
 	free(test);
 /*
-	struct aos_stat st;
+	aos_stat_t st;
 
 	aos_stat(SD_FATFS_MOUNTPOINT"/aa.jpg", &st);
 	aos_cli_printf("aa.jpg = %d.\r\n", st.st_size);

@@ -257,6 +257,8 @@ typedef struct _VO_LVDS_ATTR_S {
 	uint32_t pixelclock;
 	struct VO_LVDS_CTL_PIN_S backlight_pin;
 	enum VO_LVDS_MODE_E lvds_vesa_mode;
+    #if 0
+    #endif
 } VO_LVDS_ATTR_S;
 
 /*

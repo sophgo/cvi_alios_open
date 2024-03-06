@@ -36,7 +36,7 @@ private:
         Video *ptr;
     };
 
-    enum VidTaskStat : uint8_t {
+    enum VidTaskStat : int {
         VID_TASK_IDLE = 0,
         VID_TASK_RUNNING,
         VID_TASK_STOP,
@@ -52,7 +52,6 @@ private:
     std::shared_ptr<source::VidChannel> mVideoChan;
     std::shared_ptr<source::AudChannel> mAudioChan;
     std::unique_ptr<TMFormatMuxer>          mMuxer;
-    static void MuxerCallback(void *user_data, const uint8_t *packet, size_t size);
 
     RecorderStorage                     &mStorage;
     RecorderManager*                    mRecordManager;

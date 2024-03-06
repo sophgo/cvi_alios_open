@@ -11,7 +11,7 @@
 PARAM_CLASSDEFINE(PARAM_VB_CFG_S,VBPOOL,CTX,VB)[] = {
     {
         .u16width = 1920,
-        .u16height = 1080,
+        .u16height = 1088,
         .u8VbBlkCnt = 6,
         .fmt = PIXEL_FORMAT_NV21,
         .enBitWidth = DATA_BITWIDTH_8,

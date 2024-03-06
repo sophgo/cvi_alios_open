@@ -20,13 +20,12 @@ extern "C" {
 /** @brief display event id */
 #define DISPLAY_EVENT_WRITE_DONE 0          /* EVENT for rvm_hal_display_write_area_async */
 #define DISPLAY_EVENT_FLUSH_DONE 1          /* EVENT for rvm_hal_display_pan_display */
-#define DISPLAY_EVENT_READ_DONE  2          /* EVENT for rvm_hal_display_read_area */
 
 /** @brief display feature enum */
 typedef enum {
     DISPLAY_FEATURE_WRITE_ASYNC = BIT(0),  /* display support rvm_hal_display_write_area_async */
     DISPLAY_FEATURE_ONE_FB      = BIT(1),  /* display support single framebuffer */
-    DISPLAY_FEATURE_DOUBLE_FB   = BIT(3),  /* display support double framebuffer */
+    DISPLAY_FEATURE_DOUBLE_FB   = BIT(2),  /* display support double framebuffer */
 } rvm_hal_display_feature_t;
 
 /** @brief display pixel format */
@@ -110,7 +109,7 @@ int rvm_hal_display_get_info(rvm_dev_t *dev, rvm_hal_display_info_t *info);
   \param[out]  smem_len   framebuffer size
   \return      0 on success, else on fail.
 */
-int rvm_hal_display_get_framebuffer(rvm_dev_t *dev, void **smem_start, size_t *smem_len);
+int rvm_hal_display_get_framebuffer(rvm_dev_t *dev, void ***smem_start, size_t *smem_len);
 
 /**
   \brief       display set backlight brightness
@@ -154,7 +153,7 @@ int rvm_hal_display_write_area_async(rvm_dev_t *dev, rvm_hal_display_area_t *are
   \param[in]   data     buffer data pointer to read
   \return      0 on success, else on fail.
 */
-int rvm_hal_display_read_area(rvm_dev_t *dev, rvm_hal_display_area_t *area, void **data);
+int rvm_hal_display_read_area(rvm_dev_t *dev, rvm_hal_display_area_t *area, void *data);
 
 /**
   \brief       display farmebuffer data to pan,
@@ -171,6 +170,11 @@ int rvm_hal_display_pan_display(rvm_dev_t *dev);
   \return      0 on success, else on fail.
 */
 int rvm_hal_display_blank_on_off(rvm_dev_t *dev, uint8_t on_off);
+
+
+#if defined(AOS_COMP_DEVFS) && AOS_COMP_DEVFS
+#include <devices/vfs_display.h>
+#endif
 
 #ifdef __cplusplus
 }

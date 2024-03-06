@@ -2,12 +2,12 @@
  * Copyright (C) 2021-2022 Alibaba Group Holding Limited
  */
 
+#ifndef TM_SYSLOG_H
+#define TM_SYSLOG_H
+
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-
-#ifndef SYSLOG_H
-#define SYSLOG_H
 
 #define LOG_ENABLE
 
@@ -60,8 +60,8 @@ extern const char *TM_PFORMAT_O;
 #endif
 
 // OK, Green color
-#define LOG_O(fmt, args...)	\
-	do {printf(TM_PFORMAT_O,LOG_O_BASE_ARGS); printf(fmt,##args);} while(0)
+#define LOG_O(fmt, args...) \
+    do {printf(TM_PFORMAT_O,LOG_O_BASE_ARGS); printf(fmt,##args);} while(0)
 
 #define LOGPRINT_E printf
 #define LOGPRINT_W printf
@@ -105,4 +105,4 @@ extern const char *TM_PFORMAT_O;
 #define EXIT_INT(val)   do { LOG_D("Exit, return val=%d\n", (int)val); return val;} while(0)
 #define EXIT_PTR(ptr)   do { LOG_D("Exit, return ptr=%p\n", (void*)ptr); return ptr;} while(0)
 
-#endif  // SYSLOG_H
+#endif  /* TM_SYSLOG_H */

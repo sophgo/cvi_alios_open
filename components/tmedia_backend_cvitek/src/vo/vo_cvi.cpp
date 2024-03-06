@@ -237,10 +237,4 @@ int TMVideoOutputCvi::SendFrame(TMVideoFrame &frame, int timeout)
     return TMResult::TM_OK;
 }
 
-int TMVideoOutputCvi::ReleaseFrame(TMVideoFrame &frame) 
-{
-    frame.UnRef();
-    return TMResult::TM_OK;
-}                    
-
 REGISTER_VIDEO_OUTPUT_CLASS(TMMediaInfo::DeviceID::SCREEN, TMVideoOutputCvi)

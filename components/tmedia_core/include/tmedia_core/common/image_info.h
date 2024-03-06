@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2021 Alibaba Group Holding Limited
+ * Copyright (C) 2021-2023 Alibaba Group Holding Limited
  */
+
 #ifndef TM_IMAGE_INFO_H
 #define TM_IMAGE_INFO_H
 
@@ -9,7 +10,7 @@
 
 using namespace std;
 
-#define IMAGE_ALIGN_DEFAULT   32
+#define IMAGE_ALIGN_DEFAULT   64    // {FFmpeg: 32}; {TH1520: VPU=32, G2D=64}
 #define IMAGE_ALIGN_MAX       1024
 #define IMAGE_ALIGN(x, a)     (((x) + ((a)-1)) & ~((a)-1))
 
@@ -38,7 +39,9 @@ public:
         PIXEL_FORMAT_GRAY      = 1 << 16, // GRAY, 8bpp
         PIXEL_FORMAT_JPEG      = 1 << 17, // JPEG
         PIXEL_FORMAT_BINARY    = 1 << 18, // data format
-        PIXEL_FORMAT_NV21      = 1 << 19
+        PIXEL_FORMAT_NV21      = 1 << 19,
+        PIXEL_FORMAT_YV12      = 1 << 20,
+        PIXEL_FORMAT_NV16      = 1 << 21  // semi planar YUV 4:2:2, 16bpp, (1 Cr & Cb sample per 2x1 Y samples)
     };
 
     enum Resolution
@@ -95,11 +98,33 @@ public:
         int  stride[3];
     } PlaneInfo_t;
 
+    typedef struct
+    {
+        uint8_t R;
+        uint8_t G;
+        uint8_t B;
+    } RGBColorValue_t;
+
+    typedef struct
+    {
+        uint8_t R;
+        uint8_t G;
+        uint8_t B;
+    } RGBColorDepth_t;
+
+    typedef struct
+    {
+        uint8_t Y;
+        uint8_t U;
+        uint8_t V;
+    } YUVColorValue_t;
+
     static int getPlaneInfo(TMImageInfo::PixelFormat pixelFormat,
                             int width,
                             int height,
                             PlaneInfo_t *info,
-                            int align = 0);
+                            int strideAlign = 0,
+                            int addrAlign = 0);
 
     static int getPlaneInfo(TMImageInfo::PixelFormat pixelFormat,
                              int width,
@@ -109,6 +134,7 @@ public:
 
     static const string Name(TMImageInfo::PixelFormat pixelFmt);
 
+    static int MapColor(YUVColorValue_t &yuv, RGBColorValue_t rgb, RGBColorDepth_t rgb_depth = {8,8,8});
 };
 
-#endif  // TM_IMAGE_INFO_H
+#endif  /* TM_IMAGE_INFO_H */

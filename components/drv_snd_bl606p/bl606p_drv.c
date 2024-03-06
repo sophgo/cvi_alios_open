@@ -513,7 +513,7 @@ static rvm_dev_t *card_init(driver_t *drv, void *config, int id)
     }
 
     //FIXME:  must sleep 500ms at least before PA ON, otherwise baoyin happens
-    aos_msleep(500);
+    //aos_msleep(500);
     aos_pcm_register();
     slist_init(&card_drv->mixer_head);
 

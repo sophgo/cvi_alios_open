@@ -35,6 +35,7 @@ int JsonGetObjVal(Json object, const char *name, T &val)
     return -1;
 }
 
+template<> int JsonGetObjVal<bool>(Json object, const char *path, bool &val);
 template<> int JsonGetObjVal<double>(Json object, const char *path, double &val);
 template<> int JsonGetObjVal<int>(Json object, const char *path, int &val);
 template<> int JsonGetObjVal<std::string>(Json object, const char *path, std::string &val);

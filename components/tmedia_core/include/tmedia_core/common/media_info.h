@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022 Alibaba Group Holding Limited
+ * Copyright (C) 2021-2023 Alibaba Group Holding Limited
  */
 
 #ifndef TM_MEDIA_INFO_H
@@ -37,6 +37,7 @@ public:
         H265,
         MPEG4,
         JPEG,
+        VP9,
 
         AAC,
         MP3,
@@ -67,17 +68,18 @@ public:
         SPEAKER,
     };
 
-    enum class MediaFileType {
+    enum class MediaFileType
+    {
         SIMPLE = 0,
         T_HEAD,
     };
 
-    enum class PictureType
+    enum class PictureType : uint32_t
     {
         UNKNOWN = 0,
-        I,
-        P,
-        B,
+        I = 1 << 0,
+        P = 1 << 1,
+        B = 1 << 2,
     };
 
     static const string Name(TMMediaInfo::Type          type);
@@ -89,4 +91,4 @@ public:
     static const string Name(TMMediaInfo::PictureType   pictureType);
 };
 
-#endif  // TM_MEDIA_INFO_H
+#endif  /* TM_MEDIA_INFO_H */

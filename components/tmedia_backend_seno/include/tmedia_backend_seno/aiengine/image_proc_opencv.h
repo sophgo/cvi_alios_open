@@ -1,8 +1,9 @@
 /*
  * Copyright (C) 2022 Alibaba Group Holding Limited
  */
-#ifndef IMAGE_PROC_OPENCV_H
-#define IMAGE_PROC_OPENCV_H
+
+#ifndef TM_IMAGE_PROC_OPENCV_H
+#define TM_IMAGE_PROC_OPENCV_H
 
 #include <string>
 
@@ -27,8 +28,9 @@ public:
     int Resize(const TMVideoFrame &src, const TMImageInfo::ImageSize_t &dst_size, TMVideoFrame &dst);
     int CvtResize(const TMVideoFrame &src, const TMImageInfo::ImageSize_t &dst_size, TMImageInfo::PixelFormat dst_format, TMVideoFrame &dst);
     int Crop(const TMVideoFrame &src, const TMImageInfo::ImageRect_t &dst_rect, TMVideoFrame &dst);
+    int BatchCropResize(const TMVideoFrame &src, const TMImageInfo::ImageRect_t *crop_rect, const TMImageInfo::ImageSize_t *dst_size, TMImageInfo::PixelFormat dst_format, TMVideoFrame **dst, int count);
     int CropResize(const TMVideoFrame &src, const TMImageInfo::ImageRect_t &crop_rect, const TMImageInfo::ImageSize_t &dst_size,
                       TMImageInfo::PixelFormat dst_format, TMVideoFrame &dst) override;
 };
 
-#endif
+#endif  /* TM_IMAGE_PROC_OPENCV_H */

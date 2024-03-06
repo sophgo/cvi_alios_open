@@ -41,10 +41,10 @@ static int yoc_spiflash_open(rvm_dev_t *dev)
     flash_dev_t *flash = (flash_dev_t*)dev;
     csi_error_t ret = csi_spiflash_qspi_init(&flash->handle, dev->id, NULL);
     if (ret != CSI_OK) {
-        LOGW(TAG, "csi qspi init error:%d, start to try spiflash", ret);
+        LOGW(TAG, "qspi_flash init failed, start to try spiflash!");
         ret = csi_spiflash_spi_init(&flash->handle, dev->id, NULL);
         if (ret != CSI_OK) {
-            LOGE(TAG, "csi spi init error:%d", ret);
+            LOGW(TAG, "spi init failed, maybe no flash in board!");
             return -1;
         }
     }
@@ -130,6 +130,11 @@ static int yoc_spiflash_get_info(rvm_dev_t *dev, rvm_hal_flash_dev_info_t *info)
     info->start_addr = flash_info.xip_addr;
     info->sector_size = flash_info.sector_size;
     info->sector_count = flash_info.flash_size / flash_info.sector_size;
+    info->block_size = 0; // FIXME:
+    info->page_size = 0;
+    info->oob_size = 0;
+    info->max_bad_blocks = 0;
+    info->total_blocks = 0;
 
     return 0;
 }

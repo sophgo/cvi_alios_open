@@ -61,6 +61,10 @@ int partition_init(void)
     partition_flash_register();
     storage_info.type = MEM_DEVICE_TYPE_SPI_NOR_FLASH;
 #endif
+#if CONFIG_PARTITION_SUPPORT_SPINANDFLASH
+    partition_spinandflash_register();
+    storage_info.type = MEM_DEVICE_TYPE_SPI_NAND_FLASH;
+#endif
 #if CONFIG_PARTITION_SUPPORT_EMMC
     partition_emmc_register();
     storage_info.type = MEM_DEVICE_TYPE_EMMC;
@@ -119,6 +123,7 @@ hot_pulg_info:
             scn->erase_size = cur_flash_info.erase_size;
             scn->load_addr = part_info[i].load_addr;
             scn->image_size = part_info[i].image_size;
+            scn->preload_size = part_info[i].preload_size;
             // for compatible
             memset(&scn->storage_info, 0, sizeof(storage_info_t));
             scn->storage_info.type = MEM_DEVICE_TYPE_SPI_NOR_FLASH;
@@ -178,12 +183,57 @@ partition_info_t *partition_info_get(partition_t partition)
 #else
     if (partition >= 0 && partition < g_partion_array.num && g_partion_array.scn_list[partition].flash_dev)
 #endif
-    {
-        partition_device_ops_t *dev_ops = g_partion_array.scn_list[partition].flash_dev;
-        dev_ops->storage_info.area = g_partion_array.scn_list[partition].storage_info.area;
+    {	
+		partition_device_ops_t *dev_ops = g_partion_array.scn_list[partition].flash_dev;
+		dev_ops->storage_info.area = g_partion_array.scn_list[partition].storage_info.area;
         return &g_partion_array.scn_list[partition];
     }
     return NULL;
+}
+
+static int __update_hot_plug_device(partition_t partition, partition_device_ops_t *dev_ops)
+{
+    partition_device_info_t cur_flash_info = {0};
+    partition_info_t *scn = &g_partion_array.scn_list[partition];
+
+    if (partition_device_info_get(dev_ops, &cur_flash_info)) {
+        return -1;
+    }
+    if ((cur_flash_info.base_addr <= scn->start_addr) &&
+        ((scn->start_addr + scn->length) <= (cur_flash_info.base_addr + cur_flash_info.device_size))) {
+        scn->base_addr = cur_flash_info.base_addr;
+        if (scn->base_addr != 0) {
+            assert(false);
+        }
+        scn->sector_size = cur_flash_info.sector_size;
+        scn->block_size = cur_flash_info.block_size;
+        scn->erase_size = cur_flash_info.erase_size;
+        if (scn->length == 0)
+            scn->length = cur_flash_info.device_size;
+    #if SHOW_PART_INFO_EN
+        printf("------------update hot_plug------>%s\n", scn->description);
+        printf("scn->base_addr:0x%"PRIX64"\n", scn->base_addr);
+        printf("scn->start_addr:0x%"PRIX64"\n", scn->start_addr);
+        printf("scn->length:0x%"PRIX64"\n", scn->length);
+        printf("scn->sector_size:0x%x\n", scn->sector_size);
+        printf("scn->block_size:0x%x\n", scn->block_size);
+        printf("scn->erase_size:0x%x\n", scn->erase_size);
+        printf("scn->load_addr:0x%x\n", scn->load_addr);
+        printf("scn->image_size:0x%x\n", scn->image_size);
+        printf("scn->storage_info.type:%d\n", scn->storage_info.type);
+        printf("scn->storage_info.id:%d\n", scn->storage_info.id);
+        printf("scn->storage_info.area:%d\n", scn->storage_info.area);
+    #endif /*SHOW_PART_INFO_EN*/
+        if(!(scn->length && scn->erase_size && strlen(scn->description) > 0 && (scn->sector_size | scn->block_size))) {
+            return -1;
+        }
+        if (scn->start_addr + scn->length > cur_flash_info.device_size) {
+            return -1;
+        }
+    } else {
+        return -1;
+    }
+    return 0;
 }
 
 partition_t partition_open(const char *name)
@@ -194,53 +244,15 @@ partition_t partition_open(const char *name)
         return -EINVAL;
     }
     len = strlen(name);
-    len = len > MTB_IMAGE_NAME_SIZE ? MTB_IMAGE_NAME_SIZE : len;
+    len = len > MTB_IMAGE_NAME_SIZE ? MTB_IMAGE_NAME_SIZE : len;    
     for (int i = 0; i < g_partion_array.num; i++) {
         if ((memcmp(name, g_partion_array.scn_list[i].description, len) == 0) &&
-                        (strlen(g_partion_array.scn_list[i].description) == len) ) {
+					(strlen(g_partion_array.scn_list[i].description) == len) ) {
             if (g_partion_array.scn_list[i].flash_dev == NULL) {
                 void *flash_dev = partition_device_find(&g_partion_array.scn_list[i].storage_info);
                 if (g_partion_array.scn_list[i].storage_info.hot_plug) {
-                    partition_device_info_t cur_flash_info = {0};
-                    partition_info_t *scn = &g_partion_array.scn_list[i];
-                    if (partition_device_info_get(flash_dev, &cur_flash_info)) {
-                        // printf("open %s's device failed.\n", name);
+                    if (__update_hot_plug_device(i, flash_dev))
                         return -1;
-                    }
-                    if ((cur_flash_info.base_addr <= scn->start_addr) &&
-                        ((scn->start_addr + scn->length) <= (cur_flash_info.base_addr + cur_flash_info.device_size))) {
-                        scn->base_addr = cur_flash_info.base_addr;
-                        if (scn->base_addr != 0) {
-                            assert(false);
-                        }
-                        scn->sector_size = cur_flash_info.sector_size;
-                        scn->block_size = cur_flash_info.block_size;
-                        scn->erase_size = cur_flash_info.erase_size;
-                        if (scn->length == 0)
-                            scn->length = cur_flash_info.device_size;
-#if SHOW_PART_INFO_EN
-                        printf("------------update hot_plug------>%s\n", scn->description);
-                        printf("scn->base_addr:0x%"PRIX64"\n", scn->base_addr);
-                        printf("scn->start_addr:0x%"PRIX64"\n", scn->start_addr);
-                        printf("scn->length:0x%"PRIX64"\n", scn->length);
-                        printf("scn->sector_size:0x%x\n", scn->sector_size);
-                        printf("scn->block_size:0x%x\n", scn->block_size);
-                        printf("scn->erase_size:0x%x\n", scn->erase_size);
-                        printf("scn->load_addr:0x%x\n", scn->load_addr);
-                        printf("scn->image_size:0x%x\n", scn->image_size);
-                        printf("scn->storage_info.type:%d\n", scn->storage_info.type);
-                        printf("scn->storage_info.id:%d\n", scn->storage_info.id);
-                        printf("scn->storage_info.area:%d\n", scn->storage_info.area);
-#endif /*SHOW_PART_INFO_EN*/
-                        if(!(scn->length && scn->erase_size && strlen(scn->description) > 0 && (scn->sector_size | scn->block_size))) {
-                            return -1;
-                        }
-                        if (scn->start_addr + scn->length > cur_flash_info.device_size) {
-                            return -1;
-                        }
-                    } else {
-                        return -1;
-                    }
                 }
                 g_partion_array.scn_list[i].flash_dev = flash_dev;
             }
@@ -312,9 +324,9 @@ int partition_erase_size(partition_t partition, off_t off_set, size_t size)
     return -1;
 }
 
-int partition_erase(partition_t partition, off_t off_set, uint32_t sector_count)
+int partition_erase(partition_t partition, off_t off_set, uint32_t erase_unit_count)
 {
-    if (sector_count == 0) {
+    if (erase_unit_count == 0) {
         return 0;
     }
     if (off_set < 0) {
@@ -330,12 +342,12 @@ int partition_erase(partition_t partition, off_t off_set, uint32_t sector_count)
         return partition_device_erase(node->flash_dev, node->start_addr, node->length);
     }
 #else
-    size_t len = sector_count * node->erase_size;
+    size_t len = erase_unit_count * node->erase_size;
     if (node != NULL && off_set >= 0 && off_set + len <= node->length) {
         return partition_device_erase(node->flash_dev, node->start_addr + off_set, len);
     }
 #endif
-    printf("Err: node->length: 0x%lx \n", node->length);
+	printf("Err: node->length: 0x%lx \n", node->length);
     return -1;
 }
 
@@ -371,18 +383,16 @@ int partition_get_digest(partition_t partition, uint8_t *out_hash, uint32_t *out
         }
         offset += 1;
     }
-    // printf("offset:%d\r\n", offset);
+
     if (got_flag) {
         uint32_t img_content_size = phead->size;
         uint32_t tail_offset = sizeof(partition_header_t) + img_content_size + offset;
         partition_info_t *node = partition_info_get(partition);
-        // printf("img_content_size:%d, node->length: %d, tail_offset:%d\r\n", img_content_size, node->length, tail_offset);
         if (img_content_size > node->length) {
             goto fail;
         }
         tail = (partition_tail_head_t *)tail_buf;
         if (partition_read(partition, tail_offset, (void *)tail, TAIL_BUFF_SIZE) == 0) {
-            // printf("tail->digestType:%d\r\n", tail->digestType);
             switch(tail->digestType) {
                 case DIGEST_HASH_SHA1:
                     *out_len = 20;
@@ -438,9 +448,13 @@ int partition_all_verify(void)
 {
     if (g_partion_array.scn_list && g_partion_array.num > 0) {
         for (int i = 0; i < g_partion_array.num; i++) {
-            void *flash_dev = partition_device_find(&g_partion_array.scn_list[i].storage_info);
-            if (g_partion_array.scn_list[i].storage_info.hot_plug && !flash_dev) {
-                continue;
+            partition_device_ops_t *flash_dev = partition_device_find(&g_partion_array.scn_list[i].storage_info);
+            if (g_partion_array.scn_list[i].storage_info.hot_plug) {
+                if (!flash_dev || (flash_dev && !flash_dev->dev_hdl)) {
+                    continue;
+                }
+                if (__update_hot_plug_device(i, flash_dev))
+                    return -1;
             }
             g_partion_array.scn_list[i].flash_dev = flash_dev;
 
@@ -484,11 +498,16 @@ int partition_set_region_safe(partition_t partition)
     return -EINVAL;
 }
 
-#define PARTITION_SPLIT_DEBUG 1
-#define IMG_HEADER_LEN 48
+#ifndef PARTITION_SPLIT_DEBUG
+#define PARTITION_SPLIT_DEBUG 0
+#endif
 #if PARTITION_SPLIT_DEBUG
 #define SPLIT_PRINT(...) printf(__VA_ARGS__)
+#else
+#define SPLIT_PRINT(...)
 #endif
+#define IMG_HEADER_LEN 48
+
 #if defined(CONFIG_XZ_CMP)
 #include <xz_dec.h>
 struct xz_ext_info_t {
@@ -505,6 +524,34 @@ static int __data_read(unsigned long read_addr, void *buffer, size_t size, void 
     return ret;
 }
 #endif
+
+#if defined(CONFIG_LZ4_COMP)
+#include <lz4.h>
+#ifndef CONFIG_LZ4_BUFFER_ADDR
+#error "Please define CONFIG_LZ4_BUFFER_ADDR in package.yaml"
+#endif
+#endif
+
+bool partition_check_firmware_is_packed(partition_t partition)
+{
+    int ret;
+    uint8_t header[IMG_HEADER_LEN];
+    pack_compress_list_t *pack_compress_list;
+
+    partition_info_t *info = partition_info_get(partition);
+    if (info) {
+        ret = partition_read(partition, 0, header, IMG_HEADER_LEN);
+        if (ret != 0) {
+            return false;
+        }
+        pack_compress_list = (pack_compress_list_t *)header;
+        if (pack_compress_list->pack_info.magic != PACK_LIST_MAGIC) {
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
 
 int partition_split_and_get(partition_t partition, int index, unsigned long *offset, size_t *olen, unsigned long *run_address)
 {
@@ -587,12 +634,13 @@ int partition_split_and_copy(partition_t partition, int index)
             // SPLIT_PRINT("the run address: %"PRIx64"\n", run_address);
             SPLIT_PRINT("the run address: 0x%lx\n", run_address);
             if (count == index) {
+                memcpy((void *)run_address, header, sizeof(pack_compress_list_t));
                 if (pack_compress_list->pack_info.compress_type == CAR_XZ) {
 #if defined(CONFIG_XZ_CMP)
                     uint32_t out_len;
                     struct xz_ext_info_t ext_info;
                     unsigned long src_addr = pre_offset + info->base_addr + info->start_addr + sizeof(pack_compress_list_t);
-                    SPLIT_PRINT("start xz decompress src addr 0x%lx\n", src_addr);
+                    SPLIT_PRINT("start xz decompress src addr 0x%lx, compressed_size:%d\n", src_addr, pack_compress_list->pack_info.compressed_size);
                     ext_info.info = info;
                     ext_info.partition = partition;
                     ret = xz_decompress((uint8_t *)src_addr, pack_compress_list->pack_info.compressed_size, __data_read,
@@ -605,12 +653,50 @@ int partition_split_and_copy(partition_t partition, int index)
                         SPLIT_PRINT("xz decompress failed, the out len is not match.[%d, %d]\n", out_len, pack_compress_list->pack_info.origin_size);
                         return -1;
                     }
-                    memcpy((void *)run_address, header, sizeof(pack_compress_list_t));
                     SPLIT_PRINT("Decompress and copy one image from %d to %d ok.\n", pack_compress_list->pack_info.compressed_size, out_len);
 #else
                     SPLIT_PRINT("xz decompress not enable.\n");
                     return -1;
 #endif /*CONFIG_XZ_CMP*/
+                } else if (pack_compress_list->pack_info.compress_type == CAR_LZ4) {
+#if defined(CONFIG_LZ4_COMP)
+#if PARTITION_SPLIT_DEBUG
+                    unsigned long src_addr = pre_offset + info->base_addr + info->start_addr + sizeof(pack_compress_list_t);
+                    SPLIT_PRINT("start lz4 decompress src addr 0x%lx, compressed_size:%d\n", src_addr, pack_compress_list->pack_info.compressed_size);
+#endif
+                    off_t read_offset = sizeof(pack_compress_list_t) + pre_offset;
+#if CONFIG_LZ4_BUFFER_ADDR == -1
+#ifdef CONFIG_FLASH_XIP_BASE
+                    char* const cmpBuf = (char *)(read_offset + info->base_addr + info->start_addr + CONFIG_FLASH_XIP_BASE);
+#else
+                    char* const cmpBuf = (char *)(read_offset + info->base_addr + info->start_addr);
+#endif /*CONFIG_FLASH_XIP_BASE*/
+                    SPLIT_PRINT("lz4 buffer use flash direct.\n");
+#else
+                    char* const cmpBuf = (char *)CONFIG_LZ4_BUFFER_ADDR;
+                    ret = partition_read(partition, read_offset, cmpBuf, pack_compress_list->pack_info.compressed_size);
+                    if (ret) {
+                        SPLIT_PRINT("lz4 partition read e. ret:%d, read_offset:0x%lx, size:%d\n", ret, read_offset, pack_compress_list->pack_info.compressed_size);
+                        return -1;
+                    }
+#endif /*CONFIG_LZ4_BUFFER_ADDR*/
+                    char* const decBuf = (char *)(run_address + sizeof(pack_compress_list_t));
+
+                    SPLIT_PRINT("src:0x%p, dst:0x%p, src_size:%d, dst_size:%d\n", cmpBuf, decBuf, pack_compress_list->pack_info.compressed_size, pack_compress_list->pack_info.origin_size);
+                    int decompressed_size = LZ4_decompress_safe(cmpBuf, decBuf, pack_compress_list->pack_info.compressed_size, pack_compress_list->pack_info.origin_size);
+                    if (decompressed_size < 0) {
+                        SPLIT_PRINT("lz4 decompress e. decompressed_size:%d\n", decompressed_size);
+                        return -1;
+                    }
+                    if (decompressed_size != pack_compress_list->pack_info.origin_size) {
+                        SPLIT_PRINT("lz4 decompress failed, the out len is not match.[%d, %d]\n", decompressed_size, pack_compress_list->pack_info.origin_size);
+                        return -1;
+                    }
+                    SPLIT_PRINT("Decompress and copy one image from %d to %d ok.\n", pack_compress_list->pack_info.compressed_size, decompressed_size);
+#else
+                    SPLIT_PRINT("lz4 decompress not enable.\n");
+                    return -1;
+#endif /*CONFIG_LZ4_COMP*/
                 } else if (pack_compress_list->pack_info.compress_type > CAR_NULL) {
                     SPLIT_PRINT("Not support Compression Alogrithm Routine: %d\n", pack_compress_list->pack_info.compress_type);
                     return -1;

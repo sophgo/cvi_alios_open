@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <vector>
+#include <string>
 #include <cx/common/frame.h>
 #include <cx/common/type.h>
 #include <cx/source/entity_wrapper.h>
@@ -18,22 +19,34 @@
 namespace cx {
 namespace source {
 
-struct VidChannelConfig {
-    board::SensorConfig::Tag sensorTag;
-    int16_t     rotateAngle;        // in degree
-    ImageSize   outputSize;
-    uint16_t    outputFps;
+struct VidInputConfig {
+    struct Vpss {
+        std::string label;
+        ImageSize   size;
+        uint16_t    fps;
+        int16_t     rotateAngle;
+        int16_t     startFrame;
+        CropType    cropType;
+        PixelFormat format;
+    };
 
-    CropType    cropType;
-    
-    VencoderType encoder;   
-    PixelFormat format;
+    board::SensorConfig::Tag sensorTag;
+    std::vector<Vpss> vpss;
+
+    bool valid() {
+        return sensorTag.valid();
+    }
 };
 
-typedef struct{
-	VidChannelConfig config;
-	int channelID;
-} channelConfig;
+struct VidChannelConfig {
+    VidInputConfig  *vidInput;
+
+    ImageSize       outputSize;
+    uint16_t        outputFps;
+    VencoderType    encoder;   
+    uint16_t        targetRate;
+};
+
 
 class VidChannel final : public SrcChannel {
 public:
@@ -52,13 +65,23 @@ public:
     void SetPicQuality(int value);
     void SetCameraMode(CameraWorkMode mode);
     void Dump();
-    VidChannelConfig   mConfig;
+
+    void SetConfig(const VidChannelConfig &config)
+    {
+	    mConfig = config;
+    }
+
+    VidChannelConfig *GetConfig(void)
+    {
+        return &mConfig;
+    }
+
     channel_status_e mStatus;
 private:
+    VidChannelConfig                                                 mConfig;
     std::shared_ptr<ViWrapper>                                       mVi;
-    std::shared_ptr<vector<std::pair<int, shared_ptr<VpssWrapper>>>> mVpss;   // pair: <pre_vpss_padID, current_vpss>       
-    // std::shared_ptr<TMOsd>              mOSD;
-    std::pair<int,  std::shared_ptr<EncodeWrapper>>                  mEncoder;   // pair: <pre_vpss_padID, encoder>
+    std::vector<std::shared_ptr<VpssWrapper>>                        mVpss;
+    std::shared_ptr<EncodeWrapper>                                   mEncoder;
     std::shared_ptr<Cache<CxVideoFrame, CxVideoPacket>>              mCache;
     
     enum SinkPoint : uint16_t {
@@ -71,7 +94,6 @@ private:
     friend class VidSrcManager;
     static std::vector<pair<shared_ptr<ViWrapper>, shared_ptr<VpssWrapper>>> gViVpss;
     static std::vector<shared_ptr<VpssWrapper>> gVpss;
-    static int GroupID;
     CameraWorkMode mCameraMode;
 };
 

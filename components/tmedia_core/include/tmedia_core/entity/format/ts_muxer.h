@@ -2,8 +2,8 @@
  * Copyright (C) 2018-2022 Alibaba Group Holding Limited
  */
 
-#ifndef __TS_MUXER_H__
-#define __TS_MUXER_H__
+#ifndef TM_TS_MUXER_H
+#define TM_TS_MUXER_H
 
 #include <tmedia_core/common/media_info.h>
 #include <tmedia_core/entity/parser/parser.h>
@@ -29,15 +29,23 @@ public:
 
     virtual int Start()                                         = 0;
     virtual int Stop()                                          = 0;
-    virtual void SetMuxerCallback(mux_cb_t cb, void *user_data) = 0;
-    virtual int AddStream(int sid, TMCodecParams &codecParam)   = 0;
-    virtual int WritePacket(int sid, TMPacket &packet)          = 0;
+    virtual int SendPacket(TMPacket &pkt, int timeout)          = 0;
+    virtual int RecvPacket(TMPacket &pkt, int timeout)          = 0;
+    enum class PropID : int
+    {
+        TSMUXER_BUF_SIZE,   // Type: UINT32, default=1M, to save the muxered ts stream.
+    };
+
 
 protected:
     virtual void InitDefaultPropertyList()
     {
+        TMPropertyList *pList[2] = {&mDefaultPropertyList, &mCurrentPropertyList};
+        for (uint32_t i = 0; i < ARRAY_SIZE(pList); i++)
+        {
+            pList[i]->Add(TMProperty((int)PropID::TSMUXER_BUF_SIZE, 1024 * 1024 * 1, "tsmuxer buf size"));
+        }
     }
 };
 
-#endif /* __TS_MUXER_H__ */
-
+#endif /* TM_TS_MUXER_H */

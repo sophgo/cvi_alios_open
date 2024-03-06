@@ -28,7 +28,6 @@ ADD_DEFINITIONS(
     -DCONFIG_PLAYER_YOC=1
     -DCONFIG_PLAYER_TPLAYER=0
     -DCONFIG_AV_AUDIO_ONLY_SUPPORT=0
-    -DCONFIG_AV_DBUS_SUPPORT=1
     -DCONFIG_TCPIP=1
     -DATEMPO_FREQ_REDUCE=1
     -DCONFIG_DEMUXER_OGG=1
@@ -217,9 +216,6 @@ SET(LIBSOURCE
 	xplayer/xplayer_tplayer.c
 	xplayer/xplayer_all.c
 	media/media.c
-	avdbus/dbus_utils.c
-	avdbus/media_client_dbus.c
-	avdbus/media_server_dbus.c
 )
 
 ADD_LIBRARY(av ${LIBSOURCE})

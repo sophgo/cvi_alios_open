@@ -18,7 +18,7 @@ typedef struct _PARAM_RC_PARAM_S {
     CVI_U8  u8SrcFrameRate;
     CVI_U8  u8DstFrameRate;
     CVI_U8  u8Qfactor;/* RW; Range:[1,99]; Qfactor value, 50 = user q-table */
-    CVI_U16 u16BitRate;
+    CVI_U32 u32BitRate;
     CVI_U32 u32MaxBitRate;
     CVI_U8 u8VariFpsEn;
     CVI_U8 u8StartTime;

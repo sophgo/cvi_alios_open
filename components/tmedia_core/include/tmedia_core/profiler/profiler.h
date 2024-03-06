@@ -2,7 +2,8 @@
  * Copyright (C) 2021 Alibaba Group Holding Limited
  */
 
-#pragma once
+#ifndef TM_PROFILER_H
+#define TM_PROFILER_H
 
 #include <string>
 
@@ -20,3 +21,5 @@ protected:
 
 private:
 };
+
+#endif  /* TM_PROFILER_H */

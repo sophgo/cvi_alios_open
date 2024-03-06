@@ -28,4 +28,4 @@ public:
     void Dump();
 };
 
-#endif  // TM_VPSS_PARAMS_H
+#endif  /* TM_VPSS_PARAMS_H */

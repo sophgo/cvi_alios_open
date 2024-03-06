@@ -1,8 +1,9 @@
 /*
- * Copyright (C) 2021-2022 Alibaba Group Holding Limited
+ * Copyright (C) 2021-2023 Alibaba Group Holding Limited
  */
 
-#pragma once
+#ifndef TM_CODEC_PARAMS_H
+#define TM_CODEC_PARAMS_H
 
 #include <string>
 #include <tmedia_core/common/common_inc.h>
@@ -44,9 +45,6 @@ public:
 class TMVideoEncoderParams : public TMCodecParams
 {
 public:
-    int32_t  mProfile;
-    int32_t  mLevel;
-
     int32_t mWidth;
     int32_t mHeight;
     TMImageInfo::PixelFormat mPixelFormat;
@@ -102,3 +100,4 @@ public:
     virtual void Dump();
 };
 
+#endif  /* TM_CODEC_PARAMS_H */

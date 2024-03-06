@@ -345,19 +345,36 @@ REGISTER_SERVICE_CONFIG(
             /* default values */
             ServiceConfigParser::GetVidSourceConfig(obj, 0, linkvisualConfig.vidConfig[0]);
             chanLiveHD = VidSrcManager::GetInstance()->AddChannelConfig(linkvisualConfig.vidConfig[0]);
-            CX_LOGD(TAG, "vid config %s %d %d %d %d %d", linkvisualConfig.vidConfig[0].sensorTag.name.c_str(), linkvisualConfig.vidConfig[0].rotateAngle, linkvisualConfig.vidConfig[0].outputSize.width, \
-                    linkvisualConfig.vidConfig[0].outputSize.height, linkvisualConfig.vidConfig[0].outputFps, linkvisualConfig.vidConfig[0].encoder);
+            CX_LOGD(TAG, "vid config[0] sensor=%s size=%u*%u fps=%d encoder=%d", 
+                    linkvisualConfig.vidConfig[0].vidInput->sensorTag.name.c_str(), 
+                    linkvisualConfig.vidConfig[0].outputSize.width,
+                    linkvisualConfig.vidConfig[0].outputSize.height, 
+                    linkvisualConfig.vidConfig[0].outputFps, 
+                    (int)linkvisualConfig.vidConfig[0].encoder);
             ServiceConfigParser::GetVidSourceConfig(obj, 1, linkvisualConfig.vidConfig[1]);
             chanLiveSD = VidSrcManager::GetInstance()->AddChannelConfig(linkvisualConfig.vidConfig[1]);
-            CX_LOGD(TAG, "vid config %s %d %d %d %d %d", linkvisualConfig.vidConfig[1].sensorTag.name.c_str(), linkvisualConfig.vidConfig[1].rotateAngle, linkvisualConfig.vidConfig[1].outputSize.width, \
-                    linkvisualConfig.vidConfig[1].outputSize.height, linkvisualConfig.vidConfig[1].outputFps, linkvisualConfig.vidConfig[1].encoder);
+            CX_LOGD(TAG, "vid config[1] sensor=%s size=%u*%u fps=%d encoder=%d", 
+                    linkvisualConfig.vidConfig[1].vidInput->sensorTag.name.c_str(), 
+                    linkvisualConfig.vidConfig[1].outputSize.width,
+                    linkvisualConfig.vidConfig[1].outputSize.height, 
+                    linkvisualConfig.vidConfig[1].outputFps, 
+                    (int)linkvisualConfig.vidConfig[1].encoder);
             ServiceConfigParser::GetVidSourceConfig(obj, 2, linkvisualConfig.vidConfig[2]);
             chanLiveLD = VidSrcManager::GetInstance()->AddChannelConfig(linkvisualConfig.vidConfig[2]);
-            CX_LOGD(TAG, "vid config %s %d %d %d %d %d", linkvisualConfig.vidConfig[2].sensorTag.name.c_str(), linkvisualConfig.vidConfig[2].rotateAngle, linkvisualConfig.vidConfig[2].outputSize.width, \
-                    linkvisualConfig.vidConfig[2].outputSize.height, linkvisualConfig.vidConfig[2].outputFps, linkvisualConfig.vidConfig[2].encoder);
-            audioChanLive = ServiceConfigParser::GetAudSourceConfig(obj, 0, linkvisualConfig.audConfig);
-            AudSrcManager::GetInstance()->AddChannelConfig(linkvisualConfig.audConfig);
-            CX_LOGD(TAG, "aud config %d %d %d %d %d", linkvisualConfig.audConfig.encoder, linkvisualConfig.audConfig.sampleBits, linkvisualConfig.audConfig.sampleRate, linkvisualConfig.audConfig.sampleChannels, linkvisualConfig.audConfig.pcmDataType);
+            CX_LOGD(TAG, "vid config[2] sensor=%s size=%u*%u fps=%d encoder=%d", 
+                    linkvisualConfig.vidConfig[2].vidInput->sensorTag.name.c_str(), 
+                    linkvisualConfig.vidConfig[2].outputSize.width,
+                    linkvisualConfig.vidConfig[2].outputSize.height, 
+                    linkvisualConfig.vidConfig[2].outputFps, 
+                    (int)linkvisualConfig.vidConfig[2].encoder);
+            ServiceConfigParser::GetAudSourceConfig(obj, 0, linkvisualConfig.audConfig);
+            audioChanLive = AudSrcManager::GetInstance()->AddChannelConfig(linkvisualConfig.audConfig);
+            CX_LOGD(TAG, "aud config encoder=%d sample_bits=%d sample_rate=%d channels=%d data_type=%d", 
+                    (int)linkvisualConfig.audConfig.encoder, 
+                    (int)linkvisualConfig.audConfig.sampleBits, 
+                    linkvisualConfig.audConfig.sampleRate, 
+                    linkvisualConfig.audConfig.sampleChannels, 
+                    linkvisualConfig.audConfig.pcmDataType);
         } else {
             cout << "not support linkvisual" << svrIndex << endl;
         }

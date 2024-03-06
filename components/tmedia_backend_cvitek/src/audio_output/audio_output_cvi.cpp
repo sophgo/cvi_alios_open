@@ -207,10 +207,4 @@ int TMAudioOutputCvi::SendFrame(TMAudioFrame &frame, int timeout)
     return TMResult::TM_OK;
 }
 
-int TMAudioOutputCvi::ReleaseFrame(TMAudioFrame &frame) 
-{
-    frame.UnRef();
-    return TMResult::TM_OK;
-}                    
-
 REGISTER_AUDIO_OUTPUT_CLASS(TMMediaInfo::DeviceID::SPEAKER, TMAudioOutputCvi)

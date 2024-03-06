@@ -38,6 +38,7 @@ typedef struct _PARAM_SNS_CFG_S {
     CVI_U8 u8Rotation;
 
     ISP_SNS_OBJ_S *pSnsObj;
+    CVI_BOOL bDualSwitch;
 }PARAM_SNS_CFG_S;
 
 typedef struct _PARAM_DEV_CFG_S {

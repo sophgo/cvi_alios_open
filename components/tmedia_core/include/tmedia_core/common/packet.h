@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2021-2022 Alibaba Group Holding Limited
  */
+
 #ifndef TM_PACKET_H
 #define TM_PACKET_H
 
@@ -8,6 +9,8 @@
 #include <tmedia_core/memory/buffer.h>
 #include <tmedia_core/common/media_info.h>
 #include <tmedia_core/common/audio_info.h>
+#include <tmedia_core/common/data.h>
+#include <tmedia_core/common/clock.h>
 
 using namespace std;
 
@@ -27,10 +30,12 @@ public:
     void *priv;
 };
 
-class TMPacket
+class TMPacket : public TMData
 {
 public:
     TMPacket();
+    TMPacket(const TMPacket& packet);
+    TMPacket& operator=(const TMPacket& packet);
     virtual ~TMPacket();
 
     void Init();
@@ -62,8 +67,9 @@ public:
     void Dump();
 
 public:
-    int64_t   mPTS;
-    int64_t   mDTS;
+    TMClock mPTS;
+    TMClock mDTS;
+
     bool      mEOS;
 
     uint8_t  *mData;          /* buffer pointer */
@@ -72,6 +78,7 @@ public:
     uint32_t  mDataLength;    /* Size of the actual  data in bytes */
 
     int       mStreamIndex;
+    TMMediaInfo::CodecID mCodecID;
     void     *mPlatformPriv;
 
 private:
@@ -85,6 +92,7 @@ class TMVideoPacket: public TMPacket
 public:
     TMVideoPacket();
     virtual ~TMVideoPacket();
+    void Dump();
 
 public:
     TMMediaInfo::PictureType mPictureType;
@@ -104,4 +112,4 @@ public:
 private:
 };
 
-#endif  // TM_PACKET_H
+#endif  /* TM_PACKET_H */

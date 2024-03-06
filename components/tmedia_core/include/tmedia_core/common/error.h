@@ -54,19 +54,23 @@ public:
         TM_DEMUXER_NOT_FOUND  = MAKE_FOURCC('D','E','M','N'),   // Demuxer not found
         TM_ENCODER_NOT_FOUND  = MAKE_FOURCC('E','N','C','N'),   // Encoder not found
         TM_ENTITY_NOT_FOUND   = MAKE_FOURCC('E','N','T','N'),   // Entity not found
+        TM_EVENT_PUSH_FAILED  = MAKE_FOURCC('E','V','P','F'),   // Event push failed
         TM_EOF                = MAKE_FOURCC('E','O','F',' '),   // End of file or stream
         TM_FORMAT_INVALID     = MAKE_FOURCC('F','M','A','T'),   // Format Error
         TM_MAPVAL_FAIL        = MAKE_FOURCC('M','A','P','V'),   // Map backend values failed
         TM_MUXER_NOT_FOUND    = MAKE_FOURCC('M','U','X','N'),   // Muxer not found
+        TM_NOT_IMPLEMENTED    = MAKE_FOURCC('N','I','M','P'),   // Operate or feature not implemented
         TM_NOT_SUPPORT        = MAKE_FOURCC('N','S','P','T'),   // Operate or feature not supported
         TM_PEER_PAD_NOT_FOUND = MAKE_FOURCC('P','E','P','N'),   // Peer Pad not found
+        TM_PIPE_OPERATE_FAILED= MAKE_FOURCC('P','I','O','F'),   // Pipe operate failed
         TM_PROPERTY_NOT_FOUND = MAKE_FOURCC('P','R','O','P'),   // Property not found or support
         TM_PROTOCOL_NOT_FOUND = MAKE_FOURCC('P','R','O','T'),   // Protocol not found or support
         TM_STATE_ERROR        = MAKE_FOURCC('S','T','A','T'),   // State error
+        TM_TIMEOUT            = MAKE_FOURCC('T','O','U','T'),   // time out
     };
 
     static const char* StrError(TMResult::ID result);
     static const char* StrError(int result);
 };
 
-#endif  // TM_ERROR_H
+#endif  /* TM_ERROR_H */

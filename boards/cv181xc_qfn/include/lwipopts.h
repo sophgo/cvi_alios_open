@@ -163,7 +163,7 @@ MEM_SIZE and MEMP_NUM_XXX will be invalid */
 #define LWIP_TCP                        1
 #define TCP_QUEUE_OOSEQ                 1
 
-#if CONFIG_RNDIS_DEVICE_ETH
+#if CONFIG_USBD_CDC_RNDIS
 #define TCP_MSS                         (1420)
 #else
 #define TCP_MSS                         (1440)

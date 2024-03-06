@@ -21,7 +21,8 @@ extern "C" {
 
 CVI_S32 CVI_EFUSE_EnableFastBoot(void);
 CVI_S32 CVI_EFUSE_IsFastBootEnabled(void);
-
+CVI_S32 CVI_EFUSE_BootFreqHigher(void);
+CVI_S32 CVI_EFUSE_IsBootFreqHigher(void);
 
 #ifdef __cplusplus
 #if __cplusplus

@@ -33,7 +33,6 @@ public:
     // TMAudioDecoder extend interface
     virtual int SendPacket(TMAudioPacket &pkt, int timeout) = 0;
     virtual int RecvFrame(TMAudioFrame &frame, int timeout) = 0;
-    virtual int ReleaseFrame(TMAudioFrame &frame) = 0;
 };
 
-#endif
+#endif /* TM_G711_DECODER_H */

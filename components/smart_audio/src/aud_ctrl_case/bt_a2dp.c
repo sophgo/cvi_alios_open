@@ -41,6 +41,7 @@ static int bt_a2dp_vol_down(int vol);
 
 static smtaudio_ops_node_t ctrl_bt_a2dp = {
     .name     = "bt_a2dp",
+    .url      = NULL,
     .prio     = 2,
     .id       = SMTAUDIO_BT_A2DP,
     .status   = SMTAUDIO_STATE_STOP,
@@ -500,6 +501,11 @@ int yoc_app_bt_avrcp_send_passthrouth_cmd(yoc_app_avrcp_cmd_type_t cmd_type)
 
 int yoc_app_bt_avrcp_change_vol(uint8_t vol)
 {
+    if (g_a2dp_connect_state != BT_PRF_A2DP_CONNECTION_STATE_CONNECTED) {
+        LOGD(TAG, "ignore vol change a2dp state %d", g_a2dp_connect_state);
+        return -1;
+    }
+
 #if (defined(CONFIG_BT_AVRCP_VOL_CONTROL) && CONFIG_BT_AVRCP_VOL_CONTROL)
     return bt_prf_avrcp_tg_notify_vol_changed(vol);
 #else
@@ -570,17 +576,29 @@ int yoc_app_bt_a2dp_register_cb(yoc_app_bt_callback_t callback)
 static int bt_audio_state_app = BT_PRF_AVRCP_PLAYBACK_STOPPED;
 void bt_audio_state_check(void)
 {
+    static int duplicate_count = 0;
     if((ctrl_bt_a2dp.status == SMTAUDIO_STATE_PLAYING) && ((bt_audio_state_app == BT_PRF_AVRCP_PLAYBACK_STOPPED) || (bt_audio_state_app == BT_PRF_AVRCP_PLAYBACK_PAUSED))) {
-        //设备端处于播放状态, app处于非播放状态
-        LOGD(TAG, "a2dp status diff, device:%d app:%d", ctrl_bt_a2dp.status, bt_audio_state_app);
-        ctrl_bt_a2dp.status = SMTAUDIO_STATE_STOP;
-        LOGD(TAG, "change a2dp status: %d", ctrl_bt_a2dp.status);
+        duplicate_count++;
+        if(duplicate_count >= 2) {
+            //设备端处于播放状态, app处于非播放状态
+            LOGD(TAG, "a2dp status diff, device:%d app:%d", ctrl_bt_a2dp.status, bt_audio_state_app);
+            ctrl_bt_a2dp.status = SMTAUDIO_STATE_STOP;
+            LOGD(TAG, "change a2dp status: %d", ctrl_bt_a2dp.status);
+            duplicate_count = 0;
+        }
+        
     } else if((bt_audio_state_app == BT_PRF_AVRCP_PLAYBACK_PLAYING) && ((ctrl_bt_a2dp.status == SMTAUDIO_STATE_STOP) || (ctrl_bt_a2dp.status == SMTAUDIO_STATE_PAUSE))) {
-        //设备端处于非播放状态, app处于播放状态   以设备端状态为准，暂停app端
-        // ctrl_bt_a2dp.status = SMTAUDIO_STATE_PLAYING;
-        // LOGD(TAG, "change a2dp status: %d", ctrl_bt_a2dp.status);
-        LOGD(TAG, "a2dp status diff, device:%d app:%d", ctrl_bt_a2dp.status, bt_audio_state_app);
-        yoc_app_bt_avrcp_send_passthrouth_cmd(YOC_APP_BT_AVRCP_CMD_PAUSE);
+        duplicate_count++;
+        if(duplicate_count >= 2) {
+            //设备端处于非播放状态, app处于播放状态   以设备端状态为准，暂停app端
+            // ctrl_bt_a2dp.status = SMTAUDIO_STATE_PLAYING;
+            // LOGD(TAG, "change a2dp status: %d", ctrl_bt_a2dp.status);
+            LOGD(TAG, "a2dp status diff, device:%d app:%d", ctrl_bt_a2dp.status, bt_audio_state_app);
+            yoc_app_bt_avrcp_send_passthrouth_cmd(YOC_APP_BT_AVRCP_CMD_PAUSE);
+            duplicate_count = 0;
+        }
+    } else {
+        duplicate_count = 0;
     }
 }
 static void bt_callback(yoc_app_bt_event_t event, yoc_app_bt_param_t *param)
@@ -630,8 +648,12 @@ static void bt_callback(yoc_app_bt_event_t event, yoc_app_bt_param_t *param)
     case YOC_APP_BT_A2DP_PLAY_STATUS_STOPPED:
         LOGD(TAG, "YOC_APP_BT_A2DP_PLAY_STATUS_STOPPED");
         a2dp_audio_status = AUI_PLAYER_STOP;
-        if (ctrl_bt_a2dp.callback) {
+        if(ctrl_bt_a2dp.status != SMTAUDIO_STATE_PLAYING) {
+            LOGD(TAG, "YOC_APP_BT_A2DP_PLAY_STATUS_STOPPED");
             ctrl_bt_a2dp.callback(SMTAUDIO_BT_A2DP, SMTAUDIO_PLAYER_EVENT_STOP);
+        } else {
+            LOGD(TAG, "YOC_APP_BT_A2DP_PLAY_STATUS_STOPPED, stop by remote");
+            ctrl_bt_a2dp.callback(SMTAUDIO_BT_A2DP, SMTAUDIO_PLAYER_EVENT_PAUSE_BY_REMOTE);
         }
         break;
     case YOC_APP_BT_A2DP_PLAY_STATUS_PLAYING:
@@ -649,9 +671,16 @@ static void bt_callback(yoc_app_bt_event_t event, yoc_app_bt_param_t *param)
         }
         break;
     case YOC_APP_BT_AVRCP_STATUS_PAUSEED:
-        LOGD(TAG, "YOC_APP_BT_AVRCP_STATUS_PAUSEED");
-        if (ctrl_bt_a2dp.callback) {
-            ctrl_bt_a2dp.callback(SMTAUDIO_BT_A2DP, SMTAUDIO_PLAYER_EVENT_PAUSE_BY_REMOTE);
+        if(ctrl_bt_a2dp.status == SMTAUDIO_STATE_PLAYING) {
+            if (ctrl_bt_a2dp.callback) {
+                if(ctrl_bt_a2dp.status != SMTAUDIO_STATE_PLAYING) {
+                    LOGD(TAG, "YOC_APP_BT_AVRCP_STATUS_PAUSEED");
+                    ctrl_bt_a2dp.callback(SMTAUDIO_BT_A2DP, SMTAUDIO_PLAYER_EVENT_PAUSE);
+                } else {
+                    LOGD(TAG, "YOC_APP_BT_AVRCP_STATUS_PAUSEED, pause by remote");
+                    ctrl_bt_a2dp.callback(SMTAUDIO_BT_A2DP, SMTAUDIO_PLAYER_EVENT_PAUSE_BY_REMOTE);
+                }
+            }
         }
         break;
     case YOC_APP_BT_AVRCP_STATUS_STOPPED:
@@ -688,7 +717,11 @@ static void bt_callback(yoc_app_bt_event_t event, yoc_app_bt_param_t *param)
         audio_default_ops = get_default_audio_ops();
         s_vol = param->a2dp_vol.volume;
         if (audio_default_ops) {
-            audio_default_ops->vol_set(param->a2dp_vol.volume * 100 / 127);
+            int cur_vol = aui_player_vol_get(SMTAUDIO_LOCAL_PLAY);
+            int sync_vol = param->a2dp_vol.volume * 100 / 127;
+            if (abs(cur_vol - sync_vol) > 1) {
+                audio_default_ops->vol_set(sync_vol);
+            }
         }
         LOGD(TAG, "VOLUME_CHANGE: %d/127", param->a2dp_vol.volume);
         break;
@@ -818,34 +851,16 @@ static int bt_a2dp_vol_set(int vol)
 
 static int bt_a2dp_vol_up(int vol)
 {
-    int ret;
+    /* 从本地音量获取后是已经变化后的音量，无需在进行变化 */
     int cur_vol = aui_player_vol_get(SMTAUDIO_LOCAL_PLAY);
-
-    s_vol = (cur_vol + vol) * 127 / 100;
-
-    if (s_vol > 127) {
-        s_vol = 127;
-    }
-    /*调整 bt music 音量*/
-    ret = yoc_app_bt_avrcp_change_vol(s_vol);
-
-    return ret;
+    return bt_a2dp_vol_set(cur_vol);
 }
 
 static int bt_a2dp_vol_down(int vol)
 {
-    int ret;
+    /* 从本地音量获取后是已经变化后的音量，无需在进行变化 */
     int cur_vol = aui_player_vol_get(SMTAUDIO_LOCAL_PLAY);
-    s_vol = (cur_vol - vol) * 127 / 100;
-
-    if (s_vol < 0) {
-        s_vol = 0;
-    }
-
-    /*调整 bt music 音量*/
-    ret = yoc_app_bt_avrcp_change_vol(s_vol);
-
-    return ret;
+    return bt_a2dp_vol_set(cur_vol);
 }
 
 int8_t smtaudio_register_bt_a2dp(uint8_t min_vol, uint8_t *aef_conf, size_t aef_conf_size, float speed, int resample)

@@ -57,6 +57,10 @@ source_file:
   - "csi2/gpio/*.c ? <CONFIG_CSI_V2>"
   - "csi2/clk/*.c ? <CONFIG_CSI_V2>"
   - "csi2/sdmmc/*.c ? <CONFIG_CSI_V2>"
+  - "csi2/i2s/*.c ? <CONFIG_CSI_V2>"
+  - "csi2/pwm/*.c ? <CONFIG_CSI_V2>"
+  - "csi2/spi/*.c ? <CONFIG_CSI_V2>"
+  - "csi2/timer/*.c ? <CONFIG_CSI_V2>"
 
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项

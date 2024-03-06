@@ -233,7 +233,7 @@ static void dwc_do_first_queue(dw_dma_channel_t *dwc)
 		csi_dcache_clean_range(cfg->src_addr, cfg->length);
 		break;
 	case CVI_DMA_PERH2MEM:
-		csi_dcache_invalid_range(cfg->dst_addr, cfg->length);
+		csi_dcache_clean_invalid_range(cfg->dst_addr, cfg->length);
 		break;
 	case CVI_DMA_MEM2MEM:
 		csi_dcache_clean_range(cfg->src_addr, cfg->length);

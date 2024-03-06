@@ -159,4 +159,4 @@ public:
     };\
 const AudioEncoderRegister class_name##Register::reg(id, TM_STR(class_name), class_name##Register::NewInstance);
 
-#endif  // TM_CODEC_FACTORY_H
+#endif  /* TM_CODEC_FACTORY_H */

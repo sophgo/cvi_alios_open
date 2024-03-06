@@ -1,6 +1,9 @@
 /*
- * Copyright (C) 2022 Alibaba Group Holding Limited
+ * Copyright (C) 2022-2023 Alibaba Group Holding Limited
  */
+
+#ifndef TM_PAD_H
+#define TM_PAD_H
 
 #ifdef __linux__
 #include <tmedia_config.h>
@@ -8,13 +11,10 @@
 #include <typeinfo>
 
 #include <tmedia_core/common/common_inc.h>
-#include <tmedia_core/bind/pad_data.h>
-#include <tmedia_core/bind/pad_event.h>
-
-#ifndef TM_PAD_H
-#define TM_PAD_H
+#include <tmedia_core/bind/event.h>
 
 using namespace std;
+
 class TMEntity;
 
 class TMPad
@@ -36,45 +36,35 @@ public:
 
     typedef struct
     {
-        string    name;
-        Mode      mode;
+        string       name;
+        Mode         mode;
+        TMData::Type data_type;
     } Param_s;
 
     TMPad(TMEntity *entity, TMPad::Param_s *param);
     virtual ~TMPad();
 
-    // data interface
-    //type_info mDataTypeInfo;          // for setting data info by typeid(type/struct/class)
-    int RequestData(TMPadData **data);  // alloc data for working
-    int ReleaseData(TMPadData **data);  // free data back to idle data list
-
     // event interface
-    int SendEvent(TMPadEvent *event);   // send event to peer pad, it'll triger ProcessEvent()
-    int ProcessEvent(TMPadEvent *event);// Call to process event
+    int SendEvent(TMEvent *event);   // send event to peer pad, it'll triger ProcessEvent()
 
     // connection interface
-    virtual int Bind(TMPad *pad) = 0;   // Bind with peer pad
-    virtual int UnBind() = 0;           // UnBind with peer pad
     int GetParent(TMEntity **entity);   // Get parent(entity)
-    int GetPeer(TMPad **pad);           // Get Binded peer pad
-    int GetPeer(TMEntity **entity);     // Get Binded peer pad's parent(entity)
 
     // state & mode interface
-    int Active();
+    int  IsActive();
     bool IsSrcPad();
     bool IsSinkPad();
 
     // misc
     virtual void DumpInfo();
 
-protected:
-    int RemoveEvents(); // Called before inactive, remove all event from pad
-    Direction mDirection;
-    TMPadDataQueue mDataQueue;
-    TMPadEventQueue mEventQueue;
-
     string mName;
     Mode mMode;
+    TMData::Type mDataType;
+
+protected:
+    Direction mDirection;
+
     bool mActive;
     TMEntity *mParent;
 };
@@ -88,18 +78,22 @@ public:
     TMSrcPad(TMEntity *entity, TMPad::Param_s *param);
     virtual ~TMSrcPad() {}
 
-    int Bind(TMPad *pad) override;  // Bind with peer TMPad
-    int UnBind() override;          // UnBind with peer TMPad
-    int PushData(TMPadData *data);  // push Data to peer Pad, will triger peer's ChainData()
-    int GetData(TMPadData **data);  // Call by pull mode sink pad in PullData()
+    virtual int Bind(TMPad *pad);               // bind with peer Pad
+    virtual int UnBind();                       // un-bind with peer Pad
+
+    /* call by parent */
+    int PushData(TMData *data);         // push Data to peer Pad, will triger Peer's EnqueueData()
+    int PushEvent(TMEvent *event);      // push Event to peer Pad, will triger Peer's ChainEvent()
+
+    /* call by peer */
+    int DequeueData(TMData **data, int timeout=-1); // dequeue Data from Parent
+    int ProcessEvent(TMEvent *event);               // process Event by Parent
+
+    /* misc */
     void DumpInfo() override;
 
-protected:
     TMSinkPad *mPeerPad;
 };
-
-//typedef int (*TMPadChainFunction) (TMSinkPad *pad, TMPadData *data);
-using TMPadChainFunction = int(*)(TMSinkPad *pad, TMPadData *data);
 
 class TMSinkPad : public TMPad
 {
@@ -109,19 +103,19 @@ public:
     TMSinkPad(TMEntity *entity, TMPad::Param_s *param);
     virtual ~TMSinkPad() {}
 
-    int Bind(TMPad *pad) override;  // Bind with peer TMPad
-    int UnBind() override;           // UnBind with peer TMPad
-    int ChainData(TMPadData *data); // Call by push mode src pad in PushData()
-    int PullData(TMPadData **data); // pull Data from peer Pad, it'll triger ChainData()
+    /* call by parent */
+    int PullData(TMData **data);        // pull Data from peer Pad, it'll triger EnqueueData()
+    int PushEvent(TMEvent *event);      // push Event to peer Pad, will triger Peer's ChainEvent()
 
-    int SetChainFunction(TMPadChainFunction func);
+    /* call by peer */
+    int EnqueueData(TMData *data, int timeout=-1);  // Call by push mode src pad in PushData()
+    int ProcessEvent(TMEvent *event);               // process Event by Parent
 
+    /* misc */
     void DumpInfo() override;
 
 protected:
-    static int DefaultChainFunction(TMSinkPad *pad, TMPadData *data);
     TMSrcPad *mPeerPad;
-    TMPadChainFunction mChainFunc;
 };
 
-#endif  // TM_PAD_H
+#endif  /* TM_PAD_H */

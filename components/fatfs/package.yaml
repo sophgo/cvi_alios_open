@@ -73,18 +73,15 @@ def_config:
 #     source:                              # 安装源列表
 #      - src/*.h                           # 支持通配符，相对路径
 install:
-  - dest: "src/include/"
-    source:
-      - "src/include/*"
-  - dest: "src/"
-    source:
-      - "src/*"
   - dest: "include/"
     source:
-      - "include/*"
-  - dest: "src/sd_disk/"
+      - "src/include/*.h"
+  - dest: "include/"
     source:
-      - "src/sd_disk/*"
+      - "src/*.h"
+  - dest: "include/"
+    source:
+      - "include/*.h"
 
 ## 第七部分：导出部分
 # export:

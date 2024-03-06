@@ -1,8 +1,9 @@
 /*
- * Copyright (C) 2021-2022 Alibaba Group Holding Limited
+ * Copyright (C) 2021-2023 Alibaba Group Holding Limited
  */
 
-#pragma once
+#ifndef TM_ENCODER_H
+#define TM_ENCODER_H
 
 #include <string>
 
@@ -18,12 +19,19 @@ using namespace std;
 class TMVideoEncoder : public TMCodec, public TMFilterEntity
 {
 public:
+    enum class RateControlMode : int32_t
+    {
+        NOME,   // for: jpeg
+        CBR,    // Constants Bit Rate               for: h264, h265, mjpeg
+        VBR,    // Variable Bit Rate                for: h264, h265, mjpeg
+        CVBR,   // Constrained VariableBit Rate     for: h264
+        AVBR,   // Adaptive Variable Bit Rate       for: h264, h265
+        FIXQP,  // Fixed QP. scope:[0~51]           for: h264, h265, mjpeg
+        QPMAP,  // QP with map                      for: h264, h265
+    };
+
     TMVideoEncoder();
     virtual ~TMVideoEncoder();
-
-    // TMFilterEntity interface
-    virtual TMSrcPad *GetSrcPad(int padID = 0) = 0;
-    virtual TMSinkPad *GetSinkPad(int padID = 0) = 0;
 
     // TMCodec interface
     virtual int Open(TMCodecParams &codecParam, TMPropertyList *propList = NULL) = 0;
@@ -37,7 +45,6 @@ public:
     // TMVideoEncoder extend interface
     virtual int SendFrame(TMVideoFrame &frame, int timeout) = 0;
     virtual int RecvPacket(TMVideoPacket &pkt, int timeout) = 0;
-    virtual int ReleasePacket(TMVideoPacket &pkt) = 0;
 };
 
 class TMAudioEncoder : public TMCodec, public TMFilterEntity
@@ -62,5 +69,6 @@ public:
     // TMAudioDecoder extend interface
     virtual int SendFrame(TMAudioFrame &frame, int timeout) = 0;
     virtual int RecvPacket(TMAudioPacket &pkt, int timeout) = 0;
-    virtual int ReleasePacket(TMAudioPacket &pkt) = 0;
 };
+
+#endif  /* TM_ENCODER_H */

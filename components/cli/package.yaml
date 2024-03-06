@@ -82,6 +82,7 @@ def_config:
   CLI_UAGENT_ENABLE : 0
   CLI_SEPRATED_CONSOLE : 0
   CLI_IOBOX_ENABLE : 0
+  CONFIG_LFS_MOUNTPOINT: "/"
 
 install:
   - dest: "include/aos"

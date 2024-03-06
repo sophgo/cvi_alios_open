@@ -152,7 +152,7 @@ static void i2c_read_cmd(uint32_t idx, uint32_t device_addr,
     csi_iic_t *iic = &iic_adapter_list[idx];
     csi_iic_mem_addr_size_t reg_addr_len;
     uint8_t value[4] = {0};
-    uint32_t timeout = 1;
+    uint32_t timeout = 100;
 
     i2c_init_idx(iic, idx, IIC_MODE_MASTER, IIC_ADDRESS_7BIT,
                  IIC_BUS_SPEED_STANDARD);
@@ -182,7 +182,7 @@ static void i2c_write_cmd(uint32_t idx, uint32_t device_addr,
     csi_iic_t *iic = &iic_adapter_list[idx];
     csi_iic_mem_addr_size_t reg_addr_len;
     uint8_t value[4] = {0};
-    uint32_t timeout = 1;
+    uint32_t timeout = 100;
 
     i2c_init_idx(iic, idx, IIC_MODE_MASTER, IIC_ADDRESS_7BIT,
                  IIC_BUS_SPEED_STANDARD);

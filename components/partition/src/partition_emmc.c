@@ -26,16 +26,20 @@ static int part_blockdev_info_get(void *handle, partition_device_info_t *info)
         info->block_size = mmc_info.block_size;
         info->erase_size = mmc_info.erase_blks * mmc_info.block_size;
         info->device_size = (uint64_t)mmc_info.user_area_blks * mmc_info.block_size;
+#if CONFIG_PARTITION_SUPPORT_EMMC
         info->boot_area_size = mmc_info.boot_area_blks * mmc_info.block_size;
+#endif
 #if defined(CONFIG_DEBUG) && CONFIG_DEBUG > 2
         static int iprintflag = 0;
         if (!iprintflag) {
-            MTB_LOGD("info->base_addr:0x%lx", info->base_addr);
+            MTB_LOGD("info->base_addr:0x%" PRIX64, info->base_addr);
             MTB_LOGD("info->sector_size:0x%x", info->sector_size);
             MTB_LOGD("info->block_size:0x%x", info->block_size);
             MTB_LOGD("info->erase_size:0x%x", info->erase_size);
             MTB_LOGD("info->device_size:0x%" PRIX64, info->device_size);
+#if CONFIG_PARTITION_SUPPORT_EMMC
             MTB_LOGD("info->boot_area_size:0x%x", info->boot_area_size);
+#endif
             iprintflag = 1;
         }
 #endif
@@ -88,7 +92,7 @@ static int part_blockdev_read(void *handle, off_t offset, void *data, size_t dat
         block_cnt = data_len / mmc_info.block_size;
         // MTB_LOGD("read startblk:%d, blkcount:%d, left_size:0x%x", start_block, block_cnt, (uint32_t)left_size);
         if (block_cnt > 0) {
-            if (rvm_hal_blockdev_read_blks(handle, data, start_block, block_cnt)) {
+            if (rvm_hal_blockdev_read_blks(handle, (void *)((unsigned long)data + offt_data_left), start_block, block_cnt)) {
                 MTB_LOGE("read blks e");
                 return -1;
             }
@@ -98,14 +102,14 @@ static int part_blockdev_read(void *handle, off_t offset, void *data, size_t dat
                     MTB_LOGE("read 1 blk e");
                     return -1;
                 }
-                memcpy((void *)((unsigned long)data + block_cnt * mmc_info.block_size), tmpbuf, left_size);
+                memcpy((void *)((unsigned long)data + offt_data_left + block_cnt * mmc_info.block_size), tmpbuf, left_size);
             }
         } else {
             if (rvm_hal_blockdev_read_blks(handle, tmpbuf, start_block, 1)) {
                 MTB_LOGE("read 1 blk e");
                 return -1;
             }
-            memcpy(data, tmpbuf, left_size);
+            memcpy((void *)((unsigned long)data + offt_data_left), tmpbuf, left_size);
         }
         return 0;
     }

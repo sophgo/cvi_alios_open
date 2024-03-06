@@ -1,6 +1,6 @@
 ## 概述
 
-Light芯片组件，主要提供Light芯片外设驱动代码。
+cv181x芯片组件，主要提供cv181x芯片外设驱动代码。
 
 ### 功能
 
@@ -20,9 +20,6 @@ Light芯片组件，主要提供Light芯片外设驱动代码。
 
 ```bash
 yoc init
-yoc install chip_light
+yoc install chip_cv181x
 ```
 
-## 接口
-
-见[CSI接口描述](https://yoc.docs.t-head.cn/yocbook/Chapter3-AliOS/CSI%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E6%8E%A5%E5%8F%A3/CSI2/)

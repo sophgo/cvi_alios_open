@@ -23,9 +23,6 @@ public:
     TMRtspDemuxer() {mFormatID = TMMediaInfo::FormatID::RTSP; InitDefaultPropertyList();}
     virtual ~TMRtspDemuxer() {};
 
-    // TMSrcEntity interface
-    virtual TMSrcPad *GetSrcPad(int padID = 0) = 0;
-
     // TMFormatDemuxer interface
     virtual int Open(string url, TMPropertyList *propList = NULL) = 0;
     virtual int Close()                                           = 0;
@@ -64,4 +61,4 @@ protected:
     }
 };
 
-#endif  // TM_RTSP_DEMUXER_H
+#endif  /* TM_RTSP_DEMUXER_H */

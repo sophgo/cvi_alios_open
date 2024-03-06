@@ -1,8 +1,9 @@
 /*
  * Copyright (C) 2022 Alibaba Group Holding Limited
  */
-#ifndef _TMBUFFER_H
-#define _TMBUFFER_H
+
+#ifndef TM_BUFFER_H
+#define TM_BUFFER_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -182,6 +183,18 @@ TMBuffer *TMBuffer_NewFromFD(int fd,
                              TMBufferAllocator *allocator,
                              void* ctxAllocator);
 
+/**
+ * Create TMBuffer from existing external fd
+ *
+ * @param fd           external fd
+ * @param data         external data pointer
+ * @param size         external data size
+ *
+ * @return TMBuffer for success,NULL for failure
+ */
+TMBuffer *TMBuffer_NewFromFDWithVirAddr(int fd,
+                        void *data,
+                        int size);
 
 /**
  * AddRef  operation messages increment the reference count
@@ -268,10 +281,6 @@ int TMBuffer_RefCount(TMBuffer *buf);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif  /* __cplusplus */
 
-#endif
-
-
-
-
+#endif  /* TM_BUFFER_H */

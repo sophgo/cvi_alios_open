@@ -661,7 +661,7 @@ static int mit_stop_pcm(aui_t *aui)
     } else if (aui->audio_req_type == AUI_AUDIO_REQ_TYPE_NLP) {
         mit_context_t *context = (mit_context_t *)aui->ops.nlp->priv;
 
-        if (context->status == MIT_STATE_RESULT) {
+        if (context->status == MIT_STATE_RESULT || context->status == MIT_STATE_END) {
             return 0;
         } else if (context->status != MIT_STATE_ONGOING) {
             return -1;

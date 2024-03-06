@@ -2,8 +2,8 @@
  * Copyright (C) 2022 Alibaba Group Holding Limited
  */
 
-#ifndef TM_SENO_G711_DECODER_H
-#define TM_SENO_G711_DECODER_H
+#ifndef TM_G711_DECODER_SENO_H
+#define TM_G711_DECODER_SENO_H
 
 #include <tmedia_core/entity/codec/codec_inc.h>
 
@@ -29,10 +29,10 @@ public:
     // TMAudioDecoder extend interface
     int SendPacket(TMAudioPacket &pkt, int timeout) final override;
     int RecvFrame(TMAudioFrame &frame, int timeout) final override;
-    int ReleaseFrame(TMAudioFrame &frame) final override;
+
 private:
     std::vector<shared_ptr<TMAudioFrame>> frameVector;
     G711CodecType_e codecType;
 };
 
-#endif
+#endif  /* TM_G711_DECODER_SENO_H */

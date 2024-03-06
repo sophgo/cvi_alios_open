@@ -574,20 +574,10 @@ csi_error_t csi_aes_ofb_decrypt(csi_aes_t *aes, void *in, void *out, uint32_t si
   \param[in]   in               Pointer to the source data
   \param[out]  out              Pointer to the result data
   \param[in]   size             The source data size
-  \param[in]   nonce_counter    Pointer to the 128-bit nonce and counter
-  \param[in]   stream_block     Pointer to the saved stream-block for resuming
   \param[in]   iv               Init vector
-  \param[out]  num              The number of the 128-bit block we have used
   \return      Error code \ref csi_error_t
 */
-csi_error_t csi_aes_ctr_encrypt(csi_aes_t *aes,
-                                void *in,
-                                void *out,
-                                uint32_t size,
-                                uint8_t nonce_counter[16],
-                                uint8_t stream_block[16],
-                                void *iv,
-                                uint32_t *num)
+csi_error_t csi_aes_ctr_encrypt(csi_aes_t *aes, void *in,void *out, uint32_t size, void *iv)
 {
     return CSI_UNSUPPORTED;        
 }
@@ -598,20 +588,10 @@ csi_error_t csi_aes_ctr_encrypt(csi_aes_t *aes,
   \param[in]   in               Pointer to the source data
   \param[out]  out              Pointer to the result data
   \param[in]   size             The source data size
-  \param[in]   nonce_counter    Pointer to the 128-bit nonce and counter
-  \param[in]   stream_block     Pointer to the saved stream-block for resuming
   \param[in]   iv               Init vecotr
-  \param[out]  num              The number of the 128-bit block we have used
   \return      Error code \ref csi_error_t
 */
-csi_error_t csi_aes_ctr_decrypt(csi_aes_t *aes,
-                                void *in,
-                                void *out,
-                                uint32_t size,
-                                uint8_t nonce_counter[16],
-                                uint8_t stream_block[16],
-                                void *iv,
-                                uint32_t *num)
+csi_error_t csi_aes_ctr_decrypt(csi_aes_t *aes, void *in, void *out, uint32_t size, void *iv)
 {
     return CSI_UNSUPPORTED;
 }

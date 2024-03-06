@@ -1,8 +1,9 @@
 /*
  * Copyright (C) 2022 Alibaba Group Holding Limited
  */
-#ifndef INTERPRETER_CSINN_H
-#define INTERPRETER_CSINN_H
+
+#ifndef TM_INTERPRETER_CSINN_H
+#define TM_INTERPRETER_CSINN_H
 
 #include <cstdint>
 #include <vector>
@@ -16,6 +17,7 @@ extern "C"
 {
 #include "csinn/csi_nn.h"
 #include "csinn/csinn_runtime.h"
+#include "csinn/shl_utils.h"
 }
 
 class InterpreterCSINN: public Interpreter
@@ -48,4 +50,4 @@ private:
     void *lib_handle;
 };
 
-#endif
+#endif  /* TM_INTERPRETER_CSINN_H */

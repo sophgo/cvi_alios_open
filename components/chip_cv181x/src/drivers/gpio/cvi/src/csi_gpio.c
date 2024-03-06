@@ -183,7 +183,16 @@ csi_error_t csi_gpio_debounce(csi_gpio_t *gpio, uint32_t pin_mask, bool enable)
 {
     CSI_PARAM_CHK(gpio, CSI_ERROR);
     CSI_PARAM_CHK(pin_mask, CSI_ERROR);
-    return CSI_UNSUPPORTED;
+
+    unsigned long reg_base = HANDLE_REG_BASE(gpio);
+    uint32_t temp = dw_gpio_get_debounce(reg_base);
+
+    if (enable) {
+        dw_gpio_set_debounce(reg_base, temp | pin_mask);
+    } else {
+        dw_gpio_set_debounce(reg_base, temp & (~pin_mask));
+    }
+    return CSI_OK;
 }
 
 void csi_gpio_write(csi_gpio_t *gpio, uint32_t pin_mask, csi_gpio_pin_state_t value)

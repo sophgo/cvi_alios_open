@@ -6,6 +6,9 @@
 #define TM_DECODER_H
 
 #include <string>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 #include <tmedia_core/common/media_info.h>
 
@@ -13,6 +16,7 @@
 #include <tmedia_core/common/packet.h>
 #include <tmedia_core/common/frame.h>
 #include <tmedia_core/entity/entity.h>
+#include <tmedia_core/bind/bind_inc.h>
 
 using namespace std;
 
@@ -31,13 +35,32 @@ public:
     virtual int Stop()  = 0;
     virtual int Close() = 0;
 
-    // TMFilterEntity interface
-    virtual TMSrcPad *GetSrcPad(int padID = 0) = 0;
-    virtual TMSinkPad *GetSinkPad(int padID = 0) = 0;
-
     // TMVideoDecoder extend interface
     virtual int SendPacket(TMPacket &pkt, int timeout) = 0;
     virtual int RecvFrame(TMVideoFrame &frame, int timeout) = 0;
+
+    // TMEntity interface
+    virtual int EnqueueData(TMSinkPad *pad, TMData *data, int timeout=-1) final override;
+    virtual int ProcessEvent(TMEvent *event) final override;
+    virtual int PipeStart()  final override;
+    virtual int PipePause()  final override;
+    virtual int PipeStop()   final override;
+
+protected:
+    virtual int CreatePads()  final override;
+    virtual int DestoryPads() final override;
+
+private:
+    thread *mThreadData;
+    bool mThreadRunFlag;
+    std::mutex mPipeMutex;
+    std::condition_variable mPipeCondition;
+
+    void ThreadRoutine();
+
+    int StartProcessData();
+    int PauseProcessData();
+    int StopProcessData();
 };
 
 class TMAudioDecoder : public TMCodec, public TMFilterEntity
@@ -64,4 +87,4 @@ public:
     virtual int RecvFrame(TMAudioFrame &frame, int timeout) = 0;
 };
 
-#endif  // TM_DECODER_H
+#endif  /* TM_DECODER_H */

@@ -67,7 +67,7 @@ static int32_t ramfs_vfs_close(vfs_file_t *fp)
     return ret;
 }
 
-static int32_t ramfs_vfs_read(vfs_file_t *fp, char *buf, uint32_t len)
+static ssize_t ramfs_vfs_read(vfs_file_t *fp, char *buf, size_t len)
 {
     ramfs_file_t ramfs_file;
 
@@ -90,10 +90,10 @@ static int32_t ramfs_vfs_read(vfs_file_t *fp, char *buf, uint32_t len)
         res = -1;
     }
 
-    return res;
+    return (ssize_t)res;
 }
 
-static int32_t ramfs_vfs_write(vfs_file_t *fp, const char *buf, uint32_t len)
+static ssize_t ramfs_vfs_write(vfs_file_t *fp, const char *buf, size_t len)
 {
     ramfs_file_t ramfs_file;
 
@@ -116,7 +116,7 @@ static int32_t ramfs_vfs_write(vfs_file_t *fp, const char *buf, uint32_t len)
         res = -1;
     }
 
-    return res;
+    return (ssize_t)res;
 }
 
 static int32_t ramfs_vfs_access(vfs_file_t *fp, const char *path, int32_t amode)
@@ -136,7 +136,7 @@ static int32_t ramfs_vfs_access(vfs_file_t *fp, const char *path, int32_t amode)
     return ret;
 }
 
-static uint32_t ramfs_vfs_lseek(vfs_file_t *fp, int64_t off, int32_t whence)
+static off_t ramfs_vfs_lseek(vfs_file_t *fp, int64_t off, int32_t whence)
 {
     ramfs_file_t ramfs_file;
 
@@ -160,7 +160,7 @@ static uint32_t ramfs_vfs_lseek(vfs_file_t *fp, int64_t off, int32_t whence)
         fp->offset = offset;
     }
 
-    return fp->offset;
+    return (off_t)fp->offset;
 }
 
 static int32_t ramfs_vfs_link(vfs_file_t *fp, const char *path1, const char *path2)
@@ -338,14 +338,14 @@ static vfs_dirent_t *ramfs_vfs_readdir(vfs_file_t *fp, vfs_dir_t *dir)
     return ret;
 }
 
-static int32_t ramfs_vfs_pathconf(vfs_file_t *fp, const char *path, int32_t name)
+static long ramfs_vfs_pathconf(vfs_file_t *fp, const char *path, int32_t name)
 {
-    return ramfs_pathconf(name);
+    return (long)ramfs_pathconf(name);
 }
 
-static int32_t ramfs_vfs_fpathconf(vfs_file_t *fp, int32_t name)
+static long ramfs_vfs_fpathconf(vfs_file_t *fp, int32_t name)
 {
-    return ramfs_pathconf(name);
+    return (long)ramfs_pathconf(name);
 }
 
 static int32_t ramfs_vfs_utime(vfs_file_t *fp, const char *path, const vfs_utimbuf_t *times)
@@ -371,7 +371,7 @@ static int ramfs_vfs_sync(vfs_file_t *fp)
     return 0;
 }
 
-vfs_filesystem_ops_t ramfs_ops = {
+vfs_fs_ops_t ramfs_ops = {
     .open      = &ramfs_vfs_open,
     .close     = &ramfs_vfs_close,
     .read      = &ramfs_vfs_read,

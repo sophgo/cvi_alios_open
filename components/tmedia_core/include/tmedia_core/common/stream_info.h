@@ -2,7 +2,9 @@
  * Copyright (C) 2021-2022 Alibaba Group Holding Limited
  */
 
-#pragma once
+#ifndef TM_STREAM_INFO_H
+#define TM_STREAM_INFO_H
+
 #include <string>
 
 #include <tmedia_core/common/common_inc.h>
@@ -54,3 +56,4 @@ public:
     };
 };
 
+#endif  /* TM_STREAM_INFO_H */

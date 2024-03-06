@@ -2,8 +2,8 @@
  * Copyright (C) 2022 Alibaba Group Holding Limited
  */
 
-#ifndef _TMDEFAULTBUFFERALLOCATOR_H
-#define _TMDEFAULTBUFFERALLOCATOR_H
+#ifndef TM_DEFAULT_BUFFER_ALLOCATOR_H
+#define TM_DEFAULT_BUFFER_ALLOCATOR_H
 
 #include "buffer.h"
 
@@ -37,6 +37,6 @@ TMBufferAllocator *DefaultBufferAllocator_Get();
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif  /* __cplusplus */
 
-#endif
+#endif  /* TM_DEFAULT_BUFFER_ALLOCATOR_H */

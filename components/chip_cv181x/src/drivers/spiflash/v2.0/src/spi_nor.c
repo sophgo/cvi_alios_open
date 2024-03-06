@@ -91,6 +91,8 @@ const struct flash_info spi_flash_ids[] = {
 		RD_FULL | WR_QPP | SECT_4K) },
 	{ "P25Q64SH", INFO(0x856017, 0x0, 64 * 1024, 128,
 		RD_FULL | WR_QPP | SECT_4K) },
+	{ "GM25Q64A", INFO(0x1c4017, 0x0, 64 * 1024, 128,
+		RD_FULL | WR_QPP | SECT_4K) },
 	{ "GD25F64F", INFO(0xc84317, 0x0, 64 * 1024, 128,
 		RD_FULL | WR_QPP | SECT_4K | _10_DUMMY_CYCLE | NO_QE | ADJUST_DUMMY) },
 

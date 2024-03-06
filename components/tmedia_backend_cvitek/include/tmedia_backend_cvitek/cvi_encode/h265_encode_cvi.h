@@ -31,7 +31,6 @@ public:
     // TMVideoEncoder interface
     int SendFrame(TMVideoFrame &frame, int timeout) final override;
     int RecvPacket(TMVideoPacket &pkt, int timeout) final override;
-    int ReleasePacket(TMVideoPacket &pkt)           final override;
 
 private:
     int mChannelID;

@@ -238,7 +238,11 @@ static int d1_voice_pcm_acquire(void *data, int len)
             int16_t *pref = (int16_t *)dataref;
 
             for (int i = 0; i < rlen / 2; i += 3) {
+#if defined(CONFIG_BOARD_F133_EVB) && CONFIG_BOARD_F133_EVB
+                pmic[2] = pref[2];
+#else
                 pmic[2] = pref[0];
+#endif
                 pmic += 3;
                 pref += 3;
             }

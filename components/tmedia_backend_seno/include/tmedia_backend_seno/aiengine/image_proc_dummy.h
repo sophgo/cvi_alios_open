@@ -2,8 +2,8 @@
  * Copyright (C) 2022 Alibaba Group Holding Limited
  */
 
-#ifndef __IMAGE_PROC_DUMMY_H__
-#define __IMAGE_PROC_DUMMY_H__
+#ifndef TM_IMAGE_PROC_DUMMY_H
+#define TM_IMAGE_PROC_DUMMY_H
 
 #include <string>
 
@@ -26,9 +26,7 @@ public:
     int Crop(const TMVideoFrame &src, const TMImageInfo::ImageRect_t &dst_rect, TMVideoFrame &dst);
     int CropResize(const TMVideoFrame &src, const TMImageInfo::ImageRect_t &crop_rect, const TMImageInfo::ImageSize_t &dst_size,
                       TMImageInfo::PixelFormat dst_format, TMVideoFrame &dst) override;
+    int BatchCropResize(const TMVideoFrame &src, const TMImageInfo::ImageRect_t *crop_rect, const TMImageInfo::ImageSize_t *dst_size, TMImageInfo::PixelFormat dst_format, TMVideoFrame **dst, int count);
 };
 
-
-
-
-#endif // __IMAGE_PROC_DUMMY_H__
+#endif  /* TM_IMAGE_PROC_DUMMY_H */

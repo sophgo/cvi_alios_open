@@ -39,6 +39,8 @@ public:
         OUTPUT_WIDTH,
         OUTPUT_HEIGHT,
         OUTPUT_PIXEL_FORMAT,
+
+        START_FRAME_NUM,        // int32_t >= 0, the number of frames to skip when start
     };
 
     TMVpssParams mParams;
@@ -61,9 +63,6 @@ public:
 
     virtual int SendFrame(TMVideoFrame &frame, int timeout) = 0;
     virtual int RecvFrame(TMVideoFrame &frame, int timeout) = 0;
-    virtual int ReleaseFrame(TMVideoFrame &frame)           = 0;
-
-private:
 };
 
-#endif  // TM_VPSS_H
+#endif  /* TM_VPSS_H */

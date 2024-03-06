@@ -28,6 +28,7 @@ build_config:
   include:
     - include
     - include/jqutil_v2
+    - jsapi/include
   libs:                                  # 该组件中支持的二进制静态库,如：libxxx.a, libyyy.a
     - falcon_entry
     - jquick_falcon                            #   -lxxx
@@ -54,6 +55,7 @@ build_config:
     - jsapi_proxy
     - jquick_debug
     - pms
+    - systemui
      #- message_knife                                 # 该组件中支持的二进制静态库,如：libxxx.a, libyyy.a
   libpath:                               # 指定静态库所在的路径（相对于该组件路径）
     - lib/<cpu>
@@ -62,15 +64,16 @@ build_config:
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
 source_file:
   - src/*.c 
-  - src/jsapi_aiot_wifi/*.cpp
-  - src/jsapi_hello/*.cpp
-  - src/jsapi_aiot_http/*.cpp
-  - src/jsapi_power/*.cpp
-  - src/jsapi_screen/*.cpp
-  - src/jsapi_system_kv/*.cpp
-  - src/jsapi_voice/*.cpp
-  - src/jsapi_smartaudio/*.cpp
-  - src/jsapi_fota/*.cpp
+  - jsapi/jsapi_wifi/*.cpp
+  - jsapi/jsapi_hello/*.cpp
+  - jsapi/jsapi_http/*.cpp
+  - jsapi/jsapi_power/*.cpp
+  - jsapi/jsapi_screen/*.cpp
+  - jsapi/jsapi_system_kv/*.cpp
+  - jsapi/jsapi_voice/*.cpp ? <CONFIG_COMP_VOICE_WRAPPER>
+  - jsapi/jsapi_smartaudio/*.cpp
+  - jsapi/jsapi_fota/*.cpp
+  - jsapi/jsapi_gateway/*.cpp ? <CONFIG_BT_MESH>
 
 def_config:
   CONFIG_IOT_MINIAPP_SDK: 1

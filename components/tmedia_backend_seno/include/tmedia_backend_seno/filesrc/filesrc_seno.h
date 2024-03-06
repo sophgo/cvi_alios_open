@@ -52,4 +52,4 @@ private:
     bool statCheck(STAT stat);
 };
 
-#endif  // TM_FILESRC_SENO_H
+#endif  /* TM_FILESRC_SENO_H */

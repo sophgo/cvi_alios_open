@@ -15,6 +15,8 @@
 #include <drv/pin.h>
 #include <drv/wdt.h>
 #include <board.h>
+#include <stdint.h>
+#include <mmio.h>
 
 static csi_uart_t g_console_handle;
 
@@ -44,14 +46,26 @@ static void uart_init(void)
 //     }
 // }
 
+void clk_axi4_reconfig(void)
+{
+// hsperi clock to PLL (FPLL) div by x  = 1500 / x
+#if CONFIG_SPINOR_CLK_75M
+    mmio_write_32(0x030020B8, 0x00050009);
+#elif CONFIG_SPINOR_CLK_93M
+    mmio_write_32(0x030020B8, 0x00040009);
+#elif CONFIG_SPINOR_CLK_125M
+    mmio_write_32(0x030020B8, 0x00030009);
+#endif
+}
+
 void board_yoc_init(void)
 {
-    extern unsigned int csi_tick_get_ms(void);
-    unsigned int cur_ms;
-    cur_ms = csi_tick_get_ms();
+    // extern unsigned int csi_tick_get_ms(void);
+    // unsigned int cur_ms;
+    // cur_ms = csi_tick_get_ms();
     board_init();
     uart_init();
-    printf("\n##cur_ms:%d\n", cur_ms);
+    // printf("\n##cur_ms:%d\n", cur_ms);
     // wdt_init();
 }
 

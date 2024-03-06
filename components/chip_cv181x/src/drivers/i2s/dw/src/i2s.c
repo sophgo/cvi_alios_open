@@ -90,7 +90,7 @@ static uint32_t xrun = 0;
 static uint32_t res_data = 0;
 
 
-static uint8_t *get_buffer_alig_64(uint32_t len, uint64_t *first_addr)
+static uint8_t *get_buffer_alig_64(uint32_t len, uint64_t **first_addr)
 {
 	uint8_t  *addr;
 	uint64_t tmp;
@@ -99,7 +99,7 @@ static uint8_t *get_buffer_alig_64(uint32_t len, uint64_t *first_addr)
 	if(!tmp){
 		return NULL;
 	}
-	first_addr = (uint64_t *)tmp;
+	*first_addr = (uint64_t *)tmp;
 	addr = (uint8_t *)((tmp+ (1 << 6) - 1) & ~((1 << 6) - 1));
 	return addr;
 }
@@ -1352,7 +1352,7 @@ csi_error_t csi_i2s_send_start(csi_i2s_t *i2s)
 
     i2s_transfer_tx_data(pi2s_tx);
     memset(i2s->tx_buf->buffer, 0, i2s->tx_buf->size);
-    pAlignZero = get_buffer_alig_64(i2s->tx_period, pZero);
+    pAlignZero = get_buffer_alig_64(i2s->tx_period, &pZero);
     i2s->state.writeable = 1U;
 
     return ret;

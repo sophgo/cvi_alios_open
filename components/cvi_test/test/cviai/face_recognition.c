@@ -3,7 +3,7 @@
 #include <aos/kernel.h>
 #include "cvi_vo.h"
 #include "cviruntime.h"
-#include "cviai.h"
+#include "cvi_tdl.h"
 #include "ai_utils.h"
 #include "face_detection.h"
 #include "fatfs_vfs.h"
@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <aos/cli.h>
 
-CVI_S32 cal_cos_sim(cvai_feature_t *a, cvai_feature_t *b, float *score) {
+CVI_S32 cal_cos_sim(cvtdl_feature_t *a, cvtdl_feature_t *b, float *score) {
   if (a->ptr == NULL || b->ptr == NULL || a->size != b->size) {
     printf("cosine distance failed.\n");
     return CVI_FAILURE;
@@ -32,13 +32,13 @@ CVI_S32 cal_cos_sim(cvai_feature_t *a, cvai_feature_t *b, float *score) {
 }
 
 // extern void vb_proc_show(int32_t argc, char **argv); //show vb pool
-int load_feature_from_file(const char *sz_file,cvai_feature_t *p_feat,uint32_t size){
+int load_feature_from_file(const char *sz_file,cvtdl_feature_t *p_feat,uint32_t size){
   int fd = aos_open(sz_file, O_RDONLY);
   if(fd <0){
     printf("open file failed,%s\n",sz_file);
     return -1;
   }
-  memset(p_feat,0,sizeof(cvai_feature_t));
+  memset(p_feat,0,sizeof(cvtdl_feature_t));
   p_feat->ptr = aos_malloc(size);
   p_feat->size = size;
   int nbytesread = aos_read(fd, p_feat->ptr, size);
@@ -49,7 +49,7 @@ int load_feature_from_file(const char *sz_file,cvai_feature_t *p_feat,uint32_t s
   aos_close(fd);
   return 0;
 }
-int dump_face_sim_info(const char *sz_file,cvai_face_t *p_face_meta,float *p_sim){
+int dump_face_sim_info(const char *sz_file,cvtdl_face_t *p_face_meta,float *p_sim){
   int fd = aos_open(sz_file,  0100 | 02 | 01000);
   CVI_S32 s32Ret = CVI_SUCCESS;
 	if (fd <= 0) {
@@ -68,36 +68,36 @@ int dump_face_sim_info(const char *sz_file,cvai_face_t *p_face_meta,float *p_sim
 }
 
 //detect face in video,and then check similarity with the /mnt/sd/gallery.bin
-int  cviai_face_recognition(int32_t argc, char **argv) {
+int  cvitdl_face_recognition(int32_t argc, char **argv) {
   if (argc != 3) {
-    printf("usage: cviai_fd <inference_num> <gallery_file>\n");
+    printf("usage: cvitdl_fd <inference_num> <gallery_file>\n");
     return CVI_FAILURE;
   }
   int inference_num = atoi(argv[1]);
 
   LOGI(AI_TAG, "CVIAI Face Detection (inference num: %d)", inference_num);
-  CVI_S32 s32Ret = CVIAI_SUCCESS;
+  CVI_S32 s32Ret = CVI_TDL_SUCCESS;
 
   VideoSystemContext vs_ctx = {0};
   // SIZE_S aiInputSize = {.u32Width = 1920, .u32Height = 1080};
   SIZE_S aiInputSize = {.u32Width = 1280, .u32Height = 720};
   InitVideoSystem(&vs_ctx, &aiInputSize, VI_PIXEL_FORMAT, 0);
 
-  cviai_handle_t ai_handle = NULL;
-  s32Ret = CVI_AI_CreateHandle2(&ai_handle, 1, 0);
+  cvitdl_handle_t ai_handle = NULL;
+  s32Ret = CVI_TDL_CreateHandle2(&ai_handle, 1, 0);
   const char *FD_MODEL_PATH = SD_FATFS_MOUNTPOINT"/retinaface_mnet0.25_342_608.cvimodel";
-  s32Ret = CVI_AI_OpenModel(ai_handle, CVI_AI_SUPPORTED_MODEL_RETINAFACE, FD_MODEL_PATH);
+  s32Ret = CVI_TDL_OpenModel(ai_handle, CVI_TDL_SUPPORTED_MODEL_RETINAFACE, FD_MODEL_PATH);
   if (s32Ret != CVI_SUCCESS) {
     printf("Facelib open failed with %#x!\n", s32Ret);
     return s32Ret;
   }
   const char *FR_MODEL_PATH = SD_FATFS_MOUNTPOINT"/cviface-v5-s.cvimodel";
-  s32Ret = CVI_AI_OpenModel(ai_handle, CVI_AI_SUPPORTED_MODEL_FACERECOGNITION, FR_MODEL_PATH);
+  s32Ret = CVI_TDL_OpenModel(ai_handle, CVI_TDL_SUPPORTED_MODEL_FACERECOGNITION, FR_MODEL_PATH);
   if (s32Ret != CVI_SUCCESS) {
     printf("Facelib open failed with %#x!\n", s32Ret);
     return s32Ret;
   }
-  cvai_feature_t gallery;
+  cvtdl_feature_t gallery;
   s32Ret = load_feature_from_file(argv[2],&gallery,256);
   if(s32Ret !=0){
     aos_free(gallery.ptr);
@@ -106,8 +106,8 @@ int  cviai_face_recognition(int32_t argc, char **argv) {
   }else{
     printf("gallery loaded successfully\n");
   }
-  CVI_AI_SetSkipVpssPreprocess(ai_handle, CVI_AI_SUPPORTED_MODEL_RETINAFACE, false);
-  CVI_AI_SetSkipVpssPreprocess(ai_handle, CVI_AI_SUPPORTED_MODEL_FACERECOGNITION, false);
+  CVI_TDL_SetSkipVpssPreprocess(ai_handle, CVI_TDL_SUPPORTED_MODEL_RETINAFACE, false);
+  CVI_TDL_SetSkipVpssPreprocess(ai_handle, CVI_TDL_SUPPORTED_MODEL_FACERECOGNITION, false);
 
   VIDEO_FRAME_INFO_S frame;
   /* Initialize VPSS config */
@@ -116,8 +116,8 @@ int  cviai_face_recognition(int32_t argc, char **argv) {
 
   aos_msleep(1000);
 
-  cvai_face_t face_meta;
-  memset(&face_meta, 0, sizeof(cvai_face_t));
+  cvtdl_face_t face_meta;
+  memset(&face_meta, 0, sizeof(cvtdl_face_t));
   uint32_t counter = 0;
   while (inference_num == -1 || counter < inference_num) {
     printf("counter %u\n", counter);
@@ -130,10 +130,10 @@ int  cviai_face_recognition(int32_t argc, char **argv) {
     printf("frame[%u]: width[%u], height[%u]\n", counter,
            frame.stVFrame.u32Width, frame.stVFrame.u32Height);
 
-    cvai_face_t face_meta;
-    memset(&face_meta, 0, sizeof(cvai_face_t));
+    cvtdl_face_t face_meta;
+    memset(&face_meta, 0, sizeof(cvtdl_face_t));
 
-    CVI_AI_RetinaFace(ai_handle, &frame, &face_meta);
+    CVI_TDL_RetinaFace(ai_handle, &frame, &face_meta);
     printf("face meta: size[%u], width[%u], height[%u], rescale_type[%d]\n", 
           face_meta.size, face_meta.width, face_meta.height, face_meta.rescale_type);
     for (uint32_t i = 0; i < face_meta.size; ++i) {
@@ -142,14 +142,14 @@ int  cviai_face_recognition(int32_t argc, char **argv) {
             face_meta.info[i].bbox.x2, face_meta.info[i].bbox.y2,face_meta.info[i].bbox.score);
     }
 
-    CVI_AI_FaceRecognition(ai_handle, &frame, &face_meta);
+    CVI_TDL_FaceRecognition(ai_handle, &frame, &face_meta);
     for (uint32_t i = 0; i < face_meta.size; ++i){
       float score = 0;
       if(cal_cos_sim(&face_meta.info[i].feature,&gallery,&score)==0){
         printf("face:%u,matched score:%f\n",i,score);
       }
     }
-    CVI_AI_Free(&face_meta);
+    CVI_TDL_Free(&face_meta);
     s32Ret = CVI_VPSS_ReleaseChnFrame(vpssGrp, vpssChnAI, &frame);
     if (s32Ret != CVI_SUCCESS) {
       printf("CVI_VPSS_ReleaseChnFrame chn0 NG\n");
@@ -158,52 +158,52 @@ int  cviai_face_recognition(int32_t argc, char **argv) {
     ++counter;
   }
   aos_free(gallery.ptr);
-  CVI_AI_DestroyHandle(ai_handle);
+  CVI_TDL_DestroyHandle(ai_handle);
 
   LOGI(AI_TAG, "CVIAI Face Detection (END)");
   return s32Ret;
 }
-ALIOS_CLI_CMD_REGISTER(cviai_face_recognition, cviai_vi_fr, cviai_vi_fr);
+ALIOS_CLI_CMD_REGISTER(cvitdl_face_recognition, cvitdl_vi_fr, cvitdl_vi_fr);
 
 //check face feature similarity
-int cviai_read_check_two_face_sim(int argc, char *argv[]) {
+int cvitdl_read_check_two_face_sim(int argc, char *argv[]) {
 
-  cviai_handle_t ai_handle = NULL;
+  cvitdl_handle_t ai_handle = NULL;
 
-  int ret = CVI_AI_CreateHandle2(&ai_handle, 1, 0);
+  int ret = CVI_TDL_CreateHandle2(&ai_handle, 1, 0);
   const char *FD_MODEL_PATH = SD_FATFS_MOUNTPOINT"/retinaface_mnet0.25_342_608.cvimodel";
-  ret = CVI_AI_OpenModel(ai_handle, CVI_AI_SUPPORTED_MODEL_RETINAFACE, FD_MODEL_PATH);
+  ret = CVI_TDL_OpenModel(ai_handle, CVI_TDL_SUPPORTED_MODEL_RETINAFACE, FD_MODEL_PATH);
   if (ret != CVI_SUCCESS) {
     printf("Facelib open failed with %#x!\n", ret);
     return ret;
   }
   const char *FR_MODEL_PATH = SD_FATFS_MOUNTPOINT"/cviface-v5-s.cvimodel";
-  ret = CVI_AI_OpenModel(ai_handle, CVI_AI_SUPPORTED_MODEL_FACERECOGNITION, FR_MODEL_PATH);
+  ret = CVI_TDL_OpenModel(ai_handle, CVI_TDL_SUPPORTED_MODEL_FACERECOGNITION, FR_MODEL_PATH);
   if (ret != CVI_SUCCESS) {
     printf("Facelib open failed with %#x!\n", ret);
     return ret;
   }
 
-  CVI_AI_SetSkipVpssPreprocess(ai_handle, CVI_AI_SUPPORTED_MODEL_RETINAFACE, false);
-  CVI_AI_SetSkipVpssPreprocess(ai_handle, CVI_AI_SUPPORTED_MODEL_FACERECOGNITION, false);
+  CVI_TDL_SetSkipVpssPreprocess(ai_handle, CVI_TDL_SUPPORTED_MODEL_RETINAFACE, false);
+  CVI_TDL_SetSkipVpssPreprocess(ai_handle, CVI_TDL_SUPPORTED_MODEL_FACERECOGNITION, false);
   
 
   VB_BLK blk_fr;
 	VIDEO_FRAME_INFO_S frame;
-  // if (CVI_SUCCESS != CVI_AI_ReadImage(argv[1], &blk_fr, &frame, PIXEL_FORMAT_RGB_888)){
-  //   LOGE(AI_TAG, "cviai read image failed.");
-  //   CVI_AI_DestroyHandle(ai_handle);
+  // if (CVI_SUCCESS != CVI_TDL_ReadImage(argv[1], &blk_fr, &frame, PIXEL_FORMAT_RGB_888)){
+  //   LOGE(AI_TAG, "cvitdl read image failed.");
+  //   CVI_TDL_DestroyHandle(ai_handle);
   // }
   printf("to read image\n");
-  if (CVI_SUCCESS != CVI_AI_LoadBinImage(argv[1], &blk_fr, &frame, PIXEL_FORMAT_RGB_888_PLANAR)){
-    LOGE(AI_TAG, "cviai read image failed.");
+  if (CVI_SUCCESS != CVI_TDL_LoadBinImage(argv[1], &blk_fr, &frame, PIXEL_FORMAT_RGB_888_PLANAR)){
+    LOGE(AI_TAG, "cvitdl read image failed.");
     CVI_VB_ReleaseBlock(blk_fr);
-    CVI_AI_DestroyHandle(ai_handle);
+    CVI_TDL_DestroyHandle(ai_handle);
   }
-  cvai_face_t face_meta;
-  memset(&face_meta, 0, sizeof(cvai_face_t));
+  cvtdl_face_t face_meta;
+  memset(&face_meta, 0, sizeof(cvtdl_face_t));
   printf("image read done,w:%d\n",frame.stVFrame.u32Width);
-  CVI_AI_RetinaFace(ai_handle, &frame, &face_meta);
+  CVI_TDL_RetinaFace(ai_handle, &frame, &face_meta);
   printf("face meta: size[%u], width[%u], height[%u], rescale_type[%d]\n", 
          face_meta.size, face_meta.width, face_meta.height, face_meta.rescale_type);
   for (uint32_t i = 0; i < face_meta.size; ++i) {
@@ -213,7 +213,7 @@ int cviai_read_check_two_face_sim(int argc, char *argv[]) {
   }
 
 
-  CVI_AI_FaceRecognition(ai_handle, &frame, &face_meta);
+  CVI_TDL_FaceRecognition(ai_handle, &frame, &face_meta);
   float score = 0;
   if(face_meta.size == 2){
     if (CVI_SUCCESS != cal_cos_sim(&face_meta.info[0].feature, &face_meta.info[1].feature, &score)) {
@@ -232,52 +232,52 @@ int cviai_read_check_two_face_sim(int argc, char *argv[]) {
   }
   dump_face_sim_info("/mnt/sd/fr_result.txt",&face_meta,p_sim_info);
   if(p_sim_info)free(p_sim_info);
-  CVI_AI_Free(&face_meta);
-  CVI_AI_DestroyHandle(ai_handle);
+  CVI_TDL_Free(&face_meta);
+  CVI_TDL_DestroyHandle(ai_handle);
   return ret;
 }
-ALIOS_CLI_CMD_REGISTER(cviai_read_check_two_face_sim, cviai_read_check_fr, cviai_read_check_fr);
+ALIOS_CLI_CMD_REGISTER(cvitdl_read_check_two_face_sim, cvitdl_read_check_fr, cvitdl_read_check_fr);
 
 
 //extract a face feature to /mnt/sd/gallery.bin
-int cviai_dump_feature(int argc, char *argv[]) {
+int cvitdl_dump_feature(int argc, char *argv[]) {
 
-  cviai_handle_t ai_handle = NULL;
+  cvitdl_handle_t ai_handle = NULL;
 
-  int ret = CVI_AI_CreateHandle2(&ai_handle, 1, 0);
+  int ret = CVI_TDL_CreateHandle2(&ai_handle, 1, 0);
   const char *FD_MODEL_PATH = SD_FATFS_MOUNTPOINT"/retinaface_mnet0.25_342_608.cvimodel";
-  ret = CVI_AI_OpenModel(ai_handle, CVI_AI_SUPPORTED_MODEL_RETINAFACE, FD_MODEL_PATH);
+  ret = CVI_TDL_OpenModel(ai_handle, CVI_TDL_SUPPORTED_MODEL_RETINAFACE, FD_MODEL_PATH);
   if (ret != CVI_SUCCESS) {
     printf("Facelib open failed with %#x!\n", ret);
     return ret;
   }
   const char *FR_MODEL_PATH = SD_FATFS_MOUNTPOINT"/cviface-v5-s.cvimodel";
-  ret = CVI_AI_OpenModel(ai_handle, CVI_AI_SUPPORTED_MODEL_FACERECOGNITION, FR_MODEL_PATH);
+  ret = CVI_TDL_OpenModel(ai_handle, CVI_TDL_SUPPORTED_MODEL_FACERECOGNITION, FR_MODEL_PATH);
   if (ret != CVI_SUCCESS) {
     printf("Facelib open failed with %#x!\n", ret);
     return ret;
   }
 
-  CVI_AI_SetSkipVpssPreprocess(ai_handle, CVI_AI_SUPPORTED_MODEL_RETINAFACE, false);
-  CVI_AI_SetSkipVpssPreprocess(ai_handle, CVI_AI_SUPPORTED_MODEL_FACERECOGNITION, false);
+  CVI_TDL_SetSkipVpssPreprocess(ai_handle, CVI_TDL_SUPPORTED_MODEL_RETINAFACE, false);
+  CVI_TDL_SetSkipVpssPreprocess(ai_handle, CVI_TDL_SUPPORTED_MODEL_FACERECOGNITION, false);
 
   // float threshold = (float)atof(argv[2]);
-  // CVI_AI_SetModelThreshold(ai_handle, CVI_AI_SUPPORTED_MODEL_RETINAFACE, threshold);
-  // CVI_AI_GetModelThreshold(ai_handle, CVI_AI_SUPPORTED_MODEL_RETINAFACE, &threshold);
-  // printf("CVI_AI_SUPPORTED_MODEL_RETINAFACE threshold: %f !!!!!!!!!\n", threshold);
+  // CVI_TDL_SetModelThreshold(ai_handle, CVI_TDL_SUPPORTED_MODEL_RETINAFACE, threshold);
+  // CVI_TDL_GetModelThreshold(ai_handle, CVI_TDL_SUPPORTED_MODEL_RETINAFACE, &threshold);
+  // printf("CVI_TDL_SUPPORTED_MODEL_RETINAFACE threshold: %f !!!!!!!!!\n", threshold);
 
   VB_BLK blk_fr;
 	VIDEO_FRAME_INFO_S frame;
 
-  if (CVI_SUCCESS != CVI_AI_LoadBinImage(argv[1], &blk_fr, &frame, PIXEL_FORMAT_RGB_888)){
-    LOGE(AI_TAG, "cviai read image failed.");
+  if (CVI_SUCCESS != CVI_TDL_LoadBinImage(argv[1], &blk_fr, &frame, PIXEL_FORMAT_RGB_888)){
+    LOGE(AI_TAG, "cvitdl read image failed.");
     CVI_VB_ReleaseBlock(blk_fr);
-    CVI_AI_DestroyHandle(ai_handle);
+    CVI_TDL_DestroyHandle(ai_handle);
   }
-  cvai_face_t face_meta;
-  memset(&face_meta, 0, sizeof(cvai_face_t));
+  cvtdl_face_t face_meta;
+  memset(&face_meta, 0, sizeof(cvtdl_face_t));
   printf("image read done,w:%d\n",frame.stVFrame.u32Width);
-  CVI_AI_RetinaFace(ai_handle, &frame, &face_meta);
+  CVI_TDL_RetinaFace(ai_handle, &frame, &face_meta);
   printf("face meta: size[%u], width[%u], height[%u], rescale_type[%d]\n", 
          face_meta.size, face_meta.width, face_meta.height, face_meta.rescale_type);
   // for (uint32_t i = 0; i < face_meta.size; ++i) {
@@ -295,7 +295,7 @@ int cviai_dump_feature(int argc, char *argv[]) {
   // }
 
 
-  CVI_AI_FaceRecognition(ai_handle, &frame, &face_meta);
+  CVI_TDL_FaceRecognition(ai_handle, &frame, &face_meta);
   
   if(face_meta.size == 1){
     const uint8_t*ptr = (const uint8_t*)face_meta.info[0].feature.ptr;
@@ -305,38 +305,38 @@ int cviai_dump_feature(int argc, char *argv[]) {
     printf("only got %u faces,expect 1\n",face_meta.size);
   }
 
-  CVI_AI_Free(&face_meta);
-  CVI_AI_DestroyHandle(ai_handle);
+  CVI_TDL_Free(&face_meta);
+  CVI_TDL_DestroyHandle(ai_handle);
   return ret;
 }
-ALIOS_CLI_CMD_REGISTER(cviai_dump_feature, cviai_dump_feature, cviai_dump_feature);
+ALIOS_CLI_CMD_REGISTER(cvitdl_dump_feature, cvitdl_dump_feature, cvitdl_dump_feature);
 
 
-int cviai_dump_feature_dir(int argc, char *argv[]) {
+int cvitdl_dump_feature_dir(int argc, char *argv[]) {
 
-  cviai_handle_t ai_handle = NULL;
+  cvitdl_handle_t ai_handle = NULL;
 
-  int ret = CVI_AI_CreateHandle2(&ai_handle, 1, 0);
+  int ret = CVI_TDL_CreateHandle2(&ai_handle, 1, 0);
   const char *FD_MODEL_PATH = SD_FATFS_MOUNTPOINT"/retinaface_mnet0.25_342_608.cvimodel";
-  ret = CVI_AI_OpenModel(ai_handle, CVI_AI_SUPPORTED_MODEL_RETINAFACE, FD_MODEL_PATH);
+  ret = CVI_TDL_OpenModel(ai_handle, CVI_TDL_SUPPORTED_MODEL_RETINAFACE, FD_MODEL_PATH);
   if (ret != CVI_SUCCESS) {
     printf("Facelib open failed with %#x!\n", ret);
     return ret;
   }
   const char *FR_MODEL_PATH = SD_FATFS_MOUNTPOINT"/cviface-v5-s.cvimodel";
-  ret = CVI_AI_OpenModel(ai_handle, CVI_AI_SUPPORTED_MODEL_FACERECOGNITION, FR_MODEL_PATH);
+  ret = CVI_TDL_OpenModel(ai_handle, CVI_TDL_SUPPORTED_MODEL_FACERECOGNITION, FR_MODEL_PATH);
   if (ret != CVI_SUCCESS) {
     printf("Facelib open failed with %#x!\n", ret);
     return ret;
   }
 
-  CVI_AI_SetSkipVpssPreprocess(ai_handle, CVI_AI_SUPPORTED_MODEL_RETINAFACE, false);
-  CVI_AI_SetSkipVpssPreprocess(ai_handle, CVI_AI_SUPPORTED_MODEL_FACERECOGNITION, false);
+  CVI_TDL_SetSkipVpssPreprocess(ai_handle, CVI_TDL_SUPPORTED_MODEL_RETINAFACE, false);
+  CVI_TDL_SetSkipVpssPreprocess(ai_handle, CVI_TDL_SUPPORTED_MODEL_FACERECOGNITION, false);
 
   // float threshold = (float)atof(argv[2]);
-  // CVI_AI_SetModelThreshold(ai_handle, CVI_AI_SUPPORTED_MODEL_RETINAFACE, threshold);
-  // CVI_AI_GetModelThreshold(ai_handle, CVI_AI_SUPPORTED_MODEL_RETINAFACE, &threshold);
-  // printf("CVI_AI_SUPPORTED_MODEL_RETINAFACE threshold: %f !!!!!!!!!\n", threshold);
+  // CVI_TDL_SetModelThreshold(ai_handle, CVI_TDL_SUPPORTED_MODEL_RETINAFACE, threshold);
+  // CVI_TDL_GetModelThreshold(ai_handle, CVI_TDL_SUPPORTED_MODEL_RETINAFACE, &threshold);
+  // printf("CVI_TDL_SUPPORTED_MODEL_RETINAFACE threshold: %f !!!!!!!!!\n", threshold);
 
 
   const char *list_path = SD_FATFS_MOUNTPOINT"/bin_list.txt";
@@ -361,20 +361,20 @@ int cviai_dump_feature_dir(int argc, char *argv[]) {
 	  VIDEO_FRAME_INFO_S frame;
     printf("processing %s ", pic_path);
 
-    if (CVI_SUCCESS != CVI_AI_LoadBinImage(pic_path, &blk_fr, &frame, PIXEL_FORMAT_RGB_888)){
-      LOGE(AI_TAG, "cviai read image failed.");
+    if (CVI_SUCCESS != CVI_TDL_LoadBinImage(pic_path, &blk_fr, &frame, PIXEL_FORMAT_RGB_888)){
+      LOGE(AI_TAG, "cvitdl read image failed.");
       CVI_VB_ReleaseBlock(blk_fr);
-      CVI_AI_DestroyHandle(ai_handle);
+      CVI_TDL_DestroyHandle(ai_handle);
     }
 
-    cvai_face_t face_meta;
-    memset(&face_meta, 0, sizeof(cvai_face_t));
+    cvtdl_face_t face_meta;
+    memset(&face_meta, 0, sizeof(cvtdl_face_t));
     printf("image read done,w:%d\n",frame.stVFrame.u32Width);
-    CVI_AI_RetinaFace(ai_handle, &frame, &face_meta);
+    CVI_TDL_RetinaFace(ai_handle, &frame, &face_meta);
     printf("face meta: size[%u], width[%u], height[%u], rescale_type[%d]\n", 
           face_meta.size, face_meta.width, face_meta.height, face_meta.rescale_type);
 
-    CVI_AI_FaceRecognition(ai_handle, &frame, &face_meta);
+    CVI_TDL_FaceRecognition(ai_handle, &frame, &face_meta);
     
     if(face_meta.size == 1){
       const uint8_t*ptr = (const uint8_t*)face_meta.info[0].feature.ptr;
@@ -387,23 +387,23 @@ int cviai_dump_feature_dir(int argc, char *argv[]) {
       printf("only got %u faces,expect 1\n",face_meta.size);
     }
 
-    CVI_AI_Free(&face_meta); 
+    CVI_TDL_Free(&face_meta); 
     CVI_VB_ReleaseBlock(blk_fr); 
   }
 
-  CVI_AI_DestroyHandle(ai_handle);
+  CVI_TDL_DestroyHandle(ai_handle);
   return ret;
 
 }
 
-ALIOS_CLI_CMD_REGISTER(cviai_dump_feature_dir, cviai_dump_feature_dir, cviai_dump_feature_dir);
+ALIOS_CLI_CMD_REGISTER(cvitdl_dump_feature_dir, cvitdl_dump_feature_dir, cvitdl_dump_feature_dir);
 
 
 
-int cviai_feature_compare(int argc, char *argv[]){
+int cvitdl_feature_compare(int argc, char *argv[]){
 
-  cvai_feature_t gallery;
-  CVI_S32 s32Ret = CVIAI_SUCCESS;
+  cvtdl_feature_t gallery;
+  CVI_S32 s32Ret = CVI_TDL_SUCCESS;
 
 
   s32Ret = load_feature_from_file(argv[1],&gallery,256);
@@ -435,7 +435,7 @@ int cviai_feature_compare(int argc, char *argv[]){
     sprintf(fea_path,"/mnt/sd/gallery_bin/%s",strLine);
 
     float score = 0;
-    cvai_feature_t feature;
+    cvtdl_feature_t feature;
     s32Ret = load_feature_from_file(fea_path,&feature,256);
     if(s32Ret !=0){
       aos_free(feature.ptr);
@@ -456,6 +456,6 @@ int cviai_feature_compare(int argc, char *argv[]){
   return s32Ret;
 } 
 
-ALIOS_CLI_CMD_REGISTER(cviai_feature_compare, cviai_feature_compare, cviai_feature_compare);
+ALIOS_CLI_CMD_REGISTER(cvitdl_feature_compare, cvitdl_feature_compare, cvitdl_feature_compare);
 
 

@@ -1,8 +1,9 @@
 /*
  * Copyright (C) 2022 Alibaba Group Holding Limited
  */
-#ifndef FCE_SIM_H
-#define FCE_SIM_H
+
+#ifndef TM_FCE_SIM_H
+#define TM_FCE_SIM_H
 
 #include <cstdint>
 #include <vector>
@@ -47,4 +48,4 @@ private:
     std::vector<float> mBaseLib;
 };
 
-#endif
+#endif  /* TM_FCE_SIM_H */

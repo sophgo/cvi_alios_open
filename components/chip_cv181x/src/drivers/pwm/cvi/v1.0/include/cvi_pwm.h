@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-// #define CSI_DRV_DEBUG
+/* #define CSI_DRV_DEBUG */
 
 #ifndef pr_err
 #define pr_err(x, args...) printf("[%s|%d] - " x, __func__, __LINE__, ##args)
@@ -213,15 +213,15 @@ static struct cvi_pwm_regs_t *cvi_pwm_reg = &cv182x_pwm_reg;
 #define CVI_CAP_FREQDATA_pos                                 (0U)
 #define CVI_CAP_FREQDATA_msk                                 (0xffffffff)
 
-static inline void cvi_pwm_set_high_period_ch(unsigned long reg_base, uint32_t ch, uint32_t value)
+static inline void cvi_pwm_set_high_period_ch(unsigned long reg_base, uint32_t ch, unsigned long long value)
 {
-    pr_debug("write reg %08p value %d\n", &PWM_HLPERIODX(reg_base, ch), value);
+    pr_debug("write reg %p value %llu\n", &PWM_HLPERIODX(reg_base, ch), value);
     PWM_HLPERIODX(reg_base, ch) = value;
 }
 
-static inline void cvi_pwm_set_period_ch(unsigned long reg_base, uint32_t ch, uint32_t value)
+static inline void cvi_pwm_set_period_ch(unsigned long reg_base, uint32_t ch, unsigned long long value)
 {
-    pr_debug("write reg %08p value %d\n", &PWM_PERIODX(reg_base, ch), value);
+    pr_debug("write reg %p value %llu\n", &PWM_PERIODX(reg_base, ch), value);
     PWM_PERIODX(reg_base, ch) = value;
 }
 
@@ -232,7 +232,7 @@ static inline void cvi_pwm_set_polarity_high_ch(unsigned long reg_base, uint32_t
 
 static inline void cvi_pwm_set_polarity_low_ch(unsigned long reg_base, uint32_t ch)
 {
-    pr_debug("write reg %08p value 0x%x\n", &PWM_POLARITY(reg_base), ~CVI_PWM_POLARITY_CH_HIGH(ch));
+    pr_debug("write reg %p value 0x%x\n", &PWM_POLARITY(reg_base), ~CVI_PWM_POLARITY_CH_HIGH(ch));
     PWM_POLARITY(reg_base) &= ~CVI_PWM_POLARITY_CH_HIGH(ch);
 }
 
@@ -253,7 +253,7 @@ static inline void cvi_pwm_start_dis_ch(unsigned long reg_base, uint32_t ch)
 
 static inline void cvi_pwm_output_en_ch(unsigned long reg_base, uint32_t ch)
 {
-    pr_debug("write reg %08p value 0x%x\n", &PWM_PWM_OE(reg_base), CVI_PWM_OUTPUT_CH_EN(ch));
+    pr_debug("write reg %p value 0x%x\n", &PWM_PWM_OE(reg_base), CVI_PWM_OUTPUT_CH_EN(ch));
     PWM_PWM_OE(reg_base) |= CVI_PWM_OUTPUT_CH_EN(ch);
 }
 

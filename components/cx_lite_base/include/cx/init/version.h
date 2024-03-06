@@ -1,5 +1,4 @@
 /**
-/**
  * @file version.h
  * @copyright Copyright (C) 2022 Alibaba Group Holding Limited
  */

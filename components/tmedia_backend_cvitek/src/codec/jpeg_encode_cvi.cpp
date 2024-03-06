@@ -173,7 +173,9 @@ int TMJpegEncoderCVI::Open(TMCodecParams &codecParam, TMPropertyList *propList)
 
     VENC_JPEG_PARAM_S stJpegParam = {0};
     UTIL_CVI_CHECK_RET_WITH_VALUE(CVI_VENC_GetJpegParam(VeChn, &stJpegParam));
-    stJpegParam.u32Qfactor = tmQfactor;
+
+    // FIXME: workaround cvitek bug, quality 50 would lead to set param error
+    stJpegParam.u32Qfactor = tmQfactor == 50 ? 49 : tmQfactor;
     UTIL_CVI_CHECK_RET_WITH_VALUE(CVI_VENC_SetJpegParam(VeChn, &stJpegParam));
 
     gCviOpenedEncodeChn[this->mChannelID] = true;
@@ -325,7 +327,7 @@ int TMJpegEncoderCVI::RecvPacket(TMVideoPacket &pkt, int timeout)
     stStream.pstPack = (VENC_PACK_S *)malloc(sizeof(VENC_PACK_S) * stStatus.u32CurPacks);
     if (stStream.pstPack == NULL)
     {
-        TMEDIA_PRINTF("%s %s malloc fail\n", __func__, __LINE__);
+        TMEDIA_PRINTF("%s %d malloc fail\n", __func__, __LINE__);
         pthread_mutex_unlock(&mEncodeMutex);
         return TMResult::TM_ENOMEM;
     }
@@ -358,7 +360,12 @@ int TMJpegEncoderCVI::RecvPacket(TMVideoPacket &pkt, int timeout)
         TMEDIA_PRINTF("CVI_VENC_ReleaseStream channel:%d err,ret:%d\n", this->mChannelID, ret);
         goto err;
     }
-    pkt.mPTS = ppack->u64PTS;
+    TMClock_t pts;
+    pts.timestamp = ppack->u64PTS;
+    pts.time_base = 1000000;
+
+    pkt.mPTS.Set(pts);
+
     free(stStream.pstPack);
     pthread_mutex_unlock(&mEncodeMutex);
     return TMResult::TM_OK;
@@ -368,9 +375,4 @@ err:
     return TMResult::TM_STATE_ERROR;
 }
 
-int TMJpegEncoderCVI::ReleasePacket(TMVideoPacket &pkt)
-{
-    pkt.UnRef();
-    return TMResult::TM_OK;
-}
 REGISTER_VIDEO_ENCODER_CLASS(TMMediaInfo::CodecID::JPEG, TMJpegEncoderCVI)

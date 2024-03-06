@@ -132,7 +132,7 @@ public:
 
     // int ReleaseSpace(uint32_t size);
     int VideoStart();
-    int VideoSave(shared_ptr<CxVideoPacket> &pkt);
+    int VideoSave(shared_ptr<CxPacket> &pkt);
     int VideoStop(string &file_path, string &file_name);
 
     int SnapSave(shared_ptr<CxVideoPacket> &pkt, string &file_path, string &file_name);

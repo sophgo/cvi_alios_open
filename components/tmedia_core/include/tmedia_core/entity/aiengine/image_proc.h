@@ -56,6 +56,13 @@ typedef struct
     float a33;
 } PerspectiveMatrix_t;
 
+typedef struct
+{
+    TMImageInfo::ImageRect_t crop_rect;
+    TMImageInfo::ImageSize_t scale_size;
+    TMImageInfo::PixelFormat dst_format;
+} ImageProcConfig_t;
+
 class ImageProc
 {
 public:
@@ -70,6 +77,7 @@ public:
     virtual int Crop(const TMVideoFrame &src, const TMImageInfo::ImageRect_t &dst_rect, TMVideoFrame &dst) = 0;
     virtual int CropResize(const TMVideoFrame &src, const TMImageInfo::ImageRect_t &crop_rect,
                               const TMImageInfo::ImageSize_t &dst_size, TMImageInfo::PixelFormat dst_format, TMVideoFrame &dst) = 0;
+    virtual int BatchCropResize(const TMVideoFrame &src, ImageProcConfig_t *dst_config, int count, TMVideoFrame **dst) { return TMResult::TM_NOT_SUPPORT; }
 };
 
 #endif  // IMAGE_PROC_H

@@ -28,9 +28,8 @@ public:
     int Start()                                                  final override;
     int Stop()                                                   final override;
     int SendFrame(TMAudioFrame &frame, int timeout)              final override;
-    int ReleaseFrame(TMAudioFrame &frame)                        final override;
-private:
 
+private:
     const static uint16_t AUDIO_PERIOD_SIZE = 320;
     TMPropertyList mCurrentPropertyList;
     pthread_mutex_t mMutex;

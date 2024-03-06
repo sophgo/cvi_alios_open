@@ -426,6 +426,7 @@ typedef struct _SAE_INFO {
 	CVI_U16 u16ROILuma[AE_MAX_WDR_FRAME_NUM];
 	CVI_U16	u16ROIWeightThr;
 	CVI_U8	u8SensorPeriod;
+	CVI_U8	u8SensorUsePeriod;
 	CVI_U8	u8SensorRunInterval;
 	CVI_U8	u8AERunInterval;
 	CVI_U16	u16FramePeriodTime;
@@ -707,6 +708,7 @@ CVI_BOOL AE_GetWDRExpLineRange(CVI_U8 sID, CVI_U32 expRatio, CVI_U32 *leExpLine,
 	CVI_BOOL getMaxLine);
 CVI_U8 AE_GetMeterPeriod(CVI_U8 sID);
 CVI_U8 AE_GetSensorPeriod(CVI_U8 sID);
+CVI_U8 AE_GetSensorExpGainPeriod(CVI_U8 sID);
 CVI_BOOL AE_DumpBootLog(CVI_U8 sID);
 void AE_GetExpGainInfo(CVI_U8 sID, AE_WDR_FRAME wdrFrm, AE_GAIN *expGain);
 void AE_SetAPEXExposure(CVI_U8 sID, AE_WDR_FRAME wdrFrm, const AE_APEX *papex);

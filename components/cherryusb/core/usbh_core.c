@@ -839,3 +839,8 @@ __WEAK void usbh_device_mount_done_callback(struct usbh_hubport *hport)
 __WEAK void usbh_device_unmount_done_callback(struct usbh_hubport *hport)
 {
 }
+
+__WEAK int usbh_submit_urb(struct usbh_urb *urb)
+{
+    return 0;
+}

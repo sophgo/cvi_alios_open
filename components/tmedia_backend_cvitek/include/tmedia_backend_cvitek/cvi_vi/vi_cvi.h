@@ -3,6 +3,7 @@
  */
 
 #include <string>
+#include <vector>
 #include <tmedia_core/common/common_inc.h>
 #include <tmedia_core/entity/format/camera.h>
 #include "tmedia_backend_cvitek/cvi_pad/pad_cvi.h"
@@ -31,7 +32,7 @@ public:
     int Start()                                                  final override;
     int Stop()                                                   final override;
     int RecvFrame(TMVideoFrame &frame, int timeout)              final override;
-    int ReleaseFrame(TMVideoFrame &frame)                        final override;
+
     //TMcamera interface
     int GetModes(TMCameraModes_s &modes)                               final override;
     int SetMode(TMCameraModeCfg_s &mode)                               final override;
@@ -49,4 +50,13 @@ private:
     int mDeviceID;
     string cameraName;
     TMCameraWorkMode_e mCameraMode;
+};
+
+struct vi_cvi_fastconverge_param {
+    struct param {
+        short luma[5];
+        short bv[5];
+    };
+
+    std::vector<param>  params;
 };

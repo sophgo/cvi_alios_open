@@ -19,8 +19,10 @@ extern "C" {
 /** @brief input dirver ops */
 typedef struct input_driver {
     driver_t drv;
-    /** set event callback */
+    /** set event callback, should support mutil event_cb set */
     int (*set_event)(rvm_dev_t *dev, rvm_hal_input_event event_cb, void *priv);
+    /** unset event callback */
+    int (*unset_event)(rvm_dev_t *dev, rvm_hal_input_event event_cb);
     /** read input data */
     int (*read)(rvm_dev_t *dev, void *data, uint32_t size, unsigned int timeout_ms);
 } input_driver_t;

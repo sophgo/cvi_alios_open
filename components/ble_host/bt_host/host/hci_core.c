@@ -7753,6 +7753,19 @@ static int br_init(void)
 		return err;
 	}
 
+	buf = bt_hci_cmd_create(BT_HCI_OP_WRITE_PAGE_SCAN_CONF, sizeof(u16_t) * 2);
+	if (!buf) {
+		return -ENOBUFS;
+	}
+
+	net_buf_add_le16(buf, CONFIG_BT_CONN_INTERVAL);
+	net_buf_add_le16(buf, CONFIG_BT_CONN_WINDOW);
+
+	err = bt_hci_cmd_send_sync(BT_HCI_OP_WRITE_PAGE_SCAN_CONF, buf, NULL);
+	if (err) {
+		return err;
+	}
+
 	/* Enable BR/EDR SC if supported */
 	if (BT_FEAT_SC(bt_dev.features)) {
 		struct bt_hci_cp_write_sc_host_supp *sc_cp;
@@ -10479,10 +10492,12 @@ static bool valid_adv_ext_param(const struct bt_le_adv_param *param)
 		 * shall not be set to less than 0x00A0 (100 ms) if the
 		 * Advertising_Type is set to ADV_SCAN_IND or ADV_NONCONN_IND.
 		 */
+#ifndef CONFIG_BT_MESH_FAST_ADV
 		if (bt_dev.hci_version < BT_HCI_VERSION_5_0 &&
 		    param->interval_min < 0x00a0) {
 			return false;
 		}
+#endif
 	}
 
 	if ((param->options & (BT_LE_ADV_OPT_DIR_MODE_LOW_DUTY |

@@ -215,7 +215,8 @@ typedef enum _VIDEO_FORMAT_E {
  */
 // ++++++++ If you want to change these interfaces, please contact the isp team. ++++++++
 typedef enum _COMPRESS_MODE_E {
-	COMPRESS_MODE_NONE = 0,
+	COMPRESS_MODE_DEFAULT = 0,
+	COMPRESS_MODE_NONE,
 	COMPRESS_MODE_TILE,
 	COMPRESS_MODE_LINE,
 	COMPRESS_MODE_FRAME,
@@ -454,12 +455,12 @@ typedef struct _BITMAP_S {
 // ++++++++ If you want to change these interfaces, please contact the isp team. ++++++++
 typedef struct _LDC_ATTR_S {
 	CVI_BOOL bAspect; /* RW;Whether aspect ration  is keep */
-	CVI_S32 s32XRatio; /* RW; Range: [0, 100], field angle ration of  horizontal,valid when bAspect=0.*/
-	CVI_S32 s32YRatio; /* RW; Range: [0, 100], field angle ration of  vertical,valid when bAspect=0.*/
-	CVI_S32 s32XYRatio; /* RW; Range: [0, 100], field angle ration of  all,valid when bAspect=1.*/
-	CVI_S32 s32CenterXOffset;
-	CVI_S32 s32CenterYOffset;
-	CVI_S32 s32DistortionRatio;
+	CVI_S32 s32XRatio; /* RW; Range: [0x0, 0x64], field angle ration of  horizontal,valid when bAspect=0.*/
+	CVI_S32 s32YRatio; /* RW; Range: [0x0, 0x64], field angle ration of  vertical,valid when bAspect=0.*/
+	CVI_S32 s32XYRatio; /* RW; Range: [0x0, 0x64], field angle ration of  all,valid when bAspect=1.*/
+	CVI_S32 s32CenterXOffset; /* RW; Range: [-0x1FF, 0x1FF], horizontal offset of the image distortion center relative to image center */
+	CVI_S32 s32CenterYOffset; /* RW; Range: [-0x1FF, 0x1FF], vertical offset of the image distortion center relative to image center */
+	CVI_S32 s32DistortionRatio; /* RW; Range: [-0x12C, 0x1F4], LDC Distortion ratio. */
 } LDC_ATTR_S;
 // -------- If you want to change these interfaces, please contact the isp team. --------
 

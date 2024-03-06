@@ -26,7 +26,7 @@ public:
     
 private:
 
-    enum VidTaskStat : uint8_t {
+    enum VidTaskStat : int {
         VID_TASK_IDLE = 0,
         VID_TASK_RUNNING,
     };

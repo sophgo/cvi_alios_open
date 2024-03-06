@@ -19,4 +19,4 @@ public:
     virtual ~TMFormat() {}
 };
 
-#endif  // TM_FORMAT_H
+#endif  /* TM_FORMAT_H */

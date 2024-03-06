@@ -23,6 +23,5 @@ depends:
   - drivers: develop
   - csi: develop
   - debug: develop
-  - aoshal: develop
   - uservice: develop
   - partition: develop

@@ -139,3 +139,9 @@ static void adc_irq_test(csi_adc_t *adc)
     cvi_adc_start(adc);
 }
 #endif
+
+csi_error_t csi_adc_link_dma(csi_adc_t *adc, csi_dma_ch_t *dma)
+{
+    CSI_PARAM_CHK(adc, CSI_ERROR);
+    return CSI_UNSUPPORTED;
+}

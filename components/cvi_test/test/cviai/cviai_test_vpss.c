@@ -1,6 +1,6 @@
 #include <stdio.h>
 // #include <iostream>
-#include "cviai.h"
+#include "cvi_tdl.h"
 
 #define ALI_OS 1
 
@@ -18,7 +18,7 @@
 #include <sys/fcntl.h>
 #include "ai_utils.h"
 #else
-#include "core/cviai_types_mem_internal.h"
+#include "core/cvi_tdl_types_mem_internal.h"
 #include "core/utils/vpss_helper.h"
 #include "ive/ive.h"
 
@@ -147,7 +147,7 @@ int extract_sendFrameBase_1(const VIDEO_FRAME_INFO_S *frame,
   return ret;
 }
 
-void cviai_vpss1(int32_t argc, char **argv) {
+void cvitdl_vpss1(int32_t argc, char **argv) {
   if(argc !=3){
     printf("test_vpss imgfile dstbin,current argc:,%d\n",argc);
     return;
@@ -159,7 +159,7 @@ void cviai_vpss1(int32_t argc, char **argv) {
  
   VB_BLK blk_fr;	
   printf("to read image\n");
-  if (CVI_SUCCESS != CVI_AI_ReadImage(argv[1], &blk_fr, &frame, PIXEL_FORMAT_RGB_888)){
+  if (CVI_SUCCESS != CVI_TDL_LoadBinImage(argv[1], &blk_fr, &frame, PIXEL_FORMAT_RGB_888)){
     printf("read image failed\n");
     return;
   }
@@ -188,15 +188,15 @@ void cviai_vpss1(int32_t argc, char **argv) {
 
   VPSS_GRP id = -1;
 
-  cviai_handle_t ai_handle = NULL;
-  ret = CVI_AI_CreateHandle(&ai_handle);
+  cvitdl_handle_t ai_handle = NULL;
+  ret = CVI_TDL_CreateHandle(&ai_handle);
   if (ret != CVI_SUCCESS) {
     printf("Create ai handle failed with %#x!\n", ret);
     return;
   }
   VPSS_GRP *groups;
   uint32_t num;
-  CVI_AI_GetVpssGrpIds(ai_handle,&groups, &num);
+  CVI_TDL_GetVpssGrpIds(ai_handle,&groups, &num);
   printf("got numgroups:%d\n",num);
   id = groups[0];
   VPSS_CHN_ATTR_S vpss_chn_attr;
@@ -224,7 +224,7 @@ void cviai_vpss1(int32_t argc, char **argv) {
 }
 
 #ifdef ALI_OS
-ALIOS_CLI_CMD_REGISTER(cviai_vpss1, cviai_vpss1, cviai_vpss1);
+ALIOS_CLI_CMD_REGISTER(cvitdl_vpss1, cvitdl_vpss1, cvitdl_vpss1);
 #else
 int main(int argc, char *argv[]) { 
   CVI_S32 ret = CVI_SUCCESS;

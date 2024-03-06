@@ -181,7 +181,8 @@ static CVI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSns
 		pstAeSnsDft->u32InitExposure = g_au32InitExposure[ViPipe] ? g_au32InitExposure[ViPipe] : 52000;
 		pstAeSnsDft->u32InitAESpeed = 64;
 		pstAeSnsDft->u32InitAETolerance = 5;
-		pstAeSnsDft->u32AEResponseFrame = 4;
+		pstAeSnsDft->u32AEResponseFrame = 3;
+		pstAeSnsDft->u32SnsResponseFrame = 4;
 		if (genFSWDRMode[ViPipe] == ISP_FSWDR_LONG_FRAME_MODE) {
 			pstAeSnsDft->u8AeCompensation = 64;
 			pstAeSnsDft->enAeExpMode = AE_EXP_HIGHLIGHT_PRIOR;
@@ -300,6 +301,9 @@ static CVI_S32 cmos_inttime_update(VI_PIPE ViPipe, CVI_U32 *u32IntTime)
 		pstSnsRegsInfo->astI2cData[WDR_SHS2_0_ADDR].u32Data = ((u16LexpReg & 0xF000) >> 12);
 		pstSnsRegsInfo->astI2cData[WDR_SHS2_1_ADDR].u32Data = ((u16LexpReg & 0x0FF0) >> 4);
 		pstSnsRegsInfo->astI2cData[WDR_SHS2_2_ADDR].u32Data = (u16LexpReg & 0xF) << 4;
+		pstSnsRegsInfo->astI2cData[WDR_SHS2_0_ADDR].u8DelayFrmNum = 0;
+		pstSnsRegsInfo->astI2cData[WDR_SHS2_1_ADDR].u8DelayFrmNum = 0;
+		pstSnsRegsInfo->astI2cData[WDR_SHS2_2_ADDR].u8DelayFrmNum = 0;
 	} else {
 		CVI_U32 u32TmpIntTime = u32IntTime[0];
 		CVI_U32 maxExp = 2 * pstSnsState->au32FL[0] - 8;
@@ -641,6 +645,11 @@ static CVI_S32 cmos_gains_update(VI_PIPE ViPipe, CVI_U32 *pu32Again, CVI_U32 *pu
 			pstSnsRegsInfo->astI2cData[WDR_AGAIN2_FINE_ADDR].u8DelayFrmNum = 1;
 			pstSnsRegsInfo->astI2cData[WDR_DGAIN2_ADDR].u8DelayFrmNum = 1;
 			pstSnsRegsInfo->astI2cData[WDR_DGAIN2_FINE_ADDR].u8DelayFrmNum = 1;
+			pstSnsRegsInfo->astI2cData[WDR_AGAIN1_ADDR0].u8DelayFrmNum = 0;
+			pstSnsRegsInfo->astI2cData[WDR_AGAIN1_ADDR1].u8DelayFrmNum = 0;
+			pstSnsRegsInfo->astI2cData[WDR_AGAIN1_FINE_ADDR].u8DelayFrmNum = 0;
+			pstSnsRegsInfo->astI2cData[WDR_DGAIN1_ADDR].u8DelayFrmNum = 0;
+			pstSnsRegsInfo->astI2cData[WDR_DGAIN1_FINE_ADDR].u8DelayFrmNum = 0;
 		} else if (u16Mode == SNS_GAIN_MODE_SHARE) {
 			/* Again. */
 			tbl_num = sizeof(AgainInfo)/sizeof(struct gain_tbl_info_s);
@@ -678,6 +687,11 @@ static CVI_S32 cmos_gains_update(VI_PIPE ViPipe, CVI_U32 *pu32Again, CVI_U32 *pu
 			pstSnsRegsInfo->astI2cData[WDR_AGAIN2_FINE_ADDR].u8DelayFrmNum = 1;
 			pstSnsRegsInfo->astI2cData[WDR_DGAIN2_ADDR].u8DelayFrmNum = 1;
 			pstSnsRegsInfo->astI2cData[WDR_DGAIN2_FINE_ADDR].u8DelayFrmNum = 1;
+			pstSnsRegsInfo->astI2cData[WDR_AGAIN1_ADDR0].u8DelayFrmNum = 0;
+			pstSnsRegsInfo->astI2cData[WDR_AGAIN1_ADDR1].u8DelayFrmNum = 0;
+			pstSnsRegsInfo->astI2cData[WDR_AGAIN1_FINE_ADDR].u8DelayFrmNum = 0;
+			pstSnsRegsInfo->astI2cData[WDR_DGAIN1_ADDR].u8DelayFrmNum = 0;
+			pstSnsRegsInfo->astI2cData[WDR_DGAIN1_FINE_ADDR].u8DelayFrmNum = 0;
 		}
 	}
 	return CVI_SUCCESS;

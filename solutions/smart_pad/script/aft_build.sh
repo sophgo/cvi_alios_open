@@ -72,7 +72,7 @@ fi
 [ -f "${MK_BOARD_PATH}/bootimgs/boot0" ] && cp -arf ${MK_BOARD_PATH}/bootimgs/boot0 ${MK_GENERATED_PATH}/data/
 
 [ -f yoc.bin ] && cp -arf yoc.bin ${MK_GENERATED_PATH}/data/prim
-cp -arf ${MK_BOARD_PATH}/configs/config.yaml.smart_pad ${MK_GENERATED_PATH}/data/config.yaml
+cp -arf ${MK_BOARD_PATH}/configs/config.smart_pad.yaml ${MK_GENERATED_PATH}/data/config.yaml
 ${PRODUCT} image ${MK_GENERATED_PATH}/images.zip -i ${MK_GENERATED_PATH}/data -l -p
 ${PRODUCT} image ${MK_GENERATED_PATH}/images.zip -e ${MK_GENERATED_PATH} -x
 

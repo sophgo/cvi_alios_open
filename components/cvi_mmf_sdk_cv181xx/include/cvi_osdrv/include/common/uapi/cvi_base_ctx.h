@@ -6,6 +6,7 @@
 #include <string.h>
 #include <cvi_common.h>
 #include <cvi_comm_sys.h>
+#include "k_atomic.h"
 
 #define GDC_SHARE_MEM_SIZE          (0x8000)
 
@@ -34,6 +35,7 @@ struct cvi_gdc_mesh {
 	CVI_VOID *vaddr;
 	CVI_U32 meshSize;
 	struct pthread_mutex lock;
+	atomic_t gdc_flag;
 };
 
 enum gdc_job_state {

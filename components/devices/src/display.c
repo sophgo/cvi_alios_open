@@ -41,7 +41,7 @@ int rvm_hal_display_get_info(rvm_dev_t *dev, rvm_hal_display_info_t *info)
     return ret;
 }
 
-int rvm_hal_display_get_framebuffer(rvm_dev_t *dev, void **smem_start, size_t *smem_len)
+int rvm_hal_display_get_framebuffer(rvm_dev_t *dev, void ***smem_start, size_t *smem_len)
 {
     int ret;
 
@@ -106,7 +106,7 @@ int rvm_hal_display_write_area_async(rvm_dev_t *dev, rvm_hal_display_area_t *are
     return ret;
 }
 
-int rvm_hal_display_read_area(rvm_dev_t *dev, rvm_hal_display_area_t *area, void **data)
+int rvm_hal_display_read_area(rvm_dev_t *dev, rvm_hal_display_area_t *area, void *data)
 {
     int ret;
 
@@ -144,4 +144,3 @@ int rvm_hal_display_blank_on_off(rvm_dev_t *dev, uint8_t on_off)
 
     return ret;
 }
-

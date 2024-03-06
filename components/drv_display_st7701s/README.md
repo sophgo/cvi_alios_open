@@ -11,4 +11,4 @@ void drv_st7701s_display_register();
 
 ## 调试
 
-具体屏幕触摸驱动的接口调用方式可以参考lcd_demo
+具体屏幕触摸驱动的接口调用方式可以参考display_drv_demo

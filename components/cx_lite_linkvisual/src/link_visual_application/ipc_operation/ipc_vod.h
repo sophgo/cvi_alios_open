@@ -21,6 +21,7 @@ public:
     int SetParam(unsigned int speed, unsigned int key_only);
     int GetParam(lv_audio_param_s &aparam, lv_video_param_s &vparam);
     int QueryList(const lv_query_record_param_s *param);
+    int ParseOneAVFrame(uint64_t streaming_start_time);
 private:
     int       pause_;
     VideoData video_data_;
@@ -45,7 +46,7 @@ private:
     pthread_cond_t  mSignal;
     pthread_mutex_t mLock;
 
-    TMFormatDemuxer *mDemuxer;
+    TMTsDemuxer *mDemuxer;
     TMParser *mH264Parser;
 }; 
 

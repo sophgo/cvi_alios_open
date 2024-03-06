@@ -119,12 +119,15 @@ void gc2093_mirror_flip(VI_PIPE ViPipe, ISP_SNS_MIRRORFLIP_TYPE_E eSnsMirrorFlip
 #define GC2093_CHIP_ID_ADDR_L	0x03f1
 #define GC2093_CHIP_ID		0x2093
 
-int  gc2093_probe(VI_PIPE ViPipe)
+int gc2093_probe(VI_PIPE ViPipe)
 {
+#if CONFIG_SENSOR_QUICK_STARTUP
+	return 0;
+#endif
 	int nVal;
 	int nVal2;
 
-	usleep(50);
+	// usleep(50);
 	if (gc2093_i2c_init(ViPipe) != CVI_SUCCESS)
 		return CVI_FAILURE;
 
@@ -158,7 +161,7 @@ void gc2093_init(VI_PIPE ViPipe)
 			gc2093_wdr_1080p30_init(ViPipe);
 		}
 	} else {
-		gc2093_linear_1080p30_init(ViPipe);
+			gc2093_linear_1080p30_init(ViPipe);
 	}
 
 
@@ -172,7 +175,10 @@ void gc2093_exit(VI_PIPE ViPipe)
 
 static void gc2093_linear_1080p30_init(VI_PIPE ViPipe)
 {
-	usleep(10*1000);
+#if CONFIG_SENSOR_QUICK_STARTUP
+	return;
+#endif
+	// usleep(10*1000);
 	/****system****/
 	gc2093_write_register(ViPipe, 0x03fe, 0xf0);
 	gc2093_write_register(ViPipe, 0x03fe, 0xf0);
@@ -323,8 +329,8 @@ static void gc2093_linear_1080p30_init(VI_PIPE ViPipe)
 	gc2093_write_register(ViPipe, 0x0215, 0x10);
 	gc2093_write_register(ViPipe, 0x003e, 0x91);
 
-	gc2093_default_reg_init(ViPipe);
-	usleep(80*1000);
+	 gc2093_default_reg_init(ViPipe);
+	// usleep(80*1000);
 
 	printf("ViPipe:%d,===GC2093 1080P 30fps 10bit LINE Init OK!===\n", ViPipe);
 }
