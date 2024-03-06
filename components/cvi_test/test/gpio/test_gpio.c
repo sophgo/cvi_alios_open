@@ -4,6 +4,7 @@
 #include <drv/pin.h>
 #include <unistd.h>
 #include "aos/cli.h"
+#include "mmio.h"
 
 #define GPIO_IRQ_TEST 0
 #define GPIO_PIN_MASK(_gpio_num) (1 << _gpio_num)
@@ -11,12 +12,33 @@
 #if GPIO_IRQ_TEST
 static void gpio_irq_test(void)
 {
-	aos_cli_printf("goto %s() \r\n", __func__);
+    aos_cli_printf("goto %s() \r\n", __func__);
 }
 #endif
 
+/**
+ * @brief For ephy gpio pinmux setting
+ * 
+ */
+static void ephy_gpio_set(void) 
+{
+    mmio_write_32(0x03009804, (mmio_read_32(0x03009804)) | 0x1);
+    mmio_write_32(0x03009808, (mmio_read_32(0x03009808) & (~0x1f)) | 0x1);
+    mmio_write_32(0x03009800, 0x0905);
+    mdelay(1);
+    mmio_write_32(0x0300907c,
+    	      (mmio_read_32(0x0300907c) & (~0x1f00)) | 0x500);
+    mmio_write_32(0x03009078, 0xf00);
+    mmio_write_32(0x03009074, 0x606);
+    mmio_write_32(0x03009070, 0x606);
+}
+
+static csi_gpio_t gpio = {0};
+
 void test_gpio(int32_t argc, char **argv)
 {
+    ephy_gpio_set();
+
 	/**
 	 * for example:
 	 * testgpio o 0 18 1
@@ -25,19 +47,18 @@ void test_gpio(int32_t argc, char **argv)
 	 */
 
     csi_error_t ret;
-    csi_gpio_t gpio = {0};
     csi_gpio_dir_t dir = GPIO_DIRECTION_OUTPUT;
     unsigned int gpio_bank,gpio_pin,gpio_value;
 
-	if (argc < 4) {
+    if (argc < 4) {
         aos_cli_printf("\tplease run(example): testgpio [dir] [gpio_bank] [gpio_pin] [value] \r\n");
-		aos_cli_printf("\tplease run(output):  testgpio o 0 18 1 \r\n");
+        aos_cli_printf("\tplease run(output):  testgpio o 0 18 1 \r\n");
         aos_cli_printf("\tplease run(input):   testgpio i 0 18 \r\n");
-		return;
-	}
+        return;
+    }
 
     if (strcmp(argv[1], "i") == 0) {
-		dir = GPIO_DIRECTION_INPUT;
+        dir = GPIO_DIRECTION_INPUT;
     } else if (strcmp(argv[1], "o") == 0) {
         dir = GPIO_DIRECTION_OUTPUT;
     } else {
@@ -53,8 +74,8 @@ void test_gpio(int32_t argc, char **argv)
     ret = csi_gpio_init(&gpio, gpio_bank);
     if (ret != CSI_OK)
     {
-	    aos_cli_printf("csi_gpio_init failed\r\n");
-		return;
+        aos_cli_printf("csi_gpio_init failed\r\n");
+        return;
     }
 
 #if (!GPIO_IRQ_TEST)   // gpio write
@@ -62,8 +83,8 @@ void test_gpio(int32_t argc, char **argv)
 
     if (ret != CSI_OK)
     {
-	    aos_cli_printf("csi_gpio_dir failed\r\n");
-		return;
+        aos_cli_printf("csi_gpio_dir failed\r\n");
+        return;
     }
     if (dir == GPIO_DIRECTION_OUTPUT)
     {
@@ -90,15 +111,15 @@ void test_gpio(int32_t argc, char **argv)
     ret = csi_gpio_mode(&gpio, 1 << gpio_pin, gpio_mode);
     if (ret != CSI_OK)
     {
-	    aos_cli_printf("csi_gpio_mode failed\r\n");
-		return;
+        aos_cli_printf("csi_gpio_mode failed\r\n");
+        return;
     }
 
     ret = csi_gpio_dir(&gpio, 1 << gpio_pin, dir);
     if (ret != CSI_OK)
     {
-	    aos_cli_printf("csi_gpio_dir failed\r\n");
-		return;
+        aos_cli_printf("csi_gpio_dir failed\r\n");
+        return;
     }
 
     csi_gpio_irq_mode(&gpio, 1 << gpio_pin, GPIO_IRQ_MODE_FALLING_EDGE);
@@ -107,14 +128,11 @@ void test_gpio(int32_t argc, char **argv)
 
     csi_gpio_irq_enable(&gpio, 1 << gpio_pin, true);
 
-    while(1)
-    {
-        mdelay(1000);
-    }
+    mdelay(3000);
 #endif
 
-	csi_gpio_uninit(&gpio);
+    csi_gpio_uninit(&gpio);
 
-	aos_cli_printf("test gpio success.\r\n");
+    aos_cli_printf("test gpio success.\r\n");
 }
 ALIOS_CLI_CMD_REGISTER(test_gpio, testgpio, test gpio function);

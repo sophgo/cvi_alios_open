@@ -62,7 +62,7 @@ int sensor_i2c_read(CVI_U8 i2c_id, CVI_U8 snsr_i2c_addr,
 	CVI_U8 buf[8];
 	CVI_U8 idx = 0;
 	CVI_U32 data = 0;
-	CVI_U32 timeout = 1;
+	CVI_U32 timeout = 100;
 	csi_iic_t *iic;
 	csi_iic_mem_addr_size_t reg_addr_len;
 
@@ -106,7 +106,7 @@ int sensor_i2c_write(CVI_U8 i2c_id, CVI_U8 snsr_i2c_addr,
 	int ret = CVI_SUCCESS;
 	CVI_U8 buf[8];
 	CVI_U8 idx = 0;
-	CVI_U32 timeout = 1;
+	CVI_U32 timeout = 10;
 	csi_iic_t *iic;
 	csi_iic_mem_addr_size_t reg_addr_len;
 

@@ -73,7 +73,7 @@ static void cvimodel_inference(const char *model_path, int inference_num) {
   return;
 }
 
-void cviai_test_model(int32_t argc, char **argv) {
+void cvitdl_test_model(int32_t argc, char **argv) {
   if (argc != 3) {
     printf("usage: test_model <model_path> <inference_num>\n");
     return;
@@ -87,25 +87,25 @@ void cviai_test_model(int32_t argc, char **argv) {
   cvimodel_inference(model_path, inference_num);
 }
 
-void cviai_test_fd_model(int32_t argc, char **argv) {
+void cvitdl_test_fd_model(int32_t argc, char **argv) {
   const char *model_path = SD_FATFS_MOUNTPOINT"/retinaface_mnet0.25_608.cvimodel";
   cvimodel_inference(model_path, DEFAULT_INFERENCE_NUM);
 }
 
-void cviai_test_od_model(int32_t argc, char **argv) {
+void cvitdl_test_od_model(int32_t argc, char **argv) {
   const char *model_path = SD_FATFS_MOUNTPOINT"/yolox_tiny.cvimodel";
   cvimodel_inference(model_path, DEFAULT_INFERENCE_NUM);
 }
 
-void cviai_test_fr_model(int32_t argc, char **argv) {
+void cvitdl_test_fr_model(int32_t argc, char **argv) {
   const char *model_path = SD_FATFS_MOUNTPOINT"/cviface-v5-s.cvimodel";
   cvimodel_inference(model_path, DEFAULT_INFERENCE_NUM);
 }
 
-ALIOS_CLI_CMD_REGISTER(cviai_test_model, cviai_test_model, test cvimodel inference);
-ALIOS_CLI_CMD_REGISTER(cviai_test_fd_model, cviai_test_fd_model, test face detection model);
-ALIOS_CLI_CMD_REGISTER(cviai_test_od_model, cviai_test_od_model, test object detection model);
-ALIOS_CLI_CMD_REGISTER(cviai_test_fr_model, cviai_test_fr_model, test face recognition detection model);
+ALIOS_CLI_CMD_REGISTER(cvitdl_test_model, cvitdl_test_model, test cvimodel inference);
+ALIOS_CLI_CMD_REGISTER(cvitdl_test_fd_model, cvitdl_test_fd_model, test face detection model);
+ALIOS_CLI_CMD_REGISTER(cvitdl_test_od_model, cvitdl_test_od_model, test object detection model);
+ALIOS_CLI_CMD_REGISTER(cvitdl_test_fr_model, cvitdl_test_fr_model, test face recognition detection model);
 
 void init_tpu(int32_t argc, char **argv) {
   cvi_tpu_init();

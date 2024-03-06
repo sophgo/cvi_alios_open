@@ -1184,6 +1184,9 @@ typedef struct
 #define USB_OTG_DIEPCTL_MPSIZ_Pos                (0U)
 #define USB_OTG_DIEPCTL_MPSIZ_Msk                (0x7FFUL << USB_OTG_DIEPCTL_MPSIZ_Pos) /*!< 0x000007FF */
 #define USB_OTG_DIEPCTL_MPSIZ                    USB_OTG_DIEPCTL_MPSIZ_Msk     /*!< Maximum packet size              */
+#define USB_OTG_DIEPCTL_NEXTEP_Pos               (11U)
+#define USB_OTG_DIEPCTL_NEXTEP_Msk               (0xFUL << USB_OTG_DIEPCTL_NEXTEP_Pos) /*!< 0x00007800 */
+#define USB_OTG_DIEPCTL_NEXTEP                   0    /*!< Next Endpoin */
 #define USB_OTG_DIEPCTL_USBAEP_Pos               (15U)
 #define USB_OTG_DIEPCTL_USBAEP_Msk               (0x1UL << USB_OTG_DIEPCTL_USBAEP_Pos) /*!< 0x00008000 */
 #define USB_OTG_DIEPCTL_USBAEP                   USB_OTG_DIEPCTL_USBAEP_Msk    /*!< USB active endpoint              */

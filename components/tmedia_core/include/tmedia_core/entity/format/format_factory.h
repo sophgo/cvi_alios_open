@@ -244,4 +244,4 @@ public:
     };\
 const AudioOutputRegister class_name##Register::reg(id, TM_STR(class_name), class_name##Register::NewInstance);
 
-#endif  // TM_FORMAT_FACTORY_H
+#endif  /* TM_FORMAT_FACTORY_H */

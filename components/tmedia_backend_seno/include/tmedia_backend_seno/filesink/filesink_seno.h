@@ -90,4 +90,4 @@ private:
     bool statCheck(STAT stat);
 };
 
-#endif  // TM_FILESINK_SENO_H
+#endif  /* TM_FILESINK_SENO_H */

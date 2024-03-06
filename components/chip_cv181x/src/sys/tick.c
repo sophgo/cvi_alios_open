@@ -47,30 +47,21 @@ static void tick_irq_handler(csi_timer_t *timer_handle, void *arg)
 
 csi_error_t csi_tick_init(void)
 {
-    CLINT_Type *clint = (CLINT_Type *)CORET_BASE;
-
     csi_tick = 0U;
     tick_dev.irq_num = (uint8_t)CORET_IRQn;
     timer_init_value = csi_clint_get_value();
     csi_plic_set_prio(PLIC_BASE, CORET_IRQn, 31U);
+
     csi_irq_attach((uint32_t)tick_dev.irq_num, &tick_irq_handler, &tick_dev);
-#if defined(CONFIG_RISCV_SMODE) && CONFIG_RISCV_SMODE
-    clint->STIMECMPH0 = 0;
-    clint->STIMECMPL0 = 0;
-#else
-    clint->MTIMECMPH0 = 0;
-    clint->MTIMECMPL0 = 0;
-#endif
+    csi_coret_reset_value(CORET_BASE);
     csi_clint_config(CORET_BASE, (soc_get_coretim_freq() / CONFIG_SYSTICK_HZ), CORET_IRQn);
-    csi_irq_enable((uint32_t)tick_dev.irq_num);
 
     return CSI_OK;
 }
 
 void csi_tick_uninit(void)
 {
-    csi_irq_disable((uint32_t)tick_dev.irq_num);
-    csi_irq_detach((uint32_t)tick_dev.irq_num);
+    csi_irq_detach((uint32_t)CORET_IRQn);
 }
 
 uint32_t csi_tick_get(void)

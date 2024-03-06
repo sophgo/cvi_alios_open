@@ -633,6 +633,11 @@ static int usbd_video_stream_request_handler(struct usb_setup_packet *setup, uin
                     //memcpy((uint8_t *)usbd_video_cfg.commit, *data, setup->wLength);
                     struct video_probe_and_commit_controls *commit = (struct video_probe_and_commit_controls *)*data;
                     usbd_video_commit_set_cur(commit);
+#if CONFIG_USB_BULK_UVC
+                    if (uvc_evt_callbacks && uvc_evt_callbacks->uvc_event_stream_on) {
+                        uvc_evt_callbacks->uvc_event_stream_on((uint8_t)setup->wIndex, 1);
+                    }
+#endif
                     break;
                 }
                 case VIDEO_REQUEST_GET_CUR:
@@ -736,7 +741,6 @@ static int video_streaming_interface_request_handler(struct usb_setup_packet *se
 
 static void video_notify_handler(uint8_t event, void *arg)
 {
-    int is_on = 0;
     switch (event) {
         case USBD_EVENT_RESET:
             usbd_video_cfg.error_code = 0;
@@ -744,6 +748,10 @@ static void video_notify_handler(uint8_t event, void *arg)
             break;
 
         case USBD_EVENT_SET_INTERFACE: {
+#if CONFIG_USB_BULK_UVC
+            //move stream_on to set commit
+#else
+            int is_on = 0;
             struct usb_interface_descriptor *intf = (struct usb_interface_descriptor *)arg;
             if (intf->bAlternateSetting == 1) {
                 is_on = 1;
@@ -754,6 +762,7 @@ static void video_notify_handler(uint8_t event, void *arg)
                 && uvc_evt_callbacks->uvc_event_stream_on) {
                 uvc_evt_callbacks->uvc_event_stream_on(intf->bInterfaceNumber, is_on);
             }
+#endif
         }
         break;
 
@@ -877,9 +886,13 @@ uint32_t usbd_video_payload_fill(uint8_t *input, uint32_t input_len, uint8_t *ou
     uint32_t size_per_packet = usbd_video_cfg.probe.dwMaxPayloadTransferSize;
     uint32_t size_payload = size_per_packet - size_uvc_header;
 
+#if CONFIG_USB_BULK_UVC
+    //TODO frame size limit?
+#else
     if (size_payload > 10240) {
         USB_LOG_ERR("the size of payload is too long!!!!\n");
     }
+#endif
 
     // The following equals to packets = roundup(input_len / size_payload)
     packets = (input_len + size_payload - 1) / (size_payload);

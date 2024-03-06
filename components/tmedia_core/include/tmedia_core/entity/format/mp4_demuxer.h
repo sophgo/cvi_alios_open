@@ -23,9 +23,6 @@ public:
     TMMp4Demuxer() {mFormatID = TMMediaInfo::FormatID::MP4; InitDefaultPropertyList();}
     virtual ~TMMp4Demuxer() {}
 
-    // TMSrcEntity interface
-    virtual TMSrcPad *GetSrcPad(int padID = 0) = 0;
-
     // TMFormatDemuxer interface
     virtual int Open(string fileName, TMPropertyList *propList = NULL) = 0;
     virtual int Close()                                                = 0;
@@ -56,4 +53,4 @@ protected:
     }
 };
 
-#endif  // TM_MP4_DEMUXER_H
+#endif  /* TM_MP4_DEMUXER_H */

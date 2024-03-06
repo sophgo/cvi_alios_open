@@ -253,7 +253,7 @@ static void  load_file(const char * file_name, void **ptr, size_t *size) {
     printf("open label file failed %s\n", file_name);
     exit(1);
   }
-  struct aos_stat label_stat;
+  aos_stat_t label_stat;
   int ret = aos_stat(file_name, &label_stat);
   if (ret < 0) {
     printf("get file stat failed\n");

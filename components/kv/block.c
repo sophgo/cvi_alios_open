@@ -113,7 +113,7 @@ void kvblock_init(kvblock_t *block, uint8_t *mem, int size)
     if (g_kv_erase_flag == 0xFFFF0000) {
         block_read(block, size, &g_kv_erase_flag, BLOCK_RESERVE_SPACE);
         g_kv_erase_flag = ~g_kv_erase_flag;
-        printf("%s, %d, g_kv_erase_flag:0x%x\n", __func__, __LINE__, g_kv_erase_flag);
+        //printf("%s, %d, g_kv_erase_flag:0x%x\n", __func__, __LINE__, g_kv_erase_flag);
     }
 #endif
     kvblock_calc(block);
@@ -477,6 +477,7 @@ static int _iter_calc(kvnode_t *node, void *i)
             if (valid && idx >= 0) {
                 /* conflict */
                 lcache_node_t *lnode = (lcache_node_t*)calloc(1, sizeof(lcache_node_t));
+                aos_check_mem(lnode);
 
                 cache            = &lnode->cache;
                 cache->block_id  = node->block->id;

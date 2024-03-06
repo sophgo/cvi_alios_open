@@ -9,6 +9,8 @@
 #include "cvi_sys.h"
 #include "cvi_sns_ctrl.h"
 
+__attribute__((weak)) vi_cvi_fastconverge_param g_vi_cvi_converge_params;
+
 TMViCvi::TMViCvi()
 {
     MMF_CHN_S Chn;
@@ -68,21 +70,26 @@ extern unsigned int isp_rgb_color_len;
 extern unsigned char isp_rgb_mono_mode_param[];
 extern unsigned int isp_rgb_mono_len;
 void * g_ViDmaBuf = NULL;
-unsigned int g_ViDmaBufSize = 13 * 1024 * 1024;
+
+extern unsigned char *cvi_isp_param;
+extern unsigned int  cvi_isp_param_len;
+
 __attribute__((weak)) int sensor_init_pre_hook(string sensor_name)
 {
 	return 0;
 }
+
 int TMViCvi::Open(string deviceName, TMPropertyList *propList) 
 {
 	TMEDIA_PRINTF("VI: %s Open\n", deviceName.c_str());
 	unsigned int width, height;
 	int rgbMode;
+
     if(propList->Get(TMCamera::PropID::CHANNEL_OUTPUT_WIDTH, &width) != 0) {
-		mDefaultPropertyList[0].Get(TMCamera::PropID::CHANNEL_OUTPUT_WIDTH, &width);
+		mDefaultChannelPropertyList[0].Get(TMCamera::PropID::CHANNEL_OUTPUT_WIDTH, &width);
 	} 
 	if(propList->Get(TMCamera::PropID::CHANNEL_OUTPUT_HEIGHT, &height) != 0) {
-		mDefaultPropertyList[0].Assign(TMCamera::PropID::CHANNEL_OUTPUT_HEIGHT, height);
+		mDefaultChannelPropertyList[0].Assign(TMCamera::PropID::CHANNEL_OUTPUT_HEIGHT, height);
 	}
 	if(propList->Get(TMCamera::PropID::CAMERA_WORK_MODE, &rgbMode) != 0) {
 		rgbMode = TMCAMERA_COLOR_MODE;
@@ -90,12 +97,26 @@ int TMViCvi::Open(string deviceName, TMPropertyList *propList)
 	mCameraMode = (TMCameraWorkMode_e)rgbMode;
 
 	int devID;
+#ifdef CONFIG_RGBIR_SENSOR_SWITCH
 	cameraName = deviceName;
 	if(deviceName == "rgb0" || deviceName == "ir0") {
 		devID = 0;
 	} else if(deviceName == "ir1") {
 		devID = 1;
 	}
+#else
+	size_t pos;
+	cameraName = deviceName;
+	if ((pos = cameraName.find("ir")) != std::string::npos)  {
+		devID = stoi(cameraName.substr(pos + 2));
+	} else if ((pos = cameraName.find("rgb")) != std::string::npos) {
+		devID = stoi(cameraName.substr(pos + 3));
+	} else {
+		TMEDIA_PRINTF("TMViCvi open param error devicenam=%s\n", cameraName.c_str());
+		return -1;
+	}
+#endif
+
 	TMEDIA_PRINTF("VI: open dev:%d\n", devID);
     this->mDeviceID = devID;
 
@@ -124,6 +145,9 @@ int TMViCvi::Open(string deviceName, TMPropertyList *propList)
 		.enBayerFormat = BAYER_FORMAT_RG,
 	};
 	sensor_init_pre_hook(cameraName);
+
+#ifdef CONFIG_RGBIR_SENSOR_SWITCH
+	unsigned int g_ViDmaBufSize = 13 * 1024 * 1024;
 	if(deviceName == "rgb0" || deviceName == "ir0") {
 		if(!g_ViDmaBuf) {
 			g_ViDmaBuf = malloc(g_ViDmaBufSize);
@@ -135,6 +159,12 @@ int TMViCvi::Open(string deviceName, TMPropertyList *propList)
 		stViDevAttr.phy_addr = (CVI_U64)g_ViDmaBuf;
 		stViDevAttr.phy_size = g_ViDmaBufSize;
 	}
+#endif
+
+	stViDevAttr.stSize.u32Width = width;
+	stViDevAttr.stSize.u32Height = height;
+	stViDevAttr.stWDRAttr.u32CacheLine = height;
+
 	if(CVI_VI_SetDevAttr(this->mDeviceID, &stViDevAttr) != 0) {
 		TMEDIA_PRINTF("CVI_VI_SetDevAttr fail\n");
 		return TMResult::TM_STATE_ERROR; 
@@ -160,13 +190,14 @@ int TMViCvi::Open(string deviceName, TMPropertyList *propList)
 		.bYuvBypassPath = CVI_FALSE,
 	};
 
+#ifdef CONFIG_RGBIR_SENSOR_SWITCH
 	UTIL_CVI_CHECK_RET_WITH_VALUE(CVI_VI_CreatePipe(this->mDeviceID, &stPipeAttr));
 	UTIL_CVI_CHECK_RET_WITH_VALUE(CVI_VI_StartPipe(this->mDeviceID));
 	TMEDIA_PRINTF("CVI_VI_StartPipe:%d success\n", this->mDeviceID);
 
 	if (cameraName == "ir0") {
-		CVI_S16 firstFrLuma[5] = {62, 76, 104, 308, 698};
-		CVI_S16 targetBv[5] = {129, 232, 337, 549, 739};
+		CVI_S16 firstFrLuma[5] = {60, 66, 77, 173, 724};
+		CVI_S16 targetBv[5] = {30, 89, 194, 479, 721};
 		ISP_AE_BOOT_FAST_CONVERGE_S stConvergeAttr;
 
 		stConvergeAttr.bEnable = CVI_TRUE;
@@ -176,7 +207,43 @@ int TMViCvi::Open(string deviceName, TMPropertyList *propList)
 		CVI_ISP_SetFastConvergeAttr(0, &stConvergeAttr);
 		CVI_ISP_SetFastConvergeAttr(1, &stConvergeAttr);
 	}
+#else
+	if (CVI_VI_CreatePipe(this->mDeviceID, &stPipeAttr) != 0) {
+		TMEDIA_PRINTF("CVI_VI_CreatePipe fail\n");
+		return TMResult::TM_STATE_ERROR; 
+	}
 
+	if (CVI_VI_StartPipe(this->mDeviceID) != 0) {
+		TMEDIA_PRINTF("CVI_VI_StartPipe fail\n");
+		return TMResult::TM_STATE_ERROR; 
+	}
+
+	if (!g_vi_cvi_converge_params.params.empty() &&
+		g_vi_cvi_converge_params.params.size() > (size_t)mDeviceID) {
+		ISP_AE_BOOT_FAST_CONVERGE_S stConvergeAttr;
+    	stConvergeAttr.bEnable = CVI_TRUE;
+    	stConvergeAttr.availableNode = 5;
+		auto &param = g_vi_cvi_converge_params.params[mDeviceID];
+
+		memcpy(stConvergeAttr.firstFrLuma, 	param.luma,sizeof(param.luma));
+		memcpy(stConvergeAttr.targetBv, 	param.bv, sizeof(param.bv));
+
+		TMEDIA_PRINTF("vi cvi converge param luma: %d %d %d %d %d\n", 
+				stConvergeAttr.firstFrLuma[0],
+				stConvergeAttr.firstFrLuma[1],
+				stConvergeAttr.firstFrLuma[2],
+				stConvergeAttr.firstFrLuma[3],
+				stConvergeAttr.firstFrLuma[4]);
+		TMEDIA_PRINTF("vi cvi converge param bv: %d %d %d %d %d\n",
+				stConvergeAttr.targetBv[0],
+				stConvergeAttr.targetBv[1],
+				stConvergeAttr.targetBv[2],
+				stConvergeAttr.targetBv[3],
+				stConvergeAttr.targetBv[4]);
+
+		CVI_ISP_SetFastConvergeAttr(mDeviceID, &stConvergeAttr);
+	}
+#endif
 
 	//ISP start
 	CVI_S32 s32Ret;
@@ -287,7 +354,8 @@ int TMViCvi::Open(string deviceName, TMPropertyList *propList)
 		TMEDIA_PRINTF("ISP Init failed with:%d\n", s32Ret);
 		return TMResult::TM_STATE_ERROR;
 	}
-	if(cameraName == "ir0" || cameraName == "ir1") {
+	if(cameraName.find("ir") != std::string::npos) {
+		// set ir camera to mono mode
 		ISP_MONO_ATTR_S stMonoAttr;
 		stMonoAttr.Enable = 1;
 		s32Ret = CVI_ISP_SetMonoAttr(this->mDeviceID, &stMonoAttr);
@@ -296,6 +364,7 @@ int TMViCvi::Open(string deviceName, TMPropertyList *propList)
 			return s32Ret;
 		}
 	}
+
 	//Run ISP
 	s32Ret = CVI_ISP_Run(this->mDeviceID);
 	if (s32Ret != CVI_SUCCESS) {
@@ -412,11 +481,6 @@ int TMViCvi::RecvFrame(TMVideoFrame &frame, int timeout)
     return TMResult::TM_OK;
 }
 
-int TMViCvi::ReleaseFrame(TMVideoFrame &frame) 
-{
-    return TMResult::TM_OK;
-}
-
 //TMTMSrcPad::camera interface
 int TMViCvi::GetModes(TMCameraModes_s &modes)
 {
@@ -444,17 +508,17 @@ int TMViCvi::OpenChannel(int chnID, TMPropertyList *propList)
 	TMEDIA_PRINTF("VI: %s OpenChannel:%d\n", cameraName.c_str(), chnID);
 	unsigned int width, height, pixelFormat;
     if(propList->Get(TMCamera::PropID::CHANNEL_OUTPUT_WIDTH, &width) != 0) {
-		mDefaultPropertyList[this->mDeviceID].Get(TMCamera::PropID::CHANNEL_OUTPUT_WIDTH, &width);
+		mDefaultChannelPropertyList[this->mDeviceID].Get(TMCamera::PropID::CHANNEL_OUTPUT_WIDTH, &width);
 	} 
 	if(propList->Get(TMCamera::PropID::CHANNEL_OUTPUT_HEIGHT, &height) != 0) {
-		mDefaultPropertyList[this->mDeviceID].Assign(TMCamera::PropID::CHANNEL_OUTPUT_HEIGHT, height);
+		mDefaultChannelPropertyList[this->mDeviceID].Assign(TMCamera::PropID::CHANNEL_OUTPUT_HEIGHT, height);
 	}
 	if(propList->Get(TMCamera::PropID::CHANNEL_OUTPUT_PIXEL_FORMAT, &pixelFormat) != 0) {
-		mDefaultPropertyList[this->mDeviceID].Get(TMCamera::PropID::CHANNEL_OUTPUT_PIXEL_FORMAT, &pixelFormat);
+		mDefaultChannelPropertyList[this->mDeviceID].Get(TMCamera::PropID::CHANNEL_OUTPUT_PIXEL_FORMAT, &pixelFormat);
 	}
-	mCurrentPropertyList[this->mDeviceID].Assign(TMCamera::PropID::CHANNEL_OUTPUT_WIDTH, width);
-	mCurrentPropertyList[this->mDeviceID].Assign(TMCamera::PropID::CHANNEL_OUTPUT_HEIGHT, height);
-	mCurrentPropertyList[this->mDeviceID].Assign(TMCamera::PropID::CHANNEL_OUTPUT_PIXEL_FORMAT, pixelFormat);
+	mCurrentChannelPropertyList[this->mDeviceID].Assign(TMCamera::PropID::CHANNEL_OUTPUT_WIDTH, width);
+	mCurrentChannelPropertyList[this->mDeviceID].Assign(TMCamera::PropID::CHANNEL_OUTPUT_HEIGHT, height);
+	mCurrentChannelPropertyList[this->mDeviceID].Assign(TMCamera::PropID::CHANNEL_OUTPUT_PIXEL_FORMAT, pixelFormat);
 
     VI_CHN_ATTR_S stChnAttr;
     stChnAttr.stSize.u32Width = width; 
@@ -472,6 +536,7 @@ int TMViCvi::OpenChannel(int chnID, TMPropertyList *propList)
     stChnAttr.stFrameRate.s32DstFrameRate = -1;
 
     UTIL_CVI_CHECK_RET_WITH_VALUE(CVI_VI_SetChnAttr(this->mDeviceID, this->mDeviceID, &stChnAttr));
+#ifdef CONFIG_RGBIR_SENSOR_SWITCH
 	if(cameraName == "ir1") {  //speial !!!
 		CVI_VI_EnableChn(0, 0);
 		CVI_VI_EnableChn(1, 1);
@@ -482,7 +547,14 @@ int TMViCvi::OpenChannel(int chnID, TMPropertyList *propList)
 	} else {
 		TMEDIA_PRINTF("unsupport sensor:%s\n", cameraName.c_str());
 	}
+#else
+	if (mDeviceID == 1) {
+		CVI_VI_EnableChn(0, 0);
+		CVI_VI_EnableChn(1, 1);
+	}
+#endif
 
+#ifdef CONFIG_RGBIR_SENSOR_SWITCH
 	if (cameraName == "ir1") {
 		TMEDIA_PRINTF("sizeof isp_ir_default_param is:%d\n", isp_ir_default_param_length);
 		CVI_BIN_EnSingleMode();
@@ -494,7 +566,8 @@ int TMViCvi::OpenChannel(int chnID, TMPropertyList *propList)
 	} else if (cameraName == "ir0") {
 		TMEDIA_PRINTF("sizeof isp_ir_default_param is:%d\n", isp_ir_default_param_length);
 		TMEDIA_PRINTF("CVI ISP:%d  Run success\n", this->mDeviceID);
-	} else if(cameraName == "rgb0") {
+	}
+	else if(cameraName == "rgb0") {
 		if (mCameraMode == TMCAMERA_COLOR_MODE) {
 			CVI_BIN_ImportBinData(isp_rgb_color_mode_param, isp_rgb_color_len);
 			TMEDIA_PRINTF("sizeof isp_rgb_color_mode_param is:%d\n", isp_rgb_color_len);
@@ -504,6 +577,14 @@ int TMViCvi::OpenChannel(int chnID, TMPropertyList *propList)
 		}
 		TMEDIA_PRINTF("CVI ISP:%d  Run success\n", this->mDeviceID);
 	}
+#else
+	if (mDeviceID == 1) {
+		s32Ret = CVI_BIN_ImportBinData(cvi_isp_param, cvi_isp_param_len);
+		if (s32Ret != CVI_SUCCESS) {
+			TMEDIA_PRINTF("CVI_BIN_ImportBinData error! value:%d\n", s32Ret);
+		}
+	}
+#endif
 
 	TMEDIA_PRINTF("VI: %s OpenChannel:%d success\n", cameraName.c_str(), chnID);
 

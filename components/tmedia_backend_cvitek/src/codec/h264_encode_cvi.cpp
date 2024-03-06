@@ -144,7 +144,7 @@ int TMH264EncoderCVI::Open(TMCodecParams &codecParam, TMPropertyList *propList)
     mCurrentPropertyList.Assign(TMH264Encoder::PropID::OUTPUT_GOP_NUMBER, GopNum);
     mCurrentPropertyList.Assign(TMH264Encoder::PropID::OUTPUT_TARGET_BITRATE, TargetBitrate);
     mCurrentPropertyList.Assign(TMH264Encoder::PropID::OUTPUT_FPS, FPS);
-    TMEDIA_PRINTF("Encode Open, codec id:%d\n", mCodecID);
+    TMEDIA_PRINTF("Encode Open, codec id:%d\n", (int)mCodecID);
     TMEDIA_PRINTF("Encode: Width:%d  Height:%d  GOP:%d Target Bitrate:%dkb FPS:%d/s\n", codec_param->mWidth, codec_param->mHeight, GopNum, TargetBitrate, FPS);
     this->mChannelID = VeChn;
 
@@ -168,6 +168,7 @@ int TMH264EncoderCVI::Open(TMCodecParams &codecParam, TMPropertyList *propList)
     VencChnAttr.stRcAttr.enRcMode = VENC_RC_MODE_H264CBR;
     VencChnAttr.stRcAttr.stH264Cbr.bVariFpsEn = 0;
     VencChnAttr.stRcAttr.stH264Cbr.u32StatTime = 2;              //the rate statistic time, the unit is senconds(s)
+    VencChnAttr.stRcAttr.stH264Cbr.u32SrcFrameRate = 30;
     VencChnAttr.stRcAttr.stH264Cbr.fr32DstFrameRate = FPS;
     VencChnAttr.stRcAttr.stH264Cbr.u32BitRate = TargetBitrate;
     VencChnAttr.stRcAttr.stH264Cbr.u32Gop = GopNum;
@@ -448,8 +449,13 @@ int TMH264EncoderCVI::RecvPacket(TMVideoPacket &pkt, int timeout)
     } else {
         pkt.mPictureType = TMMediaInfo::PictureType::P;
     }
-    pkt.mPTS = ppack->u64PTS;
-    pkt.mDTS = pkt.mPTS;
+
+    TMClock_t pts;
+    pts.timestamp = ppack->u64PTS;
+    pts.time_base = 1000000;
+
+    pkt.mPTS.Set(pts);
+    pkt.mDTS.Set(pts);
 
 	if (stStream.pstPack != NULL) {
 		free(stStream.pstPack);
@@ -458,9 +464,4 @@ int TMH264EncoderCVI::RecvPacket(TMVideoPacket &pkt, int timeout)
     return TMResult::TM_OK;
 }
 
-int TMH264EncoderCVI::ReleasePacket(TMVideoPacket &pkt)           
-{
-    pkt.UnRef();
-    return TMResult::TM_OK;
-}
 REGISTER_VIDEO_ENCODER_CLASS(TMMediaInfo::CodecID::H264, TMH264EncoderCVI)

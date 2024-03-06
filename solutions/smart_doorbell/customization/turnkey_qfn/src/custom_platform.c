@@ -2,6 +2,8 @@
 #include <drv/pin.h>
 #include <pinctrl-mars.h>
 #include "cvi_type.h"
+#include <mmio.h>
+#include <stdint.h>
 
 #define GPIO_SPKEN_GRP 4
 #define GPIO_SPKEN_NUM 2
@@ -152,3 +154,13 @@ int PLATFORM_IrCutCtl(int duty)
 {
     return 0;
 }
+
+#if CONFIG_QUICK_STARTUP_SUPPORT
+void PLATFORM_CLK_AXI4_Restore()
+{
+	// restore axi4 to 300M
+	if (mmio_read_32(0x030020B8) != 0x00050009) {
+		mmio_write_32(0x030020B8, 0x00050009);
+	}
+}
+#endif

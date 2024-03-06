@@ -104,6 +104,9 @@ void sc201cs_slave_mirror_flip(VI_PIPE ViPipe, ISP_SNS_MIRRORFLIP_TYPE_E eSnsMir
 
 int sc201cs_slave_probe(VI_PIPE ViPipe)
 {
+#if CONFIG_SENSOR_QUICK_STARTUP
+	return CVI_SUCCESS;
+#endif
 	int nVal;
 	int nVal2;
 
@@ -128,7 +131,9 @@ int sc201cs_slave_probe(VI_PIPE ViPipe)
 
 void sc201cs_slave_init(VI_PIPE ViPipe)
 {
-	// sc201cs_slave_i2c_init(ViPipe);
+#if CONFIG_SENSOR_QUICK_STARTUP
+	sc201cs_slave_i2c_init(ViPipe);
+#endif
 
 	sc201cs_slave_linear_1200p30_init(ViPipe);
 
@@ -142,6 +147,9 @@ void sc201cs_slave_exit(VI_PIPE ViPipe)
 
 static void sc201cs_slave_linear_1200p30_init(VI_PIPE ViPipe)
 {
+#if CONFIG_SENSOR_QUICK_STARTUP
+	return;
+#endif
 	sc201cs_slave_write_register(ViPipe, 0x0103, 0x01);
 	sc201cs_slave_write_register(ViPipe, 0x0100, 0x00);
 	sc201cs_slave_write_register(ViPipe, 0x36e9, 0x80);

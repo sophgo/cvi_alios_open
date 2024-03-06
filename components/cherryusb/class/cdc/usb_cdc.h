@@ -255,6 +255,7 @@ struct cdc_union_descriptor {
     uint8_t bDescriptorType;    /* CS_INTERFACE descriptor type */
     uint8_t bDescriptorSubtype; /* union functional descriptor subtype */
     uint8_t bMasterInterface;   /* interface number designated as master */
+    uint8_t bSlaveInterface0;
 } __PACKED;
 
 /* Union functional descriptors with one slave interface */

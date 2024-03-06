@@ -35,6 +35,7 @@ TMVpssCvi::TMVpssCvi()
     mCviSinkPad.insert(std::make_pair(0, SinkPad));
     mOnlineMode = false;
     mFilterFrameFlag = false;
+    mStartFrame      = 0;
 }
 
 TMVpssCvi::~TMVpssCvi()
@@ -214,6 +215,7 @@ int TMVpssCvi::Open(TMVpssParams &vpssParam, TMPropertyList *propList)
     VPSS_GRP_ATTR_S grpAttr = {0};
     int deviceID = 0;
     int isOnlineMode = 0;
+    int startFrame = 0;
 
 	if (MapVpssGrpParam(grpAttr, vpssParam) != TMResult::TM_OK)
 	{
@@ -242,7 +244,7 @@ int TMVpssCvi::Open(TMVpssParams &vpssParam, TMPropertyList *propList)
             if(isOnlineMode) {
                 /* find an unused online vpss */
                 int i = 0;
-                for(; i<sizeof(mCviUsedOnlineVpss); i++) {
+                for(; (size_t)i < sizeof(mCviUsedOnlineVpss); i++) {
                     if(mCviUsedOnlineVpss[i] == false) {
                         break;
                     }
@@ -257,10 +259,18 @@ int TMVpssCvi::Open(TMVpssParams &vpssParam, TMPropertyList *propList)
                 TMEDIA_PRINTF("Vpss: Group:%d online mode\n", vpssGrpID);
             }
         }
+        if (propList->Get(TMVpss::PropID::START_FRAME_NUM, &startFrame) == 0)
+        {
+            if(startFrame < 0) {
+                TMEDIA_PRINTF("Wrong VPSS start frame:%d !\n", startFrame);
+                return TMResult::TM_EINVAL;
+            }
+        }
     } else {
         TMEDIA_PRINTF("VPSS: unvalid propList\n");
         return TMResult::TM_EINVAL;
     }
+
     /* 未传入channel id 自动选择一个 */
     if(vpssGrpID < 0) {
         if(GetAvaliableVpssGrp(vpssGrpID) != TMResult::TM_OK) {
@@ -385,10 +395,20 @@ int TMVpssCvi::Open(TMVpssParams &vpssParam, TMPropertyList *propList)
     TMEDIA_PRINTF("VPSS: Out: Width:%d Height:%d Pixel Format:%d\n", out_width, out_height, chnAttr.enPixelFormat);
     TMEDIA_PRINTF("VPSS: deviceID:%d\n", deviceID);
 
+
+#ifdef CONFIG_RGBIR_SENSOR_SWITCH
     /* 因为无法判断vpss前面绑定的vi是RGB还是IR， 以deviceID=1， mCviVpssGrp = 0 作为ir0取帧的判断条件 */
     if((mCviVpssGrp == 0 || mCviVpssGrp == 1) && deviceID == 1) {
-        mFilterFrameFlag = true;
+        // mFilterFrameFlag = true;
+    } else {
+        mFilterFrameFlag = false;
     }
+#else
+    if (startFrame) {
+        mFilterFrameFlag = true;
+        mStartFrame      = startFrame;
+    }
+#endif
 
     // VpssTableInfoPrint();
     return TMResult::TM_OK;
@@ -557,7 +577,7 @@ GETARAIN:
             CVI_U8 sID = AE_ViPipe2sID(mCviVpssGrp);    //vpss group0->pipe0    vpss group1->pipe1
             CVI_U32 frameID;
             AE_GetFrameID(sID, &frameID);
-            if(frameID < mAvaliableFrameID) {
+            if(frameID < (uint32_t)mStartFrame) {
                 CVI_VPSS_ReleaseChnFrame(mCviVpssGrp, mCviVpssChn, &frame_ctx->pstFrameInfo);
                 goto GETARAIN;
             } else {
@@ -589,12 +609,6 @@ GETARAIN:
     mCurrentPropertyList.Get(TMVpss::PropID::OUTPUT_WIDTH, &frame.mWidth);
     mCurrentPropertyList.Get(TMVpss::PropID::OUTPUT_HEIGHT, &frame.mHeight);
 
-    return TMResult::TM_OK;
-}
-
-int TMVpssCvi::ReleaseFrame(TMVideoFrame &frame)
-{
-    frame.UnRef();
     return TMResult::TM_OK;
 }
 

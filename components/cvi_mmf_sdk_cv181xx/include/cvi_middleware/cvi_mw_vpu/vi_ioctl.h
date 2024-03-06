@@ -39,6 +39,7 @@ int vi_sdk_get_dev_attr(int fd, int dev, VI_DEV_ATTR_S *pstDevAttr);
 int vi_sdk_enable_dev(int fd, int dev);
 int vi_sdk_create_pipe(int fd, int pipe, VI_PIPE_ATTR_S *pstPipeAttr);
 int vi_sdk_start_pipe(int fd, int pipe);
+int vi_sdk_stop_pipe(int fd, int pipe);
 int vi_sdk_set_chn_attr(int fd, int pipe, int chn, VI_CHN_ATTR_S *pstChnAttr);
 int vi_sdk_enable_chn(int fd, int pipe, int chn);
 int vi_sdk_disable_chn(int fd, int pipe, int chn);

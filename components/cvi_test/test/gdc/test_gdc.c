@@ -62,6 +62,9 @@ CVI_VOID SAMPLE_COMM_SYS_Exit(void)
 #define HW_MESH_SIZE 8
 #define MESH_NUM_ATILE (TILESIZE / HW_MESH_SIZE) // how many mesh in A TILE
 
+#define VI_MESH_FILE_NAME SD_FATFS_MOUNTPOINT"/vi_ldc_mesh_0_0.bin"
+#define VPSS_MESH_FILE_NAME SD_FATFS_MOUNTPOINT"/vpss_ldc_mesh_0_0.bin"
+
 typedef struct COORD2D_INT_HW {
 	CVI_U8 xcor[3]; // s13.10, 24bit
 } __attribute__((packed)) COORD2D_INT_HW;
@@ -513,7 +516,7 @@ void test_gdc_enable_ldc(int32_t argc, char **argv)
 		enModId = CVI_ID_VPSS;
 
 	stConf.enModId = CVI_ID_GDC;
-	stConf.s32Level = CVI_DBG_DEBUG;
+	stConf.s32Level = CVI_DBG_ERR;
 	CVI_LOG_SetLevelConf(&stConf);
 
 	if (enModId == CVI_ID_VI) {
@@ -535,6 +538,97 @@ void test_gdc_enable_ldc(int32_t argc, char **argv)
 	printf("mod:%d SetChnLDCAttr OK\n", enModId);
 }
 
+void test_gdc_load_ldc_mesh(int32_t argc, char **argv)
+{
+	CVI_S32 ret;
+	LOG_LEVEL_CONF_S stConf;
+	MOD_ID_E enModId;
+	MESH_DUMP_ATTR_S MeshDumpAttr;
+	LDC_ATTR_S stLDCAttr = {0};
+
+	if (argc == 2)
+		enModId = atoi(argv[1]);
+	if (argc != 2 || enModId < 0 || enModId > 1) {
+		printf("invailed param\n");
+		printf("usage: %s [mod:0(VI)/1(VPSS)]\n", argv[0]);
+		return;
+	}
+	if (enModId == 0)
+		enModId = CVI_ID_VI;
+	else if (enModId == 1)
+		enModId = CVI_ID_VPSS;
+
+	stConf.enModId = CVI_ID_GDC;
+	stConf.s32Level = CVI_DBG_ERR;
+	CVI_LOG_SetLevelConf(&stConf);
+
+	MeshDumpAttr.enModId = enModId;
+	if (enModId == CVI_ID_VI) {
+		snprintf(MeshDumpAttr.binFileName, 128, VI_MESH_FILE_NAME);
+		MeshDumpAttr.viMeshAttr.chn = 0;
+		ret = CVI_GDC_LoadMesh(&MeshDumpAttr, &stLDCAttr);
+	} else if (enModId == CVI_ID_VPSS) {
+		snprintf(MeshDumpAttr.binFileName, 128, VPSS_MESH_FILE_NAME);
+		MeshDumpAttr.vpssMeshAttr.grp = 0;
+		MeshDumpAttr.vpssMeshAttr.chn = 0;
+		ret = CVI_GDC_LoadMesh(&MeshDumpAttr, &stLDCAttr);
+	} else {
+		ret = -1;
+	}
+
+	if (ret) {
+		printf("mod:%d CVI_GDC_LoadMesh failed, ret:0x%x\n", enModId, ret);
+		return;
+	}
+
+	printf("mod:%d CVI_GDC_LoadMesh OK\n", enModId);
+}
+
+void test_gdc_dump_ldc_mesh(int32_t argc, char **argv)
+{
+	CVI_S32 ret;
+	LOG_LEVEL_CONF_S stConf;
+	MOD_ID_E enModId;
+	MESH_DUMP_ATTR_S MeshDumpAttr;
+
+	if (argc == 2)
+		enModId = atoi(argv[1]);
+	if (argc != 2 || enModId < 0 || enModId > 1) {
+		printf("invailed param\n");
+		printf("usage: %s [mod:0(VI)/1(VPSS)]\n", argv[0]);
+		return;
+	}
+	if (enModId == 0)
+		enModId = CVI_ID_VI;
+	else if (enModId == 1)
+		enModId = CVI_ID_VPSS;
+
+	stConf.enModId = CVI_ID_GDC;
+	stConf.s32Level = CVI_DBG_ERR;
+	CVI_LOG_SetLevelConf(&stConf);
+
+	MeshDumpAttr.enModId = enModId;
+	if (enModId == CVI_ID_VI) {
+		snprintf(MeshDumpAttr.binFileName, 128, VI_MESH_FILE_NAME);
+		MeshDumpAttr.viMeshAttr.chn = 0;
+		ret = CVI_GDC_DumpMesh(&MeshDumpAttr);
+	} else if (enModId == CVI_ID_VPSS) {
+		snprintf(MeshDumpAttr.binFileName, 128, VPSS_MESH_FILE_NAME);
+		MeshDumpAttr.vpssMeshAttr.grp = 0;
+		MeshDumpAttr.vpssMeshAttr.chn = 0;
+		ret = CVI_GDC_DumpMesh(&MeshDumpAttr);
+	} else {
+		ret = -1;
+	}
+
+	if (ret) {
+		printf("mod:%d CVI_GDC_DumpMesh failed, ret:0x%x\n", enModId, ret);
+		return;
+	}
+
+	printf("mod:%d CVI_GDC_DumpMesh OK\n", enModId);
+}
+
 void gdc_gen_mesh(int32_t argc, char **argv)
 {
 	int ret;
@@ -553,4 +647,6 @@ void gdc_gen_mesh(int32_t argc, char **argv)
 ALIOS_CLI_CMD_REGISTER(test_gdc_begain_job, test_gdc_begain_job, test_gdc_begain_job)
 ALIOS_CLI_CMD_REGISTER(test_gdc_enable_rot, test_gdc_enable_rot, test_gdc_enable_rot)
 ALIOS_CLI_CMD_REGISTER(test_gdc_enable_ldc, test_gdc_enable_ldc, test_gdc_enable_ldc)
+ALIOS_CLI_CMD_REGISTER(test_gdc_load_ldc_mesh, test_gdc_load_ldc_mesh, test_gdc_load_ldc_mesh)
+ALIOS_CLI_CMD_REGISTER(test_gdc_dump_ldc_mesh, test_gdc_dump_ldc_mesh, test_gdc_dump_ldc_mesh)
 ALIOS_CLI_CMD_REGISTER(gdc_gen_mesh, gdc_gen_mesh, gdc_gen_mesh)

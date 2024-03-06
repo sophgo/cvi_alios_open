@@ -18,6 +18,7 @@
 #include "common_vi.h"
 #include <pinctrl-mars.h>
 #include "vi_isp.h"
+#include <inttypes.h>
 
 #define S_CTRL_PTR(_cfg, _ioctl)\
 	do {\
@@ -244,6 +245,7 @@ void start_vi(int32_t argc, char **argv)
 		0,            0,            0}
 		},
 		VI_DATA_TYPE_RGB,
+		VI_PATH_DEFAULT,
 		{1920, 1080},
 		{
 			WDR_MODE_NONE,
@@ -472,14 +474,16 @@ void dump_vi_raw(int32_t argc, char **argv)
 	int frm_num = 1, j = 0, fd = -1;
 	CVI_U32 dev = 0, loop = 0;
 	struct timespec start, end;
+	COMPRESS_MODE_E enMode = COMPRESS_MODE_NONE;
 
-	if (argc != 3) {
-		printf("invailed param\nusage: %s [dev (0/1)] [loop (1~60)]\n", argv[0]);
+	if (argc != 4) {
+		printf("invailed param\nusage: %s [dev (0/1)] [loop (1~60)] [dump_type (0/1/2)]\n", argv[0]);
 		return;
 	}
 
 	dev = atoi(argv[1]);
 	loop = atoi(argv[2]);
+	enMode = atoi(argv[3]);
 
 	if (loop > 60) {
 		printf("invailed param\n");
@@ -489,6 +493,9 @@ void dump_vi_raw(int32_t argc, char **argv)
 	memset(stVideoFrame, 0, sizeof(stVideoFrame));
 	stVideoFrame[0].stVFrame.enPixelFormat = PIXEL_FORMAT_RGB_BAYER_12BPP;
 	stVideoFrame[1].stVFrame.enPixelFormat = PIXEL_FORMAT_RGB_BAYER_12BPP;
+
+	stVideoFrame[0].stVFrame.enCompressMode = enMode;
+	stVideoFrame[1].stVFrame.enCompressMode = enMode;
 
 	attr.bEnable = 1;
 	attr.u32Depth = 0;
@@ -698,3 +705,203 @@ void vi_unreg_sync_task(int32_t argc, char **argv)
 	printf("vi_unreg_sync_task ViPipe:%d\n", ViPipe);
 }
 ALIOS_CLI_CMD_REGISTER(vi_unreg_sync_task, test_vi_unreg_sync_task, vi unregister sync task);
+
+void smooth_dump_raw(int32_t argc, char **argv)
+{
+	CVI_S32 s32Ret = CVI_SUCCESS;
+
+	VI_PIPE ViPipe = 0;
+	VB_POOL PoolID;
+	VB_POOL_CONFIG_S cfg;
+	VI_SMOOTH_RAW_DUMP_INFO_S stDumpInfo;
+	VIDEO_FRAME_INFO_S stVideoFrame[2];
+	VI_DEV_ATTR_S stDevAttr;
+	VI_PIPE_ATTR_S stPipeAttr;
+	VI_CHN_ATTR_S stChnAttr;
+	COMPRESS_MODE_E enMode = COMPRESS_MODE_NONE;
+	CVI_U8 BlkCnt, TotalFrameCnt;
+	CVI_U64 u64PhyAddr, *phy_addr_list = CVI_NULL;
+	VB_BLK vb_blk;
+	int frm_num = 1, j = 0;
+	struct timeval tv1;
+	CVI_U32 dev_frm_w, dev_frm_h, frm_w, frm_h;
+	CVI_U32 crop_x = 0, crop_y = 0, crop_w = 0, crop_h = 0;
+
+	if (argc != 5) {
+		printf("invailed param\nusage: %s [dev (0/1)] [ringbuf (2~n)] [num (1~60)] [dump_type (0/1/2)]\n",
+			argv[0]);
+		return;
+	}
+
+	ViPipe = atoi(argv[1]);
+	BlkCnt = atoi(argv[2]);
+	TotalFrameCnt = atoi(argv[3]);
+	enMode = atoi(argv[4]);
+
+	CVI_VI_GetDevAttr((VI_DEV)ViPipe, &stDevAttr);
+	CVI_VI_GetChnAttr(0, (VI_CHN)ViPipe, &stChnAttr);
+	CVI_VI_GetPipeAttr(ViPipe, &stPipeAttr);
+
+	dev_frm_w = stDevAttr.stSize.u32Width;
+	dev_frm_h = stDevAttr.stSize.u32Height;
+	CVI_TRACE_LOG(CVI_DBG_WARN, "Set smooth rawdump crop or not? (0:no, 1:yes): ");
+
+	frm_w = dev_frm_w;
+	frm_h = dev_frm_h;
+
+	frm_num = (stDevAttr.stWDRAttr.enWDRMode == WDR_MODE_2To1_LINE) ? 2 : 1;
+	cfg.u32BlkCnt = frm_num * BlkCnt;
+	cfg.u32BlkSize = VI_GetRawBufferSize(frm_w, frm_h,
+					PIXEL_FORMAT_RGB_BAYER_12BPP,
+					enMode ? enMode : stPipeAttr.enCompressMode,
+					16,
+					(stChnAttr.stSize.u32Width > 2304) ? CVI_TRUE : CVI_FALSE);
+
+	printf("Create VB pool cnt(%d) blksize(0x%x)\n",
+			cfg.u32BlkCnt, cfg.u32BlkSize);
+
+	PoolID = CVI_VB_CreatePool(&cfg);
+	if (PoolID == VB_INVALID_POOLID) {
+		CVI_TRACE_LOG(CVI_DBG_ERR, "create vb pool failed\n");
+		s32Ret = CVI_FAILURE;
+		return;
+	}
+
+	phy_addr_list = malloc(sizeof(*phy_addr_list) * cfg.u32BlkCnt);
+	if (phy_addr_list == CVI_NULL) {
+		CVI_TRACE_LOG(CVI_DBG_ERR, "malloc phy_addr_list failed\n");
+		s32Ret = CVI_FAILURE;
+		return;
+	}
+
+	for (CVI_U32 i = 0; i < cfg.u32BlkCnt; i++) {
+		vb_blk = CVI_VB_GetBlock(PoolID, cfg.u32BlkSize);
+		if (vb_blk == VB_INVALID_HANDLE) {
+			CVI_TRACE_LOG(CVI_DBG_ERR, "get VB blk failed\n");
+			s32Ret = CVI_FAILURE;
+			return;
+		}
+		u64PhyAddr = CVI_VB_Handle2PhysAddr(vb_blk);
+		*(phy_addr_list + i) = u64PhyAddr;
+		printf("i=%d, vb_blk=%"PRIx64", addr(0x%"PRIx64"), phy_addr(0x%"PRIx64")\n",
+					i, (intmax_t)vb_blk, u64PhyAddr, *(phy_addr_list + i));
+	}
+
+	memset(&stDumpInfo, 0, sizeof(stDumpInfo));
+	stDumpInfo.ViPipe = ViPipe;
+	stDumpInfo.u8BlkCnt = BlkCnt;
+	stDumpInfo.phy_addr_list = phy_addr_list;
+	// set rawdump crop info in stDumpInfo
+	stDumpInfo.stCropRect.s32X = crop_x;
+	stDumpInfo.stCropRect.s32Y = crop_y;
+	stDumpInfo.stCropRect.u32Width = crop_w;
+	stDumpInfo.stCropRect.u32Height = crop_h;
+	stDumpInfo.enDumpRaw = enMode;
+
+	s32Ret = CVI_VI_StartSmoothRawDump(&stDumpInfo);
+	if (s32Ret != CVI_SUCCESS) {
+		CVI_TRACE_LOG(CVI_DBG_ERR, "start failed\n");
+		s32Ret = CVI_FAILURE;
+		return;
+	}
+
+	for (int i = 0; i < TotalFrameCnt; i++) {
+		memset(stVideoFrame, 0, sizeof(stVideoFrame));
+		s32Ret = CVI_VI_GetSmoothRawDump(ViPipe, stVideoFrame, 1000);
+		if (s32Ret != CVI_SUCCESS) {
+			CVI_TRACE_LOG(CVI_DBG_ERR, "[%d] get frame failed\n", i);
+			continue;
+		}
+
+		printf("[%d] get roi frame addr(0x%"PRIx64") length(%d), number(%d)\n", i,
+				stVideoFrame[0].stVFrame.u64PhyAddr[0],
+				stVideoFrame[0].stVFrame.u32Length[0],
+				stVideoFrame[0].stVFrame.u32TimeRef);
+
+		if (stVideoFrame[1].stVFrame.u64PhyAddr[0] != 0) {
+			printf("[%d] get roi frame addr(0x%"PRIx64") length(%d) number(%d)\n", i,
+					stVideoFrame[1].stVFrame.u64PhyAddr[0],
+					stVideoFrame[1].stVFrame.u32Length[0],
+					stVideoFrame[1].stVFrame.u32TimeRef);
+		}
+
+		s32Ret = CVI_VI_PutSmoothRawDump(ViPipe, stVideoFrame);
+		if (s32Ret != CVI_SUCCESS) {
+			CVI_TRACE_LOG(CVI_DBG_ERR, "[%d] release frame failed\n", i);
+			continue;
+		}
+	}
+
+	s32Ret = CVI_VI_StopSmoothRawDump(&stDumpInfo);
+	if (s32Ret != CVI_SUCCESS) {
+		CVI_TRACE_LOG(CVI_DBG_ERR, "stop failed\n");
+		s32Ret = CVI_FAILURE;
+		return;
+	}
+
+	// save raw file
+	gettimeofday(&tv1, NULL);
+
+	for (j = 0; j < frm_num; j++) {
+		size_t image_size = stVideoFrame[j].stVFrame.u32Length[0];
+		unsigned char *ptr = calloc(1, image_size);
+		FILE *output;
+		char img_name[128] = {0,}, order_id[8] = {0,};
+
+		CVI_TRACE_LOG(CVI_DBG_WARN, "paddr(%#"PRIx64") vaddr(%p)\n",
+					stVideoFrame[j].stVFrame.u64PhyAddr[0],
+					stVideoFrame[j].stVFrame.pu8VirAddr[0]);
+
+		memcpy(ptr, (const void *)stVideoFrame[j].stVFrame.u64PhyAddr[0],
+			stVideoFrame[j].stVFrame.u32Length[0]);
+
+		switch (stVideoFrame[j].stVFrame.enBayerFormat) {
+		default:
+		case BAYER_FORMAT_BG:
+			snprintf(order_id, sizeof(order_id), "BG");
+			break;
+		case BAYER_FORMAT_GB:
+			snprintf(order_id, sizeof(order_id), "GB");
+			break;
+		case BAYER_FORMAT_GR:
+			snprintf(order_id, sizeof(order_id), "GR");
+			break;
+		case BAYER_FORMAT_RG:
+			snprintf(order_id, sizeof(order_id), "RG");
+			break;
+		}
+
+		snprintf(img_name, sizeof(img_name),
+				"/mnt/sd/vi_%d_compress_mode_%d_%s_%s_w_%d_h_%d_x_%d_y_%d_tv_%ld_%ld.raw",
+				ViPipe, enMode, (j == 0) ? "LE" : "SE", order_id,
+				stVideoFrame[j].stVFrame.u32Width,
+				stVideoFrame[j].stVFrame.u32Height,
+				stVideoFrame[j].stVFrame.s16OffsetLeft,
+				stVideoFrame[j].stVFrame.s16OffsetTop,
+				tv1.tv_sec, tv1.tv_usec);
+
+		CVI_TRACE_LOG(CVI_DBG_WARN, "dump image %s\n", img_name);
+
+		output = fopen(img_name, "wb");
+
+		fwrite(ptr, image_size, 1, output);
+		fclose(output);
+		free(ptr);
+	}
+
+	for (CVI_U32 i = 0; i < cfg.u32BlkCnt; i++) {
+		u64PhyAddr = *(phy_addr_list + i);
+		vb_blk = CVI_VB_PhysAddr2Handle(u64PhyAddr);
+		if (vb_blk != VB_INVALID_HANDLE) {
+			CVI_VB_ReleaseBlock(vb_blk);
+		}
+	}
+
+	if (phy_addr_list != CVI_NULL) {
+		free(phy_addr_list);
+		phy_addr_list = CVI_NULL;
+	}
+	s32Ret = CVI_VB_DestroyPool(PoolID);
+
+}
+ALIOS_CLI_CMD_REGISTER(smooth_dump_raw, smooth_dump_raw, vi smooth_dump_raw);

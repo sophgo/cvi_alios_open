@@ -51,7 +51,12 @@ static int hid_class_interface_request_handler(struct usb_setup_packet *setup, u
 
 struct usbd_interface *usbd_hid_init_intf(struct usbd_interface *intf, const uint8_t *desc, uint32_t desc_len)
 {
+    // why usb device use host function?
+#if CONFIG_USBD_HID_KEYBOARD
+    intf->class_interface_handler = NULL;
+#else
     intf->class_interface_handler = hid_class_interface_request_handler;
+#endif
     intf->class_endpoint_handler = NULL;
     intf->vendor_handler = NULL;
     intf->notify_handler = NULL;

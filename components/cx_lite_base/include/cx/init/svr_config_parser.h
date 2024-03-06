@@ -61,18 +61,15 @@ class ServiceConfigParser final {
 public:
     using ParserFunc = std::function<void (int svrIndex, cx::Json obj)>;
 
-    ServiceConfigParser(const char *configStr);
-    ~ServiceConfigParser();
-
-    int Parse(void);
+    static int Parse(const char *svrConfigStr, const char *inputConfigStr);
     static int RegisterServiceParser(const std::string &svrName, const ParserFunc &func);
 
     static int GetVidSourceConfig(cx::Json root, int vidIndex, source::VidChannelConfig &config);
     static int GetAudSourceConfig(cx::Json root, int audIndex, source::AudChannelConfig &config);
 
 private:
-    cx::Json mJsonRoot;
     static std::map<const std::string, ParserFunc> mPaserTable;
+    static std::vector<source::VidInputConfig>     vidInputConfigs;       
 };
 
 }

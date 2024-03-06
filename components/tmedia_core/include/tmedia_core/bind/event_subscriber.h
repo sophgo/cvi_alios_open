@@ -8,20 +8,27 @@
 #ifdef __linux__
 #include <tmedia_config.h>
 #endif
-#include <tmedia_core/bind/event_subscriber.h>
+#include "pipeline.h"
 
 using namespace std;
+class TMPipeline;
 
-typedef int (*TMEventHandleFunc)(int eventID, void *eventData);
+typedef int (*EventSubscriberProcessFunc)(TMEntity *entity, TMEvent *event);
 
 class TMEventSubscriber
 {
 public:
-    TMEventSubscriber(TMEventHandleFunc handleFunc);
-    int RegisterHandleFunc(TMEventHandleFunc handleFunc);
+    TMEventSubscriber();
+    TMEventSubscriber(TMPipeline *pipeline, EventSubscriberProcessFunc func,
+                      initializer_list<TMEvent::Type> &ilEvents);
+    ~TMEventSubscriber();
+
+    int ProcessEvent(TMEntity *entity, TMEvent *event);
+    int RegisterEventProcessFunction(EventSubscriberProcessFunc func);
 
 private:
-    TMEventHandleFunc mHandleFunc;
+    TMPipeline *mPipeline;
+    EventSubscriberProcessFunc mProcessFunc;
 };
 
-#endif  // TM_EVENT_SUBSCRIBER_H
+#endif  /* TM_EVENT_SUBSCRIBER_H */

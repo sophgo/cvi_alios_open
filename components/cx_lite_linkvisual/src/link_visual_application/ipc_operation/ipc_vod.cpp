@@ -9,12 +9,75 @@
 #include "lv_internal_api.h"
 #include "ipc_vod.h"
 #include <cx/common/log.h>
+#include <tmedia_core/entity/format/ts_demuxer.h>
 
 #define TAG "ipc_vod"
 
+
+int IpcVodUnit::ParseOneAVFrame(uint64_t streaming_start_time)
+{
+    int rc;
+    TMPacket avPaket;
+    avPaket.Init();
+
+    rc = mDemuxer->RecvPacket(avPaket, 0);
+    if (rc == TMResult::TM_OK) {
+        uint8_t *data = avPaket.mData;
+        size_t data_size = avPaket.mDataLength;
+        unsigned int ts = avPaket.mPTS.Get().timestamp/(MPEG_TIME_BASE / 1000) + (mTaskParam.file_begin_time - check_day_start_time)*1000;
+
+        if (avPaket.mStreamIndex != -1 && 
+            (avPaket.mCodecID == TMMediaInfo::CodecID::H264 || avPaket.mCodecID == TMMediaInfo::CodecID::H265)) {
+            while(data_size > 0) {
+                TMVideoPacket videoPkt;
+                rc = mH264Parser->Parse(videoPkt, data, data_size);
+                if(rc >= 0) {
+                    data += rc;
+                    data_size -= rc;
+                } else {
+                    CX_LOGE(TAG, "parser read packet error, rc = %d", rc);
+                    break;
+                }
+                if (videoPkt.mDataLength) {
+                    int key_frame = (videoPkt.mPictureType == TMMediaInfo::PictureType::I) ? 1 : 0; 
+
+                    if(mTaskParam.service_id > 0) {
+                        rc = video_data_(mTaskParam.service_id, LV_VIDEO_FORMAT_H264, videoPkt.mData, 
+                                    videoPkt.mDataLength, ts, key_frame);
+                        if (LV_WARN_BUF_FULL == rc) {
+                            CX_LOGE(TAG, "vod send frame error, will send again later\n");
+                        }
+                    }
+                }
+
+                videoPkt.UnRef();
+            }
+        } else if (avPaket.mCodecID == TMMediaInfo::CodecID::G711) {
+            if(mTaskParam.service_id > 0) {
+                rc = audio_data_(mTaskParam.service_id, LV_AUDIO_FORMAT_G711A, data, data_size, ts);
+                if (LV_WARN_BUF_FULL == rc) {
+                    CX_LOGE(TAG, "vod send frame error, will send again later\n");
+                }
+            }
+        } else {
+            CX_LOGE(TAG, "stream type not supported index=% codec=%d", avPaket.mStreamIndex, avPaket.mCodecID);
+            rc = -1;
+            goto END;
+        }
+
+        rc = 1;
+    } else if (rc == TMResult::TM_TIMEOUT || rc == TMResult::TM_EAGAIN) {
+        rc = 0;
+    }
+
+END:
+    avPaket.UnRef();
+    return rc;
+}
+
 IpcVodUnit::IpcVodUnit(VideoData video, AudioData audio, PropertyData property, RecordData record, VodCmdData vod_cmd)
 {
-    mDemuxer = TMFormatDemuxerFactory::CreateEntity(TMMediaInfo::FormatID::TS);    
+    mDemuxer = static_cast<TMTsDemuxer *>(TMFormatDemuxerFactory::CreateEntity(TMMediaInfo::FormatID::TS));    
     mH264Parser = TMParserFactory::CreateEntity(TMMediaInfo::CodecID::H264);
     if(!mDemuxer || !mH264Parser) {
         CX_LOGE(TAG, "demuxer or parser create fail, %p %p", mDemuxer, mH264Parser);
@@ -31,7 +94,7 @@ IpcVodUnit::IpcVodUnit(VideoData video, AudioData audio, PropertyData property, 
     record_data_ = record;
     vod_cmd_data_ = vod_cmd;
 
-    memset(&mTaskParam, 0, sizeof(TaskParams));
+    memset((void *)&mTaskParam, 0, sizeof(TaskParams));
     check_day_start_time = 0;
     pause_ = 0;
 }
@@ -50,65 +113,76 @@ void *IpcVodUnit::VodTask(void *args)
     auto params = reinterpret_cast<TaskParams *>(args);
     auto ptr = params->ptr;
     int rc;
-    rc = ptr->mDemuxer->Open(params->record_name.c_str());
-    if (rc != TMResult::TM_OK) {
+    TMPropertyList propList;
+    FILE *fp;
+    uint8_t buffer[188 * 5];
+    TMPacket muxPaket;
+
+    fp = fopen(params->record_name.c_str(), "r");
+    if (!fp) {
         CX_LOGE(TAG, "vod cannot open file:%s", params->record_name.c_str());
         return nullptr;
     }
-    TMPacket packet;
-    packet.Init();
+
+    propList.Add(TMProperty((int)TMTsDemuxer::PropID::TSDEMUXER_INBUF_SIZE,     50 * 1024));
+    propList.Add(TMProperty((int)TMTsDemuxer::PropID::TSDEMUXER_OUTBUF_SIZE,    50 * 1024));
+    rc = ptr->mDemuxer->Open("", &propList);
+    if (rc != TMResult::TM_OK) {
+        CX_LOGE(TAG, "open demuxer failed rc=%d", rc);
+        return nullptr;
+    }
+
+    propList.Reset();
+    propList.Add(TMProperty((uint32_t)TMParser::PropID::RETAIN_FRAME_SIZE,      100 * 1024));
+    rc = ptr->mH264Parser->Open(&propList);
+    if (rc != TMResult::TM_OK)
+    {
+        CX_LOGE(TAG, "h264parser open failed rc=%d", rc);
+        ptr->mDemuxer->Close();
+        return nullptr;
+    }
+
     uint64_t system_start_time_ = GetLocalTime();
 
     CX_LOGD(TAG, "vod task enter");
-    int packet_count = 0;
     while(params->task_running) {
         if(ptr->pause_) {
             usleep(5000);
             continue;
         }
-        rc = ptr->mDemuxer->ReadPacket(packet);
-        if (rc == 0) {
-            uint8_t *data = packet.mData;
-            size_t data_size = packet.mDataLength;
-            while(data_size > 0) {
-                TMVideoPacket videoPkt;
-                rc = ptr->mH264Parser->Parse(videoPkt, data, data_size);
-                if(rc >= 0) {
-                    data += rc;
-                    data_size -= rc;
-                } else {
-                    CX_LOGE(TAG, "parser read packet error, rc = %d", rc);
-                    break;
-                }
-                if (videoPkt.mDataLength) {
-                    videoPkt.mDTS = packet_count*40000;
-                    int key_frame = (videoPkt.mPictureType == TMMediaInfo::PictureType::I) ? 1 : 0; 
-                    uint64_t current = GetLocalTime();
-                    // while ((uint64_t)(videoPkt.mDTS/1000 - params->absolute_time_s*1000) > (current - system_start_time_)) {
-                    while ((uint64_t)(videoPkt.mDTS/1000) > (current - system_start_time_)) {
-                        usleep(10000);
-                        current = GetLocalTime();
-                    }
-                    if(params->service_id > 0) {
-                        rc = ptr->video_data_(params->service_id, LV_VIDEO_FORMAT_H264, videoPkt.mData + videoPkt.mDataOffset, videoPkt.mDataLength, videoPkt.mDTS/1000 + (params->file_begin_time - ptr->check_day_start_time)*1000, key_frame);
-                        // ptr->audio_data_(params->service_id, lv_audio_format_e format, unsigned char *buffer, unsigned int buffer_size, unsigned int timestamp_ms);
-                        if (LV_WARN_BUF_FULL == rc) {
-                            CX_LOGE(TAG, "vod send frame error, will send again later\n");
-                        }
-                    }
-                    packet_count++;
-                }
-            }
-        } else if (rc == TMResult::TM_EOF) {
+
+        size_t bytes = fread(buffer, 1, 188 * 5, fp);
+        if (bytes == 0) {
             CX_LOGE(TAG, "read packet eof");
             break;
-        } else {
-            CX_LOGE(TAG, "demuxer read packet error, rc = %d", rc);
+        } else if (bytes < 0) {
+            CX_LOGE(TAG, "demuxer read packet error, rc = %d", bytes);
             break;
         }
+
+        muxPaket.Init();
+        muxPaket.PrepareBuffer(bytes);
+        muxPaket.Copy(buffer, bytes);
+
+        rc = ptr->mDemuxer->SendPacket(muxPaket, 20);
+        muxPaket.UnRef();
+
+        while (1) {
+            rc = ptr->ParseOneAVFrame(system_start_time_);
+            if (rc == 0) {
+                break;
+            } else if (rc < 0) {
+                params->task_running = 0;
+                break;
+            }
+        }
     }
-    packet.Free();
+
+    muxPaket.Free();
+    ptr->mH264Parser->Close();
     ptr->mDemuxer->Close();
+    fclose(fp);
+
     params->task_running = 0;
     pthread_mutex_lock(&ptr->mLock);
     pthread_cond_signal(&ptr->mSignal);

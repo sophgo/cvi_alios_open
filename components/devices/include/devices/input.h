@@ -58,13 +58,21 @@ typedef void (*rvm_hal_input_event)(rvm_dev_t *dev, int event_id, void *priv);
 #define rvm_hal_input_close(dev)        rvm_hal_device_close(dev)
 
 /**
-  \brief       set event callback
+  \brief       set event callback, allow to set mutiple event_cb
   \param[in]   dev      Pointer to device object.
   \param[in]   event_cb event callback
   \param[in]   priv     private data for user
   \return      0 on success, else on fail.
 */
 int rvm_hal_input_set_event(rvm_dev_t *dev, rvm_hal_input_event event_cb, void *priv);
+
+/**
+  \brief       unset event callback
+  \param[in]   dev      Pointer to device object.
+  \param[in]   event_cb event callback
+  \return      0 on success, else on fail.
+*/
+int rvm_hal_input_unset_event(rvm_dev_t *dev, rvm_hal_input_event event_cb);
 
 /**
   \brief       read data
@@ -75,6 +83,11 @@ int rvm_hal_input_set_event(rvm_dev_t *dev, rvm_hal_input_event event_cb, void *
   \return      0 on success, else on fail.
 */
 int rvm_hal_input_read(rvm_dev_t *dev, void *data, uint32_t size, unsigned int timeout_ms);
+
+
+#if defined(AOS_COMP_DEVFS) && AOS_COMP_DEVFS
+#include <devices/vfs_input.h>
+#endif
 
 #ifdef __cplusplus
 }

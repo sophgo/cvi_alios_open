@@ -10,12 +10,17 @@
 #include <drv/rtc.h>
 #include <soc.h>
 #include <mmio.h>
+#include <devices/devicelist.h>
 #include "board_config.h"
 
 
 csi_gpio_t chip_gpio_handler;
 csi_rtc_t rtc_hdl;
 csi_dma_t dma_hdl;
+
+void board_uart_init(void) {
+  rvm_uart_drv_register(CONSOLE_UART_IDX);
+}
 
 static void board_pinmux_config(void)
 {
@@ -72,5 +77,6 @@ void board_init(void)
     board_pinmux_config();
     board_sound_init();
 #endif
+    board_uart_init();
     board_flash_init();
 }

@@ -39,7 +39,6 @@ license: APACHE                                     # <可选项> 源代码的�
 build_config:
   cxxflag: ' -Wall -O2 -Wno-attributes '
   include:
-    - include
     - libs
   libs:
     - shl_c906_rtos

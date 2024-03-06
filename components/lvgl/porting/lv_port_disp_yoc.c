@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <devices/display.h>
+#include <ulog/ulog.h>
 
 #include "../../lvgl.h"
 
@@ -94,7 +95,14 @@ static void disp_init(void)
  *'lv_disp_flush_ready()' has to be called when finished.*/
 static void disp_flush(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *color_p)
 {
+    static int first = 0;
+
     rvm_hal_display_pan_display(disp_dev);
+
+    if (first == 0) {
+        LOGI("lvgl", "first frame out");
+        first = 1;
+    }
 }
 
 /*OPTIONAL: GPU INTERFACE*/

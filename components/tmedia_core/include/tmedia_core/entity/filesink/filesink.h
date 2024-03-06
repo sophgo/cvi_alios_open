@@ -41,4 +41,4 @@ public:
 };
 
 
-#endif  // TM_FILESINK_H
+#endif  /* TM_FILESINK_H */

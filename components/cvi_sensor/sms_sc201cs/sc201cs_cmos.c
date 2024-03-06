@@ -43,7 +43,7 @@ ISP_SNS_STATE_S *g_pastSc201cs[VI_MAX_PIPE_NUM] = {CVI_NULL};
 #define SC201CS_SENSOR_RESET_CTX(dev)         (g_pastSc201cs[dev] = CVI_NULL)
 
 ISP_SNS_COMMBUS_U g_aunSc201cs_BusInfo[VI_MAX_PIPE_NUM] = {
-	[0] = { .s8I2cDev = 1},
+	[0] = { .s8I2cDev = 2},
 	[1 ... VI_MAX_PIPE_NUM - 1] = { .s8I2cDev = -1}
 };
 

@@ -194,7 +194,7 @@ csi_gpio_pin_state_t csi_gpio_pin_read(csi_gpio_pin_t *pin)
     return state;
 }
 
-csi_error_t csi_gpio_pin_debonce(csi_gpio_pin_t *pin, bool enable)
+csi_error_t csi_gpio_pin_debounce(csi_gpio_pin_t *pin, bool enable)
 {
     return CSI_OK;
 }

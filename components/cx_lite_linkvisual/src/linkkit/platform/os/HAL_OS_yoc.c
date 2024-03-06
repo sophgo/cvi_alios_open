@@ -602,7 +602,7 @@ void *HAL_Timer_Create(const char *name, void (*func)(void *), void *user_data)
 #ifdef AOS_TIMER_SERVICE
     int stack_size  = 1024*7+256;
 #else
-    int stack_size  = 1024*4;
+    int stack_size  = 1024*10;
 #endif
 
     if (!tsk) {

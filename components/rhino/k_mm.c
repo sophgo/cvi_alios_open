@@ -198,8 +198,8 @@ kstat_t krhino_init_mm_head(k_mm_head **ppmmhead, void *addr, size_t len)
 
     NULL_PARA_CHK(ppmmhead);
     NULL_PARA_CHK(addr);
-
-    memset(addr, 0, len);
+    // 64MB DDR memset need 20ms
+    // memset(addr, 0, len);
 
     /* check paramters, addr and len need algin
      *  1.  the length at least need RHINO_CONFIG_MM_TLF_BLK_SIZE  for fixed size memory block

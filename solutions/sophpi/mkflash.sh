@@ -25,6 +25,7 @@ fi
 
 echo "want to burn $1"
 if [[ "$1" == "all" ]];then
+    ${PRODUCTBIN} flash ${IMGZIP_PATH} -e primb -f $2 -x gdbinitflash
     ${PRODUCTBIN} flash ${IMGZIP_PATH} -a -f $2 -x gdbinitflash
     echo "burn all over!"
     exit

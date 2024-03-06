@@ -32,7 +32,6 @@ public:
     int Start()                                                  final override;
     int Stop()                                                   final override;
     int RecvFrame(TMVideoFrame &frame, int timeout)              final override;
-    int ReleaseFrame(TMVideoFrame &frame)                        final override;
 
     // TMCamera interface
     int GetModes(TMCameraModes_s &modes)                              final override;
@@ -52,4 +51,4 @@ private:
 
 };
 
-#endif  // TM_CAMERA_OPENCV_H
+#endif  /* TM_CAMERA_OPENCV_H */

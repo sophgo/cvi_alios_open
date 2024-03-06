@@ -1,18 +1,25 @@
 /*
- * Copyright (C) 2018-2022 Alibaba Group Holding Limited
+ * Copyright (C) 2018-2023 Alibaba Group Holding Limited
  */
 
-#ifndef __TS_MUXER_SENO_H__
-#define __TS_MUXER_SENO_H__
+#ifndef TM_TS_MUXER_SENO_H
+#define TM_TS_MUXER_SENO_H
 
+#define LOG_LEVEL 1
+#include <tmedia_core/common/syslog.h>
+#include <tmedia_core/entity/format/format_factory.h>
+#include <tmedia_core/common/common_inc.h>
+#include <tmedia_core/entity/format/format_muxer.h>
+#include <tmedia_core/entity/format/format_info.h>
 #include <tmedia_core/common/media_info.h>
 #include <tmedia_core/entity/parser/parser.h>
+#include <tmedia_core/util/util_ringbuffer.h>
 #include <tmedia_core/entity/format/ts_muxer.h>
 #include <mpegts/ts_muxer.hpp>
+#include <mpegts/ts_frame.hpp>
+#include <unistd.h>
 
 using namespace std;
-
-typedef void (*muxer_cb_t)(void *user_data, const uint8_t *packet, size_t size);
 
 class TMTsMuxerSeno final: public TMTsMuxer
 {
@@ -22,19 +29,29 @@ public:
 
     int  Open(TMPropertyList *propList = NULL);
     int  Close();
+
     int  SetConfig(TMPropertyList &propertyList);
     int  GetConfig(TMPropertyList &propertyList);
+
     int  Start();
     int  Stop();
-    void SetMuxerCallback(mux_cb_t cb, void *user_data);
-    int  AddStream(int sid, TMCodecParams &codecParam);
-    int  WritePacket(int sid, TMPacket &packet);
+    int  SendPacket(TMPacket &pkt, int timeout);
+    int  RecvPacket(TMPacket &pkt, int timeout);
 
 private:
-    TsMuxer*                  mMux;
-    muxer_cb_t                mCallback;
-    void*                     mUserData;
+    int  MapType(TMMediaInfo::CodecID mtype);
+    TsMuxer                  *mVideoMux;
+    TsFrame                  *mVideoFrame;
+    TsMuxer                  *mAudioMux;
+    TsFrame                  *mAudioFrame;
+    TMUtilRingBuffer         *mRingBufferPtr;
+    bool                     mSendAble;
+    bool                     mRecvAble;
+    condition_variable       mMuxerCV;   //To wait the mSendAble signal and the mRecvAble signal to change.
+    mutex                    mMuxerLock; //To protect the *mRingBufferPtr
+    mutex                    mMuxerWaitSendV;
+    mutex                    mMuxerWaitSendA;
+    mutex                    mMuxerWaitRecv;
 };
 
-#endif /* __TS_MUXER_SENO_H__ */
-
+#endif  /* TM_TS_MUXER_SENO_H */

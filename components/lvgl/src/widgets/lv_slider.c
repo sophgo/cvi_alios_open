@@ -334,7 +334,7 @@ static void draw_knob(lv_event_t * e)
     const bool is_rtl = LV_BASE_DIR_RTL == lv_obj_get_style_base_dir(obj, LV_PART_MAIN);
     const bool is_horizontal = is_slider_horizontal(obj);
 
-    lv_area_t knob_area;
+    lv_area_t knob_area = {0};
     lv_coord_t knob_size;
     bool is_symmetrical = false;
     if(slider->bar.mode == LV_BAR_MODE_SYMMETRICAL && slider->bar.min_value < 0 &&

@@ -67,13 +67,13 @@ fi
 if [ -d bin ]; then
 	cp -arf bin/*  ${MK_GENERATED_PATH}/data/
 fi
-#to do fix ${MK_GENERATED_PATH}/../boot/boot.bin 
+#to do fix ${MK_GENERATED_PATH}/../boot/boot.bin
 [ -f "${MK_GENERATED_PATH}/../boot/boot.bin" ] && cp -arf ${MK_GENERATED_PATH}/../boot/boot.bin ${MK_GENERATED_PATH}/data/boot
 [ -f "${MK_BOARD_PATH}/bootimgs/boot0" ] && cp -arf ${MK_BOARD_PATH}/bootimgs/boot0.emmc ${MK_GENERATED_PATH}/data/boot0
 
 #[ -f yoc.bin ] && cp -arf yoc.bin ${MK_GENERATED_PATH}/data/prim
 cp yoc.bin ${MK_GENERATED_PATH}/data/prima
-cp -arf ${MK_BOARD_PATH}/configs/config.yaml.emmc ${MK_GENERATED_PATH}/data/config.yaml
+cp -arf ${MK_BOARD_PATH}/configs/config.emmc.yaml ${MK_GENERATED_PATH}/data/config.yaml
 # ${PRODUCT} combine -i yoc.bin,0x80040000,xz -o ${MK_GENERATED_PATH}/data/prim
 ${PRODUCT} image ${MK_GENERATED_PATH}/images.zip -i ${MK_GENERATED_PATH}/data -l -p
 ${PRODUCT} image ${MK_GENERATED_PATH}/images.zip -e ${MK_GENERATED_PATH} -x

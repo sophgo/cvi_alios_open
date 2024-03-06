@@ -31,7 +31,7 @@ PARAM_CLASSDEFINE(PARAM_VENC_CHN_CFG_S,VENCCFG,CTX,VENC)[] = {
             .u16Gop = 30,
             .u8SrcFrameRate = 30,
             .u8DstFrameRate = 30,
-            .u16BitRate = 1024,
+            .u32BitRate = 1024,
             .u8Qfactor = 60,
             .u32MaxBitRate = CVI_H26X_FRAME_BITS_DEFAULT,
             .u8VariFpsEn = 0,
@@ -49,7 +49,7 @@ PARAM_CLASSDEFINE(PARAM_VENC_CHN_CFG_S,VENCCFG,CTX,VENC)[] = {
             .u8MaxQp = CVI_H26X_MAXQP_DEFAULT,//0-51
             .u8MaxReEncodeTimes = 0, /* RW = , Range:[0, 3]  Range:max number of re-encode times.*/
             .u8QpMapEn = CVI_FALSE, /* RW = , Range:[0, 1]  enable qpmap.*/
-            .u8ChangePos = DEF_26X_CHANGE_POS, //VBR使用
+            .u8ChangePos = DEF_26X_CHANGE_POS, //VBR使锟斤拷
         },
         .s8RoiNumber = -1,
     },
@@ -75,7 +75,7 @@ PARAM_CLASSDEFINE(PARAM_VENC_CHN_CFG_S,VENCCFG,CTX,VENC)[] = {
             .u16Gop = 30,
             .u8SrcFrameRate = 30,
             .u8DstFrameRate = 30,
-            .u16BitRate = 1024,
+            .u32BitRate = 1024,
             .u8Qfactor = 60,
             .u32MaxBitRate = CVI_H26X_FRAME_BITS_DEFAULT,
             .u8VariFpsEn = 0,
@@ -93,7 +93,7 @@ PARAM_CLASSDEFINE(PARAM_VENC_CHN_CFG_S,VENCCFG,CTX,VENC)[] = {
             .u8MaxQp = CVI_H26X_MAXQP_DEFAULT,//0-51
             .u8MaxReEncodeTimes = 0, /* RW = , Range:[0, 3]  Range:max number of re-encode times.*/
             .u8QpMapEn = CVI_FALSE, /* RW = , Range:[0, 1]  enable qpmap.*/
-            .u8ChangePos = DEF_26X_CHANGE_POS, //VBR使用
+            .u8ChangePos = DEF_26X_CHANGE_POS, //VBR使锟斤拷
         },
         .s8RoiNumber = -1,
     }

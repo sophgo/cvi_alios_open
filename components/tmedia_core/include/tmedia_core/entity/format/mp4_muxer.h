@@ -2,7 +2,8 @@
  * Copyright (C) 2021-2022 Alibaba Group Holding Limited
  */
 
-#pragma once
+#ifndef TM_MP4_MUXER_H
+#define TM_MP4_MUXER_H
 
 #include <string>
 
@@ -24,3 +25,5 @@ protected:
 
 private:
 };
+
+#endif  /* TM_MP4_MUXER_H */

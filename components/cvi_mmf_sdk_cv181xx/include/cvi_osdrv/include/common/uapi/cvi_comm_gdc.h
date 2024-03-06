@@ -172,6 +172,24 @@ typedef struct _LDC_BUF_WRAP_S {
 	CVI_U32 u32WrapBufferSize;
 } LDC_BUF_WRAP_S;
 
+typedef struct _VI_MESH_ATTR_S {
+	VI_CHN chn;
+} VI_MESH_ATTR_S;
+
+typedef struct _VPSS_MESH_ATTR_S {
+	VPSS_GRP grp;
+	VPSS_CHN chn;
+} VPSS_MESH_ATTR_S;
+
+typedef struct _MESH_DUMP_ATTR_S {
+	CVI_CHAR binFileName[128];
+	MOD_ID_E enModId;
+	union {
+		VI_MESH_ATTR_S viMeshAttr;
+		VPSS_MESH_ATTR_S vpssMeshAttr;
+	};
+} MESH_DUMP_ATTR_S;
+
 #ifdef __cplusplus
 #if __cplusplus
 }

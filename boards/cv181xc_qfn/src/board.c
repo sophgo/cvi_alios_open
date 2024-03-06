@@ -10,6 +10,7 @@
 #include <drv/rtc.h>
 #include <soc.h>
 #include <mmio.h>
+#include <devices/devicelist.h>
 #include "board_config.h"
 #if (CONFIG_APP_HI3861_WIFI_SUPPORT == 1)
 #include <hi3861l_devops.h>
@@ -21,28 +22,32 @@ csi_gpio_t chip_gpio_handler;
 csi_rtc_t rtc_hdl;
 csi_dma_t dma_hdl;
 
-const char *g_cx_boardconfig = R"({	
-"sensors": [	
-	{	
-	"tag": "rgb0",	
+const char *g_cx_boardconfig = R"({
+"sensors": [
+	{
+	"tag": "rgb0",
 	"width": 1600,
 	"height": 1200,
     "onlineMode": 1
-	},	
-	{	
-	"tag": "ir0",	
+	},
+	{
+	"tag": "ir0",
 	"width": 1600,
 	"height": 1200,
     "onlineMode": 1
-	},	
-	{	
-	"tag": "ir1",	
+	},
+	{
+	"tag": "ir1",
 	"width": 1600,
 	"height": 1200,
 	"onlineMode": 1
-	}	
-]	
+	}
+]
 })";
+
+void board_uart_init(void) {
+  rvm_uart_drv_register(CONSOLE_UART_IDX);
+}
 
 static void board_pinmux_config(void)
 {
@@ -122,5 +127,6 @@ void board_init(void)
     board_pinmux_config();
     board_sound_init();
 #endif
+    board_uart_init();
     board_flash_init();
 }

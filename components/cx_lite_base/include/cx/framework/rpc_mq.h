@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 #include <functional>
+#include <atomic>
 
 // #include <semaphore.h>
 #include <mqueue.h>
@@ -36,6 +37,7 @@ public:
 
 
 private:
+    static std::atomic<uint32_t> mTaskId;
     mqd_t   mq;
     bool    mInited;
     static int count;

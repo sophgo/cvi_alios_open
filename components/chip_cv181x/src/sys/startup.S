@@ -14,27 +14,52 @@
 
 .globl  Reset_Handler
 
+#if defined(CONFIG_RISCV_SMODE) && CONFIG_RISCV_SMODE
 .section .vectors
     .align  6
-    .globl  __Vectors
-    .type   __Vectors, @object
-__Vectors:
-    j   Default_Riscv_Handler				/* 0 */
+    .globl  __sVectors
+    .type   __sVectors, @object
+__sVectors:
+    j   sDefault_Riscv_Handler				/* 0 */
     j   Stspend_Handler			/* 1 */
-    j   Default_Riscv_Handler				/* 2 */
+    j   sDefault_Riscv_Handler				/* 2 */
     j   Mtspend_Handler			/* 3 */
-    j   Default_Riscv_Handler				/* 4 */
-    j   Default_Riscv_Handler			/* 5 */
-    j   Default_Riscv_Handler				/* 6 */
+    j   sDefault_Riscv_Handler				/* 4 */
+    j   Scoret_Handler			/* 5 */
+    j   sDefault_Riscv_Handler				/* 6 */
     j   Mcoret_Handler			/* 7 */
-    j   Default_Riscv_Handler				/* 8 */
+    j   sDefault_Riscv_Handler				/* 8 */
     j   Sirq_Handler			/* 9 */
-    j   Default_Riscv_Handler				/* 10 */
+    j   sDefault_Riscv_Handler				/* 10 */
     j   Mirq_Handler			/* 11 */
-    j   Default_Riscv_Handler
-    j   Default_Riscv_Handler
-    j   Default_Riscv_Handler
-    j   Default_Riscv_Handler
+    j   sDefault_Riscv_Handler
+    j   sDefault_Riscv_Handler
+    j   sDefault_Riscv_Handler
+    j   sDefault_Riscv_Handler
+#endif
+
+.section .vectors
+    .align  6
+    .globl  __mVectors
+    .type   __mVectors, @object
+__mVectors:
+    j   mDefault_Riscv_Handler				/* 0 */
+    j   Stspend_Handler			/* 1 */
+    j   mDefault_Riscv_Handler				/* 2 */
+    j   Mtspend_Handler			/* 3 */
+    j   mDefault_Riscv_Handler				/* 4 */
+    j   Scoret_Handler			/* 5 */
+    j   mDefault_Riscv_Handler				/* 6 */
+    j   Mcoret_Handler			/* 7 */
+    j   mDefault_Riscv_Handler				/* 8 */
+    j   Sirq_Handler			/* 9 */
+    j   mDefault_Riscv_Handler				/* 10 */
+    j   Mirq_Handler			/* 11 */
+    j   mDefault_Riscv_Handler
+    j   mDefault_Riscv_Handler
+    j   mDefault_Riscv_Handler
+    j   mDefault_Riscv_Handler
+
 
  .text
     .align  2
@@ -53,6 +78,8 @@ Reset_Handler:
 .option push
 .option norelax
     /* disable ie and clear all interrupts */
+    csrw    sie, zero
+    csrw    sip, zero
     csrw    mie, zero
     csrw    mip, zero
 
@@ -89,7 +116,7 @@ Reset_Handler:
     or    t2, t2, t0
     csrw  mstatus, t2
 
-    la      a0, __Vectors
+    la      a0, __mVectors
     li	    a1, 0x1
     or	    a0, a0,a1
     csrw    mtvec, a0
@@ -111,6 +138,11 @@ Reset_Handler:
     csrr  t1, mstatus
     or    t1, t1, t0
     csrw  mstatus, t1
+#endif
+
+#if defined(CONFIG_RISCV_SMODE) && CONFIG_RISCV_SMODE
+    la   a0, smode_init
+    jalr a0
 #endif
 
     la   a0, pre_main

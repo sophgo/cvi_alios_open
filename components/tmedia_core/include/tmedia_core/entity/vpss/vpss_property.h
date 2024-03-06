@@ -41,4 +41,4 @@ typedef struct
 
 } // vpss_prop
 
-#endif  // TM_VPSS_PROPERTY_H
+#endif  /* TM_VPSS_PROPERTY_H */

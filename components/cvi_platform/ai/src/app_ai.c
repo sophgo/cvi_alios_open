@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include "vfs.h"
 #include "app_ai.h"
-#include "cviai.h"
+#include "cvi_tdl.h"
 #include "cvi_tpu_interface.h"
 #include "cvi_vpss.h"
 #include "cvi_param.h"
@@ -27,8 +27,8 @@
 static pthread_mutex_t g_AiFaceMutex;
 static pthread_t g_AiThreadid;
 static int g_RunStatus;
-static cvai_feature_t g_AiFaceFeature = {0};
-static cviai_handle_t g_AiHandle = NULL;
+static cvtdl_feature_t g_AiFaceFeature = {0};
+static cvitdl_handle_t g_AiHandle = NULL;
 #ifndef CVIAI_VPSS_USE_GRP
 #define CVIAI_VPSS_USE_GRP 0
 #endif
@@ -46,7 +46,7 @@ static cviai_handle_t g_AiHandle = NULL;
 #define CVIAI_WEIGHT 0.35
 #define CVIAI_FACEAE_RECOGNITION_MAXNUM 5 //FACE识别最多人数
 #if 0
-static int ai_feature_copy(cvai_feature_t *src, cvai_feature_t *dst)
+static int ai_feature_copy(cvtdl_feature_t *src, cvtdl_feature_t *dst)
 {
     if(dst->ptr) {
         free(dst->ptr);
@@ -64,14 +64,14 @@ static int ai_feature_copy(cvai_feature_t *src, cvai_feature_t *dst)
 }
 #endif
 
-static int ai_load_feature(const char *sz_file,cvai_feature_t *p_feat,uint32_t size)
+static int ai_load_feature(const char *sz_file,cvtdl_feature_t *p_feat,uint32_t size)
 {
     int fd = aos_open(sz_file, O_RDONLY);
     if(fd <0){
         printf("CVIAI open fature file failed,%s\n",sz_file);
         return -1;
     }
-    memset(p_feat,0,sizeof(cvai_feature_t));
+    memset(p_feat,0,sizeof(cvtdl_feature_t));
     p_feat->ptr = aos_malloc(size);
     p_feat->size = size;
     int nbytesread = aos_read(fd, p_feat->ptr, size);
@@ -86,7 +86,7 @@ static int ai_load_feature(const char *sz_file,cvai_feature_t *p_feat,uint32_t s
     return 0;
 }
 
-static void ai_destory_feature(cvai_feature_t *p_feat)
+static void ai_destory_feature(cvtdl_feature_t *p_feat)
 {
     if(p_feat->ptr) {
         free(p_feat->ptr);
@@ -96,7 +96,7 @@ static void ai_destory_feature(cvai_feature_t *p_feat)
     }
 }
 
-static CVI_S32 ai_cal_cos_sim(cvai_feature_t *a, cvai_feature_t *b, float *score)
+static CVI_S32 ai_cal_cos_sim(cvtdl_feature_t *a, cvtdl_feature_t *b, float *score)
 {
     if (a->ptr == NULL || b->ptr == NULL || a->size != b->size) {
         return CVI_FAILURE;
@@ -128,7 +128,7 @@ static int ai_dump_buffer_to_file(const char *sz_file,const uint8_t *p_buf,uint3
   return s32Ret;
 }
 
-static void APP_Ai_Handler(cvai_face_t *pfaceMeta,CVI_S32 *presult)
+static void APP_Ai_Handler(cvtdl_face_t *pfaceMeta,CVI_S32 *presult)
 {
     aos_dir_t *dirp = NULL;
     char * tmpPoint = NULL;
@@ -227,7 +227,7 @@ static void APP_Ai_Handler(cvai_face_t *pfaceMeta,CVI_S32 *presult)
 void *APP_Ai_Task(void *arg)
 {
     CVI_S32 s32Ret = 0;
-    cvai_face_t faceMeta;
+    cvtdl_face_t faceMeta;
     VIDEO_FRAME_INFO_S stfdFrame;
     CVI_S32 s32Count = 0;
     CVI_S32 s32Result = 0;
@@ -243,26 +243,26 @@ void *APP_Ai_Task(void *arg)
         printf("cviface-v5-s.cvimodel place in SD care\n");
         goto EXIT;
     }
-    s32Ret = CVI_AI_CreateHandle2(&g_AiHandle, CVIAI_VPSS_CREATE_GRP, CVIAI_VPSS_DEV);
+    s32Ret = CVI_TDL_CreateHandle2(&g_AiHandle, CVIAI_VPSS_CREATE_GRP, CVIAI_VPSS_DEV);
     if (s32Ret != CVI_SUCCESS) {
-        printf("CVI_AI_CreateHandle2 err s32Ret:%d\n",s32Ret);
+        printf("CVI_TDL_CreateHandle2 err s32Ret:%d\n",s32Ret);
         goto EXIT;
     }
-    s32Ret = CVI_AI_OpenModel(g_AiHandle, CVI_AI_SUPPORTED_MODEL_RETINAFACE, RETINAFACEMODELFILE);
+    s32Ret = CVI_TDL_OpenModel(g_AiHandle, CVI_TDL_SUPPORTED_MODEL_RETINAFACE, RETINAFACEMODELFILE);
     if (s32Ret != CVI_SUCCESS) {
-        printf("CVI_AI_OpenModel err s32Ret:%d\n",s32Ret);
+        printf("CVI_TDL_OpenModel err s32Ret:%d\n",s32Ret);
         goto EXIT;
     }
-    s32Ret = CVI_AI_OpenModel(g_AiHandle, CVI_AI_SUPPORTED_MODEL_FACERECOGNITION, CVIFACEMODELFILE);
+    s32Ret = CVI_TDL_OpenModel(g_AiHandle, CVI_TDL_SUPPORTED_MODEL_FACERECOGNITION, CVIFACEMODELFILE);
     if (s32Ret != CVI_SUCCESS) {
-        printf("CVI_AI_OpenModel err s32Ret:%d\n",s32Ret);
+        printf("CVI_TDL_OpenModel err s32Ret:%d\n",s32Ret);
         goto EXIT;
     }
-    CVI_AI_SetSkipVpssPreprocess(g_AiHandle, CVI_AI_SUPPORTED_MODEL_RETINAFACE, false);
-    CVI_AI_SetSkipVpssPreprocess(g_AiHandle, CVI_AI_SUPPORTED_MODEL_FACERECOGNITION, false);
-    CVI_AI_SetVpssTimeout(g_AiHandle, 2000);
+    CVI_TDL_SetSkipVpssPreprocess(g_AiHandle, CVI_TDL_SUPPORTED_MODEL_RETINAFACE, false);
+    CVI_TDL_SetSkipVpssPreprocess(g_AiHandle, CVI_TDL_SUPPORTED_MODEL_FACERECOGNITION, false);
+    CVI_TDL_SetVpssTimeout(g_AiHandle, 2000);
 #if (CONFIG_APP_AI_ATTACHVBPOOL && CONFIG_APP_AI_ATTACHVBPOOL > 0)
-    CVI_AI_SetVBPool(g_AiHandle, 0, CONFIG_APP_AI_ATTACHVBPOOL);
+    CVI_TDL_SetVBPool(g_AiHandle, 0, CONFIG_APP_AI_ATTACHVBPOOL);
 #endif
     while (g_RunStatus) {
         pthread_mutex_lock(&g_AiFaceMutex);
@@ -273,9 +273,9 @@ void *APP_Ai_Task(void *arg)
             pthread_mutex_unlock(&g_AiFaceMutex);
             continue;
         }
-        memset(&faceMeta, 0, sizeof(cvai_face_t));
-        CVI_AI_RetinaFace(g_AiHandle, &stfdFrame, &faceMeta);
-        CVI_AI_FaceRecognition(g_AiHandle, &stfdFrame, &faceMeta);
+        memset(&faceMeta, 0, sizeof(cvtdl_face_t));
+        CVI_TDL_RetinaFace(g_AiHandle, &stfdFrame, &faceMeta);
+        CVI_TDL_FaceRecognition(g_AiHandle, &stfdFrame, &faceMeta);
         s32Ret = CVI_VPSS_ReleaseChnFrame(CVIAI_VPSS_USE_GRP, CVIAI_VPSS_USE_CHN, &stfdFrame);
         if (s32Ret != CVI_SUCCESS) {
             printf("[err] app_ai CVI_VPSS_ReleaseChnFrame err %d\n", s32Ret);
@@ -292,13 +292,13 @@ void *APP_Ai_Task(void *arg)
 #endif
             }
         }
-        CVI_AI_Free(&faceMeta);
+        CVI_TDL_Free(&faceMeta);
     }
 EXIT:
     g_RunStatus = 0;
     if (g_AiHandle) {
-        CVI_AI_CloseAllModel(g_AiHandle);
-        CVI_AI_DestroyHandle(g_AiHandle);
+        CVI_TDL_CloseAllModel(g_AiHandle);
+        CVI_TDL_DestroyHandle(g_AiHandle);
         g_AiHandle = NULL;
     }
     cvi_tpu_deinit();
@@ -337,7 +337,7 @@ void APP_AiStop()
 void APP_AI_Register_Face(int argc,char **argv)
 {
     CVI_S32 s32Ret = 0;
-    cvai_face_t faceMeta = {0};
+    cvtdl_face_t faceMeta = {0};
     VIDEO_FRAME_INFO_S stfdFrame;
     char FileName[128] = {0};
 
@@ -361,9 +361,9 @@ void APP_AI_Register_Face(int argc,char **argv)
         pthread_mutex_unlock(&g_AiFaceMutex);
         return ;
     }
-    memset(&faceMeta, 0, sizeof(cvai_face_t));
-    CVI_AI_RetinaFace(g_AiHandle, &stfdFrame, &faceMeta);
-    CVI_AI_FaceRecognition(g_AiHandle, &stfdFrame, &faceMeta);
+    memset(&faceMeta, 0, sizeof(cvtdl_face_t));
+    CVI_TDL_RetinaFace(g_AiHandle, &stfdFrame, &faceMeta);
+    CVI_TDL_FaceRecognition(g_AiHandle, &stfdFrame, &faceMeta);
     if(faceMeta.size == 1) {
         const uint8_t*ptr = (const uint8_t*)faceMeta.info[0].feature.ptr;
         ai_dump_buffer_to_file(FileName,ptr,faceMeta.info[0].feature.size);
@@ -371,8 +371,8 @@ void APP_AI_Register_Face(int argc,char **argv)
     } else {
         printf("Register Face failed can't find face\n");
     }
-    CVI_AI_Free(&faceMeta);
+    CVI_TDL_Free(&faceMeta);
     CVI_VPSS_ReleaseChnFrame(CVIAI_VPSS_USE_GRP, CVIAI_VPSS_USE_CHN,&stfdFrame);
     pthread_mutex_unlock(&g_AiFaceMutex);
 }
-ALIOS_CLI_CMD_REGISTER(APP_AI_Register_Face,AI_Register_Face,CVI_AI_Register_Face)
+ALIOS_CLI_CMD_REGISTER(APP_AI_Register_Face,AI_Register_Face,CVI_TDL_Register_Face)
