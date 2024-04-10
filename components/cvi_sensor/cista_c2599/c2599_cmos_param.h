@@ -40,8 +40,8 @@ static const C2599_MODE_S g_astC2599_mode[C2599_MODE_NUM] = {
 		.u32HtsDef = 2432,
 		.u32VtsDef = 1232,
 		.stExp[0] = {
-			.u32Min = 0,
-			.u32Max = 1471, //vts - 8
+			.u32Min = 4,
+			.u32Max = 1224, //vts - 8
 			.u32Def = 400,
 			.u32Step = 1,
 		},

@@ -202,6 +202,7 @@ void boot_sys_reboot(void)
     drv_reboot();
 }
 
+extern int upgrade_init(void);
 int main(int argc, char *argv[0])
 {
     int ret;
@@ -210,6 +211,12 @@ int main(int argc, char *argv[0])
 
     extern void board_yoc_init(void);
     board_yoc_init();
+
+#if CONFIG_SUPPORT_CDC_OTA
+    printf("upgrade_init start\n");
+    upgrade_init();
+    printf("upgrade_init done\n");
+#endif
 
 #if CONFIG_SENSOR_QUICK_STARTUP
     sensor_init();

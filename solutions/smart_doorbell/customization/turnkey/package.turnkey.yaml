@@ -1,15 +1,15 @@
 ## 第一部分： 基础信息
-name: helloworld                                    # <必选项> 包名称 （符合C语言变量命名规则），长度少于等于64字节
-version: v7.5.1                                     # <必选项> 组件版本号
-description: yoc helloworld                         # <必选项> 建议至少20字以上
-type: solution                                      # <必选项> 组件类型，为：solution, chip, board, common, sdk
+name: helloworld # <必选项> 包名称 （符合C语言变量命名规则），长度少于等于64字节
+version: v7.5.1 # <必选项> 组件版本号
+description: yoc helloworld # <必选项> 建议至少20字以上
+type: solution # <必选项> 组件类型，为：solution, chip, board, common, sdk
 
 hw_info:
   cpu_id: ""
   cpu_name: ""
   vendor_name: ""
   chip_name: ""
-  board_name: cv181xc_qfn
+  board_name: cv180xb_qfn
   ld_script: ""
   flash_program: ""
 ## 第二部分：依赖信息
@@ -23,43 +23,46 @@ depends:
   - rhino_arch: develop
   - aos: develop
   - cli: develop
-  - kv: develop
+ # - kv: develop
   - ulog: develop
   - csi: v7.5.1
   - debug: develop
-  - aoshal: develop
+ # - aoshal: develop
   - devices: develop
   - drivers: develop
   - libc_stub: develop
   - uservice: develop
   - partition: develop
   - littlefs: v7.6.1
-  - key_mgr: develop
-  - sec_crypto: develop
+ # - key_mgr: develop
+ # - sec_crypto: develop
   - posix: develop
   - drv_sdmmc: v2.0
   - lwip: develop
   - netmgr: develop
-  - drv_wifi_hi3861l_fnlink: develop
-  - cjson: develop
-  - devices: develop
-  - drivers: develop
+ # - drv_wifi_hi3861l_fnlink: develop
+ # - cjson: develop
+ # - cvi_miniz: develop
   - fatfs: cv_dev
   - vfs: develop
-  - lwext4: develop
-  - cv181xc_qfn: v0.0.1
-  - chip_cv181x: v0.0.1
+ # - lwext4: develop
+  - cv180xb_qfn: v0.0.1
+  - chip_cv180x: v0.0.1
+ # - cvi_kernel: v0.0.1
+ # - cvi_runtime: v0.0.1
+ # - cvi_math: v0.0.1
+ # - cviai: v0.0.1
   - minialsa: v7.5.1
   - drv_snd_cv181x: v7.5.1
-  - lvgl: develop
+ # - lvgl: develop
   - cvi_sensor: develop
   - rtsp: develop
+ # - cvi_mw_tpu: v0.0.1
   - cherryusb: develop
   - cvi_platform: develop
   - g711: v0.0.1
   - zlib: develop
   - cvi_test: develop
-  - drv_usbd_class: develop
 
   - cvi_mmf_sdk_cv181xx: develop
 ## 第三部分：板级信息
@@ -134,7 +137,6 @@ build_config:
   include:
     - application/common/include
     - customization/include
-    - customization/turnkey/include
   internal_include:
 
   cflag: ""
@@ -157,68 +159,120 @@ source_file:
 #   CONFIG_PARAM_NOT_CHECK: y
 #   CONFIG_CLI: y
 def_config:
-  __CV181X__: 1
-  AOS_COMP_CLI: 1
+
+## System
   CONFIG_DEBUG: 1
   CONFIG_DEBUG_MM: 1
-  CONFIG_APP_DEBUG_JTAG: 1
-  CONFIG_APP_TEST: 1
-  CONFIG_SUPPORT_TPU: 1
-  CONFIG_KV_ENABLE_CACHE: 1
-  CONFIG_INIT_TASK_STACK_SIZE: 131072
-## Demo APP Func config
-  CONFIG_APP_ETHERNET_SUPPORT: 0
-  CONFIG_APP_WIFI_SUPPORT: 1
-  CONFIG_APP_HI3861_WIFI_SUPPORT: 1
-  CONFIG_APP_ALIHI3861_WIFI_SUPPORT: 1
-  CONFIG_APP_RTL8723DS_WIFI_SUPPORT: 0
-  CONFIG_APP_CX_CLOUD_SUPPORT: 0
-  CONFIG_APP_RTSP_SUPPORT: 1
-  CONFIG_RTSP_SUPPORT_UDP: 0
-  CONFIG_RTSP_MILLION: 100
-  CONFIG_APP_VENC_SUPPORT: 1
-  CONFIG_APP_GUI_SUPPORT: 1
-  CONFIG_APP_SENSOR_IR_USE: 0
-  CONFIG_DEBUG_HOSTMCU_EMU_SUPPORT: 0
-  CONFIG_APP_AI_SUPPORT: 0
-  CONFIG_APP_AI_ATTACHVBPOOL: 0
-#  UART_MODE_SYNC: 1
-  CONFIG_BOARD_CV181XC: 1
-  CONFIG_BOARD_CV181XH: 0
-  CONFIG_SD_FATFS_MOUNTPOINT: "/mnt/sd"
-  CLI_CONFIG_STACK_SIZE : 9216
-  #ULOG_CONFIG_POP_FS: 1
-  ULOG_CONFIG_ASYNC: 1   # ulog异步配置项，1表示开启异步打印，0表示同步打印
+  AOS_COMP_CLI: 1
+  CONFIG_KV_ENABLE_CACHE: 0
+  CONFIG_INIT_TASK_STACK_SIZE: 8192
+  # UART_MODE_SYNC: 1
+  CLI_CONFIG_STACK_SIZE: 8192
+  # ULOG_CONFIG_POP_FS: 1
+  ULOG_CONFIG_ASYNC: 1 # ulog异步配置项，1表示开启异步打印，0表示同步打印
   ULOG_CONFIG_SYNC_LOG_DETAILS: 1
   ULOG_CONFIG_ASYNC_BUF_SIZE: 8192
   ULOG_CONFIG_LOG_SIZE: 512
   USE_4K_ERASE_SECTION: 1
-  CONFIG_SIMPLE_FONTMOD: 1
+  CONFIG_AOS_NEWLINE_SUPPORT: 1
+  CONFIG_QUICK_STARTUP_SUPPORT: 0
+  CONFIG_SPIFFS_SUPPORT: 0
+
+## Board
+  __CV180X__: 1
+  CONFIG_BOARD_CV181XC: 0
+  CONFIG_BOARD_CV181XH: 0
+  CONFIG_BOARD_CV180XB: 1
+  CONFIG_BOARD_CV180XC: 0
+  CONFIG_SD_FATFS_MOUNTPOINT: "/mnt/sd"
+  CONFIG_SUPPORT_NORFLASH: 1
+  CONFIG_ENABLE_FASTBOOT: 0
+  CONFIG_BOOT_FREQ_HIGHER: 0
+
+## Demo APP Func config
+  CONFIG_APP_DEBUG_JTAG: 0
+  CONFIG_APP_TEST: 1
+  CONFIG_SUPPORT_TPU: 0
+  CONFIG_APP_ETHERNET_SUPPORT: 0
+  CONFIG_APP_WIFI_SUPPORT: 0
+  CONFIG_APP_HI3861_WIFI_SUPPORT: 0
+  CONFIG_APP_RTL8723DS_WIFI_SUPPORT: 0
+  CONFIG_RTSP_SUPPORT_UDP: 0
+  CONFIG_APP_RTSP_SUPPORT: 0
+  CONFIG_APP_CX_CLOUD_SUPPORT: 0
+  CONFIG_APP_VENC_SUPPORT: 1
+  CONFIG_APP_VO_SUPPORT: 0
+  CONFIG_APP_GUI_SUPPORT: 0
+  CONFIG_APP_SENSOR_IR_USE: 0
+  CONFIG_DEBUG_HOSTMCU_EMU_SUPPORT: 0
+  CONFIG_APP_AI_SUPPORT: 0
+  CONFIG_SIMPLE_FONTMOD: 0
+  CONFIG_VENC_TEST_CHN: 2
+  CONFIG_NIGHT_VISION_SUPPORT: 0
+  CONFIG_APP_DUMP_FRAME: 0
+  CONFIG_DISABLE_VENC_H264: 0
+  CONFIG_DISABLE_VENC_H265: 1
+
+ ## Sensor
+  CONFIG_SENSOR_GCORE_GC1054: 0
   CONFIG_SENSOR_GCORE_GC2053: 0
-  CONFIG_SENSOR_GCORE_GC2053_1L: 0
-  CONFIG_SENSOR_GCORE_GC2093: 0
+  CONFIG_SENSOR_GCORE_GC2053_1L: 1
+  CONFIG_SENSOR_GCORE_GC2093: 1
   CONFIG_SENSOR_GCORE_GC4653: 0
-  CONFIG_SENSOR_OPNOUS_OPN8018: 1
+  CONFIG_SENSOR_SMS_SC530AI_4L: 0
+  CONFIG_SENSOR_SMS_SC200AI: 0
+  CONFIG_SENSOR_SMS_SC2336: 0
+  CONFIG_SENSOR_SMS_SC2336P: 0
+  CONFIG_SENSOR_SMS_SC2336P_1L: 0
+  CONFIG_SENSOR_SMS_SC030IOT: 0
+  CONFIG_SENSOR_SMS_SC201CS: 0
+  CONFIG_SENSOR_SMS_SC201CS_SLAVE: 0
+  CONFIG_SENSOR_SMS_SC202CS: 0
+  CONFIG_SENSOR_SMS_SC202CS_SLAVE: 0
+  CONFIG_SENSOR_SMS_SC230AI: 0
+  CONFIG_SENSOR_SMS_SC230AI_SLAVE: 0
+  CONFIG_SENSOR_SMS_SC031IOT: 0
   CONFIG_SENSOR_SONY_IMX307: 0
   CONFIG_SENSOR_SONY_IMX327: 0
+  CONFIG_SENSOR_BYD_BF314A: 0
   CONFIG_SENSOR_GCORE_GC02M1: 1
-  CONFIG_SENSOR_GCORE_GC02M1_SLAVE: 1
-  CONFIG_SENSOR_BYD_BF2253L: 1
-  CONFIG_SUPPORT_NORFLASH: 1
+  CONFIG_SENSOR_GCORE_GC02M1_SLAVE: 0
+  CONFIG_SENSOR_GCORE_GC02M1_MULTI: 1
+  CONFIG_SENSOR_SPIX_SP2509: 0
+
+  CONFIG_SENSOR_QUICK_STARTUP: 0
+  CONFIG_SENSOR_DUAL_SWITCH: 1
+
   CONFIG_SNS0_TYPE: 9
-  CONFIG_SNS1_TYPE: 10
+  CONFIG_SNS1_TYPE: 11
   CONFIG_SNS2_TYPE: 0
 
+  ## Panel
   CONFIG_PANEL_HX8394: 0
-  CONFIG_PANEL_ILI9488: 1
+  CONFIG_PANEL_ILI9488: 0
+  CONFIG_PANEL_GC9503CV: 0
+  CONFIG_QFN_PANEL_REWORK: 0
 
-  CONFIG_VENC_TEST_CHN: 2
+## USB
+  CONFIG_USB_DWC2_PORT: 1
+  CONFIG_USB_HS: 1
+  CONFIG_SUPPORT_USB_DC: 1
+  CONFIG_SUPPORT_USB_HC: 0
+  CONFIG_USB_DWC2_DMA_ENABLE: 0
+  CONFIG_USB_BULK_UVC: 0
+
+  CONFIG_USBD_UVC: 1
+  CONFIG_USBD_UAC: 0
+  CONFIG_USBD_CDC_UART: 0
+  CONFIG_USBD_CDC_RNDIS: 1
+  CONFIG_USBD_HID_KEYBOARD: 0
+
+
+## Misc
   CONFIG_PQTOOL_SUPPORT: 1
   CONFIG_PQBIN_USE_JSON: 0
   CONFIG_ISP_SUPPORT_PROC: 0
-  CONFIG_ENABLE_FASTBOOT: 1
-  CONFIG_AOS_NEWLINE_SUPPORT: 1
-  CONFIG_SUPPORT_TEMPSEN_TEST: 1
+
 
 ## 第六部分：安装信息
 # install:

@@ -29,7 +29,6 @@ csi_error_t target_get(csi_dev_tag_t dev_tag, uint32_t idx, csi_dev_t *dev)
     if (dev == NULL) {
         ret = CSI_ERROR;
     }
-
     ///< 使用包含外设基地址，外设中断号，外设设备号，外设设备类型成员的结构体数组变量初始化info
     info = (csi_perip_info_t *)&g_soc_info;
 
@@ -65,7 +64,7 @@ uint32_t target_pin_to_devidx(pin_name_t pin_name, const  csi_pinmap_t *pinmap)
     while ((uint32_t)map->pin_name != 0xFFFFFFFFU) {
         if ((map->pin_name == pin_name) && (csi_pin_get_mux(pin_name) == map->pin_func)) {
             ret = map->idx;
-            break; 
+			break;
         }
 
         map++;

@@ -29,6 +29,8 @@ build_config:
     - lib/lz4
     - lib/utils
     - lib/lzma
+    - upgrade/include
+    - usbd_cdc/include
   cflag: >
         -c -g -Os -ffunction-sections -fdata-sections -Wall -fno-common -fno-asynchronous-unwind-tables
   asmflag: -c -g -ffunction-sections -fdata-sections -Wall
@@ -47,6 +49,8 @@ source_file:
   - board/src/*.c
   - board/src/iic/*.c
   - board/src/sensor/*.c
+  - upgrade/src/*.c ? <CONFIG_SUPPORT_CDC_OTA>
+  - usbd_cdc/src/*.c ? <CONFIG_SUPPORT_CDC_OTA>
 #  - lib/lz4/lz4_all.c
 #  - lib/lz4/xxhash.c
 #  - lib/lzma/LzmaDec.c
@@ -104,7 +108,20 @@ def_config:
 
   # SENSOR
   CONFIG_SENSOR_DUAL_SWITCH: 0
-  CONFIG_SENSOR_GCORE_GC2093: 1
+  CONFIG_SENSOR_GCORE_GC2093: 0
   CONFIG_SENSOR_SMS_SC201CS: 0
   CONFIG_SENSOR_SMS_SC201CS_MULTI: 0
   CONFIG_SENSOR_SMS_SC201CS_SLAVE: 0
+  CONFIG_SENSOR_GCORE_GC02M1: 0
+  CONFIG_SENSOR_GCORE_GC02M1_MULTI: 0
+
+  # USB
+  CONFIG_SUPPORT_USB_DC: 1
+  CONFIG_USB_DWC2_PORT: 1
+  CONFIG_USB_HS: 1
+  CONFIG_USB_DWC2_DMA_ENABLE: 1
+  CONFIG_USBD_CDC_ACM_UART: 1
+
+  #UPG
+  CONFIG_SUPPORT_CDC_OTA: 1
+

@@ -448,6 +448,7 @@ typedef struct _SAE_INFO {
 #define AE_FD_GRID_LUMA_SIZE				64
 typedef struct _SFACE_DETECT_INFO {
 	CVI_BOOL	bMode;
+	CVI_BOOL	bUpdateInfo;
 	CVI_U16 u16FDLuma;
 	CVI_U16 u16FDTargetLuma;
 	CVI_S16 s16FDEVStep;
@@ -472,6 +473,7 @@ typedef struct _SFACE_DETECT_INFO {
 	CVI_U16	u16AEFDGridCount;
 	CVI_S16	s16EnvBvStep;
 	CVI_S16	s16FinalBvStep;
+	CVI_S16 s16CurTargetBv;
 	ISP_SMART_ROI_S	stSmartInfo;
 } SFACE_DETECT_INFO;
 

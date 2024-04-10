@@ -318,6 +318,10 @@ static void comp_destroy_descriptors(void)
 
 uint32_t usbd_comp_init()
 {
+#if CONFIG_USBD_CDC_RNDIS
+    // Rndis must be the first IDA on windows.
+    cdc_rndis_init();
+#endif
 #if CONFIG_USBD_UVC
     uvc_init();
 #endif
@@ -326,9 +330,6 @@ uint32_t usbd_comp_init()
 #endif
 #if CONFIG_USBD_CDC_UART
     cdc_uart_init();
-#endif
-#if CONFIG_USBD_CDC_RNDIS
-    cdc_rndis_init();
 #endif
 #if CONFIG_USBD_HID_KEYBOARD
     hid_keyboard_init();

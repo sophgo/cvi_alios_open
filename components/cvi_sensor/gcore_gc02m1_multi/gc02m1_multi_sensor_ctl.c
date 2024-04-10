@@ -87,6 +87,12 @@ void gc02m1_multi_default_reg_init(VI_PIPE ViPipe)
 
 int gc02m1_multi_probe(VI_PIPE ViPipe)
 {
+#if CONFIG_SENSOR_QUICK_STARTUP
+	if (gc02m1_multi_i2c_init(ViPipe) != CVI_SUCCESS)
+		return CVI_FAILURE;
+
+	return CVI_SUCCESS;
+#endif
 	int nVal;
 	int nVal2;
 
@@ -135,7 +141,9 @@ void gc02m1_multi_exit(VI_PIPE ViPipe)
 
 static void gc02m1_multi_linear_1200p30_init(VI_PIPE ViPipe)
 {
-
+#if (CONFIG_SENSOR_QUICK_STARTUP == 1)
+	return;
+#endif
 	/*system*/
 	gc02m1_multi_write_register(ViPipe, 0xfc, 0x01);
 	gc02m1_multi_write_register(ViPipe, 0xf4, 0x41);

@@ -5,7 +5,7 @@ VERB := --verbose
 endif
 
 BOARD_PATH:=../../boards/cv181xh_evb
-BOOT_YAML_PATH:=../../components/cvi_mmf_sdk/chip_cv181x
+BOOT_YAML_PATH:=../../components/chip_cv181x
 
 .PHONY:startup
 startup: all

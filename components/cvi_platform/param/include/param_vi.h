@@ -11,6 +11,7 @@
 //Sensor 能力集
 typedef struct _PARAM_SNS_CFG_S {
     CVI_S32 s32SnsId;
+    CVI_BOOL bSnsInitByUser;
 
     SNS_TYPE_E enSnsType;
     CVI_S32 s32WDRMode;

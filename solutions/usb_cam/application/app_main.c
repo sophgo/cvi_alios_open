@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <ulog/ulog.h>
 #include <unistd.h>
+#include <drv/tick.h>
 #include "common_yocsystem.h"
 #include "media_video.h"
 #include "gui_display.h"
@@ -12,18 +13,29 @@
 #include "platform.h"
 #include "custom_event.h"
 #include "cvi_param.h"
-#include "wifi_if.h"
 #include "ethernet_init.h"
+#include "media_nightvision.h"
+#include "usbd_comp.h"
 
-#if CONFIG_PQTOOL_SUPPORT == 1
-#include "cvi_ispd2.h"
+
+#if CONFIG_USBD_CDC_RNDIS
+#include "usbd_cdc_rndis.h"
 #endif
 
-#define TAG "app"
+#if CONFIG_APP_WIFI_SUPPORT
+#include "wifi_if.h"
+#endif
 
 #define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
 extern unsigned long long timer_get_boot_us(void);
 extern int csi_uart_set_output_stat(int stat);
+
+#if CONFIG_PQTOOL_SUPPORT
+#include "cvi_ispd2.h"
+#include "raw_dump.h"
+#endif
+
+#define TAG "app"
 
 #if CONFIG_QUICK_STARTUP_SUPPORT
 #define CONFIG_DUMP_RECORD_TIME
@@ -81,7 +93,6 @@ static void _print_record_time(void)
 	printf("app_main %d\n", t_r.app_main);
 }
 #endif
-
 int main(int argc, char *argv[])
 {
 #ifdef CONFIG_DUMP_RECORD_TIME
@@ -93,6 +104,10 @@ int main(int argc, char *argv[])
 	PLATFORM_IoInit();
 	//Fs init
 	YOC_SYSTEM_FsVfsInit();
+
+#if CONFIG_QUICK_STARTUP_SUPPORT
+    MISC_SimulateReadAiModel();
+#endif
 	//load cfg
 	PARAM_LoadCfg();
 	//media video sys init
@@ -102,19 +117,34 @@ int main(int argc, char *argv[])
 	MEDIA_VIDEO_Init();
 	//media_audio
 	MEDIA_AUDIO_Init();
+
+#if CONFIG_SUPPORT_USB_DC
+	// usb composite device
+	usbd_comp_init();
+#endif
+#if CONFIG_NIGHT_VISION_SUPPORT
+	//night_vision
+	MEDIA_NightVisionInit();
+#endif
 	//network
-	#if (CONFIG_APP_ETHERNET_SUPPORT == 1)
+#if CONFIG_APP_ETHERNET_SUPPORT
 	ethernet_init();
-	#endif
-	#if (CONFIG_APP_WIFI_SUPPORT == 1)
+#endif
+#if CONFIG_APP_WIFI_SUPPORT
 	APP_WifiInit();
-	#endif
+#endif
 	//cli and ulog init
 	YOC_SYSTEM_ToolInit();
-	#if (CONFIG_PQTOOL_SUPPORT == 1)
+
+#if CONFIG_USBD_CDC_RNDIS
+	rndis_device_init();
+#endif
+
+#if CONFIG_PQTOOL_SUPPORT
 	usleep(12 * 1000);
 	isp_daemon2_init(5566);
-	#endif
+	cvi_raw_dump_init();
+#endif
 	LOGI(TAG, "app start........\n");
 	APP_CustomEventStart();
 #ifdef CONFIG_DUMP_RECORD_TIME

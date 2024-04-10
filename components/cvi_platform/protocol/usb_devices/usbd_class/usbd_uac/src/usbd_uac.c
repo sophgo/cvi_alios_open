@@ -306,12 +306,11 @@ int uac_init(void)
     uac_info.audio_in_ep.ep_cb = usbd_audio_in_callback;
     uac_info.audio_in_ep.ep_addr = comp_get_available_ep(1);
     uac_info.interface_nums = comp_get_interfaces_num();
-    USB_LOG_INFO("uac out ep:%#x\n", uac_info.audio_out_ep.ep_addr);
-    USB_LOG_INFO("uac int ep:%#x\n", uac_info.audio_in_ep.ep_addr);
-    USB_LOG_INFO("interface_nums:%d\n", uac_info.interface_nums);
+    printf("uac out ep:%#x\n", uac_info.audio_out_ep.ep_addr);
+    printf("uac int ep:%#x\n", uac_info.audio_in_ep.ep_addr);
+    USB_LOG_INFO("uac interface_nums:%d\n", uac_info.interface_nums);
 
 	uac_descriptor = uac_build_descriptor(&uac_info, &desc_len);
-	USB_LOG_INFO("uac desc_len:%u\n", desc_len);
 	comp_register_descriptors(USBD_TYPE_UAC, uac_descriptor, desc_len, 3, uac_desc_register_cb);
 
     usbd_add_interface(usbd_audio_init_intf(&uac_info.uac_intf0));

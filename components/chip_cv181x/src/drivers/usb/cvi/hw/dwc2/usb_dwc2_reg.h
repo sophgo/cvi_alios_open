@@ -26,7 +26,7 @@ typedef struct
   __IO uint32_t GHWCFG1;              /* User HW config1                                044h*/
   __IO uint32_t GHWCFG2;              /* User HW config2                                048h*/
   __IO uint32_t GHWCFG3;              /*!< User HW config3                              04Ch */
-       uint32_t Reserved6;            /*!< Reserved                                     050h */
+  __IO uint32_t GHWCFG4;              /*!< User HW config4                              050h */
   __IO uint32_t GLPMCFG;              /*!< LPM Register                                 054h */
   __IO uint32_t GPWRDN;               /*!< Power Down Register                          058h */
   __IO uint32_t GDFIFOCFG;            /*!< DFIFO Software Config Register               05Ch */
@@ -134,7 +134,7 @@ typedef struct
 #define USB_OTG_FIFO_BASE                    0x1000UL
 #define USB_OTG_FIFO_SIZE                    0x1000UL
 
-      
+
 #define CONFIG_DWC2_MAX_CHANNELS		16	/* Max # of EPs */
 #define CONFIG_DWC2_HOST_RX_FIFO_SIZE		(516 + CONFIG_DWC2_MAX_CHANNELS)
 #define CONFIG_DWC2_HOST_NPERIO_TX_FIFO_SIZE	0x100	/* nPeriodic TX FIFO */

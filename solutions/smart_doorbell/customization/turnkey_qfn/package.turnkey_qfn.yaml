@@ -23,41 +23,35 @@ depends:
   - rhino_arch: develop
   - aos: develop
   - cli: develop
- # - kv: develop
+  - kv: develop
   - ulog: develop
   - csi: v7.5.1
   - debug: develop
- # - aoshal: develop
+  - aoshal: develop
   - devices: develop
   - drivers: develop
   - libc_stub: develop
   - uservice: develop
   - partition: develop
   - littlefs: v7.6.1
- # - key_mgr: develop
- # - sec_crypto: develop
+  - key_mgr: develop
+  - sec_crypto: develop
   - posix: develop
   - drv_sdmmc: v2.0
   - lwip: develop
   - netmgr: develop
- # - drv_wifi_hi3861l_fnlink: develop
- # - cjson: develop
- # - cvi_miniz: develop
+  # - drv_wifi_hi3861l_fnlink: develop
+  # - cjson: develop
   - fatfs: cv_dev
   - vfs: develop
- # - lwext4: develop
+  - lwext4: develop
   - cv181xc_qfn: v0.0.1
   - chip_cv181x: v0.0.1
- # - cvi_kernel: v0.0.1
- # - cvi_runtime: v0.0.1
- # - cvi_math: v0.0.1
- # - cviai: v0.0.1
   - minialsa: v7.5.1
   - drv_snd_cv181x: v7.5.1
- # - lvgl: develop
+  - lvgl: develop
   - cvi_sensor: develop
   - rtsp: develop
- # - cvi_mw_tpu: v0.0.1
   - cherryusb: develop
   - cvi_platform: develop
   - g711: v0.0.1
@@ -159,8 +153,7 @@ source_file:
 #   CONFIG_PARAM_NOT_CHECK: y
 #   CONFIG_CLI: y
 def_config:
-
-## System
+  ## System
   CONFIG_DEBUG: 1
   CONFIG_DEBUG_MM: 1
   AOS_COMP_CLI: 1
@@ -178,7 +171,7 @@ def_config:
   CONFIG_QUICK_STARTUP_SUPPORT: 0
   CONFIG_SPIFFS_SUPPORT: 0
 
-## Board
+  ## Board
   __CV181X__: 1
   CONFIG_BOARD_CV181XC: 1
   CONFIG_BOARD_CV181XH: 0
@@ -187,9 +180,10 @@ def_config:
   CONFIG_ENABLE_FASTBOOT: 0
   CONFIG_BOOT_FREQ_HIGHER: 0
 
-## Demo APP Func config
+  ## Demo APP Func config
   CONFIG_APP_DEBUG_JTAG: 0
   CONFIG_APP_TEST: 1
+  CONFIG_SUPPORT_TEST_IVE: 0
   CONFIG_SUPPORT_TPU: 0
   CONFIG_APP_ETHERNET_SUPPORT: 0
   CONFIG_APP_WIFI_SUPPORT: 0
@@ -209,9 +203,9 @@ def_config:
   CONFIG_NIGHT_VISION_SUPPORT: 0
   CONFIG_APP_DUMP_FRAME: 0
   CONFIG_DISABLE_VENC_H264: 0
-  CONFIG_DISABLE_VENC_H265: 1
+  CONFIG_DISABLE_VENC_H265: 0
 
- ## Sensor
+  ## Sensor
   CONFIG_SENSOR_GCORE_GC1054: 0
   CONFIG_SENSOR_GCORE_GC2053: 0
   CONFIG_SENSOR_GCORE_GC2053_1L: 1
@@ -249,7 +243,7 @@ def_config:
   CONFIG_PANEL_GC9503CV: 0
   CONFIG_QFN_PANEL_REWORK: 0
 
-## USB
+  ## USB
   CONFIG_USB_DWC2_PORT: 1
   CONFIG_USB_HS: 1
   CONFIG_SUPPORT_USB_DC: 1
@@ -263,13 +257,10 @@ def_config:
   CONFIG_USBD_CDC_RNDIS: 0
   CONFIG_USBD_HID_KEYBOARD: 0
 
-
-## Misc
-  CONFIG_PQTOOL_SUPPORT: 0
+  ## Misc
+  CONFIG_PQTOOL_SUPPORT: 1
   CONFIG_PQBIN_USE_JSON: 0
   CONFIG_ISP_SUPPORT_PROC: 0
-
-
 ## 第六部分：安装信息
 # install:
 #   - dest: include/                       # 安装的目的路径 dest是相当路径，通常是相对于YoC SDK 安装目录

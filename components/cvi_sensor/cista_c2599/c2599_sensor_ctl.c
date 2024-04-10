@@ -160,22 +160,24 @@ void c2599_exit(VI_PIPE ViPipe)
 /* 1200P30 and 1200P25 */
 static void c2599_linear_1200p30_init(VI_PIPE ViPipe)
 {
-	c2599_write_register(ViPipe, 0x3288, 0x50);
 	c2599_write_register(ViPipe, 0x0400, 0x41);
 	c2599_write_register(ViPipe, 0x0401, 0xa5);
 	c2599_write_register(ViPipe, 0x0403, 0x36);
 	c2599_write_register(ViPipe, 0x3885, 0x22);
 	c2599_write_register(ViPipe, 0x32af, 0x88);
-	c2599_write_register(ViPipe, 0x3280, 0x28);
+
+	c2599_write_register(ViPipe, 0x3280, 0x2b);
 	c2599_write_register(ViPipe, 0x3284, 0xA3);
-	c2599_write_register(ViPipe, 0x3288, 0x40);
+
+	c2599_write_register(ViPipe, 0x3288, 0x10);
 	c2599_write_register(ViPipe, 0x328b, 0x61);
 	c2599_write_register(ViPipe, 0x328C, 0x48);
-	c2599_write_register(ViPipe, 0x32aa, 0x05);
+	c2599_write_register(ViPipe, 0x32aa, 0x03);
 	c2599_write_register(ViPipe, 0x32ab, 0x08);
 	c2599_write_register(ViPipe, 0x3C00, 0x43);
 	c2599_write_register(ViPipe, 0x3C01, 0x03);
-	c2599_write_register(ViPipe, 0x3182, 0x20);
+	c2599_write_register(ViPipe, 0x3182, 0x30);
+
 	c2599_write_register(ViPipe, 0x3218, 0x28);
 	c2599_write_register(ViPipe, 0x3805, 0x08);
 	c2599_write_register(ViPipe, 0x3808, 0x16);
@@ -187,17 +189,22 @@ static void c2599_linear_1200p30_init(VI_PIPE ViPipe)
 	c2599_write_register(ViPipe, 0x0203, 0xd0);
 	c2599_write_register(ViPipe, 0x3108, 0xcf);
 	c2599_write_register(ViPipe, 0x3115, 0x30);
+
 	c2599_write_register(ViPipe, 0x3212, 0x2f);
 	c2599_write_register(ViPipe, 0x3298, 0x48);
 	c2599_write_register(ViPipe, 0x32af, 0x80);
 	c2599_write_register(ViPipe, 0x3212, 0x4A);
-	c2599_write_register(ViPipe, 0x3287, 0x4B);
+	c2599_write_register(ViPipe, 0x3287, 0x48);
 	c2599_write_register(ViPipe, 0x3881, 0x00);
+
+	c2599_write_register(ViPipe, 0x3224, 0x70);
+
 	c2599_write_register(ViPipe, 0x0400, 0x47);
-	c2599_write_register(ViPipe, 0x0404, 0x02);
+	c2599_write_register(ViPipe, 0x0404, 0x08);
 	c2599_write_register(ViPipe, 0x0405, 0x80);
 	c2599_write_register(ViPipe, 0x0406, 0x02);
 	c2599_write_register(ViPipe, 0x0407, 0x80);
+	c2599_write_register(ViPipe, 0x3403, 0x38);
 	c2599_write_register(ViPipe, 0x3411, 0x00);
 	c2599_write_register(ViPipe, 0x3412, 0x01);
 	c2599_write_register(ViPipe, 0x3415, 0x01);
@@ -209,36 +216,62 @@ static void c2599_linear_1200p30_init(VI_PIPE ViPipe)
 	c2599_write_register(ViPipe, 0xe002, 0x4f);
 	c2599_write_register(ViPipe, 0xe00c, 0x31);
 	c2599_write_register(ViPipe, 0xe00d, 0x08);
-	c2599_write_register(ViPipe, 0xe00e, 0xcf);
+	c2599_write_register(ViPipe, 0xe00e, 0xef);
+	c2599_write_register(ViPipe, 0xe018, 0x32);
+	c2599_write_register(ViPipe, 0xe019, 0xa9);
+	c2599_write_register(ViPipe, 0xe01a, 0x50);
+	c2599_write_register(ViPipe, 0xe01b, 0x32);
+	c2599_write_register(ViPipe, 0xe01c, 0xac);
+	c2599_write_register(ViPipe, 0xe01d, 0x44);
+	c2599_write_register(ViPipe, 0xe01e, 0x32);
+	c2599_write_register(ViPipe, 0xe01f, 0xad);
+	c2599_write_register(ViPipe, 0xe020, 0x9f);
 	c2599_write_register(ViPipe, 0x3500, 0x00);
 	c2599_write_register(ViPipe, 0x3584, 0x22);
+
 	c2599_write_register(ViPipe, 0x3293, 0x00);
 	c2599_write_register(ViPipe, 0x32a9, 0x3F);
 	c2599_write_register(ViPipe, 0x3290, 0xB4);
-	c2599_write_register(ViPipe, 0x32ad, 0x80);
+
 	c2599_write_register(ViPipe, 0x32ac, 0x5f);
 	c2599_write_register(ViPipe, 0x0309, 0x10);
 	c2599_write_register(ViPipe, 0x32ab, 0x19);
 	c2599_write_register(ViPipe, 0x328c, 0xc1);
 	c2599_write_register(ViPipe, 0x0216, 0x01);
 	c2599_write_register(ViPipe, 0x3286, 0x04);
-	c2599_write_register(ViPipe, 0x32ad, 0x9f);
-	c2599_write_register(ViPipe, 0x32ac, 0x64);
+
 	c2599_write_register(ViPipe, 0x32a9, 0x50);
+	c2599_write_register(ViPipe, 0x32ac, 0x44);
+	c2599_write_register(ViPipe, 0x32ad, 0xb0);
 	c2599_write_register(ViPipe, 0x3211, 0x15);
 	c2599_write_register(ViPipe, 0x3216, 0x1a);
 	c2599_write_register(ViPipe, 0x3217, 0x12);
 	c2599_write_register(ViPipe, 0x0216, 0x01);
-	c2599_write_register(ViPipe, 0x0101, 0x03);
-	c2599_write_register(ViPipe, 0x3281, 0x40);
-	c2599_write_register(ViPipe, 0x3001, 0xa0);
-	c2599_write_register(ViPipe, 0x3000, 0x80);
+	c2599_write_register(ViPipe, 0x0202, 0x04);
+	c2599_write_register(ViPipe, 0x0203, 0xd0);
+	c2599_write_register(ViPipe, 0x3295, 0x05);
+	c2599_write_register(ViPipe, 0x3882, 0x05);
+	c2599_write_register(ViPipe, 0x328b, 0xa1);
+	c2599_write_register(ViPipe, 0x328d, 0x08);
+	c2599_write_register(ViPipe, 0x3904, 0x03);
+	c2599_write_register(ViPipe, 0x0343, 0x88);
+
+	c2599_write_register(ViPipe, 0xe018, 0x32);
+	c2599_write_register(ViPipe, 0xe019, 0xa9);
+	c2599_write_register(ViPipe, 0xe01a, 0x50);
+
+	c2599_write_register(ViPipe, 0xe01b, 0x32);
+	c2599_write_register(ViPipe, 0xe01c, 0xac);
+	c2599_write_register(ViPipe, 0xe01d, 0x44);
+
+	c2599_write_register(ViPipe, 0xe01e, 0x32);
+	c2599_write_register(ViPipe, 0xe01f, 0xad);
+	c2599_write_register(ViPipe, 0xe020, 0x9f);
+
 	delay_ms(200);
 	c2599_default_reg_init(ViPipe);
 
 	c2599_write_register(ViPipe, 0x0100, 0x01);
-
-	delay_ms(100);
 
 	printf("ViPipe:%d,===C2599 1200P 30fps 10bit LINE Init OK!===\n", ViPipe);
 }

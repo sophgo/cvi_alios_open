@@ -52,6 +52,7 @@ source_file:
   - test/tpu/*.c ? <CONFIG_SUPPORT_TEST_AI>
   - test/tpu_sdk/*.cpp ? <CONFIG_SUPPORT_TEST_AI>
   - test/vi/*.c ? <CONFIG_APP_TEST>
+  - test/ive/*.c ? <CONFIG_SUPPORT_TEST_IVE>
   - test/vpss/*.c ? <CONFIG_APP_TEST>
   - test/venc/*.c ? <CONFIG_APP_TEST>
   - test/vdec/*.c ? <CONFIG_APP_TEST>

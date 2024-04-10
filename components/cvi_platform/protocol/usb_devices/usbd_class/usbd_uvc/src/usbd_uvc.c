@@ -26,6 +26,7 @@
 #define H264_FORMAT_INDEX   (2)
 #define YUYV_FORMAT_INDEX   (3)
 #define NV21_FORMAT_INDEX   (4)
+#define H265_FORMAT_INDEX   (5)
 
 static int av_session_init_flag = CVI_FALSE;
 static aos_event_t _gslUvcEvent;
@@ -53,14 +54,15 @@ static struct uvc_frame_info_st yuy2_frame_info[] = {
 };
 
 static struct uvc_frame_info_st mjpeg_frame_info[] = {
-    {1, 240, 320, 30, 0},
-    {2, 320, 240, 30, 0},
-    {3, 480, 320, 30, 0},
-    {4, 800, 480, 30, 0},
-    {5, 864, 480, 30, 0},
-    {6, 1280, 720, 30, 0},
-    {7, 1920, 1080, 30, 0},
-	{8, 1600, 1200, 30, 0},
+	{1, 240, 320, 30, 0},
+	{2, 320, 240, 30, 0},
+	{3, 480, 320, 30, 0},
+	{4, 800, 480, 30, 0},
+	{5, 864, 480, 30, 0},
+	{6, 800, 600, 30, 0},
+	{7, 1280, 720, 30, 0},
+	{8, 1920, 1080, 30, 0},
+	{9, 1600, 1200, 30, 0},
 };
 
 static struct uvc_frame_info_st h264_frame_info[] = {
@@ -77,11 +79,20 @@ static struct uvc_frame_info_st h264_frame_info[] = {
 //      {3, 640, 480, 15, 0},
 //  };
 
+static struct uvc_frame_info_st h265_frame_info[] = {
+    {1, 800, 600, 30, 0},
+    {2, 1280, 720, 30, 0},
+    {3, 640, 480, 30, 0},
+    {4, 400, 300, 30, 0},
+    {5, 1920, 1080, 30, 0},
+};
+
 static struct uvc_format_info_st uvc_format_info[] = {
     {MJPEG_FORMAT_INDEX, UVC_FORMAT_MJPEG, 1, ARRAY_SIZE(mjpeg_frame_info), mjpeg_frame_info},
     {H264_FORMAT_INDEX, UVC_FORMAT_H264, 1, ARRAY_SIZE(h264_frame_info), h264_frame_info},
     {YUYV_FORMAT_INDEX, UVC_FORMAT_YUY2, 1, ARRAY_SIZE(yuy2_frame_info), yuy2_frame_info},
     // {NV21_FORMAT_INDEX, UVC_FORMAT_NV21, 1, ARRAY_SIZE(nv21_frame_info), nv21_frame_info},
+	{H265_FORMAT_INDEX, UVC_FORMAT_H265, 1, ARRAY_SIZE(h265_frame_info), h265_frame_info},
 };
 
 static struct uvc_device_info uvc[USBD_UVC_MAX_NUM] = {
@@ -155,6 +166,9 @@ static CVI_S32 is_media_info_update(struct uvc_device_info *info){
 		break;
 	case H264_FORMAT_INDEX:
 		enType = PT_H264;
+		break;
+	case H265_FORMAT_INDEX:
+		enType = PT_H265;
 		break;
 	default:
 		enType = PT_BUTT;
@@ -235,6 +249,9 @@ static void uvc_media_update(struct uvc_device_info *info){
 	case H264_FORMAT_INDEX:
 		enType = PT_H264;
 		break;
+	case H265_FORMAT_INDEX:
+		enType = PT_H265;
+		break;
 	default:
 		enType = PT_MJPEG;
 		break;
@@ -255,12 +272,12 @@ static void uvc_media_update(struct uvc_device_info *info){
 	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u16Height = uvc_frame_info.height;
 	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u16EnType = enType;
 	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stRcParam.u32BitRate = (enType == PT_MJPEG)?20480:2048;
-	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stRcParam.u16RcMode = (enType == PT_MJPEG)?VENC_RC_MODE_MJPEGCBR:VENC_RC_MODE_H264CBR;
+	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stRcParam.u16RcMode = (enType == PT_MJPEG)?VENC_RC_MODE_MJPEGCBR:((enType == PT_H264) ? VENC_RC_MODE_H264CBR : VENC_RC_MODE_H265CBR);;
 	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u8ModId = CVI_ID_VPSS;
 	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u8DevId = info->video.vpss_group;
    	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u8DevChnid = info->video.vpss_channel;
 
-	if(MJPEG_FORMAT_INDEX == uvc_format_info.format_index || H264_FORMAT_INDEX == uvc_format_info.format_index) {
+	if(MJPEG_FORMAT_INDEX == uvc_format_info.format_index || H264_FORMAT_INDEX == uvc_format_info.format_index|| H265_FORMAT_INDEX == uvc_format_info.format_index) {
 		MEDIA_VIDEO_VencChnInit(pstVencCfg, info->video.venc_channel);
 		printf("venc chn %d init\n", info->video.venc_channel);
 
@@ -451,6 +468,7 @@ static void vedio_streaming_send(struct uvc_device_info *uvc)
 	uvc_get_video_format_info(&uvc_format_info);
 	switch(uvc_format_info.format_index) {
 	case H264_FORMAT_INDEX:
+	case H265_FORMAT_INDEX:
 	case MJPEG_FORMAT_INDEX:
 		ret = MEDIA_VIDEO_VencGetStream(uvc->video.venc_channel, pstStream, 2000);
 		if(ret != CVI_SUCCESS){
@@ -602,13 +620,13 @@ static void uvc_desc_register()
 
 	for(uint8_t i = 0; i < USBD_UVC_NUM; i++) {
 		uvc[i].ep = comp_get_available_ep(1);
-		USB_LOG_INFO("uvc[%d].ep:%#x\n", i, uvc[i].ep);
+		printf("uvc[%d].ep:%#x\n", i, uvc[i].ep);
 	}
 	uvc[0].interface_nums = comp_get_interfaces_num();
-	USB_LOG_INFO("interface_nums:%d\n", uvc[0].interface_nums);
-
 	uvc_descriptor = uvc_build_descriptors(uvc, &desc_len, USBD_UVC_NUM);
-	comp_register_descriptors(USBD_TYPE_UVC, uvc_descriptor, desc_len, uvc[0].interface_nums, uvc_desc_register_cb);
+
+	USB_LOG_INFO("uvc interface_nums:%d\n", uvc[0].interface_nums);
+	comp_register_descriptors(USBD_TYPE_UVC, uvc_descriptor, desc_len, 2 * USBD_UVC_NUM, uvc_desc_register_cb);
 
 	printf("multi uvc num:%u\n", USBD_UVC_NUM);
 	printf("MAX_PAYLOAD_SIZE:%u\n", MAX_PAYLOAD_SIZE);

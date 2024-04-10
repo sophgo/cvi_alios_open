@@ -6,6 +6,7 @@ endif
 
 MK_GENERATED_IMGS_PATH:=generated
 ALGORITHMS_PATH:=../../components/chip_d1/d1_flash.elf
+STRIP:=riscv64-unknown-elf-strip
 
 HOST_TOOLS := $(CURDIR)/../../host-tools/Xuantie-900-gcc-elf-newlib-x86_64-V2.6.1/bin
 export PATH := $(HOST_TOOLS):$(PATH)
@@ -14,17 +15,23 @@ PROJECT := turnkey
 startup: all
 
 all:
+	@echo "build CHIP_ARCH by $(CHIP_ARCH)"
 	@echo "Build Solution by $(BOARD) "
 	$(CPRE) if [ -e $(CURDIR)/prebuild.sh ]; then bash $(CURDIR)/prebuild.sh $(shell echo $(CHIP_ARCH) | tr A-Z a-z); fi
 	$(CPRE) if [ -e package.yaml ]; then rm -f package.yaml; fi
 	$(CPRE) ln -sf customization/$(PROJECT)/package.$(PROJECT).yaml package.yaml
 	$(CPRE) scons $(VERB) --board=$(BOARD) -j4
+	$(CPRE) if [ -e $(CURDIR)/yoc_sdk/lib/libcviai.a ]; then $(STRIP) --strip-unneeded $(CURDIR)/yoc_sdk/lib/libcviai.a; fi
 	@cp yoc.bin $(MK_GENERATED_IMGS_PATH)/data/prim
+ifeq ($(YOC_COMPRESS),y)
+	@echo YoC Compress start
 	$(CPRE) lz4 -f yoc.bin
 	$(CPRE) if [ ! -d $(CURDIR)/lz4_out ]; then  mkdir lz4_out; fi
 	$(CPRE) if [ -e $(CURDIR)/lz4_out/yoc.bin ]; then rm -rf $(CURDIR)/lz4_out/yoc.bin; fi
 	$(CPRE) if [ -e $(CURDIR)/yoc.bin.lz4 ]; then echo ULZ4`stat -c "%s" $(CURDIR)/yoc.bin.lz4`  >> $(CURDIR)/lz4_out/yoc.bin; fi
 	$(CPRE) if [ -e $(CURDIR)/lz4_out/yoc.bin ]; then cat  $(CURDIR)/yoc.bin.lz4 >> $(CURDIR)/lz4_out/yoc.bin; fi
+	@echo YoC Compress done
+endif
 	@echo YoC SDK Done
 	@echo [INFO] Create bin files
 

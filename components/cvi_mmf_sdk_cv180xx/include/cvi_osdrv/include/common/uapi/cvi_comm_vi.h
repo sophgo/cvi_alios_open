@@ -379,9 +379,13 @@ typedef struct _VI_DEV_ATTR_S {
 	CVI_BOOL isMux; /* multi sensor use same dev*/
 
 	CVI_U8 switchGpioIdx; /* for mipi switch gpio*/
-	CVI_U8 switchGpioPin;
-	CVI_U8 switchGPioPol;
-	CVI_BOOL isFrmCtrl; /* mipi switch frame ctrl by user*/
+
+	CVI_U8 switchGpioPin; /* mipi switch gpio number*/
+
+	CVI_U8 switchGPioPol; /* mipi switch init pull/down*/
+
+	CVI_BOOL isFrmCtrl; /* mipi switch frame ctrl by user, if set, must set dstFrm*/
+
 	CVI_U8 dstFrm; /* set dst frm for switch */
 } VI_DEV_ATTR_S;
 
