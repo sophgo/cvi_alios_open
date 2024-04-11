@@ -2,10 +2,11 @@
 #include <aos/cli.h>
 #include <ulog/ulog.h>
 #include <aos/kernel.h>
+#include <mmio.h>
 
 #define TAG "iic_tool"
 
-static csi_iic_t iic_adapter_list[5] = {0};
+static csi_iic_t iic_adapter_list[6] = {0};
 
 #if 0
 /* iic0 */
@@ -102,6 +103,15 @@ static csi_error_t i2c_init_idx(csi_iic_t *iic, uint32_t idx,
         LOGE(TAG, "iic-%d csi_iic_speed error", idx);
         goto INIT_FAIL;
     }
+
+
+	/*
+	 *Only bit 0 of 0x0502509 is valid. When this bit is set to 1,
+	 *pwr_gpio6 serves as PWR_IIC_SDA (Power IIC Data Line),
+	 *and pwr_gpio8 serves as PWR_IIC_SCL (Power IIC Clock Line).
+	 */
+	if (idx == 5)
+		mmio_write_32(0x0502509c, 0x1);
 
     return CSI_OK;
 

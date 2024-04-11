@@ -669,7 +669,7 @@ struct UVC_FRAME_FRAMEBASED(n) {		\
 	#else
 		#define MAX_PAYLOAD_SIZE_PER_TRANSACTION (1024)
 		#if (USBD_UVC_NUM > 1)
-			#define TRANSACTION_PER_MICROFRAME (1)
+			#define TRANSACTION_PER_MICROFRAME (2)
 		#else
 			#define TRANSACTION_PER_MICROFRAME (3)
 		#endif

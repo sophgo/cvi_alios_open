@@ -350,53 +350,51 @@ struct cvi_ive_ioctl_md {
 };
 
 #define CVI_IVE_IOC_MAGIC 'v'
-#define CVI_IVE_IOC_TEST _IOW(CVI_IVE_IOC_MAGIC, 0x00, unsigned long long)
-#define CVI_IVE_IOC_DMA _IOW(CVI_IVE_IOC_MAGIC, 0x01, unsigned long long)
-#define CVI_IVE_IOC_Add _IOW(CVI_IVE_IOC_MAGIC, 0x02, unsigned long long)
-#define CVI_IVE_IOC_And _IOW(CVI_IVE_IOC_MAGIC, 0x03, unsigned long long)
-#define CVI_IVE_IOC_Or _IOW(CVI_IVE_IOC_MAGIC, 0x04, unsigned long long)
-#define CVI_IVE_IOC_Sub _IOW(CVI_IVE_IOC_MAGIC, 0x05, unsigned long long)
-#define CVI_IVE_IOC_Xor _IOW(CVI_IVE_IOC_MAGIC, 0x06, unsigned long long)
-#define CVI_IVE_IOC_Thresh _IOW(CVI_IVE_IOC_MAGIC, 0x07, unsigned long long)
-#define CVI_IVE_IOC_Thresh_S16 _IOW(CVI_IVE_IOC_MAGIC, 0x08, unsigned long long)
-#define CVI_IVE_IOC_Thresh_U16 _IOW(CVI_IVE_IOC_MAGIC, 0x09, unsigned long long)
-#define CVI_IVE_IOC_16BitTo8Bit _IOW(CVI_IVE_IOC_MAGIC, 0x0a, unsigned long long)
-#define CVI_IVE_IOC_CSC _IOW(CVI_IVE_IOC_MAGIC, 0x0b, unsigned long long)
-#define CVI_IVE_IOC_GradFg _IOW(CVI_IVE_IOC_MAGIC, 0x0c, unsigned long long)
-#define CVI_IVE_IOC_NormGrad _IOW(CVI_IVE_IOC_MAGIC, 0x0d, unsigned long long)
-#define CVI_IVE_IOC_Filter _IOW(CVI_IVE_IOC_MAGIC, 0x0e, unsigned long long)
-#define CVI_IVE_IOC_FilterAndCSC _IOW(CVI_IVE_IOC_MAGIC, 0x0f, unsigned long long)
-#define CVI_IVE_IOC_Hist _IOW(CVI_IVE_IOC_MAGIC, 0x10, unsigned long long)
-#define CVI_IVE_IOC_EqualizeHist _IOW(CVI_IVE_IOC_MAGIC, 0x11, unsigned long long)
-#define CVI_IVE_IOC_Map _IOW(CVI_IVE_IOC_MAGIC, 0x12, unsigned long long)
-#define CVI_IVE_IOC_NCC _IOWR(CVI_IVE_IOC_MAGIC, 0x13, unsigned long long)
-#define CVI_IVE_IOC_OrdStatFilter _IOW(CVI_IVE_IOC_MAGIC, 0x14, unsigned long long)
-#define CVI_IVE_IOC_Resize _IOW(CVI_IVE_IOC_MAGIC, 0x15, unsigned long long)
-#define CVI_IVE_IOC_CannyHysEdge _IOW(CVI_IVE_IOC_MAGIC, 0x16, unsigned long long)
-#define CVI_IVE_IOC_CannyEdge _IOW(CVI_IVE_IOC_MAGIC, 0x17, unsigned long long)
-#define CVI_IVE_IOC_Integ _IOW(CVI_IVE_IOC_MAGIC, 0x18, unsigned long long)
-#define CVI_IVE_IOC_LBP _IOW(CVI_IVE_IOC_MAGIC, 0x19, unsigned long long)
-#define CVI_IVE_IOC_MagAndAng _IOW(CVI_IVE_IOC_MAGIC, 0x1a, unsigned long long)
-#define CVI_IVE_IOC_STCandiCorner _IOW(CVI_IVE_IOC_MAGIC, 0x1b, unsigned long long)
-#define CVI_IVE_IOC_STCorner _IOW(CVI_IVE_IOC_MAGIC, 0x1c, unsigned long long)
-#define CVI_IVE_IOC_Sobel _IOW(CVI_IVE_IOC_MAGIC, 0x1d, unsigned long long)
-#define CVI_IVE_IOC_CCL _IOW(CVI_IVE_IOC_MAGIC, 0x1e, unsigned long long)
-#define CVI_IVE_IOC_Dilate _IOW(CVI_IVE_IOC_MAGIC, 0x1f, unsigned long long)
-#define CVI_IVE_IOC_Erode _IOW(CVI_IVE_IOC_MAGIC, 0x20, unsigned long long)
-#define CVI_IVE_IOC_MatchBgModel _IOWR(CVI_IVE_IOC_MAGIC, 0x21, unsigned long long)
-#define CVI_IVE_IOC_UpdateBgModel _IOWR(CVI_IVE_IOC_MAGIC, 0x22, unsigned long long)
-#define CVI_IVE_IOC_GMM _IOW(CVI_IVE_IOC_MAGIC, 0x23, unsigned long long)
-#define CVI_IVE_IOC_GMM2 _IOW(CVI_IVE_IOC_MAGIC, 0x24, unsigned long long)
-#define CVI_IVE_IOC_LKOpticalFlowPyr                                           \
-	_IOW(CVI_IVE_IOC_MAGIC, 0x25, unsigned long long)
-#define CVI_IVE_IOC_SAD _IOW(CVI_IVE_IOC_MAGIC, 0x26, unsigned long long)
-#define CVI_IVE_IOC_Bernsen _IOW(CVI_IVE_IOC_MAGIC, 0x27, unsigned long long)
-#define CVI_IVE_IOC_imgInToOdma _IOW(CVI_IVE_IOC_MAGIC, 0x28, unsigned long long)
-#define CVI_IVE_IOC_rgbPToYuvToErodeToDilate                                   \
-	_IOW(CVI_IVE_IOC_MAGIC, 0x29, unsigned long long)
-#define CVI_IVE_IOC_MD _IOW(CVI_IVE_IOC_MAGIC, 0x2a, unsigned long long)
-#define CVI_IVE_IOC_CMDQ _IOW(CVI_IVE_IOC_MAGIC, 0x2b, unsigned long long)
-#define CVI_IVE_IOC_RESET _IOW(CVI_IVE_IOC_MAGIC, 0xF0, unsigned long long)
-#define CVI_IVE_IOC_DUMP _IO(CVI_IVE_IOC_MAGIC, 0xF1)
-#define CVI_IVE_IOC_QUERY _IOWR(CVI_IVE_IOC_MAGIC, 0xF2, unsigned long long)
+#define CVI_IVE_IOC_TEST 0x00
+#define CVI_IVE_IOC_DMA 0x01
+#define CVI_IVE_IOC_Add 0x02
+#define CVI_IVE_IOC_And 0x03
+#define CVI_IVE_IOC_Or 0x04
+#define CVI_IVE_IOC_Sub 0x05
+#define CVI_IVE_IOC_Xor 0x06
+#define CVI_IVE_IOC_Thresh 0x07
+#define CVI_IVE_IOC_Thresh_S16 0x08
+#define CVI_IVE_IOC_Thresh_U16 0x09
+#define CVI_IVE_IOC_16BitTo8Bit 0x0a
+#define CVI_IVE_IOC_CSC 0x0b
+#define CVI_IVE_IOC_GradFg 0x0c
+#define CVI_IVE_IOC_NormGrad 0x0d
+#define CVI_IVE_IOC_Filter 0x0e
+#define CVI_IVE_IOC_FilterAndCSC 0x0f
+#define CVI_IVE_IOC_Hist 0x10
+#define CVI_IVE_IOC_EqualizeHist 0x11
+#define CVI_IVE_IOC_Map 0x12
+#define CVI_IVE_IOC_NCC 0x13
+#define CVI_IVE_IOC_OrdStatFilter 0x14
+#define CVI_IVE_IOC_Resize 0x15
+#define CVI_IVE_IOC_CannyHysEdge 0x16
+#define CVI_IVE_IOC_CannyEdge 0x17
+#define CVI_IVE_IOC_Integ 0x18
+#define CVI_IVE_IOC_LBP 0x19
+#define CVI_IVE_IOC_MagAndAng 0x1a
+#define CVI_IVE_IOC_STCandiCorner 0x1b
+#define CVI_IVE_IOC_STCorner 0x1c
+#define CVI_IVE_IOC_Sobel 0x1d
+#define CVI_IVE_IOC_CCL 0x1e
+#define CVI_IVE_IOC_Dilate 0x1f
+#define CVI_IVE_IOC_Erode 0x20
+#define CVI_IVE_IOC_MatchBgModel 0x21
+#define CVI_IVE_IOC_UpdateBgModel 0x22
+#define CVI_IVE_IOC_GMM 0x23
+#define CVI_IVE_IOC_GMM2 0x24
+#define CVI_IVE_IOC_LKOpticalFlowPyr 0x25
+#define CVI_IVE_IOC_SAD 0x26
+#define CVI_IVE_IOC_Bernsen 0x27
+#define CVI_IVE_IOC_imgInToOdma 0x28
+#define CVI_IVE_IOC_rgbPToYuvToErodeToDilate 0x29
+#define CVI_IVE_IOC_MD 0x2a
+#define CVI_IVE_IOC_CMDQ 0x2b
+#define CVI_IVE_IOC_RESET 0xF0
+#define CVI_IVE_IOC_DUMP 0xF1
+#define CVI_IVE_IOC_QUERY 0xF2
 #endif /* __CVI_IVE_IOCTL_H__ */

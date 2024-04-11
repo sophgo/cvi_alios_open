@@ -53,4 +53,19 @@ void sensor_pinmux_init(void)
 	mmio_write_32(0x0300118c, 0x4);//	PINMUX_CONFIG(PAD_MIPIRX0N, IIC1_SCL);
 	mmio_write_32(0x03001190, 0x4);//	PINMUX_CONFIG(PAD_MIPIRX0P, CAM_MCLK0);
 #endif
+
+#if (CONFIG_SENSOR_GCORE_GC02M1 && CONFIG_SENSOR_GCORE_GC02M1_MULTI)
+	/* 180zb */
+	mmio_write_32(0x030010e4, 0x3); // PINMUX_CONFIG(PAD_MIPIRX2N, XGPIOC_6);
+	mmio_write_32(0x030010e8, 0x3); // PINMUX_CONFIG(PAD_MIPIRX2P, XGPIOC_7);
+	mmio_write_32(0x030010f0, 0x4); // PINMUX_CONFIG(PAD_MIPIRX1P, IIC1_SDA);
+	mmio_write_32(0x030010f4, 0x4); // PINMUX_CONFIG(PAD_MIPIRX0N, IIC1_SCL);
+	mmio_write_32(0x030010f8, 0x4); // PINMUX_CONFIG(PAD_MIPIRX0P, CAM_MCLK0);
+
+	// _GPIOSetValue(2, 6, 1); // XSHUTDOWN
+	// _GPIOSetValue(2, 7, 1); // XSHUTDOWN
+	mmio_write_32(0x03022004, 0xc0);
+	mmio_write_32(0x03022000, 0xc0);
+
+#endif
 }

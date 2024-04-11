@@ -86,7 +86,8 @@ static struct usb_endpoint_descriptor acm_notify_desc = {
     /* .bEndpointAddress =	DYNAMIC */
 	.bmAttributes =		USB_ENDPOINT_XFER_INT,
 	.wMaxPacketSize =	cpu_to_le16(8),
-	.bInterval =		0x10,
+	// .bInterval =		0x10,
+	.bInterval =		0x0,
 };
 
 static struct usb_interface_descriptor acm_data_interface_desc = {

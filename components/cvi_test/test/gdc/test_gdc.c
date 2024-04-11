@@ -250,7 +250,7 @@ void test_gdc_begain_job(int32_t argc, char **argv)
 	CVI_U64 u64OutPhyAddr;
 	CVI_U8 *pu8OutVirtAddr;
 	VB_CAL_CONFIG_S stVbOutCalConfig;
-	LDC_ATTR_S stLDCAttr = {CVI_TRUE, 50, 50, 50, 0, 0, 200};
+	LDC_ATTR_S stLDCAttr = {CVI_TRUE, 50, 50, 50, 0, 0, 200, {0}};
 	CVI_BOOL LDCEnable = CVI_TRUE;
 	CVI_U64 u64PhyAddr;
 	CVI_VOID *pVirAddr;
@@ -497,7 +497,7 @@ void test_gdc_enable_ldc(int32_t argc, char **argv)
 	CVI_S32 ret;
 	VI_PIPE ViPipe = 0;
 	VI_CHN ViChn = 0;
-	LDC_ATTR_S stLDCAttr = {CVI_TRUE, 50, 50, 50, 0, 0, 200};
+	LDC_ATTR_S stLDCAttr = {CVI_TRUE, 50, 50, 50, 0, 0, 200, {0}};
 	VI_LDC_ATTR_S stViLDCAttr;
 	VPSS_LDC_ATTR_S stVpssLDCAttr;
 	LOG_LEVEL_CONF_S stConf;
@@ -634,7 +634,7 @@ void gdc_gen_mesh(int32_t argc, char **argv)
 	int ret;
 	CVI_U64 u64PhyAddr;
 	CVI_VOID *pVirAddr;
-	LDC_ATTR_S stLDCAttr = {CVI_TRUE, 50, 50, 50, 0, 0, 200};
+	LDC_ATTR_S stLDCAttr = {CVI_TRUE, 50, 50, 50, 0, 0, 200, {0}};
 
 	ret = CVI_GDC_GenLDCMesh(320, 240, &stLDCAttr, "ldc_user", &u64PhyAddr, &pVirAddr);
 	if (ret)

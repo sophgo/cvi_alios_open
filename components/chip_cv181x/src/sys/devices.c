@@ -47,6 +47,7 @@ const csi_perip_info_t g_soc_info[] = {
     {DW_IIC2_BASE,             DW_IIC2_IRQn,             2,    DEV_DW_IIC_TAG},
     {DW_IIC3_BASE,             DW_IIC3_IRQn,             3,    DEV_DW_IIC_TAG},
     {DW_IIC4_BASE,             DW_IIC4_IRQn,             4,    DEV_DW_IIC_TAG},
+	{DW_IIC5_BASE,             DW_IIC5_IRQn,             5,    DEV_DW_IIC_TAG},
     {DW_SPI0_BASE,             DW_SPI0_IRQn,             0,    DEV_DW_SPI_TAG},
     {DW_SPI1_BASE,             DW_SPI1_IRQn,             1,    DEV_DW_SPI_TAG},
     {DW_SPI2_BASE,             DW_SPI2_IRQn,             2,    DEV_DW_SPI_TAG},

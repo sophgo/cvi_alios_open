@@ -76,6 +76,7 @@ typedef struct _IVE_IMAGE_S {
 	CVI_U32 u32Width;
 	CVI_U32 u32Height;
 	CVI_U32 u32Reserved;
+	CVI_BOOL bPhyAddrAlign;
 } IVE_IMAGE_S;
 typedef IVE_IMAGE_S IVE_SRC_IMAGE_S;
 typedef IVE_IMAGE_S IVE_DST_IMAGE_S;
@@ -84,6 +85,7 @@ typedef struct _IVE_MEM_INFO_S {
 	CVI_U64 u64PhyAddr;
 	CVI_U64 u64VirAddr;
 	CVI_U32 u32Size;
+	CVI_BOOL bPhyAddrAlign;
 } IVE_MEM_INFO_S;
 typedef IVE_MEM_INFO_S IVE_SRC_MEM_INFO_S;
 typedef IVE_MEM_INFO_S IVE_DST_MEM_INFO_S;
@@ -95,6 +97,7 @@ typedef struct _IVE_DATA_S {
 	CVI_U32 u32Width;
 	CVI_U32 u32Height;
 	CVI_U32 u32Reserved;
+	CVI_BOOL bPhyAddrAlign;
 } IVE_DATA_S;
 typedef IVE_DATA_S IVE_SRC_DATA_S;
 typedef IVE_DATA_S IVE_DST_DATA_S;

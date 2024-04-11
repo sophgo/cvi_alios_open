@@ -268,9 +268,9 @@ void cdc_uart_init(void)
     cdc_uart_info.cdc_uart_in_ep.ep_addr = comp_get_available_ep(1);
     cdc_uart_info.cdc_uart_int_ep.ep_addr = comp_get_available_ep(1);
     cdc_uart_info.interface_nums = comp_get_interfaces_num();
-    USB_LOG_INFO("cdc_uart out ep:%#x\n", cdc_uart_info.cdc_uart_out_ep.ep_addr);
-    USB_LOG_INFO("cdc_uart in ep:%#x\n", cdc_uart_info.cdc_uart_in_ep.ep_addr);
-    USB_LOG_INFO("cdc_uart int ep:%#x\n", cdc_uart_info.cdc_uart_int_ep.ep_addr);
+    printf("cdc_uart out ep:%#x\n", cdc_uart_info.cdc_uart_out_ep.ep_addr);
+    printf("cdc_uart in ep:%#x\n", cdc_uart_info.cdc_uart_in_ep.ep_addr);
+    printf("cdc_uart int ep:%#x\n", cdc_uart_info.cdc_uart_int_ep.ep_addr);
     USB_LOG_INFO("interface_nums:%d\n", cdc_uart_info.interface_nums);
 
     cdc_uart_descriptor = cdc_uart_build_descriptor(&cdc_uart_info, &desc_len);

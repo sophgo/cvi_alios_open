@@ -90,9 +90,11 @@ build_config:
     - gcore_gc02m1_slave
     - gcore_gc02m1_multi
     - gcore_gc1054
+    - gcore_gc1084
     - gcore_gc2053
     - gcore_gc2053_1L
     - gcore_gc2093
+    - gcore_gc2083_1L
     - gcore_gc4653
     - opnous_opn8018
     - sms_sc200ai
@@ -134,9 +136,11 @@ source_file:
   - gcore_gc02m1_slave/*.c ? <CONFIG_SENSOR_GCORE_GC02M1_SLAVE>
   - gcore_gc02m1_multi/*.c ? <CONFIG_SENSOR_GCORE_GC02M1_MULTI>
   - gcore_gc1054/*.c ? <CONFIG_SENSOR_GCORE_GC1054>
+  - gcore_gc1084/*.c ? <CONFIG_SENSOR_GCORE_GC1084>
   - gcore_gc2053/*.c ? <CONFIG_SENSOR_GCORE_GC2053>
   - gcore_gc2053_1L/*.c ? <CONFIG_SENSOR_GCORE_GC2053_1L>
   - gcore_gc2093/*.c ? <CONFIG_SENSOR_GCORE_GC2093>
+  - gcore_gc2083_1L/*.c ? <CONFIG_SENSOR_GCORE_GC2083_1L>
   - gcore_gc4653/*.c ? <CONFIG_SENSOR_GCORE_GC4653>
   - opnous_opn8018/*.c ? <CONFIG_SENSOR_OPNOUS_OPN8018>
   - sms_sc200ai/*.c ? <CONFIG_SENSOR_SMS_SC200AI>

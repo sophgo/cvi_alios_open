@@ -131,6 +131,10 @@ ISP_SNS_OBJ_S *getSnsObj(SNS_TYPE_E enSnsType)
 	case SMS_SC200AI_MIPI_2M_30FPS_10BIT_WDR2TO1:
 		return &stSnsSC200AI_Obj;
 #endif
+#if CONFIG_SENSOR_SMS_SC530AI_4L
+    case SMS_SC530AI_4L_MIPI_4M_30FPS_10BIT:
+        return &stSnsSC530AI_4L_Obj;
+#endif
 #if CONFIG_SENSOR_SMS_SC2336
 	case SMS_SC2336_MIPI_2M_30FPS_10BIT:
 		return &stSnsSC2336_Obj;
@@ -215,6 +219,10 @@ CVI_S32 getPicSize(CVI_S32 dev_id, SNS_SIZE_S *pstSize)
 	sensor_type = get_sensor_type(dev_id);
 
 	switch (sensor_type) {
+	case SMS_SC530AI_4L_MIPI_4M_30FPS_10BIT:
+		pstSize->u32Width = 2880;
+		pstSize->u32Height = 1620;
+		break;
 	case SMS_SC201CS_MIPI_2M_30FPS_10BIT:
 	case SMS_SC201CS_SLAVE_MIPI_2M_30FPS_10BIT:
 	case SMS_SC201CS_MULTI_MIPI_2M_30FPS_10BIT:

@@ -8,6 +8,7 @@
 
 #include <aos/cli.h>
 #include <ulog/ulog.h>
+#include <drv/tick.h>
 
 #include "netif/etharp.h"
 #include <lwip/netif.h>
@@ -225,29 +226,54 @@ static void rndis_data_input(void *data, int size)
     aos_queue_send(&s_rndis_msg_queue, &msg, sizeof(rndis_msg_t));
 }
 
+static int rndis_msg_handle(rndis_msg_t *msg)
+{
+    if (!msg) {
+        return 0;
+    }
+
+    if (msg->type == RNDIS_MSG_TPYE_INPUT) {
+        return rndis_data_rx(msg->buf, msg->len);
+    }
+    else if (msg->type == RNDIS_MSG_TPYE_OUTPUT) {
+        return rndis_data_tx(msg->buf, msg->len);
+    }
+    else {
+        LOGE(TAG, "Wrong Type");
+        return 0;
+    }
+}
+
 static void rndis_task_entry(void *argv)
 {
-    rndis_msg_t        msg;
-    size_t             size;
+    rndis_msg_t         msg = {0};
+    size_t              size;
+    int                 ret;
+    uint32_t            start_time;
 
     while (1) {
+        // Step 1: Recv msg from queue.
         aos_queue_recv(&s_rndis_msg_queue, AOS_WAIT_FOREVER, &msg, &size);
 
-        if (msg.type == RNDIS_MSG_TPYE_INPUT) {
-            // LOGD(TAG, "rndis_data_rx, len: %d", msg.len);
+        // Step 2: The execution is repeated until successful or timeout, which is usually very short (microsecond level).
+        ret = rndis_msg_handle(&msg);
+        if (ret != 0) {
+            start_time = csi_tick_get_ms();
+            do {
+                ret = rndis_msg_handle(&msg);
+                if (ret == 0) {
+                    break;
+                }
+            } while(csi_tick_get_ms() - start_time < 100);
 
-            rndis_data_rx(msg.buf, msg.len);
+            if (ret != 0) {
+                LOGE(TAG, "Failed to handle message after retries and timeout.");
+            }
+        }
 
+        if (msg.buf) {
             free(msg.buf);
-        } else if (msg.type == RNDIS_MSG_TPYE_OUTPUT) {
-
-            // LOGD(TAG, "rndis_data_tx, len: %d", msg.len);
-
-            rndis_data_tx(msg.buf, msg.len);
-
-            free(msg.buf);
-        } else {
-            LOGE(TAG, "Wrong Type");
+            msg.buf = NULL;
         }
     }
 }
@@ -284,17 +310,18 @@ void cdc_rndis_init(void)
 {
     uint32_t desc_len;
 
-    cdc_rndis_info.cdc_rndis_out_ep.ep_addr = comp_get_available_ep(0);
     cdc_rndis_info.cdc_rndis_in_ep.ep_addr = comp_get_available_ep(1);
+    cdc_rndis_info.cdc_rndis_out_ep.ep_addr = comp_get_available_ep(0);
     cdc_rndis_info.cdc_rndis_int_ep.ep_addr = comp_get_available_ep(1);
     cdc_rndis_info.interface_nums = comp_get_interfaces_num();
-    USB_LOG_INFO("cdc_rndis out ep:%#x\n", cdc_rndis_info.cdc_rndis_out_ep.ep_addr);
-    USB_LOG_INFO("cdc_rndis in ep:%#x\n", cdc_rndis_info.cdc_rndis_in_ep.ep_addr);
-    USB_LOG_INFO("cdc_rndis int ep:%#x\n", cdc_rndis_info.cdc_rndis_int_ep.ep_addr);
-    USB_LOG_INFO("interface_nums:%d\n", cdc_rndis_info.interface_nums);
+    printf("cdc_rndis in ep:%#x\n", cdc_rndis_info.cdc_rndis_in_ep.ep_addr);
+    printf("cdc_rndis out ep:%#x\n", cdc_rndis_info.cdc_rndis_out_ep.ep_addr);
+    printf("cdc_rndis int ep:%#x\n", cdc_rndis_info.cdc_rndis_int_ep.ep_addr);
 
     cdc_rndis_descriptor = cdc_rndis_build_descriptor(&cdc_rndis_info, &desc_len);
-    comp_register_descriptors(USBD_TYPE_CDC_RNDIS, cdc_rndis_descriptor, desc_len, 2, cdc_rndis_desc_register_cb);
+    cdc_rndis_info.interface_nums = 2;
+    USB_LOG_INFO("cdc interface_nums:%d\n", cdc_rndis_info.interface_nums);
+    comp_register_descriptors(USBD_TYPE_CDC_RNDIS, cdc_rndis_descriptor, desc_len, cdc_rndis_info.interface_nums, cdc_rndis_desc_register_cb);
 
     usbd_add_interface(usbd_rndis_init_intf(&cdc_rndis_info.cdc_rndis_intf0,
         cdc_rndis_info.cdc_rndis_out_ep.ep_addr, cdc_rndis_info.cdc_rndis_in_ep.ep_addr, cdc_rndis_info.cdc_rndis_int_ep.ep_addr, mac));
