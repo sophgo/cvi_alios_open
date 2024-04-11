@@ -13,78 +13,92 @@ PARAM_CLASSDEFINE(PARAM_VPSS_CHN_CFG_S,CHNCFG,GRP0,CHN)[] = {
     {
         .u8Rotation = ROTATION_0,
         .stVpssChnAttr = {
-            .u32Width = 1200,
-            .u32Height = 1600,
+            .u32Width = 1920,
+            .u32Height = 1080,
             .enVideoFormat = VIDEO_FORMAT_LINEAR,
             .enPixelFormat = PIXEL_FORMAT_NV21,
-            .stFrameRate.s32SrcFrameRate = -1,
-            .stFrameRate.s32DstFrameRate = -1,
+            .stFrameRate = {
+                .s32SrcFrameRate = -1,
+                .s32DstFrameRate = -1,
+            },
             .bFlip = CVI_FALSE,
             .bMirror = CVI_FALSE,
             .u32Depth  = 0,
-            .stAspectRatio.enMode        = ASPECT_RATIO_AUTO,
-            .stAspectRatio.bEnableBgColor = CVI_TRUE,
-            //.stAspectRatio.u32BgColor    = COLOR_RGB_BLACK,
-            .stNormalize.bEnable         = CVI_FALSE,
-        }
-    },
-    {
-        .u8Rotation = ROTATION_0,
-        .stVpssChnAttr = {
-            .u32Width = PANEL_WIDTH,
-            .u32Height = PANEL_HEIGHT,
-            .enVideoFormat = VIDEO_FORMAT_LINEAR,
-            .enPixelFormat = PIXEL_FORMAT_NV21,
-            .stFrameRate.s32SrcFrameRate = -1,
-            .stFrameRate.s32DstFrameRate = -1,
-            .bFlip = CVI_FALSE,
-            .bMirror = CVI_FALSE,
-            .u32Depth  = 0,
-            .stAspectRatio.enMode        = ASPECT_RATIO_MANUAL,
-            .stAspectRatio.bEnableBgColor = CVI_TRUE,
-            .stAspectRatio.stVideoRect.s32X = 0,
-            .stAspectRatio.stVideoRect.s32Y = 0,
-            .stAspectRatio.stVideoRect.u32Width = PANEL_WIDTH,
-            .stAspectRatio.stVideoRect.u32Height = PANEL_HEIGHT,
-            //.stAspectRatio.u32BgColor    = COLOR_RGB_BLACK,
-            .stNormalize.bEnable         = CVI_FALSE,
-        }
-    },
-    {
-        .u8Rotation = ROTATION_0,
-        .stVpssChnAttr = {
-            .u32Width = 480,
-            .u32Height = 720,
-            .enVideoFormat = VIDEO_FORMAT_LINEAR,
-            .enPixelFormat = PIXEL_FORMAT_NV21,
-            .stFrameRate.s32SrcFrameRate = -1,
-            .stFrameRate.s32DstFrameRate = -1,
-            .bFlip = CVI_FALSE,
-            .bMirror = CVI_FALSE,
-            .u32Depth  = 0,
-            .stAspectRatio.enMode        = ASPECT_RATIO_AUTO,
-            .stAspectRatio.bEnableBgColor = CVI_TRUE,
-            //.stAspectRatio.u32BgColor    = COLOR_RGB_BLACK,
-            .stNormalize.bEnable         = CVI_FALSE,
-        }
+            .stAspectRatio= {
+                .enMode = ASPECT_RATIO_AUTO,
+                .bEnableBgColor = CVI_TRUE,
+                .u32BgColor = COLOR_RGB_BLACK,
+            },
+            .stNormalize = {
+                .bEnable = CVI_FALSE,
+            },
+        },
+        .stVpssChnCropInfo = {
+            .bEnable = CVI_FALSE,
+            .enCropCoordinate = VPSS_CROP_RATIO_COOR,
+            .stCropRect = {
+                .s32X = 0,
+                .s32Y = 0,
+                .u32Height = -1,
+                .u32Width = -1,
+            },
+        },
     },
 };
 
+PARAM_CLASSDEFINE(PARAM_VPSS_CHN_CFG_S,CHNCFG,GRP1,CHN)[] = {
+    {
+        .u8Rotation = ROTATION_0,
+        .stVpssChnAttr = {
+            .u32Width = 1920,
+            .u32Height = 1080,
+            .enVideoFormat = VIDEO_FORMAT_LINEAR,
+            .enPixelFormat = PIXEL_FORMAT_NV21,
+            .stFrameRate = {
+                .s32SrcFrameRate = -1,
+                .s32DstFrameRate = -1,
+            },
+            .bFlip = CVI_FALSE,
+            .bMirror = CVI_FALSE,
+            .u32Depth = 0,
+            .stAspectRatio= {
+                .enMode = ASPECT_RATIO_AUTO,
+                .bEnableBgColor = CVI_TRUE,
+                .u32BgColor     = COLOR_RGB_BLACK,
+            },
+            .stNormalize = {
+                .bEnable = CVI_FALSE,
+            },
+        },
+        .stVpssChnCropInfo = {
+            .bEnable = CVI_FALSE,
+            .enCropCoordinate = VPSS_CROP_RATIO_COOR,
+            .stCropRect = {
+                .s32X = 0,
+                .s32Y = 0,
+                .u32Height = -1,
+                .u32Width = -1,
+            },
+        },
+    },
+};
 
 PARAM_CLASSDEFINE(PARAM_VPSS_GRP_CFG_S,GRPCFG,CTX,GRP)[] = {
     {
         .VpssGrp = 0,
-        .u8ChnCnt = 3,
+        .u8ChnCnt = 1,
         .pstChnCfg = PARAM_CLASS(CHNCFG,GRP0,CHN),
         .u8ViRotation = 0,
-        .s32BindVidev = -1,
+        .s32BindVidev = 0,
         .stVpssGrpAttr = {
             .u8VpssDev = 1,
-            .u32MaxW = 1200,
-            .u32MaxH = 1600,
+            .u32MaxW = -1,
+            .u32MaxH = -1,
             .enPixelFormat = PIXEL_FORMAT_NV21,
-            .stFrameRate.s32SrcFrameRate = -1,
-            .stFrameRate.s32DstFrameRate = -1,
+            .stFrameRate = {
+                .s32SrcFrameRate = -1,
+                .s32DstFrameRate = -1,
+            },
         },
         .bBindMode = CVI_TRUE,
         .astChn[0] = {
@@ -96,12 +110,61 @@ PARAM_CLASSDEFINE(PARAM_VPSS_GRP_CFG_S,GRPCFG,CTX,GRP)[] = {
             .enModId = CVI_ID_VPSS,
             .s32DevId = 0,
             .s32ChnId = 0,
-        }
+        },
+        .stVpssGrpCropInfo = {
+            .bEnable = CVI_FALSE,
+            .enCropCoordinate = VPSS_CROP_RATIO_COOR,
+            .stCropRect = {
+                .s32X = 0,
+                .s32Y = 0,
+                .u32Height = -1,
+                .u32Width = -1,
+            },
+        },
+    },
+    {
+        .VpssGrp = 1,
+        .u8ChnCnt = 1,
+        .pstChnCfg = PARAM_CLASS(CHNCFG,GRP1,CHN),
+        .u8ViRotation = 0,
+        .s32BindVidev = 1,
+        .stVpssGrpAttr = {
+            .u8VpssDev = 1,
+            .u32MaxW = -1,
+            .u32MaxH = -1,
+            .enPixelFormat = PIXEL_FORMAT_NV21,
+            .stFrameRate = {
+                .s32SrcFrameRate = -1,
+                .s32DstFrameRate = -1,
+            },
+        },
+        .bBindMode = CVI_TRUE,
+        .astChn[0] = {
+            .enModId = CVI_ID_VI,
+            .s32DevId = 0,
+            .s32ChnId = 1,
+        },
+        .astChn[1] = {
+            .enModId = CVI_ID_VPSS,
+            .s32DevId = 1,
+            .s32ChnId = 0,
+        },
+        .stVpssGrpCropInfo = {
+            .bEnable = CVI_FALSE,
+            .enCropCoordinate = VPSS_CROP_RATIO_COOR,
+            .stCropRect = {
+                .s32X = 0,
+                .s32Y = 0,
+                .u32Height = -1,
+                .u32Width = -1,
+            },
+        },
     },
 };
 
+
 PARAM_VPSS_CFG_S  g_stVpssCtx = {
-    .u8GrpCnt = 1,
+    .u8GrpCnt = 2,
     .pstVpssGrpCfg = PARAM_CLASS(GRPCFG,CTX,GRP),
 };
 

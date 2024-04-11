@@ -61,6 +61,7 @@ typedef enum {
     DW_IIC2_IRQn                    =  51U,
     DW_IIC3_IRQn                    =  52U,
     DW_IIC4_IRQn                    =  53U,
+	DW_IIC5_IRQn                    =  59U,
     DW_SPI0_IRQn                    =  54U,
     DW_SPI1_IRQn                    =  55U,
     DW_SPI2_IRQn                    =  56U,
@@ -653,6 +654,9 @@ typedef struct {
 
 #define DW_IIC4_BASE               0x04040000UL
 #define DW_IIC4_SIZE               0x1000U
+
+#define DW_IIC5_BASE               0x0502B000UL
+#define DW_IIC5_SIZE               0x1000U
 
 #define DW_SPI_REG_SIZE             (0x10000UL)
 #define DW_SPI0_BASE                (0x04180000UL)

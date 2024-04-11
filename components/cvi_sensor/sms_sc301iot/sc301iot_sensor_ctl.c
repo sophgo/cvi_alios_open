@@ -6,10 +6,13 @@
 #include "sensor_i2c.h"
 #include "sc301iot_cmos_ex.h"
 
-#define USE_FASTMODE 1
+#define USE_FASTMODE 0
 
 static void sc301iot_linear_1536p30_init(VI_PIPE ViPipe);
+
+#if USE_FASTMODE
 static void sc301iot_linear_1536p30_fastmode_init(VI_PIPE ViPipe);
+#endif
 
 CVI_U8 sc301iot_i2c_addr = 0x30;        /* I2C Address of SC301IOT */
 CVI_U8 R_exp_h = 0, R_exp_m = 0, R_exp_l = 0, R_gain = 0, R_dgain_L = 0;
@@ -350,6 +353,7 @@ static void sc301iot_linear_1536p30_init(VI_PIPE ViPipe)
 	printf("ViPipe:%d,===SC301IOT 1536P 30fps 10bit LINE Init OK!===\n", ViPipe);
 }
 
+#if USE_FASTMODE
 static void sc301iot_linear_1536p30_fastmode_init(VI_PIPE ViPipe)
 {
 	sc301iot_write_register(ViPipe, 0x0103, 0x01);
@@ -493,3 +497,4 @@ static void sc301iot_linear_1536p30_fastmode_init(VI_PIPE ViPipe)
 
 	printf("ViPipe:%d,===SC301IOT 1536P 30fps 10bit LINE FAST MODE Init OK!===\n", ViPipe);
 }
+#endif

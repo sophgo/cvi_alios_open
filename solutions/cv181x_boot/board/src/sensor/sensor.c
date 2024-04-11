@@ -23,6 +23,16 @@ extern int sc201cs_multi_probe(uint8_t i2c_addr, uint8_t i2c_dev);
 extern void sc201cs_multi_init(uint8_t ViPipe);
 extern void sc201cs_multi_exit(uint8_t ViPipe);
 #endif
+#if CONFIG_SENSOR_GCORE_GC02M1
+extern int gc02m1_probe(uint8_t i2c_addr, uint8_t i2c_dev);
+extern void gc02m1_init(uint8_t ViPipe);
+extern void gc02m1_exit(uint8_t ViPipe);
+#endif
+#if CONFIG_SENSOR_GCORE_GC02M1_MULTI
+extern int gc02m1_multi_probe(uint8_t i2c_addr, uint8_t i2c_dev);
+extern void gc02m1_multi_init(uint8_t ViPipe);
+extern void gc02m1_multi_exit(uint8_t ViPipe);
+#endif
 int sensor_init(void)
 {
 	int ret = 0;
@@ -47,7 +57,16 @@ int sensor_init(void)
 	sc201cs_multi_init(0);
 	sc201cs_multi_exit(0);
 #endif
-
+#if CONFIG_SENSOR_GCORE_GC02M1
+	ret = gc02m1_probe(0x37, 1);
+	gc02m1_init(0);
+	gc02m1_exit(0);
+#endif
+#if CONFIG_SENSOR_GCORE_GC02M1_MULTI
+	ret = gc02m1_multi_probe(0x10, 1);
+	gc02m1_multi_init(0);
+	gc02m1_multi_exit(0);
+#endif
 	return ret;
 }
 

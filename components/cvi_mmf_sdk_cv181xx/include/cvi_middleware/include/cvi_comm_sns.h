@@ -41,6 +41,7 @@ typedef struct _ISP_CMOS_BLACK_LEVEL_S {
 
 typedef struct _ISP_SNS_ATTR_INFO_S {
 	CVI_U32 eSensorId;
+	CVI_BOOL bInitByUser;
 } ISP_SNS_ATTR_INFO_S;
 
 typedef struct cviISP_CMOS_NOISE_CALIBRATION_S {

@@ -74,7 +74,7 @@ void hid_keyboard_init()
     hid_keyboard_info.hid_keyboard_int_ep.ep_cb = usbd_hid_keyboard_int_callback;
     hid_keyboard_info.hid_keyboard_int_ep.ep_addr = comp_get_available_ep(1);
     hid_keyboard_info.interface_nums = comp_get_interfaces_num();
-    USB_LOG_INFO("hid_keyboard int ep:%#x\n", hid_keyboard_info.hid_keyboard_int_ep.ep_addr);
+    printf("hid_keyboard int ep:%#x\n", hid_keyboard_info.hid_keyboard_int_ep.ep_addr);
     USB_LOG_INFO("interface_nums:%d\n", hid_keyboard_info.interface_nums);
 
     hid_keyboard_descriptor = hid_keyboard_build_descriptor(&hid_keyboard_info, &desc_len);

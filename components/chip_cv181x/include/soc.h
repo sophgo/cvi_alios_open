@@ -61,6 +61,7 @@ typedef enum {
     DW_IIC2_IRQn                    =  51U,
     DW_IIC3_IRQn                    =  52U,
     DW_IIC4_IRQn                    =  53U,
+	DW_IIC5_IRQn                    =  59U,
     DW_SPI0_IRQn                    =  54U,
     DW_SPI1_IRQn                    =  55U,
     DW_SPI2_IRQn                    =  56U,
@@ -75,7 +76,7 @@ typedef enum {
     CORET_IRQn                      =  Supervisor_Timer_IRQn,
 #else
     CORET_IRQn                      =  Machine_Timer_IRQn,
-#endif	
+#endif
     TEMPSEN_INTR                    =  16U,
 } irqn_type_t;
 
@@ -959,6 +960,9 @@ typedef struct {
 
 #define DW_IIC4_BASE               0x04040000UL
 #define DW_IIC4_SIZE               0x1000U
+
+#define DW_IIC5_BASE               0x0502B000UL
+#define DW_IIC5_SIZE               0x1000U
 
 #define DW_MAC_BASE                0x04070000UL
 #define DW_MAC_SIZE                0x10000U

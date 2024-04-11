@@ -1,72 +1,17 @@
+#include "platform.h"
 #include <drv/pin.h>
 #include <pinctrl-mars.h>
-#include <drv/pwm.h>
-#include "platform.h"
 #include "cvi_type.h"
-#include "fc_custom_media.h"
-#include <aos/cli.h>
 #include <mmio.h>
+#include <stdint.h>
+#include <aos/cli.h>
 
-#define GPIO_LCD_BLEN_GRP 1
-#define GPIO_LCD_BLEN_NUM 6
-#define GPIO_SPKEN_GRP 0
-#define GPIO_SPKEN_NUM 15
-#define PWM_IRLED_BANK 2
-#define PWM_IRLED_CHN 0
+#define GPIO_SPKEN_GRP 4
+#define GPIO_SPKEN_NUM 2
 
 #define GPIO_PIN_MASK(_gpio_num) (1 << _gpio_num)
 
-static void _IrCutCtl_Pinmux()
-{
-    PINMUX_CONFIG(PWR_GPIO0, PWM_8);//切 IRLED pinmux
-}
-
-static void _SensorPinmux()
-{
-    //Sensor Pinmux
-    PINMUX_CONFIG(ADC1, XGPIOB_3); // RGB PWDN
-    PINMUX_CONFIG(PWR_BUTTON1, PWR_GPIO_8); // IR PWDN
-    PINMUX_CONFIG(PAD_MIPI_TXP0, CAM_MCLK0); // MCLK0
-    PINMUX_CONFIG(PWR_GPIO1, IIC2_SCL); // I2C 2
-    PINMUX_CONFIG(PWR_GPIO2, IIC2_SDA);
-    PINMUX_CONFIG(PAD_MIPIRX2N, IIC4_SCL); // I2C 4
-    PINMUX_CONFIG(PAD_MIPIRX2P, IIC4_SDA);
-    PINMUX_CONFIG(PWR_GPIO0, PWR_GPIO_0); // ir led
-}
-
-static void _MipiRxPinmux(void)
-{
-    //mipi rx pinmux
-    PINMUX_CONFIG(PAD_MIPIRX4N, XGPIOC_2); // IR DATA LANE
-    PINMUX_CONFIG(PAD_MIPIRX4P, XGPIOC_3);
-}
-
-static void _MipiTxPinmux(void)
-{
-//mipi tx pinmux
-#if CONFIG_PANEL_ILI9488
-	PINMUX_CONFIG(PAD_MIPI_TXM1, XGPIOC_14);
-	PINMUX_CONFIG(PAD_MIPI_TXP1, XGPIOC_15);
-	PINMUX_CONFIG(PAD_MIPI_TXM2, XGPIOC_16);
-	PINMUX_CONFIG(PAD_MIPI_TXP2, XGPIOC_17);
-	PINMUX_CONFIG(IIC0_SCL, XGPIOA_28);
-	//解锁PWR_SEQ1 devmem 0x5027078 32 0x11
-	mmio_write_32(0x5027078, 0x11);
-	PINMUX_CONFIG(PWR_SEQ1, PWR_GPIO_3);
-#elif (CONFIG_PANEL_HX8394)
-	PINMUX_CONFIG(PAD_MIPI_TXM0, XGPIOC_12);
-	PINMUX_CONFIG(PAD_MIPI_TXP0, XGPIOC_13);
-	PINMUX_CONFIG(PAD_MIPI_TXM1, XGPIOC_14);
-	PINMUX_CONFIG(PAD_MIPI_TXP1, XGPIOC_15);
-	PINMUX_CONFIG(PAD_MIPI_TXM2, XGPIOC_16);
-	PINMUX_CONFIG(PAD_MIPI_TXP2, XGPIOC_17);
-	PINMUX_CONFIG(JTAG_CPU_TCK, XGPIOA_18);
-	PINMUX_CONFIG(JTAG_CPU_TMS, XGPIOA_19);
-	PINMUX_CONFIG(SPK_EN, XGPIOA_15);
-#endif
-}
-
-void _GPIOSetValue(u8 gpio_grp, u8 gpio_num, u8 level)
+static void _GPIOSetValue(u8 gpio_grp, u8 gpio_num, u8 level)
 {
 	csi_error_t ret;
 	csi_gpio_t gpio = {0};
@@ -88,45 +33,119 @@ void _GPIOSetValue(u8 gpio_grp, u8 gpio_num, u8 level)
 	csi_gpio_uninit(&gpio);
 }
 
-int PLATFORM_PanelInit(void)
+static void _SensorPinmux()
 {
-	return CVI_SUCCESS;
+#if (CONFIG_QFN_PANEL_REWORK == 1)
+	//改板
+    PINMUX_CONFIG(SD1_D3, PWR_GPIO_18);
+    PINMUX_CONFIG(SD1_D2, CAM_MCLK0);
+    PINMUX_CONFIG(PWR_GPIO1, IIC2_SCL); // I2C 2
+    PINMUX_CONFIG(PWR_GPIO2, IIC2_SDA);
+#else
+    // Sensor Pinmux
+    PINMUX_CONFIG(PAD_MIPIRX2N, XGPIOC_6);
+    PINMUX_CONFIG(PAD_MIPIRX2P, XGPIOC_7);
+	PINMUX_CONFIG(PAD_MIPIRX1P, IIC1_SDA);
+	PINMUX_CONFIG(PAD_MIPIRX0N, IIC1_SCL);
+	PINMUX_CONFIG(PAD_MIPIRX0P, CAM_MCLK0);
+
+	_GPIOSetValue(2, 6, 1); // XSHUTDOWN
+	_GPIOSetValue(2, 7, 1); // XSHUTDOWN
+#endif
 }
 
-void PLATFORM_PanelBacklightCtl(int level)
+static void _MipiRxPinmux(void)
 {
-    PINMUX_CONFIG(USB_VBUS_DET, XGPIOB_6);
-    if(level > 0) {
-        _GPIOSetValue(GPIO_LCD_BLEN_GRP,GPIO_LCD_BLEN_NUM,1);
-    } else {
-        _GPIOSetValue(GPIO_LCD_BLEN_GRP,GPIO_LCD_BLEN_NUM,0);
-    }
+//mipi rx pinmux
+    PINMUX_CONFIG(PAD_MIPIRX4P, XGPIOC_3);
+    PINMUX_CONFIG(PAD_MIPIRX4N, XGPIOC_2);
+	PINMUX_CONFIG(PAD_MIPIRX3P, XGPIOC_5);
+    PINMUX_CONFIG(PAD_MIPIRX3N, XGPIOC_4);
 }
-#if (CONFIG_APP_DEBUG_JTAG == 1)
-void JTAG_PinmuxIn()
+
+static void _MipiTxPinmux(void)
 {
-    PINMUX_CONFIG(IIC0_SDA, CV_SDA0__CR_4WTDO);
-    PINMUX_CONFIG(IIC0_SCL, CV_SCL0__CR_4WTDI);
-}
+//mipi tx pinmux
+#if CONFIG_PANEL_ILI9488
+	PINMUX_CONFIG(PAD_MIPI_TXM1, XGPIOC_14);
+	PINMUX_CONFIG(PAD_MIPI_TXP1, XGPIOC_15);
+	PINMUX_CONFIG(PAD_MIPI_TXM2, XGPIOC_16);
+	PINMUX_CONFIG(PAD_MIPI_TXP2, XGPIOC_17);
+	PINMUX_CONFIG(IIC0_SCL, XGPIOA_28);
+#elif (CONFIG_PANEL_HX8394)
+	PINMUX_CONFIG(PAD_MIPI_TXM0, XGPIOC_12);
+	PINMUX_CONFIG(PAD_MIPI_TXP0, XGPIOC_13);
+	PINMUX_CONFIG(PAD_MIPI_TXM1, XGPIOC_14);
+	PINMUX_CONFIG(PAD_MIPI_TXP1, XGPIOC_15);
+	PINMUX_CONFIG(PAD_MIPI_TXM2, XGPIOC_16);
+	PINMUX_CONFIG(PAD_MIPI_TXP2, XGPIOC_17);
+	PINMUX_CONFIG(JTAG_CPU_TCK, XGPIOA_18);
+	PINMUX_CONFIG(JTAG_CPU_TMS, XGPIOA_19);
+	PINMUX_CONFIG(SPK_EN, XGPIOA_15);
+#elif (CONFIG_PANEL_GC9503CV)
+	PINMUX_CONFIG(PAD_MIPI_TXM0, XGPIOC_12);
+	PINMUX_CONFIG(PAD_MIPI_TXP0, XGPIOC_13);
+	PINMUX_CONFIG(PAD_MIPI_TXM1, XGPIOC_14);
+	PINMUX_CONFIG(PAD_MIPI_TXP1, XGPIOC_15);
+	PINMUX_CONFIG(PAD_MIPI_TXM2, XGPIOC_16);
+	PINMUX_CONFIG(PAD_MIPI_TXP2, XGPIOC_17);
+	PINMUX_CONFIG(JTAG_CPU_TCK, XGPIOA_18);
+	PINMUX_CONFIG(JTAG_CPU_TMS, XGPIOA_19);
+	PINMUX_CONFIG(SPK_EN, XGPIOA_15);
 #endif
+
+}
+
+#if (CONFIG_SUPPORT_USB_HC || CONFIG_SUPPORT_USB_DC)
+
+static void _UsbPinmux(void)
+{
+	// SOC_PORT_SEL
+	PINMUX_CONFIG(PWR_GPIO0, PWR_GPIO_0);
+	PINMUX_CONFIG(PWR_GPIO1, PWR_GPIO_1);
+}
+
+static void _UsbIoInit(void)
+{
+#if CONFIG_SUPPORT_USB_HC
+	_GPIOSetValue(4, 0, 0);
+	_GPIOSetValue(4, 1, 0);
+#elif CONFIG_SUPPORT_USB_DC
+	_GPIOSetValue(4, 0, 1);
+	_GPIOSetValue(4, 1, 1);
+#endif
+}
+
+#endif
+
+
 void PLATFORM_IoInit(void)
 {
 //pinmux 切换接口
+#if (CONFIG_SUPPORT_USB_HC || CONFIG_SUPPORT_USB_DC)
+	_UsbPinmux();
+	_UsbIoInit();
+#endif
     _MipiRxPinmux();
     _MipiTxPinmux();
     _SensorPinmux();
-    _IrCutCtl_Pinmux();
-    CustomEvent_IRGpioSet(0);
-#if (CONFIG_APP_DEBUG_JTAG == 1)
-    JTAG_PinmuxIn();
-#endif
-    PLATFORM_PanelBacklightCtl(100);
 }
 
 void PLATFORM_PowerOff(void)
 {
 //下电休眠前调用接口
 }
+
+int PLATFORM_PanelInit(void)
+{
+    return CVI_SUCCESS;
+}
+
+void PLATFORM_PanelBacklightCtl(int level)
+{
+
+}
+
 
 void PLATFORM_SpkMute(int value)
 {
@@ -140,22 +159,37 @@ void PLATFORM_SpkMute(int value)
 
 int PLATFORM_IrCutCtl(int duty)
 {
-    if(duty < 0) {
-        return -1;
-    }
-    csi_pwm_t pwm;
-    if(csi_pwm_init(&pwm, PWM_IRLED_BANK) == 0 ){
-        csi_pwm_out_stop(&pwm, PWM_IRLED_CHN);
-        if(duty != 0) {
-            //printf("PLATFORM_IrCutCtl duty %d \n",duty);
-            csi_pwm_out_config(&pwm, PWM_IRLED_CHN, 10000, duty, PWM_POLARITY_HIGH);
-            return csi_pwm_out_start(&pwm, PWM_IRLED_CHN);
-        } else {
-            return 0;
-        }
-    } else {
-        printf("csi_pwm_init err \n");
-        return -1;
-    }
-    return -1;
+    return 0;
 }
+
+#if CONFIG_QUICK_STARTUP_SUPPORT
+void PLATFORM_CLK_AXI4_Restore()
+{
+	// restore axi4 to 300M
+	if (mmio_read_32(0x030020B8) != 0x00050009) {
+		mmio_write_32(0x030020B8, 0x00050009);
+	}
+}
+#endif
+
+
+void led_switch(int argc, char** argv)
+{
+	if (argc < 3) {
+		printf("led_switch 0/1(rgb/ir) 0/1(off/on)");
+		return;
+	}
+
+	int type = atoi(argv[1]);
+	int value = atoi(argv[2]);
+
+	if (type) {
+		PINMUX_CONFIG(SD1_GPIO1, PWR_GPIO_26);
+		_GPIOSetValue(4, 26, !!value);
+	}
+	else {
+		PINMUX_CONFIG(SD1_GPIO0, PWR_GPIO_25);
+		_GPIOSetValue(4, 25, !!value);
+	}
+}
+ALIOS_CLI_CMD_REGISTER(led_switch, led_switch, led_switch);

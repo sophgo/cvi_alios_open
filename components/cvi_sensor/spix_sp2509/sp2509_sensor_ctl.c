@@ -174,7 +174,8 @@ static void sp2509_linear_1200p30_init(VI_PIPE ViPipe) {
 	sp2509_write_register(ViPipe, 0x31, 0x00);
 	sp2509_write_register(ViPipe, 0x24, 0xff);
 	sp2509_write_register(ViPipe, 0x01, 0x01);
-	sp2509_write_register(ViPipe, 0xfb, 0x73) sp2509_write_register(ViPipe, 0xfd, 0x01);
+	sp2509_write_register(ViPipe, 0xfb, 0x73);
+    sp2509_write_register(ViPipe, 0xfd, 0x01);
 	sp2509_write_register(ViPipe, 0x16, 0x04);
 	sp2509_write_register(ViPipe, 0x1c, 0x09);
 	sp2509_write_register(ViPipe, 0x21, 0x42);

@@ -37,7 +37,7 @@ PARAM_CLASSDEFINE(PARAM_VODEV_S,VOCFG,CTX,VO)[] = {
         .pstVOChnAttr = PARAM_CLASS(VOCHN,VO,CHN),
         .stSrcChn = {
             .enModId = CVI_ID_VPSS,
-            .s32ChnId = 1,
+            .s32ChnId = 0,
             .s32DevId = 0,
         },
         .stDestChn = {
@@ -45,13 +45,16 @@ PARAM_CLASSDEFINE(PARAM_VODEV_S,VOCFG,CTX,VO)[] = {
             .s32ChnId = 0,
             .s32DevId = 0,
         },
-        //.u8ChnRotation = ROTATION_90,
-        .u8ChnRotation = ROTATION_0,//暂时不ROTATION
+        .u8ChnRotation = ROTATION_90,
     }
 };
 
 PARAM_VO_CFG_S g_stVoCtx = {
+#if (CONFIG_QFN_PANEL_REWORK == 1)
     .u8VoCnt = 1,
+#else
+    .u8VoCnt = 0,
+#endif
     .pstVoCfg = PARAM_CLASS(VOCFG,CTX,VO),
     .pstPanelTxCfg = NULL,
 };

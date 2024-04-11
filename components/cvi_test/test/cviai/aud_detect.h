@@ -12,6 +12,7 @@ typedef struct {
 	u32 u32FrameSize;
 	u32 u32CaptureSize;
 	u32 u32FrameNum;
+    u32 u32ChnNum;
 	bool bRecord;           // whether record to output
 	bool bStaticAudioData;  // Whether use static data for audio detect
 } cvitdl_aud_t;

@@ -33,8 +33,7 @@ void* cvitdl_aud_detect_handler(void* argv) {
 	s32 s32Ret;
 	cvitdl_aud_t* pstAud = &pstInfo->stAud;
 	cvitdl_path_t* pstPath = &pstInfo->stPath;
-	s32 s32Loop = pstAud->u32SampleRate / pstAud->u32PeriodSize * pstAud->u32Second;
-	s32 s32Size = pstAud->u32PeriodSize * pstAud->u32AudFormatSize;
+	u32 u32Size = pstAud->u32PeriodSize * pstAud->u32AudFormatSize;
 
 	/* Malloc audio capture buffer */
 	u8* pu8CapBuf = (u8*)malloc(pstAud->u32CaptureSize);
@@ -75,21 +74,21 @@ void* cvitdl_aud_detect_handler(void* argv) {
 			printf("read aud data pass\n");
 			fclose(fp);
 		} else {
-			for (s32 i = 0; i < s32Loop; ++i) {
+                memset(pu8Buf, 0, pstAud->u32CaptureSize);
 				s32Ret = MEDIA_AUDIO_PcmRead(pu8CapBuf);
 				if (s32Ret > 0) {
-					/* Convert two-channel data to one channel */
-					memcpy(pu8Buf + i * s32Size, pu8CapBuf, s32Ret / 2);
+					/* Slide window for audio update & Convert two-channel data to one channel */
+					memmove(pu8Buf, pu8Buf + u32Size, pstAud->u32FrameSize - u32Size);
+					memcpy(pu8Buf + pstAud->u32FrameSize - u32Size, pu8CapBuf, s32Ret / 2);
 				} else {
 					printf("MEDIA_AUDIO_PcmRead failed\n");
 					continue;
 				}
-			}
 		}
-		printf("pstAud->bRecord = %d\n", pstAud->bRecord);
 		/* We can't record and handle audio data at the same time currently */
 		if (pstAud->bRecord) {
 			/* Record the audio */
+            printf("start record audio\n");
 			FILE* fp = fopen(pstInfo->stPath.pc8AudOutputPath, "wb");
 			if (fp == NULL) {
 				printf("open file %s failed\n", pstPath->pc8AudOutputPath);
@@ -143,8 +142,9 @@ void cvitdl_aud_init(cvitdl_aud_t* pstAud, u32 u32FuncSelect) {
 	}
 
 	/* Common configuration */
+    pstAud->u32ChnNum = 1;
 	pstAud->u32AudFormatSize = 2;  // PCM_FORMAT_S16_LE (2bytes)
-	pstAud->u32Second = 3;
+	pstAud->u32Second = 2;
 	pstAud->u32CaptureSize = 4096;
 	pstAud->bStaticAudioData = false;
 
