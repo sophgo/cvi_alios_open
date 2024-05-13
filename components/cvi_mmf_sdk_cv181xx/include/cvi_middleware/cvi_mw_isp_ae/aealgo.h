@@ -710,6 +710,7 @@ CVI_BOOL AE_GetWDRExpLineRange(CVI_U8 sID, CVI_U32 expRatio, CVI_U32 *leExpLine,
 	CVI_BOOL getMaxLine);
 CVI_U8 AE_GetMeterPeriod(CVI_U8 sID);
 CVI_U8 AE_GetSensorPeriod(CVI_U8 sID);
+CVI_U8 AE_SetResponseFrame(CVI_U8 sID, CVI_U8 period);
 CVI_U8 AE_GetSensorExpGainPeriod(CVI_U8 sID);
 CVI_BOOL AE_DumpBootLog(CVI_U8 sID);
 void AE_GetExpGainInfo(CVI_U8 sID, AE_WDR_FRAME wdrFrm, AE_GAIN *expGain);

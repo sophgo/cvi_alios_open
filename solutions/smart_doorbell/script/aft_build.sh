@@ -30,6 +30,7 @@ RTOS_IMG=${CURDIR}/yoc.bin
 FS_DATA_DIR=${CURDIR}/data
 MK_GENERATED_IMGS_PATH=${CURDIR}/generated
 CONFIG_YAML_FILE=$BOARDS_CONFIG_PATH/config.yaml
+PROJECT_DIR=$PROJECT
 
 if [ ! -d $OUT_DIR ]; then
     mkdir $OUT_DIR

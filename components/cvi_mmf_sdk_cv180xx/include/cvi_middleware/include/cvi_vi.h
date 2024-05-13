@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <cvi_comm_vi.h>
 #include <cvi_comm_gdc.h>
+#include <cvi_comm_vb.h>
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -109,6 +110,9 @@ CVI_S32 CVI_VI_GetPipeVCNumber(VI_PIPE ViPipe, CVI_U32 *pu32VCNumber);
 
 CVI_S32 CVI_VI_GetPipeFd(VI_PIPE ViPipe);
 CVI_S32 CVI_VI_DumpHwRegisterToFile(VI_PIPE ViPipe, void *fp, VI_DUMP_REGISTER_TABLE_S *pstRegTbl);
+
+CVI_S32 CVI_VI_AttachVbPool(VI_PIPE ViPipe, VI_CHN ViChn, VB_POOL VbPool);
+CVI_S32 CVI_VI_DetachVbPool(VI_PIPE ViPipe, VI_CHN ViChn);
 
 /* 3 for vi chn */
 CVI_S32 CVI_VI_SetChnAttr(VI_PIPE ViPipe, VI_CHN ViChn, VI_CHN_ATTR_S *pstChnAttr);

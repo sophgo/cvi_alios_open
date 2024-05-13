@@ -104,6 +104,7 @@ struct csi_dev {
     uint8_t       irq_num;
     uint8_t       idx;
     uint16_t      dev_tag;
+	uint32_t      rate;
     void          (*irq_handler)(void *);
     void          (*irq_handler2)(uint32_t irqn, void *arg);
     void          *arg;
@@ -116,12 +117,14 @@ struct csi_dev {
 #define HANDLE_IRQ_NUM(handle)      (handle->dev.irq_num)
 #define HANDLE_DEV_IDX(handle)      (handle->dev.idx)
 #define HANDLE_IRQ_HANDLER(handle)  (handle->dev.irq_handler)
+#define HANDLE_RATE(handle)	    (handle->dev.rate)
 
 typedef struct {
     unsigned long    reg_base;
     uint8_t          irq_num;
     uint8_t          idx;
     uint16_t         dev_tag;
+	uint32_t	rate;
 } csi_perip_info_t;
 
 csi_error_t target_get(csi_dev_tag_t dev_tag, uint32_t idx, csi_dev_t *dev);

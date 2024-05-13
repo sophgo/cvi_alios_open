@@ -1396,6 +1396,10 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
                 stAttr.stRcAttr.stMjpegCbr.fr32DstFrameRate = pstVecncChnCtx->stRcParam.u8DstFrameRate;
                 stAttr.stRcAttr.stMjpegCbr.u32BitRate = pstVecncChnCtx->stRcParam.u32BitRate;
                 stAttr.stRcAttr.stMjpegCbr.u32StatTime = pstVecncChnCtx->stRcParam.u8StartTime;
+            } else if (stAttr.stRcAttr.enRcMode == VENC_RC_MODE_MJPEGFIXQP) {
+                stAttr.stRcAttr.stMjpegFixQp.bVariFpsEn = pstVecncChnCtx->stRcParam.u8VariFpsEn;
+                stAttr.stRcAttr.stMjpegFixQp.fr32DstFrameRate = pstVecncChnCtx->stRcParam.u8DstFrameRate;
+                stAttr.stRcAttr.stMjpegFixQp.u32Qfactor = pstVecncChnCtx->stRcParam.u8Qfactor;
             } else if (stAttr.stRcAttr.enRcMode == VENC_RC_MODE_MJPEGVBR) {
                 return CVI_FAILURE;
             } else {
@@ -1496,6 +1500,8 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
             if (stAttr.stRcAttr.enRcMode == VENC_RC_MODE_MJPEGCBR) {
                 stRcParam.stParamMjpegCbr.u32MaxQfactor = 99;
                 stRcParam.stParamMjpegCbr.u32MinQfactor = 1;
+            } else if (stAttr.stRcAttr.enRcMode == VENC_RC_MODE_MJPEGFIXQP) {
+                break;
             } else if (stAttr.stRcAttr.enRcMode == VENC_RC_MODE_MJPEGVBR) {
                 return CVI_FAILURE;
             } else {
@@ -1904,28 +1910,102 @@ void testMedia_switch_pipeline(int32_t argc, char **argv)
     }
 }
 
-void switch_frame_ratio(int32_t argc, char** argv) {
-	if (argc != 3) {
-		printf("Usage: switch_frame_ratio dstFrm0 dstFrm1\n");
-		return;
-	}
-	int dstFrm0 = atoi(argv[1]);
-	int dstFrm1 = atoi(argv[2]);
+/**
+ * @brief Modify frame rate ratio based in dual_switch mode
+ * @note
+ *
+ * @param  argc: the number of command line arguments
+ * @param  argv: the command line arguments
+ *
+ * @retval
+ */
+int switch_frame_rate_ratio(int32_t argc, char** argv) {
+    if (argc != 3) {
+        printf("Usage: switch_frame_rate_ratio dstFrm0 dstFrm1\n");
+        return CVI_FAILURE;
+    }
+    int dstFrm0 = atoi(argv[1]);
+    int dstFrm1 = atoi(argv[2]);
 
-	if (dstFrm0 == 0 || dstFrm1 == 0) {
-		printf("Input dstFrm value is invalid\n");
-		return;
-	}
+    if (dstFrm0 == 0 || dstFrm1 == 0) {
+        printf("Input dstFrm value is invalid\n");
+        return CVI_FAILURE;
+    }
+    printf("dstFrm 0 = %d\n", dstFrm0);
+    printf("dstFrm 1 = %d\n", dstFrm1);
 
-	_MEDIA_VIDEO_ViDeInit();
-	/* dstFrm修改 */
-	PARAM_VI_CFG_S* pstViCfg = PARAM_getViCtx();
-	pstViCfg->pstDevInfo[0].dstFrm = dstFrm0;
-	pstViCfg->pstDevInfo[1].dstFrm = dstFrm1;
+    /* Confirm target AEResponseFrame value */
+    int aeRespFrm0, aeRespFrm1;
+    if (dstFrm0 == 1) {
+        aeRespFrm0 = 3;
+        if (dstFrm1 == 1) {
+            aeRespFrm1 = 3;
+        } else {
+            aeRespFrm1 = 2;
+        }
+    } else {
+        aeRespFrm0 = 2;
+        aeRespFrm1 = 3;
+    }
 
-	_MEDIA_VIDEO_ViInit();
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
+
+    /* Modify dstFrm */
+    CVI_U8 devNum = 2;
+    VI_DEV ViDev = 0;
+    VI_DEV_ATTR_S stViDevAttr[VI_MAX_DEV_NUM];
+    ISP_CMOS_SENSOR_IMAGE_MODE_S stSnsrMode[VI_MAX_DEV_NUM];
+    PARAM_VI_CFG_S* pstViCfg = PARAM_getViCtx();
+
+    for (int i = 0; i < devNum; i++) {
+        ViDev = pstViCfg->pstDevInfo[i].u8AttachDev > 0
+                  ? VI_MAX_PHY_DEV_NUM + pstViCfg->pstDevInfo[i].u8AttachDev - 1
+                  : i;
+        /* Disable VI dev for reload dev attribute configuration */
+        MEDIA_CHECK_RET(CVI_VI_DisableDev(ViDev), "CVI_VI_DisableDev fail");
+
+        /* Update AEResponseFrame */
+        if (ViDev == 0) {
+            CVI_ISP_SetResponseFrame(ViDev, aeRespFrm0);
+        } else {
+            CVI_ISP_SetResponseFrame(ViDev, aeRespFrm1);
+        }
+
+        MEDIA_CHECK_RET(getDevAttr(i, &stViDevAttr[ViDev]), "getDevAttr fail");
+        printf("stViDevAttr[ViDev].isMux = %d\n", stViDevAttr[ViDev].isMux);
+        if (pstViCfg->pstDevInfo[i].isMux) {
+            stViDevAttr[ViDev].isMux = pstViCfg->pstDevInfo[i].isMux;
+            stViDevAttr[ViDev].switchGpioIdx = pstViCfg->pstDevInfo[i].switchGpioIdx;
+            stViDevAttr[ViDev].switchGpioPin = pstViCfg->pstDevInfo[i].switchGpioPin;
+            stViDevAttr[ViDev].switchGPioPol = pstViCfg->pstDevInfo[i].switchGPioPol;
+            /* Update frame rate ratio */
+            if (ViDev == 0) {
+                stViDevAttr[0].dstFrm = dstFrm0;
+            } else {
+                stViDevAttr[2].dstFrm = dstFrm1;
+            }
+            stViDevAttr[ViDev].isFrmCtrl = pstViCfg->pstDevInfo[i].isFrmCtrl;
+            ;
+        }
+
+        MEDIA_CHECK_RET(getSnsMode(i, &stSnsrMode[i]), "stSnsrMode fail");
+        if (ViDev == 0 && pstViCfg->pstDevInfo && pstViCfg->pstDevInfo->pViDmaBuf != NULL) {
+            stViDevAttr[ViDev].phy_addr = (intptr_t)pstViCfg->pstDevInfo->pViDmaBuf;
+            stViDevAttr[ViDev].phy_size = pstViCfg->pstDevInfo->u32ViDmaBufSize;
+        }
+        stViDevAttr[ViDev].stWDRAttr.enWDRMode = stSnsrMode[i].u8SnsMode;
+        MEDIA_CHECK_RET(CVI_VI_SetDevAttr(ViDev, &stViDevAttr[ViDev]), "CVI_VI_SetDevAttr fail");
+        MEDIA_CHECK_RET(CVI_VI_EnableDev(ViDev), "CVI_VI_EnableDev fail");
+    }
+
+    gettimeofday(&end, NULL);
+    printf("switch_frame_rate_ratio cost time = %ldus\n",
+           (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec));
+
+    return CVI_SUCCESS;
 }
-ALIOS_CLI_CMD_REGISTER(switch_frame_ratio, switch_frame_ratio, switch_frame_ratio);
+ALIOS_CLI_CMD_REGISTER(switch_frame_rate_ratio, switch_frame_rate_ratio, swtich frame rate ratio in dual_switch mode);
 
 ALIOS_CLI_CMD_REGISTER(testMedia_video_init, testMedia_video_init, testMedia_video_init);
 ALIOS_CLI_CMD_REGISTER(testMedia_video_Deinit, testMedia_video_Deinit, testMedia_video_Deinit);

@@ -27,7 +27,7 @@
 #define DIV_0_TO_1_FLOAT(a) ((((a) < 1E-10) && ((a) > -1E-10)) ? 1 : (a))
 #define OV02B10_ID 0x002B
 #define OV02B10_I2C_ADDR_1 0x3C
-#define OV02B10_I2C_ADDR_2 0x78
+#define OV02B10_I2C_ADDR_2 0x3D
 #define OV02B10_I2C_ADDR_IS_VALID(addr)	\
 		((addr) == OV02B10_I2C_ADDR_1 || (addr) == OV02B10_I2C_ADDR_2)
 /****************************************************************************
@@ -132,7 +132,8 @@ static CVI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSns
 		pstAeSnsDft->u8AeCompensation = 40;
 		pstAeSnsDft->u32InitAESpeed = 64;
 		pstAeSnsDft->u32InitAETolerance = 5;
-		pstAeSnsDft->u32AEResponseFrame = 4;
+		pstAeSnsDft->u32SnsResponseFrame = 4;
+		pstAeSnsDft->u32AEResponseFrame = 3;
 		pstAeSnsDft->enAeExpMode = AE_EXP_HIGHLIGHT_PRIOR;
 		pstAeSnsDft->u32InitExposure = g_au32InitExposure[ViPipe];
 

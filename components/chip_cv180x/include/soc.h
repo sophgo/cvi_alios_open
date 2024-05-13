@@ -72,6 +72,7 @@ typedef enum {
     SD1_INTR                        =  38U,
     SD2_INTR                        =  34U,
     WDT1_INTR                       =  58U,
+	RTC_WDT_INTR		    =  74U,
     TEMPSEN_INTR                    =  16U,
 } irqn_type_t;
 

@@ -52,12 +52,16 @@ static void delay_ms(int ms)
 
 void ov02b10_standby(VI_PIPE ViPipe)
 {
-	ov02b10_write_register(ViPipe, 0xFB, 0x00); /* STANDBY */
+	ov02b10_write_register(ViPipe, 0xfd, 0x03);
+	ov02b10_write_register(ViPipe, 0xc2, 0x00);
+	ov02b10_write_register(ViPipe, 0xfd ,0x01);
 }
 
 void ov02b10_restart(VI_PIPE ViPipe)
 {
-	ov02b10_write_register(ViPipe, 0xFB, 0x01); /* standby */
+	ov02b10_write_register(ViPipe, 0xfd, 0x03);
+	ov02b10_write_register(ViPipe, 0xc2, 0x01);
+	ov02b10_write_register(ViPipe, 0xfd ,0x01);
 }
 
 void ov02b10_default_reg_init(VI_PIPE ViPipe)

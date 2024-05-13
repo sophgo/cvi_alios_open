@@ -108,6 +108,8 @@ enum VI_SDK_CTRL {
 	VI_SDK_SET_CHN_LDC,
 	VI_SDK_REG_SYNC_TASK,
 	VI_SDK_UNREG_SYNC_TASK,
+	VI_SDK_ATTACH_VB_POOL,
+	VI_SDK_DETACH_VB_POOL,
 };
 
 /*
@@ -205,6 +207,12 @@ struct vi_chn_ldc_cfg {
 	ROTATION_E enRotation;
 	VI_LDC_ATTR_S stLDCAttr;
 	CVI_U64 meshHandle;
+};
+
+struct vi_vb_pool_cfg {
+	VI_PIPE ViPipe;
+	VI_CHN ViChn;
+	__u32 VbPool;
 };
 
 int vi_open(void);

@@ -9,21 +9,17 @@
 #include <drv/wdt.h>
 #include "cvi_wdt.h"
 
-#define WDT_FREQ_DEFAULT 25000000UL
 #define CVI_WDT_MAX_TOP		15
 
 static void dw_wdt_irq_handler(unsigned int irqn, void *arg)
 {
-    csi_wdt_t *wdt = (csi_wdt_t *)arg;
-    unsigned long reg_base = HANDLE_REG_BASE(wdt);
+	csi_wdt_t *wdt = (csi_wdt_t *)arg;
+	unsigned long reg_base = HANDLE_REG_BASE(wdt);
 
-    if (cvi_wdt_get_irq_stat(reg_base))
-    {
-        cvi_wdt_clr_irq_en(reg_base);
-        if (wdt->callback) {
-            wdt->callback(wdt, wdt->arg);
-        }
-    }
+	cvi_wdt_clr_irq_en(reg_base);
+	if (wdt->callback) {
+		wdt->callback(wdt, wdt->arg);
+	}
 }
 
 /**
@@ -34,20 +30,20 @@ static void dw_wdt_irq_handler(unsigned int irqn, void *arg)
 */
 csi_error_t csi_wdt_init(csi_wdt_t *wdt, uint32_t idx)
 {
-    CSI_PARAM_CHK(wdt, CSI_ERROR);
-    csi_error_t ret = CSI_OK;
-    // unsigned long reg_base;
+	CSI_PARAM_CHK(wdt, CSI_ERROR);
+	csi_error_t ret = CSI_OK;
 
-    if (0 == target_get(DEV_DW_WDT_TAG, idx, &wdt->dev)) {
-        // reg_base = HANDLE_REG_BASE(wdt);
-        // dw_wdt_reset_register(wdt_base);
-    } else {
-        ret = CSI_ERROR;
-    }
+	// RTC WDT can't use
+	if (idx > 2)
+		return CSI_UNSUPPORTED;
 
-    cvi_wdt_top_setting();
+	ret = target_get(DEV_DW_WDT_TAG, idx, &wdt->dev);
+	if (ret) {
+		return ret;
+	}
 
-    return ret;
+	cvi_wdt_top_setting();
+	return ret;
 }
 
 /**
@@ -57,19 +53,23 @@ csi_error_t csi_wdt_init(csi_wdt_t *wdt, uint32_t idx)
 */
 void csi_wdt_uninit(csi_wdt_t *wdt)
 {
-    CSI_PARAM_CHK_NORETVAL(wdt);
-    // dw_wdt_regs_t *wdt_base = (dw_wdt_regs_t *)HANDLE_REG_BASE(wdt);
-    // dw_wdt_reset_register(wdt_base);
+	CSI_PARAM_CHK_NORETVAL(wdt);
+	// dw_wdt_regs_t *wdt_base = (dw_wdt_regs_t *)HANDLE_REG_BASE(wdt);
+	// dw_wdt_reset_register(wdt_base);
 }
 
-static inline int wdt_top_in_ms(unsigned int top)
+static inline int wdt_top_in_ms(uint32_t top, uint32_t rate)
 {
 	/*
 	 * There are 16 possible timeout values in 0..15 where the number of
 	 * cycles is 2 ^ (16 + i) and the watchdog counts down.
 	 */
-    // pr_debug("wdt top in seconds: %d/%d=%d\n", (1U << (16 + top)), chip->clk_hz, (1U << (16 + top)) / chip->clk_hz);
-	return (1U << (16 + top)) / (WDT_FREQ_DEFAULT / 1000);
+	return (1U << (16 + top)) / (rate / 1000);
+}
+
+static inline int dw_wdt_top_xlate_toc(uint32_t rate, uint32_t ms, uint32_t top_val)
+{
+	return ((ms * (rate / 1000)) >> (top_val + 1)) + 1;
 }
 
 /**
@@ -80,41 +80,32 @@ static inline int wdt_top_in_ms(unsigned int top)
 */
 csi_error_t csi_wdt_set_timeout(csi_wdt_t *wdt, uint32_t ms)
 {
-    CSI_PARAM_CHK(wdt, CSI_ERROR);
-    csi_error_t ret = CSI_OK;
-    unsigned long reg_base = HANDLE_REG_BASE(wdt);
-    // uint32_t set_cnt = ((soc_get_wdt_freq((uint32_t)wdt->dev.idx) / 1000U) * ms) >> 16;
+	CSI_PARAM_CHK(wdt, CSI_ERROR);
+
+	csi_error_t ret = CSI_OK;
+	unsigned long reg_base = HANDLE_REG_BASE(wdt);
+	uint32_t rate = HANDLE_RATE(wdt);
 	int i, top_val = CVI_WDT_MAX_TOP;
+	uint32_t toc;
+
+	if ((ms < 1000) || (ms > 150*1000))
+		return CSI_ERROR;
 
 	/*
 	 * Iterate over the timeout values until we find the closest match. We
 	 * always look for >=.
 	 */
 	for (i = 0; i <= CVI_WDT_MAX_TOP; ++i)
-		if (wdt_top_in_ms(i) >= ms) {
-			top_val = i;
+		if (wdt_top_in_ms(i, rate) >= ms) {
+			top_val = i - 1;
 			break;
 		}
 
-    if (i < CVI_WDT_MAX_TOP)
-    {
-        /*
-        * Set the new value in the watchdog.  Some versions of wdt_chip
-        * have TOPINIT in the TIMEOUT_RANGE register (as per
-        * CP_WDT_DUAL_TOP in WDT_COMP_PARAMS_1).  On those we
-        * effectively get a pat of the watchdog right here.
-        */
-        cvi_wdt_set_timeout(reg_base, top_val);
-        // writel(top_val | top_val << WDOG_TIMEOUT_RANGE_TOPINIT_SHIFT,
-        //     chip->reg_base + WDT_TORR);
-        csi_wdt_feed(wdt);
-    }
-    else
-    {
-        ret = CSI_ERROR;
-    }
+	toc = dw_wdt_top_xlate_toc(rate, ms, top_val);
 
-    return ret;
+	cvi_wdt_set_timeout(reg_base, top_val, toc);
+	csi_wdt_feed(wdt);
+	return ret;
 }
 
 /**
@@ -124,15 +115,12 @@ csi_error_t csi_wdt_set_timeout(csi_wdt_t *wdt, uint32_t ms)
 */
 csi_error_t csi_wdt_start(csi_wdt_t *wdt)
 {
-    CSI_PARAM_CHK(wdt, CSI_ERROR);
-    csi_error_t ret = CSI_OK;
-    unsigned long reg_base = HANDLE_REG_BASE(wdt);
+	CSI_PARAM_CHK(wdt, CSI_ERROR);
+	csi_error_t ret = CSI_OK;
+	unsigned long reg_base = HANDLE_REG_BASE(wdt);
 
-    cvi_wdt_set_respond_system_reset(reg_base);
-
-    cvi_wdt_start_en(reg_base);
-
-    return ret;
+	cvi_wdt_start_en(reg_base);
+	return ret;
 }
 
 /**
@@ -142,10 +130,9 @@ csi_error_t csi_wdt_start(csi_wdt_t *wdt)
 */
 void csi_wdt_stop(csi_wdt_t *wdt)
 {
-    CSI_PARAM_CHK_NORETVAL(wdt);
-    unsigned long reg_base = HANDLE_REG_BASE(wdt);
+	CSI_PARAM_CHK_NORETVAL(wdt);
 
-    cvi_wdt_start_dis(reg_base);
+	cvi_wdt_start_dis(wdt->dev.idx);
 }
 
 /**
@@ -157,6 +144,7 @@ csi_error_t csi_wdt_feed(csi_wdt_t *wdt)
 {
     CSI_PARAM_CHK(wdt, CSI_ERROR);
     csi_error_t ret = CSI_OK;
+
     unsigned long reg_base = HANDLE_REG_BASE(wdt);
     cvi_wdt_feed_en(reg_base);
 
@@ -170,12 +158,11 @@ csi_error_t csi_wdt_feed(csi_wdt_t *wdt)
 */
 uint32_t csi_wdt_get_remaining_time(csi_wdt_t *wdt)
 {
-    CSI_PARAM_CHK(wdt, 0U);
+	CSI_PARAM_CHK(wdt, 0U);
+	unsigned long reg_base = HANDLE_REG_BASE(wdt);
+	uint32_t rate = HANDLE_RATE(wdt);
 
-    unsigned long reg_base = HANDLE_REG_BASE(wdt);
-
-    // return (cvi_wdt_get_counter_value(reg_base) / (soc_get_wdt_freq((uint32_t)wdt->dev.idx) / 1000U));
-    return (cvi_wdt_get_counter_value(reg_base) / (WDT_FREQ_DEFAULT / 1000U));
+	return (cvi_wdt_get_counter_value(reg_base) / (rate / 1000U));
 }
 
 /**
@@ -203,27 +190,24 @@ bool csi_wdt_is_running(csi_wdt_t *wdt)
 */
 csi_error_t csi_wdt_attach_callback(csi_wdt_t *wdt, void *callback, void *arg)
 {
-    CSI_PARAM_CHK(wdt, CSI_ERROR);
-    unsigned long reg_base = HANDLE_REG_BASE(wdt);
+	CSI_PARAM_CHK(wdt, CSI_ERROR);
+	unsigned long reg_base = HANDLE_REG_BASE(wdt);
 
-	if (!wdt->dev.irq_num)
-	{
-		pr_err("wdt %d reg_base %x is unsupported\n", wdt->dev.idx, wdt->dev.reg_base);
+	return CSI_UNSUPPORTED; // Not alway can recv irq
+
+	if (!wdt->dev.irq_num) {
+		pr_err("wdt %d irq unsupported\n", wdt->dev.idx);
 		return CSI_UNSUPPORTED;
 	}
 
-    wdt->callback = callback;
-    wdt->arg = arg;
+	wdt->callback = callback;
+	wdt->arg = arg;
 
-#if 0
-    csi_irq_attach((uint32_t)wdt->dev.irq_num, &dw_wdt_irq_handler, &wdt->dev);
-#else
-    request_irq((uint32_t)(wdt->dev.irq_num), &dw_wdt_irq_handler, 0, "wdt int", wdt);
-#endif
-    csi_irq_enable((uint32_t)wdt->dev.irq_num);
-    cvi_wdt_set_respond_irq_then_reset(reg_base);
+	request_irq((uint32_t)(wdt->dev.irq_num), dw_wdt_irq_handler, 0, "wdt int", wdt);
+	csi_irq_enable((uint32_t)wdt->dev.irq_num);
+	cvi_wdt_set_respond_irq_then_reset(reg_base);
 
-    return CSI_OK;
+	return CSI_OK;
 }
 
 /**
@@ -233,14 +217,16 @@ csi_error_t csi_wdt_attach_callback(csi_wdt_t *wdt, void *callback, void *arg)
 */
 void csi_wdt_detach_callback(csi_wdt_t *wdt)
 {
-    CSI_PARAM_CHK_NORETVAL(wdt);
-    unsigned long reg_base = HANDLE_REG_BASE(wdt);
+	CSI_PARAM_CHK_NORETVAL(wdt);
+	unsigned long reg_base = HANDLE_REG_BASE(wdt);
 
-    wdt->callback = NULL;
-    wdt->arg = NULL;
-    csi_irq_disable((uint32_t)wdt->dev.irq_num);
-    csi_irq_detach((uint32_t)wdt->dev.irq_num);
-    cvi_wdt_set_respond_system_reset(reg_base);
+	return;
+
+	wdt->callback = NULL;
+	wdt->arg = NULL;
+	csi_irq_disable((uint32_t)wdt->dev.irq_num);
+	csi_irq_detach((uint32_t)wdt->dev.irq_num);
+	cvi_wdt_set_respond_system_reset(reg_base);
 }
 
 #endif
