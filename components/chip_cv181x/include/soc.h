@@ -72,6 +72,7 @@ typedef enum {
     SD1_INTR                        =  38U,
     SD2_INTR                        =  34U,
     WDT1_INTR                       =  58U,
+	RTC_WDT_INTR                    =  74U,
 #if defined(CONFIG_RISCV_SMODE) && CONFIG_RISCV_SMODE
     CORET_IRQn                      =  Supervisor_Timer_IRQn,
 #else

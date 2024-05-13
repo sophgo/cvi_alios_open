@@ -227,7 +227,7 @@ extern "C" {
  * can't work at mode of 4 channels at the same time.
  */
 #define VI_MAX_PHY_DEV_NUM        2
-#define VI_MAX_VIR_DEV_NUM        1
+#define VI_MAX_VIR_DEV_NUM        2
 #define VI_MAX_DEV_NUM            (VI_MAX_PHY_DEV_NUM + VI_MAX_VIR_DEV_NUM)
 #define VI_MAX_PHY_PIPE_NUM       4
 #define VI_MAX_VIR_PIPE_NUM       2

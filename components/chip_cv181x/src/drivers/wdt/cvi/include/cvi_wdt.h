@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-// #define CSI_DRV_DEBUG
+//#define CSI_DRV_DEBUG
 
 #ifndef pr_err
 #define pr_err(x, args...) aos_cli_printf("[%s|%d] - " x, __func__, __LINE__, ##args)
@@ -45,33 +45,35 @@ extern "C" {
 #define     __OM     volatile             /*! Defines 'write only' structure member permissions */
 #define     __IOM    volatile             /*! Defines 'read / write' structure member permissions */
 
-
 struct cvi_wdt_regs_t {
-    uint32_t CR;
-    uint32_t TORR;
-    uint32_t CCVR;
-    uint32_t CRR;
-    uint32_t STAT;
-    uint32_t EOI;
+	uint32_t CR;
+	uint32_t TORR;
+	uint32_t CCVR;
+	uint32_t CRR;
+	uint32_t STAT;
+	uint32_t EOI;
+	uint32_t TOC;
 };
 
-static struct cvi_wdt_regs_t cv182x_wdt_reg = {
-    .CR = 0x0,
-    .TORR = 0x4,
-    .CCVR = 0x8,
-    .CRR = 0xc,
-    .STAT = 0x10,
-    .EOI = 0x14,
+static struct cvi_wdt_regs_t cvitek_wdt_reg = {
+	.CR = 0x0,
+	.TORR = 0x4,
+	.CCVR = 0x8,
+	.CRR = 0xc,
+	.STAT = 0x10,
+	.EOI = 0x14,
+	.TOC = 0x1C,
 };
 
-static struct cvi_wdt_regs_t *cvi_wdt_reg = &cv182x_wdt_reg;
+static struct cvi_wdt_regs_t *cvi_wdt_reg = &cvitek_wdt_reg;
 
-#define WDT_CR(reg_base)        *((__IOM uint32_t *)(reg_base + cvi_wdt_reg->CR))
-#define WDT_TORR(reg_base)      *((__IOM uint32_t *)(reg_base + cvi_wdt_reg->TORR))
-#define WDT_CCVR(reg_base)      *((__IM uint32_t *)(reg_base + cvi_wdt_reg->CCVR))
-#define WDT_CRR(reg_base)       *((__IOM uint32_t *)(reg_base + cvi_wdt_reg->CRR))
-#define WDT_STAT(reg_base)      *((__IM uint32_t *)(reg_base + cvi_wdt_reg->STAT))
-#define WDT_EOI(reg_base)       *((__IM uint32_t *)(reg_base + cvi_wdt_reg->EOI))
+#define WDT_CR(reg_base)		(*((__IOM uint32_t *)(reg_base + cvi_wdt_reg->CR)))
+#define WDT_TORR(reg_base)		(*((__IOM uint32_t *)(reg_base + cvi_wdt_reg->TORR)))
+#define WDT_CCVR(reg_base)		(*((__IM uint32_t *)(reg_base + cvi_wdt_reg->CCVR)))
+#define WDT_CRR(reg_base)		(*((__IOM uint32_t *)(reg_base + cvi_wdt_reg->CRR)))
+#define WDT_STAT(reg_base)		(*((__IM uint32_t *)(reg_base + cvi_wdt_reg->STAT)))
+#define WDT_EOI(reg_base)		(*((__IM uint32_t *)(reg_base + cvi_wdt_reg->EOI)))
+#define WDT_TOC(reg_base)		(*((__IOM uint32_t *)(reg_base + cvi_wdt_reg->TOC)))
 
 #define CVI_WDT_TORR_WDT_TORR_Pos                   (0U)
 #define CVI_WDT_TORR_WDT_TORR_Msk                   (0xf << CVI_WDT_TORR_WDT_TORR_Pos)
@@ -79,7 +81,10 @@ static struct cvi_wdt_regs_t *cvi_wdt_reg = &cv182x_wdt_reg;
 #define CVI_WDT_TORR_WDT_ITORR_Msk                  (0xf << CVI_WDT_TORR_WDT_ITORR_Pos)
 
 #define CVI_WDT_CR_WDT_ENABLE_Pos                   (0U)
+#define CVI_WDT_CR_TOR_MODE_Pos						(6U)
+#define CVI_WDT_CR_ITOR_MODE_Pos					(7U)
 #define CVI_WDT_CR_WDT_ENABLE_Msk                   (1U << CVI_WDT_CR_WDT_ENABLE_Pos)
+#define CVI_WDT_CR_LINE_MODE_Msk	((1U << CVI_WDT_CR_TOR_MODE_Pos) | (1U << CVI_WDT_CR_ITOR_MODE_Pos))
 #define CVI_WDT_CR_WDT_ENABLE_En                    CVI_WDT_CR_WDT_ENABLE_Msk
 
 #define CVI_WDT_CR_WDT_RESPOND_Pos                   (1U)
@@ -115,65 +120,87 @@ static struct cvi_wdt_regs_t *cvi_wdt_reg = &cv182x_wdt_reg;
 #define CV_TOP		0x03000000
 #define CV_TOP_WDT_OFFSET	0x8
 #define CV_TOP_WDT_VAL	0x100
-#define CV_RST_REG		(CV_TOP + 0x3004)
-#define CV_RST_WDT      (1U << 16)
+#define CV_RST_REG1		(CV_TOP + 0x3004)
+#define CV_RST_REG3		(CV_TOP + 0x300c)
+#define CV_RST_WDT0     (1U << 16)
+#define CV_RST_WDT1     (1U << 4)
+#define CV_RST_WDT2     (1U << 5)
 
 static inline void cvi_wdt_top_setting()
 {
-    uint32_t val;
-
-    mmio_write_32(CV_TOP + CV_TOP_WDT_OFFSET, CV_TOP_WDT_VAL);
-
-    val = mmio_read_32(CV_RST_REG);
-    mmio_write_32(CV_RST_REG, val & ~CV_RST_WDT);
-    udelay(10);
-    mmio_write_32(CV_RST_REG, val | CV_RST_WDT);
+	mmio_write_32(CV_TOP + CV_TOP_WDT_OFFSET, CV_TOP_WDT_VAL);
 }
 
 static inline void cvi_wdt_start_en(unsigned long reg_base)
 {
-    pr_debug("write reg 0x%x value 0x%x\n", &WDT_CR(reg_base), WDT_CR(reg_base) | CVI_WDT_CR_WDT_ENABLE_En);
-    WDT_CR(reg_base) |= CVI_WDT_CR_WDT_ENABLE_En;
+	pr_debug("write reg 0x%x value 0x%x\n", &WDT_CR(reg_base), WDT_CR(reg_base));
+	WDT_CR(reg_base) |= (CVI_WDT_CR_WDT_ENABLE_En | CVI_WDT_CR_LINE_MODE_Msk);
+	pr_debug("write reg 0x%x value 0x%x\n", &WDT_CR(reg_base), WDT_CR(reg_base));
 }
 
-static inline void cvi_wdt_start_dis(unsigned long reg_base)
+static inline void cvi_wdt_start_dis(uint32_t id)
 {
-    WDT_CR(reg_base) &= ~CVI_WDT_CR_WDT_ENABLE_En;
+	uint32_t val;
+
+	switch (id) {
+	case 0: {
+		val = mmio_read_32(CV_RST_REG1);
+		mmio_write_32(CV_RST_REG1, val & ~CV_RST_WDT0);
+		udelay(10);
+		mmio_write_32(CV_RST_REG1, val | CV_RST_WDT0);
+		break;
+	}
+	case 1: {
+		val = mmio_read_32(CV_RST_REG3);
+		mmio_write_32(CV_RST_REG3, val & ~CV_RST_WDT1);
+		udelay(10);
+		mmio_write_32(CV_RST_REG3, val | CV_RST_WDT1);
+		break;
+	}
+	case 2: {
+		val = mmio_read_32(CV_RST_REG3);
+		mmio_write_32(CV_RST_REG3, val & ~CV_RST_WDT2);
+		udelay(10);
+		mmio_write_32(CV_RST_REG3, val | CV_RST_WDT2);
+		break;
+	}
+	default:
+		break;
+	}
 }
 
 static inline uint32_t cvi_wdt_get_start(unsigned long reg_base)
 {
-    return (WDT_CR(reg_base) & CVI_WDT_CR_WDT_ENABLE_Msk);
+	return (WDT_CR(reg_base) & CVI_WDT_CR_WDT_ENABLE_Msk);
 }
 
-static inline void cvi_wdt_set_timeout(unsigned long reg_base, uint32_t value)
+static inline void cvi_wdt_set_timeout(unsigned long reg_base, uint32_t torr, uint32_t toc)
 {
-    WDT_TORR(reg_base) &= ~CVI_WDT_TORR_WDT_TORR_Pos;
-    pr_debug("write reg 0x%x value 0x%x\n", &WDT_TORR(reg_base), WDT_TORR(reg_base) | (value << CVI_WDT_TORR_WDT_TORR_Pos));
-    WDT_TORR(reg_base) = ((value << CVI_WDT_TORR_WDT_ITORR_Pos) | (value << CVI_WDT_TORR_WDT_TORR_Pos));
+	pr_debug("write reg 0x%x value 0x%x\n", &WDT_TORR(reg_base), WDT_TORR(reg_base));
+	WDT_TORR(reg_base) = ((torr << CVI_WDT_TORR_WDT_ITORR_Pos) | (torr << CVI_WDT_TORR_WDT_TORR_Pos));
+	WDT_TOC(reg_base) = toc;
 }
 
 static inline void cvi_wdt_set_respond_system_reset(unsigned long reg_base)
 {
-    pr_debug("write reg 0x%x value 0x%x\n", &WDT_CR(reg_base), WDT_CR(reg_base) & ~CVI_WDT_CR_WDT_RESPOND_IRQ_THEN_RST);
-    WDT_CR(reg_base) &= ~CVI_WDT_CR_WDT_RESPOND_IRQ_THEN_RST;
+	WDT_CR(reg_base) &= ~CVI_WDT_CR_WDT_RESPOND_IRQ_THEN_RST;
 }
 
 static inline void cvi_wdt_set_respond_irq_then_reset(unsigned long reg_base)
 {
-    WDT_CR(reg_base) |= CVI_WDT_CR_WDT_RESPOND_IRQ_THEN_RST;
+	WDT_CR(reg_base) |= CVI_WDT_CR_WDT_RESPOND_IRQ_THEN_RST;
 }
 
 static inline void cvi_wdt_set_reset_pulse_width(unsigned long reg_base, uint32_t value)
 {
-    WDT_CR(reg_base) &= ~CVI_WDT_CR_WDT_RESET_PULSE_WIDTH_Msk;
-    WDT_CR(reg_base) |= (value << CVI_WDT_CR_WDT_RESET_PULSE_WIDTH_Pos);
+	WDT_CR(reg_base) &= ~CVI_WDT_CR_WDT_RESET_PULSE_WIDTH_Msk;
+	WDT_CR(reg_base) |= (value << CVI_WDT_CR_WDT_RESET_PULSE_WIDTH_Pos);
 }
 
 static inline void cvi_wdt_feed_en(unsigned long reg_base)
 {
-    pr_debug("write reg 0x%x value 0x%x\n", &WDT_CRR(reg_base), CVI_WDT_CRR_FEED_En);
-    WDT_CRR(reg_base) = CVI_WDT_CRR_FEED_En;
+	pr_debug("write reg 0x%x value 0x%x\n", &WDT_CRR(reg_base), CVI_WDT_CRR_FEED_En);
+	WDT_CRR(reg_base) = CVI_WDT_CRR_FEED_En;
 }
 
 static inline uint32_t cvi_wdt_get_counter_value(unsigned long reg_base)
@@ -188,7 +215,7 @@ static inline uint32_t cvi_wdt_get_irq_stat(unsigned long reg_base)
 
 static inline void cvi_wdt_clr_irq_en(unsigned long reg_base)
 {
-    WDT_EOI(reg_base);
+	WDT_EOI(reg_base);
 }
 
 #endif
