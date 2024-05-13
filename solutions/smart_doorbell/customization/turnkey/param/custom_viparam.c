@@ -51,12 +51,12 @@ PARAM_CLASSDEFINE(PARAM_ISP_CFG_S,ISPCFG,CTX,ISP)[] = {
         .bUseSingleBin = 0,
         .astPQBinDes[0] =
         {
-            .pIspBinData = cvi_turnkey_cv180zb_gc02m1_rgb_pq_param,
+            .pIspBinData = cvi_turnkey_cv180zb_gc02m1_ir_pq_param,
             .binID = CVI_BIN_ID_ISP0,
         },
         .astPQBinDes[1] =
         {
-            .pIspBinData = cvi_turnkey_cv180zb_gc02m1_ir_pq_param,
+            .pIspBinData = cvi_turnkey_cv180zb_gc02m1_rgb_pq_param,
             .binID = CVI_BIN_ID_ISP2,
         },
     },
@@ -83,7 +83,7 @@ PARAM_CLASSDEFINE(PARAM_DEV_CFG_S,VIDEVCFG,CTX,VI)[] = {
         .switchGpioIdx = -1,
         .switchGpioPin = -1,
         .switchGPioPol = -1,
-        .dstFrm = 1,
+        .dstFrm = 2,
         .isFrmCtrl = true,
     #endif
     }
@@ -97,8 +97,8 @@ PARAM_VI_CFG_S g_stViCtx = {
 };
 
 PARAM_VI_CFG_S * PARAM_GET_VI_CFG(void) {
-    g_stViCtx.pstIspCfg[0].astPQBinDes[0].u32IspBinDataLen = cvi_turnkey_cv180zb_gc02m1_rgb_pq_param_length;
-    g_stViCtx.pstIspCfg[0].astPQBinDes[1].u32IspBinDataLen = cvi_turnkey_cv180zb_gc02m1_ir_pq_param_length;
+    g_stViCtx.pstIspCfg[0].astPQBinDes[0].u32IspBinDataLen = cvi_turnkey_cv180zb_gc02m1_ir_pq_param_length;
+    g_stViCtx.pstIspCfg[0].astPQBinDes[1].u32IspBinDataLen = cvi_turnkey_cv180zb_gc02m1_rgb_pq_param_length;
     return &g_stViCtx;
 }
 

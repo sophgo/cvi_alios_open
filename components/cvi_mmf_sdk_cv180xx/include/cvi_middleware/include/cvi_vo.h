@@ -11,6 +11,7 @@
 #define __CVI_VO_H__
 
 #include <cvi_comm_vo.h>
+#include <cvi_vip.h>
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -121,6 +122,7 @@ CVI_S32 CVI_VO_GetGammaInfo(VO_GAMMA_INFO_S *pinfo);
 
 CVI_S32 CVI_VO_GetWaitVSync(CVI_S32 timeout);
 CVI_S32 CVI_VO_SetFlushEventCb(void (*flush_cb)(void));
+CVI_S32 CVI_VO_ShowPattern(VO_DEV VoDev, enum cvi_vip_pattern PatternId);
 #ifdef __cplusplus
 #if __cplusplus
 }

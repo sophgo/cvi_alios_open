@@ -51,6 +51,7 @@ csi_error_t target_get(csi_dev_tag_t dev_tag, uint32_t idx, csi_dev_t *dev)
         dev->irq_num  = info->irq_num;
         dev->idx      = info->idx;
         dev->dev_tag  = (uint16_t)dev_tag;
+	dev->rate     = info->rate;
     }
 
     return ret;

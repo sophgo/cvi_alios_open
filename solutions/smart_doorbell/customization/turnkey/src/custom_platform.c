@@ -96,6 +96,11 @@ static void _MipiTxPinmux(void)
 
 }
 
+static void _UartPinmux()
+{
+	PINMUX_CONFIG(IIC0_SDA, UART1_RX);
+	PINMUX_CONFIG(IIC0_SCL, UART1_TX);
+}
 #if (CONFIG_SUPPORT_USB_HC || CONFIG_SUPPORT_USB_DC)
 
 static void _UsbPinmux(void)
@@ -129,6 +134,7 @@ void PLATFORM_IoInit(void)
     _MipiRxPinmux();
     _MipiTxPinmux();
     _SensorPinmux();
+	_UartPinmux();
 }
 
 void PLATFORM_PowerOff(void)
@@ -172,16 +178,9 @@ void PLATFORM_CLK_AXI4_Restore()
 }
 #endif
 
-
-void led_switch(int argc, char** argv)
+void PLATFORM_LightCtl(int type, int value)
 {
-	if (argc < 3) {
-		printf("led_switch 0/1(rgb/ir) 0/1(off/on)");
-		return;
-	}
 
-	int type = atoi(argv[1]);
-	int value = atoi(argv[2]);
 
 	if (type) {
 		PINMUX_CONFIG(SD1_GPIO1, PWR_GPIO_26);
@@ -191,5 +190,15 @@ void led_switch(int argc, char** argv)
 		PINMUX_CONFIG(SD1_GPIO0, PWR_GPIO_25);
 		_GPIOSetValue(4, 25, !!value);
 	}
+}
+void led_switch(int argc, char** argv)
+{
+	if (argc < 3) {
+		printf("led_switch 0/1(rgb/ir) 0/1(off/on)");
+		return;
+	}
+	int type = atoi(argv[1]);
+	int value = atoi(argv[2]);
+	PLATFORM_LightCtl(type, value);
 }
 ALIOS_CLI_CMD_REGISTER(led_switch, led_switch, led_switch);

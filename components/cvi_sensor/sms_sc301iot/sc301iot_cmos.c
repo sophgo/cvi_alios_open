@@ -128,7 +128,7 @@ static CVI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSns
 		pstAeSnsDft->u8AeCompensation = 40;
 		pstAeSnsDft->u32InitAESpeed = 64;
 		pstAeSnsDft->u32InitAETolerance = 5;
-		pstAeSnsDft->u32AEResponseFrame = 4;
+		pstAeSnsDft->u32AEResponseFrame = 3;
 		pstAeSnsDft->u32SnsResponseFrame = 4;
 
 		pstAeSnsDft->enAeExpMode = AE_EXP_HIGHLIGHT_PRIOR;

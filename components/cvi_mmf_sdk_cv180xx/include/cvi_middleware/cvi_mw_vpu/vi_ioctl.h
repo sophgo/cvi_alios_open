@@ -65,5 +65,7 @@ int vi_sdk_set_chn_ldc(int fd, const struct vi_chn_ldc_cfg *cfg);
 int vi_sdk_enable_pattern(int fd, int pattern);
 int vi_sdk_reg_sync_task(int fd, int pipe, void *sync_task);
 int vi_sdk_unreg_sync_task(int fd, int pipe, void *sync_task);
+int vi_sdk_attach_vbpool(int fd, const struct vi_vb_pool_cfg *cfg);
+int vi_sdk_detach_vbpool(int fd, const struct vi_vb_pool_cfg *cfg);
 
 #endif // MODULES_VPU_INCLUDE_VI_IOCTL_H_

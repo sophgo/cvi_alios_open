@@ -53,6 +53,7 @@ fi
 
 MK_SOLUTION_PARTITION_NAME=$(echo ${MK_OPTARG} | grep "CONFIG_CUSTOM_PARTITION_NAME" | awk -F: '{print $2}')
 MK_GENERATED_PATH=${MK_SOLUTION_PATH}/generated
+MK_PROJECT_PATH=$MK_SOLUTION_PATH/customization/$PROJECT
 rm -fr $MK_GENERATED_PATH
 mkdir -p $MK_GENERATED_PATH/data/
 
@@ -60,6 +61,7 @@ echo $MK_SOLUTION_PATH
 echo $MK_BOARD_PATH
 echo $MK_CHIP_PATH
 echo $MK_GENERATED_PATH
+echo $MK_PROJECT_PATH
 
 if [ -d data ]; then
     LFS_SIZE=$(cat $MK_BOARD_PATH/configs/config.yaml | grep lfs | sed 's/[[:space:]\"]//g' | awk -F 'size:|}' '{print $2}' | xargs printf "%d\n")
@@ -83,6 +85,15 @@ if [ ${MK_SOLUTION_PARTITION_NAME} != "" ]; then
 else
     echo "default config.yaml copy"
     cp -arf ${MK_BOARD_PATH}/configs/config.yaml ${MK_GENERATED_PATH}/data/
+
+    if [ -d $MK_PROJECT_PATH/board/partition ]; then
+        echo "partition copy"
+        cp -arf $MK_PROJECT_PATH/board/partition/*  ${MK_GENERATED_PATH}/data/
+    fi
+    if [ -d $MK_PROJECT_PATH/board/bin ]; then
+        echo "bin copy"
+        cp -arf $MK_PROJECT_PATH/board/bin/*  ${MK_GENERATED_PATH}/data/
+    fi
 fi
 ${PRODUCT} image ${MK_GENERATED_PATH}/images.zip -i ${MK_GENERATED_PATH}/data -l -p
 ${PRODUCT} image ${MK_GENERATED_PATH}/images.zip -e ${MK_GENERATED_PATH} -x

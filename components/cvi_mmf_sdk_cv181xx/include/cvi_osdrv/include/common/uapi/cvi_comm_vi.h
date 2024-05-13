@@ -701,6 +701,8 @@ typedef struct _VI_CHN_ATTR_S {
 	CVI_BOOL bFlip; /* RW;Flip enable */
 	CVI_U32 u32Depth; /* RW;Range:[0,8];Depth */
 	FRAME_RATE_CTRL_S stFrameRate; /* RW;Frame rate */
+	CVI_U32 u32BindVbPool; /*chn bind vb*/
+	CVI_BOOL bSingleBuffer; /* RW; single buffer or ping-pong buffer*/
 } VI_CHN_ATTR_S;
 
 /* The status of pipe */

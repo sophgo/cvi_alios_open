@@ -338,8 +338,16 @@ int partition_erase(partition_t partition, off_t off_set, uint32_t erase_unit_co
         return -EINVAL;
     }
 #if CONFIG_PARTITION_SUPPORT_EMMC
+    if (node->storage_info.type == MEM_DEVICE_TYPE_EMMC) {
     if (node != NULL && off_set >= 0) {
         return partition_device_erase(node->flash_dev, node->start_addr, node->length);
+        }
+    }
+    else {
+        size_t len = erase_unit_count * node->erase_size;
+        if (node != NULL && off_set >= 0 && off_set + len <= node->length) {
+            return partition_device_erase(node->flash_dev, node->start_addr + off_set, len);
+        }
     }
 #else
     size_t len = erase_unit_count * node->erase_size;
