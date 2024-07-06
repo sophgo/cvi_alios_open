@@ -1,11 +1,12 @@
 /*
  * Copyright (C) 2019-2020 Alibaba Group Holding Limited
  */
+#include <yoc/partition.h>
+#if CONFIG_PARTITION_SUPPORT_SD
 #include <mmc.h>
 #include <sd.h>
 #include <errno.h>
 #include <drv/sdif.h>
-#include <yoc/partition.h>
 #include <yoc/partition_device.h>
 
 #define DGB_PRINT(...) //printf(__VA_ARGS__)
@@ -251,3 +252,4 @@ int partition_usb_register(void)
 {
     return 0;
 }
+#endif

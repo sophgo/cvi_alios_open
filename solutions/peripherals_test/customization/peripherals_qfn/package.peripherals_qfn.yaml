@@ -130,6 +130,7 @@ build_config:
   include:
     - application/common/include
     - customization/include
+    - ../../components/cvi_test/test/pinmux
   internal_include:
 
   cflag: ""

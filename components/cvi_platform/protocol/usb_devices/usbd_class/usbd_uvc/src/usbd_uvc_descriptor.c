@@ -37,7 +37,7 @@ static struct usb_interface_descriptor uvc_control_intf = {
     .bInterfaceClass    = USB_CLASS_VIDEO,
     .bInterfaceSubClass    = UVC_SC_VIDEOCONTROL,
     .bInterfaceProtocol    = 0x00,
-    .iInterface        = 0x02,
+    .iInterface        = 0x06,
 };
 
 static struct usb_interface_descriptor uvc_streaming_intf_alt0 = {
@@ -124,9 +124,15 @@ static struct uvc_camera_terminal_descriptor uvc_camera_terminal = {
     .wObjectiveFocalLengthMax    = cpu_to_le16(0),
     .wOcularFocalLength        = cpu_to_le16(0),
     .bControlSize        = 3,
+#if CONFIG_UVC_COMM_FUNC
+    .bmControls[0]        = 0,
+    .bmControls[1]        = 0x8,
+    .bmControls[2]        = 0,
+#else
     .bmControls[0]        = 0,
     .bmControls[1]        = 0,
     .bmControls[2]        = 0,
+#endif
 };
 
 static struct uvc_processing_unit_descriptor uvc_processing = {
@@ -137,8 +143,13 @@ static struct uvc_processing_unit_descriptor uvc_processing = {
     .bSourceID        = 1,
     .wMaxMultiplier        = cpu_to_le16(0),
     .bControlSize        = 2,
+#if CONFIG_UVC_COMM_FUNC
+    .bmControls[0]        = 0x1F,
+    .bmControls[1]        = 0x0,
+#else
     .bmControls[0]        = 0,
     .bmControls[1]        = 0,
+#endif
     .iProcessing        = 0,
     .bmVideoStandards   = 0,
 };
@@ -154,11 +165,34 @@ static struct uvc_output_terminal_descriptor uvc_output_terminal = {
     .iTerminal        = 0,
 };
 
+DECLARE_UVC_EXTENSION_UNIT_DESCRIPTOR(1, 2);
+static struct UVC_EXTENSION_UNIT_DESCRIPTOR(1, 2) uvc_extension = {
+    .bLength            = UVC_DT_EXTENSION_UNIT_SIZE(1, 2),
+    .bDescriptorType    = USB_DT_CS_INTERFACE,
+    .bDescriptorSubType = UVC_VC_EXTENSION_UNIT,
+    .bUnitID            = 4,
+    .guidExtensionCode  = {'2','0','2','4','0','1','0','1',' ',' ','c','a','m','e','r','a'},
+    .bNrInPins          = 1,
+    .baSourceID[0]      = 2,
+    .bControlSize       = 2,
+#if CONFIG_UVC_COMM_FUNC
+    .bNumControls       = 1,
+    .bmControls[0]      = 0x01,
+    .bmControls[1]      = 0x00,
+#else
+    .bNumControls       = 0,
+    .bmControls[0]      = 0x00,
+    .bmControls[1]      = 0x00,
+#endif
+    .iExtension         = 0,
+};
+
 static const struct uvc_descriptor_header * uvc_fs_control_cls[] = {
     (const struct uvc_descriptor_header *) &uvc_control_header,
     (const struct uvc_descriptor_header *) &uvc_camera_terminal,
     (const struct uvc_descriptor_header *) &uvc_processing,
     (const struct uvc_descriptor_header *) &uvc_output_terminal,
+    (const struct uvc_descriptor_header *) &uvc_extension,
     NULL,
 };
 
@@ -575,7 +609,8 @@ uvc_create_streaming_class(struct uvc_format_info_st *format_info,
 static uint8_t *
 uvc_build_descriptor(struct uvc_format_info_st *format_info,
                      uint32_t num_formats,
-                     uint32_t *len, uint8_t in_ep, uint8_t *interface_total)
+                     uint32_t *len, uint8_t in_ep, uint8_t *interface_total,
+                     uint8_t idx)
 {
     struct uvc_input_header_descriptor *uvc_streaming_header;
     struct uvc_header_descriptor *uvc_control_header;
@@ -654,6 +689,7 @@ uvc_build_descriptor(struct uvc_format_info_st *format_info,
     //VedioControl I/F
     uvc_control_intf.bInterfaceNumber = *interface_total;
     (*interface_total)++;
+    uvc_control_intf.iInterface += idx; // update name descriptor
     UVC_COPY_DESCRIPTOR(mem, dst, &uvc_control_intf);
 
     terminal_total++;
@@ -664,6 +700,8 @@ uvc_build_descriptor(struct uvc_format_info_st *format_info,
     terminal_total++;
     uvc_output_terminal.bSourceID = uvc_processing.bUnitID;
     uvc_output_terminal.bTerminalID = terminal_total;
+    terminal_total++;
+    uvc_extension.bUnitID = terminal_total;
 
     uvc_control_header = mem;
     UVC_COPY_DESCRIPTORS(mem, dst,
@@ -732,7 +770,7 @@ uint8_t *uvc_build_descriptors(struct uvc_device_info *uvc, uint32_t *desc_len, 
 
     for(uint8_t i = 0; i < uvc_nums; i ++) {
         info = uvc + i;
-        video_desc[i] = uvc_build_descriptor(info->format_info, info->formats, &video_desc_len[i], info->ep, &uvc[0].interface_nums);
+        video_desc[i] = uvc_build_descriptor(info->format_info, info->formats, &video_desc_len[i], info->ep, &uvc[0].interface_nums, i);
         if (video_desc[i] != NULL
             && video_desc_len[i] > 0) {
             uvc_desc_len += video_desc_len[i];

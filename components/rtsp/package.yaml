@@ -17,7 +17,7 @@ license: Apache license v2.0                        # <可选项> 源代码的�
 #   - aos: v7.4.0
 
 depends:
-  - lwip: v7.4.7
+  - lwip: develop
 
 
 ## 第四部分：编译连接信息
@@ -39,7 +39,7 @@ depends:
 #   libpath:                               # 指定静态库所在的路径（相对于该组件路径）
 #     - libs                               #   -Llibs
 build_config:
-  cflag: 
+  cflag:
     -Wno-unused-variable
   cxxflag:
     -enable-threads=posix
@@ -53,12 +53,12 @@ build_config:
     - internal/cvi_rtsp/
   define:
     SOCKLEN_T: "socklen_t"
-    NO_OPENSSL: 1 
+    NO_OPENSSL: 1
     NO_SSTREAM: 1
     _LARGEFILE_SOURCE: 1
-    _FILE_OFFSET_BITS: 64 
+    _FILE_OFFSET_BITS: 64
     ALLOW_SERVER_PORT_REUSE: 1
-    SO_NOSIGPIPE: 
+    SO_NOSIGPIPE:
 
   libs:
     - sdk_rtsp

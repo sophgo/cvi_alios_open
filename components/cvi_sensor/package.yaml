@@ -125,8 +125,11 @@ build_config:
     - sms_sc530ai_4L
     - sms_sc230ai
     - sms_sc230ai_slave
+    - ov_og01a10
+    - ov_og01a1b
     - ov_ov02b10
     - cista_c2599
+    - cvsens_cv2003
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
 source_file:
@@ -171,8 +174,11 @@ source_file:
   - byd_bf2257cs/*.c ? <CONFIG_SENSOR_BYD_BF2257CS>
   - byd_bf2257cs_slave/*.c ? <CONFIG_SENSOR_BYD_BF2257CS_SLAVE>
   - spix_sp2509/*.c ? <CONFIG_SENSOR_SPIX_SP2509>
+  - ov_og01a10/*.c ? <CONFIG_SENSOR_OV_OG01A10>
+  - ov_og01a1b/*.c ? <CONFIG_SENSOR_OV_OG01A1B>
   - ov_ov02b10/*.c ? <CONFIG_SENSOR_OV_OV02B10>
   - cista_c2599/*.c ? <CONFIG_SENSOR_CISTA_C2599>
+  - cvsens_cv2003/*.c ? <CONFIG_SENSOR_CVSENS_CV2003>
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项
 #   CONFIG_DEBUG: y

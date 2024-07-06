@@ -21,6 +21,7 @@
 #define INTERVAL       (unsigned long)(10000000 / CAM_FPS)
 #define MAX_FRAME_SIZE (unsigned long)(WIDTH * HEIGHT * 2)
 #define DEFAULT_FRAME_SIZE (unsigned long)(WIDTH * HEIGHT * 3 / 2)
+#define TIMEOUT_CHECK_CNT  500 // 500 * 1ms
 
 #define MJPEG_FORMAT_INDEX  (1)
 #define H264_FORMAT_INDEX   (2)
@@ -57,12 +58,15 @@ static struct uvc_frame_info_st mjpeg_frame_info[] = {
 	{1, 240, 320, 30, 0},
 	{2, 320, 240, 30, 0},
 	{3, 480, 320, 30, 0},
-	{4, 800, 480, 30, 0},
-	{5, 864, 480, 30, 0},
-	{6, 800, 600, 30, 0},
-	{7, 1280, 720, 30, 0},
-	{8, 1920, 1080, 30, 0},
-	{9, 1600, 1200, 30, 0},
+	{4, 640, 480, 30, 0},
+	{5, 656, 468, 30, 0},
+	{6, 720, 480, 30, 0},
+	{7, 800, 480, 30, 0},
+	{8, 864, 480, 30, 0},
+	{9, 800, 600, 30, 0},
+	{10, 1280, 720, 30, 0},
+	{11, 1920, 1080, 30, 0},
+	{12, 1600, 1200, 30, 0},
 };
 
 static struct uvc_frame_info_st h264_frame_info[] = {
@@ -116,7 +120,12 @@ static struct uvc_device_info uvc[USBD_UVC_MAX_NUM] = {
     }
 };
 
-static uint8_t media_buffer[DEFAULT_FRAME_SIZE] __attribute__((aligned(64)));
+struct uvc_device_info *uvc_container_of_device_id(uint8_t device_id)
+{
+	return &uvc[device_id];
+}
+
+static uint8_t media_buffer[USBD_UVC_NUM][DEFAULT_FRAME_SIZE] __attribute__((aligned(64)));
 
 
 static CVI_S32 is_media_info_update(struct uvc_device_info *info){
@@ -229,6 +238,7 @@ static void uvc_media_update(struct uvc_device_info *info){
 	uvc_get_video_format_info(&uvc_format_info);
 	uvc_get_video_frame_info(&uvc_frame_info);
 
+	info->format_index = uvc_format_info.format_index;
 	switch(uvc_format_info.format_index){
 	case YUYV_FORMAT_INDEX:
 		enPixelFormat = PIXEL_FORMAT_YUYV;
@@ -262,6 +272,23 @@ static void uvc_media_update(struct uvc_device_info *info){
 		printf("venc chn %d deinit\n", info->video.venc_channel);
 	}
 
+#if CONFIG_UVC_CROP_BEFORE_SCALE
+	VPSS_GRP_ATTR_S stVpssGrpAttr;
+	VPSS_CROP_INFO_S stCropInfo = {0};
+	int crop_ratio = 0;
+
+	CVI_VPSS_GetGrpAttr(info->video.vpss_group, &stVpssGrpAttr);
+	/* `*1000` is to get a more accurate value  */
+	crop_ratio = MIN(stVpssGrpAttr.u32MaxW * 1000 / uvc_frame_info.width,
+			 stVpssGrpAttr.u32MaxH * 1000 / uvc_frame_info.height);
+	stCropInfo.stCropRect.u32Width =  uvc_frame_info.width * crop_ratio / 1000;
+	stCropInfo.stCropRect.u32Height = uvc_frame_info.height * crop_ratio / 1000;
+	stCropInfo.stCropRect.s32X = (stVpssGrpAttr.u32MaxW - stCropInfo.stCropRect.u32Width) / 2;
+	stCropInfo.stCropRect.s32Y = (stVpssGrpAttr.u32MaxH - stCropInfo.stCropRect.u32Height) / 2;
+	stCropInfo.bEnable = true;
+	CVI_VPSS_SetChnCrop(info->video.vpss_group, info->video.vpss_channel, &stCropInfo);
+#endif
+
 	CVI_VPSS_GetChnAttr(info->video.vpss_group, info->video.vpss_channel, &stVpssChnAttr);
 	stVpssChnAttr.enPixelFormat = enPixelFormat;
 	stVpssChnAttr.u32Width = uvc_frame_info.width;
@@ -271,8 +298,10 @@ static void uvc_media_update(struct uvc_device_info *info){
 	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u16Width = uvc_frame_info.width;
 	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u16Height = uvc_frame_info.height;
 	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u16EnType = enType;
-	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stRcParam.u32BitRate = (enType == PT_MJPEG)?20480:2048;
-	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stRcParam.u16RcMode = (enType == PT_MJPEG)?VENC_RC_MODE_MJPEGCBR:((enType == PT_H264) ? VENC_RC_MODE_H264CBR : VENC_RC_MODE_H265CBR);;
+	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stRcParam.u32BitRate =
+			(enType == PT_MJPEG) ? CONFIG_UVC_MJPEG_BITRATE : CONFIG_UVC_H264_H265_BITRATE;
+	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stRcParam.u16RcMode =
+			(enType == PT_MJPEG) ? VENC_RC_MODE_MJPEGCBR:((enType == PT_H264) ? VENC_RC_MODE_H264CBR : VENC_RC_MODE_H265CBR);;
 	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u8ModId = CVI_ID_VPSS;
 	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u8DevId = info->video.vpss_group;
    	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u8DevChnid = info->video.vpss_channel;
@@ -449,12 +478,17 @@ static uvc_event_callbacks_t uvc_evt_callbks = {
     .uvc_event_tx_complete = uvc_tx_complete,
 };
 
-static void vedio_streaming_send(struct uvc_device_info *uvc)
+static uvc_video_control_callbacks_t uvc_video_control_callbks = {
+	.uvc_vc_input_terminal_handler = usbd_vc_input_terminal_request_handler,
+	.uvc_vc_processing_unit_handler = usbd_vc_processing_unit_request_handler,
+	.uvc_vc_extension_unit_handler = usbd_vc_extension_unit_request_handler,
+};
+
+static void vedio_streaming_send(struct uvc_device_info *uvc, int dev_index)
 {
 	int i, ret = 0;
 	uint32_t data_len = 0;
 	uint32_t buf_len = 0, buf_len_stride = 0, packets = 0;
-	struct uvc_format_info_st uvc_format_info;
     VENC_STREAM_S stStream = {0},*pstStream= &stStream;
 	VENC_PACK_S *ppack;
 	VIDEO_FRAME_INFO_S stVideoFrame, *pstVideoFrame=&stVideoFrame;
@@ -465,8 +499,7 @@ static void vedio_streaming_send(struct uvc_device_info *uvc)
 		uvc->update_flag = 0;
 	}
 
-	uvc_get_video_format_info(&uvc_format_info);
-	switch(uvc_format_info.format_index) {
+	switch(uvc->format_index) {
 	case H264_FORMAT_INDEX:
 	case H265_FORMAT_INDEX:
 	case MJPEG_FORMAT_INDEX:
@@ -479,7 +512,7 @@ static void vedio_streaming_send(struct uvc_device_info *uvc)
 		for (i = 0; i < pstStream->u32PackCount; ++i)
 		{
 			ppack = &pstStream->pstPack[i];
-			memcpy(media_buffer + buf_len,
+			memcpy(media_buffer[dev_index] + buf_len,
 					ppack->pu8Addr + ppack->u32Offset,
 					ppack->u32Len - ppack->u32Offset);
 			buf_len += (ppack->u32Len - ppack->u32Offset);
@@ -508,7 +541,7 @@ static void vedio_streaming_send(struct uvc_device_info *uvc)
 		data_len = pstChnAttr->u32Width * 2;
 		for (i = 0;i < (pstChnAttr->u32Height); ++i)
 		{
-			memcpy(media_buffer + buf_len, pstVideoFrame->stVFrame.pu8VirAddr[0] +
+			memcpy(media_buffer[dev_index] + buf_len, pstVideoFrame->stVFrame.pu8VirAddr[0] +
 				buf_len_stride, data_len);
 
 			buf_len += pstChnAttr->u32Width * 2;
@@ -533,7 +566,7 @@ static void vedio_streaming_send(struct uvc_device_info *uvc)
 		data_len = pstChnAttr->u32Width;
 		for (i = 0;i < ((pstChnAttr->u32Height * 3) >>1); ++i)
 		{
-			memcpy(media_buffer + buf_len, pstVideoFrame->stVFrame.pu8VirAddr[0] +
+			memcpy(media_buffer[dev_index] + buf_len, pstVideoFrame->stVFrame.pu8VirAddr[0] +
 				buf_len_stride, data_len);
 			buf_len += pstChnAttr->u32Width;
 			buf_len_stride += pstVideoFrame->stVFrame.u32Stride[0];
@@ -549,13 +582,13 @@ static void vedio_streaming_send(struct uvc_device_info *uvc)
 	}
 
 #if CONFIG_USB_BULK_UVC
-	packets = uvc_payload_fill(uvc, media_buffer, buf_len,
+	packets = uvc_payload_fill(uvc, media_buffer[dev_index], buf_len,
 			uvc->packet_buffer_uvc + FRM_BUFFER_GET_IDX(rx_frm_idx) * DEFAULT_FRAME_SIZE,
 			&data_len);
 	frm_sz[FRM_BUFFER_GET_IDX(rx_frm_idx)] = data_len;
 	rx_frm_idx++;
 #else
-	packets = uvc_payload_fill(uvc, media_buffer, buf_len, uvc->packet_buffer_uvc, &data_len);
+	packets = uvc_payload_fill(uvc, media_buffer[dev_index], buf_len, uvc->packet_buffer_uvc, &data_len);
 #endif
 	buf_len = 0;
 	buf_len_stride = 0;
@@ -567,18 +600,20 @@ static void vedio_streaming_send(struct uvc_device_info *uvc)
 	#if CONFIG_USB_BULK_UVC
 		aos_work_run(&uvc_workqueue, &uvc_frame_submmit);
 	#else
+		int check_cnt = TIMEOUT_CHECK_CNT;
 		uvc->xfer_flag = true;
 		usbd_ep_start_write(uvc->ep, uvc->packet_buffer_uvc, MAX_PAYLOAD_SIZE);
-		while(uvc->streaming_on && uvc->xfer_flag) {
-			aos_task_yield();
+		while(uvc->streaming_on && uvc->xfer_flag && check_cnt-- > 0) {
+			aos_msleep(1);
 		}
 	#endif
 	}
 }
 
-static void *send_to_uvc()
+static void *send_to_uvc(void *arg)
 {
     uint32_t i = 0;
+    int64_t dev_index = (int64_t)arg;
 
     while (av_session_init_flag) {
 		if (rhino_atomic_get(&uvc_pause_flag)) {
@@ -593,14 +628,10 @@ static void *send_to_uvc()
 
 		}
 
-		for (i = 0; i < USBD_UVC_NUM; i++) {
-			// printf("uvc[%d].streaming_on:%d\n", i, uvc[i].streaming_on);
-			if(uvc[i].streaming_on) {
-				vedio_streaming_send(&uvc[i]);
-			}
-			else {
-				aos_msleep(1);
-			}
+		if(uvc[dev_index].streaming_on) {
+			vedio_streaming_send(&uvc[dev_index], dev_index);
+		} else {
+			aos_msleep(1);
 		}
     }
 
@@ -630,10 +661,10 @@ static void uvc_desc_register()
 
 	printf("multi uvc num:%u\n", USBD_UVC_NUM);
 	printf("MAX_PAYLOAD_SIZE:%u\n", MAX_PAYLOAD_SIZE);
-    for (uint8_t i = 0; i < USBD_UVC_NUM; i++) {
-        usbd_add_interface(usbd_video_control_init_intf(&uvc[i].vc_intf, INTERVAL, MAX_FRAME_SIZE, MAX_PAYLOAD_SIZE));
-        usbd_add_interface(usbd_video_stream_init_intf(&uvc[i].vs_intf, INTERVAL, MAX_FRAME_SIZE, MAX_PAYLOAD_SIZE));
-        usbd_add_endpoint(usbd_video_init_ep(&uvc[i].video_in_ep, uvc[i].ep, NULL));
+	for (uint8_t i = 0; i < USBD_UVC_NUM; i++) {
+		usbd_add_interface(usbd_video_control_init_intf(&uvc[i].vc_intf, INTERVAL, MAX_FRAME_SIZE, MAX_PAYLOAD_SIZE));
+		usbd_add_interface(usbd_video_stream_init_intf(&uvc[i].vs_intf, INTERVAL, MAX_FRAME_SIZE, MAX_PAYLOAD_SIZE));
+		usbd_add_endpoint(usbd_video_init_ep(&uvc[i].video_in_ep, uvc[i].ep, NULL));
 	#if CONFIG_USB_BULK_UVC
 		aos_workqueue_create_ext(&uvc_workqueue, "uvc_submmit", 15, 4096);
 		aos_work_init(&uvc_frame_submmit, usbd_video_frame_submmit, &uvc[i], 5);
@@ -643,9 +674,9 @@ static void uvc_desc_register()
 		uvc[i].packet_buffer_uvc = (uint8_t *)usb_iomalloc(DEFAULT_FRAME_SIZE);
 		memset(uvc[i].packet_buffer_uvc, 0, DEFAULT_FRAME_SIZE);
 	#endif
-    }
-    usbd_video_register_uvc_callbacks(&uvc_evt_callbks);
-
+	}
+	usbd_video_register_uvc_callbacks(&uvc_evt_callbks);
+	usbd_video_register_video_control_callbacks(&uvc_video_control_callbks);
 }
 
 int uvc_init(void)
@@ -653,7 +684,7 @@ int uvc_init(void)
     char threadname[64] = {0};
 	struct sched_param param;
 	pthread_attr_t pthread_attr;
-	pthread_t pthreadId = 0;
+	pthread_t pthreadId[USBD_UVC_NUM] = {0};
 
 	uvc_desc_register();
 
@@ -665,9 +696,11 @@ int uvc_init(void)
 	pthread_attr_setschedparam(&pthread_attr, &param);
 	pthread_attr_setinheritsched(&pthread_attr, PTHREAD_EXPLICIT_SCHED);
 	pthread_attr_setstacksize(&pthread_attr, 6*1024);
-	pthread_create(&pthreadId,&pthread_attr,send_to_uvc,NULL);
-	snprintf(threadname,sizeof(threadname),"uvc_send%d",0);
-	pthread_setname_np(pthreadId, threadname);
+	for (int64_t i = 0; i < USBD_UVC_NUM; i++) {
+		pthread_create(&pthreadId[i], &pthread_attr, send_to_uvc, (void*)i);
+		snprintf(threadname, sizeof(threadname), "uvc_send%ld", i);
+		pthread_setname_np(pthreadId[i], threadname);
+	}
 
 	return 0;
 }

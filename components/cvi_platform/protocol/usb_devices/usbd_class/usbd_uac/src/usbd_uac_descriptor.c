@@ -54,7 +54,7 @@ static struct usb_interface_descriptor std_ac_if_desc = {
 	.bInterfaceClass = USB_DEVICE_CLASS_AUDIO,
 	.bInterfaceSubClass = AUDIO_SUBCLASS_AUDIOCONTROL,
 	.bInterfaceProtocol = 0x00,
-	.iInterface = 0,
+	.iInterface = 0x05,
 };
 
 #define UAC_AC_HEADER_DESCRIPTOR(n) \

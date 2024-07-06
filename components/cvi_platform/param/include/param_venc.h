@@ -36,6 +36,8 @@ typedef struct _PARAM_RC_PARAM_S {
     CVI_U8 u8MaxReEncodeTimes; /* RW; Range:[0, 3]; Range:max number of re-encode times.*/
 	CVI_U8 u8QpMapEn; /* RW; Range:[0, 1]; enable qpmap.*/
     CVI_U8 u8ChangePos; //VBR使用
+	CVI_U8 u8MinQfactor; /* RW; Range:[1,99]; minQfactor value*/
+	CVI_U8 u8MaxQfactor; /* RW; Range:[1,99]; maxQfactor value*/
 } PARAM_RC_PARAM_S;
 
 typedef struct _PARAM_ROI_PARAM_S {

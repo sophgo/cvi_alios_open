@@ -45,10 +45,10 @@ PARAM_CLASSDEFINE(PARAM_VPSS_CHN_CFG_S,CHNCFG,GRP0,CHN)[] = {
         },
     },
     {
-        .u8Rotation = ROTATION_0,
+        .u8Rotation = ROTATION_90,
         .stVpssChnAttr = {
-            .u32Width = 480,
-            .u32Height = 640,
+            .u32Width = 640,
+            .u32Height = 480,
             .enVideoFormat = VIDEO_FORMAT_LINEAR,
             .enPixelFormat = PIXEL_FORMAT_NV21,
             .stFrameRate = {
@@ -116,10 +116,10 @@ PARAM_CLASSDEFINE(PARAM_VPSS_CHN_CFG_S,CHNCFG,GRP1,CHN)[] = {
         },
     },
     {
-        .u8Rotation = ROTATION_0,
+        .u8Rotation = ROTATION_90,
         .stVpssChnAttr = {
-            .u32Width = 480,
-            .u32Height = 640,
+            .u32Width = 640,
+            .u32Height = 480,
             .enVideoFormat = VIDEO_FORMAT_LINEAR,
             .enPixelFormat = PIXEL_FORMAT_NV21,
             .stFrameRate = {

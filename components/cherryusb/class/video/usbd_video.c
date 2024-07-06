@@ -6,30 +6,27 @@
 #include "usbd_core.h"
 #include "usbd_video.h"
 
-struct video_entity_info {
-    uint8_t bDescriptorSubtype;
-    uint8_t bEntityId;
-    uint16_t wTerminalType;
-};
-
-struct usbd_video_cfg_priv {
-    struct video_probe_and_commit_controls probe;
-    struct video_probe_and_commit_controls commit;
-    uint8_t power_mode;
-    uint8_t error_code;
-    struct video_entity_info info[3];
-} usbd_video_cfg = {
+struct usbd_video_cfg_priv usbd_video_cfg = {
     .info[0] = { .bDescriptorSubtype = VIDEO_VC_INPUT_TERMINAL_DESCRIPTOR_SUBTYPE, .bEntityId = 0x01, .wTerminalType = VIDEO_ITT_CAMERA },
-    .info[1] = { .bDescriptorSubtype = VIDEO_VC_OUTPUT_TERMINAL_DESCRIPTOR_SUBTYPE, .bEntityId = 0x03, .wTerminalType = 0x00 },
-    .info[2] = { .bDescriptorSubtype = VIDEO_VC_PROCESSING_UNIT_DESCRIPTOR_SUBTYPE, .bEntityId = 0x02, .wTerminalType = 0x00 },
+    .info[1] = { .bDescriptorSubtype = VIDEO_VC_PROCESSING_UNIT_DESCRIPTOR_SUBTYPE, .bEntityId = 0x02, .wTerminalType = 0x00 },
+    .info[2] = { .bDescriptorSubtype = VIDEO_VC_OUTPUT_TERMINAL_DESCRIPTOR_SUBTYPE, .bEntityId = 0x03, .wTerminalType = 0x00 },
+    .info[3] = { .bDescriptorSubtype = VIDEO_VC_EXTENSION_UNIT_DESCRIPTOR_SUBTYPE, .bEntityId = 0x04, .wTerminalType = 0x00 },
 };
 
 static uvc_event_callbacks_t *uvc_evt_callbacks = NULL;
+static uvc_video_control_callbacks_t *uvc_vc_callbacks = NULL;
 
 void usbd_video_register_uvc_callbacks(uvc_event_callbacks_t *cb)
 {
     if (cb) {
         uvc_evt_callbacks = cb;
+    }
+}
+
+void usbd_video_register_video_control_callbacks(uvc_video_control_callbacks_t *cb)
+{
+    if (cb) {
+        uvc_vc_callbacks = cb;
     }
 }
 
@@ -81,496 +78,33 @@ static int usbd_video_control_request_handler(struct usb_setup_packet *setup, ui
 static int usbd_video_control_unit_terminal_request_handler(struct usb_setup_packet *setup, uint8_t **data, uint32_t *len)
 {
     uint8_t entity_id = (uint8_t)(setup->wIndex >> 8);
-    uint8_t control_selector = (uint8_t)(setup->wValue >> 8);
+    entity_id = (entity_id - 1) % VIDEO_ENTITY_NUM + 1;
 
-    for (uint8_t i = 0; i < 3; i++) {
+    if (uvc_vc_callbacks == NULL)
+        return -1;
+
+    for (uint8_t i = 0; i < VIDEO_ENTITY_NUM; i++) {
         struct video_entity_info *entity_info = &usbd_video_cfg.info[i];
         if (entity_info->bEntityId == entity_id) {
             switch (entity_info->bDescriptorSubtype) {
                 case VIDEO_VC_HEADER_DESCRIPTOR_SUBTYPE:
                     break;
                 case VIDEO_VC_INPUT_TERMINAL_DESCRIPTOR_SUBTYPE:
-                    if (entity_info->wTerminalType == VIDEO_ITT_CAMERA) {
-                        switch (control_selector) {
-                            case VIDEO_CT_AE_MODE_CONTROL:
-                                switch (setup->bRequest) {
-                                    case VIDEO_REQUEST_GET_CUR:
-                                        (*data)[0] = 0x08;
-                                        *len = 1;
-                                        break;
-                                    default:
-                                        USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", setup->bRequest);
-                                        return -1;
-                                }
-                                break;
-                            case VIDEO_CT_EXPOSURE_TIME_ABSOLUTE_CONTROL:
-                                switch (setup->bRequest) {
-                                    case VIDEO_REQUEST_GET_CUR: {
-                                        uint32_t dwExposureTimeAbsolute = 2500;
-                                        memcpy(*data, (uint8_t *)&dwExposureTimeAbsolute, 4);
-                                        *len = 4;
-                                    } break;
-                                    case VIDEO_REQUEST_GET_MIN: {
-                                        uint32_t dwExposureTimeAbsolute = 5; //0.0005sec
-                                        memcpy(*data, (uint8_t *)&dwExposureTimeAbsolute, 4);
-                                        *len = 4;
-                                    } break;
-                                    case VIDEO_REQUEST_GET_MAX: {
-                                        uint32_t dwExposureTimeAbsolute = 2500; //0.2500sec
-                                        memcpy(*data, (uint8_t *)&dwExposureTimeAbsolute, 4);
-                                        *len = 4;
-                                    } break;
-                                    case VIDEO_REQUEST_GET_RES: {
-                                        uint32_t dwExposureTimeAbsolute = 5; //0.0005sec
-                                        memcpy(*data, (uint8_t *)&dwExposureTimeAbsolute, 4);
-                                        *len = 4;
-                                    } break;
-                                    case VIDEO_REQUEST_GET_INFO:
-                                        (*data)[0] = 0x03; //struct video_camera_capabilities
-                                        *len = 1;
-                                        break;
-                                    case VIDEO_REQUEST_GET_DEF: {
-                                        uint32_t dwExposureTimeAbsolute = 2500; //0.2500sec
-                                        memcpy(*data, (uint8_t *)&dwExposureTimeAbsolute, 4);
-                                        *len = 4;
-                                    } break;
-                                    default:
-                                        USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", setup->bRequest);
-                                        return -1;
-                                }
-                                break;
-                            case VIDEO_CT_FOCUS_ABSOLUTE_CONTROL:
-                                switch (setup->bRequest) {
-                                    case VIDEO_REQUEST_GET_CUR: {
-                                        uint16_t wFocusAbsolute = 0x0080;
-                                        memcpy(*data, (uint8_t *)&wFocusAbsolute, 2);
-                                        *len = 2;
-                                    } break;
-                                    case VIDEO_REQUEST_GET_MIN: {
-                                        uint16_t wFocusAbsolute = 0;
-                                        memcpy(*data, (uint8_t *)&wFocusAbsolute, 2);
-                                        *len = 2;
-                                    } break;
-                                    case VIDEO_REQUEST_GET_MAX: {
-                                        uint16_t wFocusAbsolute = 0x00ff;
-                                        memcpy(*data, (uint8_t *)&wFocusAbsolute, 2);
-                                        *len = 2;
-                                    } break;
-                                    case VIDEO_REQUEST_GET_RES: {
-                                        uint16_t wFocusAbsolute = 0x0001;
-                                        memcpy(*data, (uint8_t *)&wFocusAbsolute, 2);
-                                        *len = 2;
-                                    } break;
-                                    case VIDEO_REQUEST_GET_INFO:
-                                        (*data)[0] = 0x03; //struct video_camera_capabilities
-                                        *len = 1;
-                                        break;
-                                    case VIDEO_REQUEST_GET_DEF: {
-                                        uint16_t wFocusAbsolute = 0x0080;
-                                        memcpy(*data, (uint8_t *)&wFocusAbsolute, 2);
-                                        *len = 2;
-                                    } break;
-                                    default:
-                                        USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", setup->bRequest);
-                                        return -1;
-                                }
-                                break;
-                            case VIDEO_CT_ZOOM_ABSOLUTE_CONTROL:
-                                switch (setup->bRequest) {
-                                    case VIDEO_REQUEST_GET_CUR: {
-                                        uint16_t wObjectiveFocalLength = 0x0064;
-                                        memcpy(*data, (uint8_t *)&wObjectiveFocalLength, 2);
-                                        *len = 2;
-                                    } break;
-                                    case VIDEO_REQUEST_GET_MIN: {
-                                        uint16_t wObjectiveFocalLength = 0x0064;
-                                        memcpy(*data, (uint8_t *)&wObjectiveFocalLength, 2);
-                                        *len = 2;
-                                    } break;
-                                    case VIDEO_REQUEST_GET_MAX: {
-                                        uint16_t wObjectiveFocalLength = 0x00c8;
-                                        memcpy(*data, (uint8_t *)&wObjectiveFocalLength, 2);
-                                        *len = 2;
-                                    } break;
-                                    case VIDEO_REQUEST_GET_RES: {
-                                        uint16_t wObjectiveFocalLength = 0x0001;
-                                        memcpy(*data, (uint8_t *)&wObjectiveFocalLength, 2);
-                                        *len = 2;
-                                    } break;
-                                    case VIDEO_REQUEST_GET_INFO:
-                                        (*data)[0] = 0x03; //struct video_camera_capabilities
-                                        *len = 1;
-                                        break;
-                                    case VIDEO_REQUEST_GET_DEF: {
-                                        uint16_t wObjectiveFocalLength = 0x0064;
-                                        memcpy(*data, (uint8_t *)&wObjectiveFocalLength, 2);
-                                        *len = 2;
-                                    } break;
-                                    default:
-                                        USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", setup->bRequest);
-                                        return -1;
-                                }
-                                break;
-                            case VIDEO_CT_ROLL_ABSOLUTE_CONTROL:
-                                switch (setup->bRequest) {
-                                    case VIDEO_REQUEST_GET_CUR: {
-                                        uint16_t wRollAbsolute = 0x0000;
-                                        memcpy(*data, (uint8_t *)&wRollAbsolute, 2);
-                                        *len = 2;
-                                    } break;
-                                    case VIDEO_REQUEST_GET_MIN: {
-                                        uint16_t wRollAbsolute = 0x0000;
-                                        memcpy(*data, (uint8_t *)&wRollAbsolute, 2);
-                                        *len = 2;
-                                    } break;
-                                    case VIDEO_REQUEST_GET_MAX: {
-                                        uint16_t wRollAbsolute = 0x00ff;
-                                        memcpy(*data, (uint8_t *)&wRollAbsolute, 2);
-                                        *len = 2;
-                                    } break;
-                                    case VIDEO_REQUEST_GET_RES: {
-                                        uint16_t wRollAbsolute = 0x0001;
-                                        memcpy(*data, (uint8_t *)&wRollAbsolute, 2);
-                                        *len = 2;
-                                    } break;
-                                    case VIDEO_REQUEST_GET_INFO:
-                                        (*data)[0] = 0x03; //struct video_camera_capabilities
-                                        *len = 1;
-                                        break;
-                                    case VIDEO_REQUEST_GET_DEF: {
-                                        uint16_t wRollAbsolute = 0x0000;
-                                        memcpy(*data, (uint8_t *)&wRollAbsolute, 2);
-                                        *len = 2;
-                                    } break;
-                                    default:
-                                        USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", setup->bRequest);
-                                        return -1;
-                                }
-                                break;
-                            case VIDEO_CT_FOCUS_AUTO_CONTROL:
-                                switch (setup->bRequest) {
-                                    case VIDEO_REQUEST_GET_CUR: {
-                                        uint16_t wFocusAuto = 0x0000;
-                                        memcpy(*data, (uint8_t *)&wFocusAuto, 2);
-                                        *len = 2;
-                                    } break;
-                                    default:
-                                        USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", setup->bRequest);
-                                        return -1;
-                                }
-                                break;
-                            default:
-                                USB_LOG_WRN("Unhandled Video Class control selector 0x%02x\r\n", control_selector);
-                                return -1;
-                        }
-                    } else {
-                        USB_LOG_WRN("Unhandled Video Class wTerminalType 0x%02x\r\n", entity_info->wTerminalType);
-                        return -2;
-                    }
+                    if (uvc_vc_callbacks->uvc_vc_input_terminal_handler)
+                        return uvc_vc_callbacks->uvc_vc_input_terminal_handler(&usbd_video_cfg, entity_info->wTerminalType,
+                                                                               setup, data, len);
                     break;
                 case VIDEO_VC_OUTPUT_TERMINAL_DESCRIPTOR_SUBTYPE:
                     break;
                 case VIDEO_VC_SELECTOR_UNIT_DESCRIPTOR_SUBTYPE:
                     break;
                 case VIDEO_VC_PROCESSING_UNIT_DESCRIPTOR_SUBTYPE:
-                    switch (control_selector) {
-                        case VIDEO_PU_BACKLIGHT_COMPENSATION_CONTROL:
-                            switch (setup->bRequest) {
-                                case VIDEO_REQUEST_GET_CUR: {
-                                    uint16_t wBacklightCompensation = 0x0004;
-                                    memcpy(*data, (uint8_t *)&wBacklightCompensation, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_MIN: {
-                                    uint16_t wBacklightCompensation = 0;
-                                    memcpy(*data, (uint8_t *)&wBacklightCompensation, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_MAX: {
-                                    uint16_t wBacklightCompensation = 8;
-                                    memcpy(*data, (uint8_t *)&wBacklightCompensation, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_RES: {
-                                    uint16_t wBacklightCompensation = 1;
-                                    memcpy(*data, (uint8_t *)&wBacklightCompensation, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_INFO:
-                                    (*data)[0] = 0x03; //struct video_camera_capabilities
-                                    *len = 1;
-                                    break;
-                                case VIDEO_REQUEST_GET_DEF: {
-                                    uint16_t wBacklightCompensation = 4;
-                                    memcpy(*data, (uint8_t *)&wBacklightCompensation, 2);
-                                    *len = 2;
-                                } break;
-                                default:
-                                    USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", setup->bRequest);
-                                    return -1;
-                            }
-                            break;
-                        case VIDEO_PU_BRIGHTNESS_CONTROL:
-                            switch (setup->bRequest) {
-                                case VIDEO_REQUEST_SET_CUR: {
-                                    uint16_t wBrightness = (uint16_t)(*data)[1] << 8 | (uint16_t)(*data)[0];
-                                    (void)wBrightness;
-                                    USB_LOG_INFO("Video set brightness:%d\r\n", wBrightness);
-                                } break;
-                                case VIDEO_REQUEST_GET_CUR: {
-                                    uint16_t wBrightness = 0x0080;
-                                    memcpy(*data, (uint8_t *)&wBrightness, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_MIN: {
-                                    uint16_t wBrightness = 0x0001;
-                                    memcpy(*data, (uint8_t *)&wBrightness, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_MAX: {
-                                    uint16_t wBrightness = 0x00ff;
-                                    memcpy(*data, (uint8_t *)&wBrightness, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_RES: {
-                                    uint16_t wBrightness = 0x0001;
-                                    memcpy(*data, (uint8_t *)&wBrightness, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_INFO:
-                                    (*data)[0] = 0x03; //struct video_camera_capabilities
-                                    *len = 1;
-                                    break;
-                                case VIDEO_REQUEST_GET_DEF: {
-                                    uint16_t wBrightness = 0x0080;
-                                    memcpy(*data, (uint8_t *)&wBrightness, 2);
-                                    *len = 2;
-                                } break;
-                                default:
-                                    USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", setup->bRequest);
-                                    return -1;
-                            }
-                            break;
-                        case VIDEO_PU_CONTRAST_CONTROL:
-                            switch (setup->bRequest) {
-                                case VIDEO_REQUEST_GET_CUR: {
-                                    uint16_t wContrast = 0x0080;
-                                    memcpy(*data, (uint8_t *)&wContrast, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_MIN: {
-                                    uint16_t wContrast = 0x0001;
-                                    memcpy(*data, (uint8_t *)&wContrast, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_MAX: {
-                                    uint16_t wContrast = 0x00ff;
-                                    memcpy(*data, (uint8_t *)&wContrast, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_RES: {
-                                    uint16_t wContrast = 0x0001;
-                                    memcpy(*data, (uint8_t *)&wContrast, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_INFO:
-                                    (*data)[0] = 0x03; //struct video_camera_capabilities
-                                    *len = 1;
-                                    break;
-                                case VIDEO_REQUEST_GET_DEF: {
-                                    uint16_t wContrast = 0x0080;
-                                    memcpy(*data, (uint8_t *)&wContrast, 2);
-                                    *len = 2;
-                                } break;
-                                default:
-                                    USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", setup->bRequest);
-                                    return -1;
-                            }
-                            break;
-                        case VIDEO_PU_HUE_CONTROL:
-                            switch (setup->bRequest) {
-                                case VIDEO_REQUEST_GET_CUR: {
-                                    uint16_t wHue = 0x0080;
-                                    memcpy(*data, (uint8_t *)&wHue, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_MIN: {
-                                    uint16_t wHue = 0x0001;
-                                    memcpy(*data, (uint8_t *)&wHue, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_MAX: {
-                                    uint16_t wHue = 0x00ff;
-                                    memcpy(*data, (uint8_t *)&wHue, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_RES: {
-                                    uint16_t wHue = 0x0001;
-                                    memcpy(*data, (uint8_t *)&wHue, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_INFO:
-                                    (*data)[0] = 0x03; //struct video_camera_capabilities
-                                    *len = 1;
-                                    break;
-                                case VIDEO_REQUEST_GET_DEF: {
-                                    uint16_t wHue = 0x0080;
-                                    memcpy(*data, (uint8_t *)&wHue, 2);
-                                    *len = 2;
-                                } break;
-                                default:
-                                    USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", setup->bRequest);
-                                    return -1;
-                            }
-                            break;
-                        case VIDEO_PU_SATURATION_CONTROL:
-                            switch (setup->bRequest) {
-                                case VIDEO_REQUEST_GET_MIN: {
-                                    uint16_t wSaturation = 0x0001;
-                                    memcpy(*data, (uint8_t *)&wSaturation, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_MAX: {
-                                    uint16_t wSaturation = 0x00ff;
-                                    memcpy(*data, (uint8_t *)&wSaturation, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_RES: {
-                                    uint16_t wSaturation = 0x0001;
-                                    memcpy(*data, (uint8_t *)&wSaturation, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_INFO:
-                                    (*data)[0] = 0x03; //struct video_camera_capabilities
-                                    *len = 1;
-                                    break;
-                                case VIDEO_REQUEST_GET_DEF: {
-                                    uint16_t wSaturation = 0x0080;
-                                    memcpy(*data, (uint8_t *)&wSaturation, 2);
-                                    *len = 2;
-                                } break;
-                                default:
-                                    USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", setup->bRequest);
-                                    return -1;
-                            }
-                            break;
-                        case VIDEO_PU_SHARPNESS_CONTROL:
-                            switch (setup->bRequest) {
-                                case VIDEO_REQUEST_GET_MIN: {
-                                    uint16_t wSharpness = 0x0001;
-                                    memcpy(*data, (uint8_t *)&wSharpness, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_MAX: {
-                                    uint16_t wSharpness = 0x00ff;
-                                    memcpy(*data, (uint8_t *)&wSharpness, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_RES: {
-                                    uint16_t wSharpness = 0x0001;
-                                    memcpy(*data, (uint8_t *)&wSharpness, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_INFO:
-                                    (*data)[0] = 0x03; //struct video_camera_capabilities
-                                    *len = 1;
-                                    break;
-                                case VIDEO_REQUEST_GET_DEF: {
-                                    uint16_t wSharpness = 0x0080;
-                                    memcpy(*data, (uint8_t *)&wSharpness, 2);
-                                    *len = 2;
-                                } break;
-                                default:
-                                    USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", setup->bRequest);
-                                    return -1;
-                            }
-                            break;
-                        case VIDEO_PU_GAIN_CONTROL:
-                            switch (setup->bRequest) {
-                                case VIDEO_REQUEST_GET_MIN: {
-                                    uint16_t wGain = 0;
-                                    memcpy(*data, (uint8_t *)&wGain, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_MAX: {
-                                    uint16_t wGain = 255;
-                                    memcpy(*data, (uint8_t *)&wGain, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_RES: {
-                                    uint16_t wGain = 1;
-                                    memcpy(*data, (uint8_t *)&wGain, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_INFO:
-                                    (*data)[0] = 0x03; //struct video_camera_capabilities
-                                    *len = 1;
-                                    break;
-                                case VIDEO_REQUEST_GET_DEF: {
-                                    uint16_t wGain = 255;
-                                    memcpy(*data, (uint8_t *)&wGain, 2);
-                                    *len = 2;
-                                } break;
-                                default:
-                                    USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", setup->bRequest);
-                                    return -1;
-                            }
-                            break;
-                        case VIDEO_PU_WHITE_BALANCE_TEMPERATURE_CONTROL:
-                            switch (setup->bRequest) {
-                                case VIDEO_REQUEST_GET_CUR: {
-                                    uint16_t wWhiteBalance_Temprature = 417;
-                                    memcpy(*data, (uint8_t *)&wWhiteBalance_Temprature, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_MIN: {
-                                    uint16_t wWhiteBalance_Temprature = 300;
-                                    memcpy(*data, (uint8_t *)&wWhiteBalance_Temprature, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_MAX: {
-                                    uint16_t wWhiteBalance_Temprature = 600;
-                                    memcpy(*data, (uint8_t *)&wWhiteBalance_Temprature, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_RES: {
-                                    uint16_t wWhiteBalance_Temprature = 1;
-                                    memcpy(*data, (uint8_t *)&wWhiteBalance_Temprature, 2);
-                                    *len = 2;
-                                } break;
-                                case VIDEO_REQUEST_GET_INFO:
-                                    (*data)[0] = 0x03; //struct video_camera_capabilities
-                                    *len = 1;
-                                    break;
-                                case VIDEO_REQUEST_GET_DEF: {
-                                    uint16_t wWhiteBalance_Temprature = 417;
-                                    memcpy(*data, (uint8_t *)&wWhiteBalance_Temprature, 2);
-                                    *len = 2;
-                                } break;
-                                default:
-                                    USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", setup->bRequest);
-                                    return -1;
-                            }
-                            break;
-                        case VIDEO_PU_WHITE_BALANCE_TEMPERATURE_AUTO_CONTROL:
-                            switch (setup->bRequest) {
-                                case VIDEO_REQUEST_GET_CUR: {
-                                    uint16_t wWhiteBalance_Temprature_Auto = 1;
-                                    memcpy(*data, (uint8_t *)&wWhiteBalance_Temprature_Auto, 1);
-                                    *len = 1;
-                                } break;
-                                default:
-                                    USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", setup->bRequest);
-                                    return -1;
-                            }
-                            break;
-                        default:
-                            usbd_video_cfg.error_code = 0x06;
-                            USB_LOG_WRN("Unhandled Video Class control selector 0x%02x\r\n", control_selector);
-                            return -1;
-                    }
+                    if (uvc_vc_callbacks->uvc_vc_processing_unit_handler)
+                        return uvc_vc_callbacks->uvc_vc_processing_unit_handler(&usbd_video_cfg, setup, data, len);
                     break;
                 case VIDEO_VC_EXTENSION_UNIT_DESCRIPTOR_SUBTYPE:
+                    if (uvc_vc_callbacks->uvc_vc_extension_unit_handler)
+                        return uvc_vc_callbacks->uvc_vc_extension_unit_handler(&usbd_video_cfg, setup, data, len);
                     break;
                 case VIDEO_VC_ENCODING_UNIT_DESCRIPTOR_SUBTYPE:
                     break;

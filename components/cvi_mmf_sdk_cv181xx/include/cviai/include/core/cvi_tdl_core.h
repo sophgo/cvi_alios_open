@@ -238,6 +238,19 @@ DLL_EXPORT CVI_S32 CVI_TDL_OpenModel(cvitdl_handle_t handle, CVI_TDL_SUPPORTED_M
                                     const char *filepath);
 
 /**
+ * @brief Open model with given buffer.
+ *
+ * @param handle An TDL SDK handle.
+ * @param model Supported model id.
+ * @param buf The buffer of cvimodel file.
+ * @param size The size (in bytes) of cvimodel file.
+ * @return int Return CVI_TDL_SUCCESS if load model succeed.
+ */
+
+DLL_EXPORT CVI_S32 CVI_TDL_OpenModel_FromBuffer(cvitdl_handle_t handle, CVI_TDL_SUPPORTED_MODEL_E config,
+                                                int8_t *buf, uint32_t size);
+
+/**
  * @brief Get set model path from supported models.
  *
  * @param handle An TDL SDK handle.

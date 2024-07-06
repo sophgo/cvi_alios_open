@@ -39,7 +39,11 @@ boot_end * (unsigned short *)(TIME_RECORDS_ADDR+22);
 
 void boot_load_and_jump(void)
 {
+#if CONFIG_PARTITION_SUPPORT_SPINANDFLASH
+    const char *jump_to = "prima";
+#else
     const char *jump_to = "prim";
+#endif
     unsigned long static_addr;
     unsigned long load_addr;
     unsigned long *p_load_addr = &load_addr;

@@ -80,13 +80,14 @@ struct state_machine {
 	struct state_transform* transform;
 };
 
+// 64byte Alignment
 struct cvi_upgrade_chunk_header {
 	uint32_t  chunk_type;
 	uint32_t  chunk_data_size;
 	uint32_t  part_offset;
 	uint32_t  part_size;
 	uint32_t  crc_checksum;
-	uint32_t  reserved[12];
+	uint32_t  reserved[11];
 };
 
 struct upgrade_chunk_header {
@@ -139,18 +140,18 @@ static int get_upgrade_flag(void)
 	return -1;
 }
 
-// static void clear_upgrade_flag(void)
-// {
-// 	struct upgrade_ctx *ctx = &s_ctx;
+static void clear_upgrade_flag(void)
+{
+	struct upgrade_ctx *ctx = &s_ctx;
 
-// 	if (!ctx->env_buffer) {
-// 		return -1;
-// 	}
+	if (!ctx->env_buffer) {
+		return ;
+	}
 
-// 	ctx->env_buffer[1] = 0;
-// 	csi_spiflash_erase(&ctx->spiflash_handle, FLASH_OFF_ENV, ctx->spiflash_info.page_size);
-// 	csi_spiflash_program(&ctx->spiflash_handle, FLASH_OFF_ENV, ctx->env_buffer, ctx->spiflash_info.page_size);
-// }
+	ctx->env_buffer[1] = 0;
+	csi_spiflash_erase(&ctx->spiflash_handle, ctx->spiflash_info.flash_size - ctx->spiflash_info.sector_size, ctx->spiflash_info.sector_size);
+	csi_spiflash_program(&ctx->spiflash_handle, ctx->spiflash_info.flash_size - ctx->spiflash_info.sector_size, ctx->env_buffer, ctx->spiflash_info.page_size);
+}
 
 static int ctx_init(void)
 {
@@ -176,7 +177,7 @@ static int ctx_init(void)
 	}
 	memset(ctx->env_buffer, 0, ctx->spiflash_info.page_size);
 
-	ret = csi_spiflash_read(&ctx->spiflash_handle, FLASH_OFF_ENV, ctx->env_buffer, ctx->spiflash_info.page_size);
+	ret = csi_spiflash_read(&ctx->spiflash_handle, ctx->spiflash_info.flash_size - ctx->spiflash_info.sector_size, ctx->env_buffer, ctx->spiflash_info.page_size);
 	if (ret < 0) {
 		LOG("csi_spiflash_read failed with %d\n", ret);
 		return -1;
@@ -571,6 +572,7 @@ static int action_upload_version(void *args)
 
 struct state_transform state_table[] = {
 	{STATE_INIT, EVENT_ENTER_UPGRADE, STATE_UPGRADE_READY, action_enter_upgrade},
+	{STATE_INIT, EVENT_EXIT_UPGRADE, STATE_BUTT, action_exit_upgrade},
 
 	{STATE_UPGRADE_READY, EVENT_GET_VERSION, STATE_UPGRADE_START, action_get_version},
 	{STATE_UPGRADE_READY, EVENT_EXIT_UPGRADE, STATE_BUTT, action_exit_upgrade},
@@ -725,6 +727,7 @@ int upgrade_init(void)
 	uint8_t ret_msg[PROTOCOL_LEN] = {0xAA, 0x55, 0xE9, ctx->upgrade_status, 0x0, 0x00, 0x00, 0x00};
 	cdc_acm_write(ret_msg, PROTOCOL_LEN);
 
+	clear_upgrade_flag();
 	cdc_acm_deinit();
 	LOG("cdc acm deinit\n");
 

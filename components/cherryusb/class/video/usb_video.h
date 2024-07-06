@@ -163,6 +163,7 @@
 
 /*! @brief Video device class-specific Extension Unit control selector */
 #define VIDEO_XU_CONTROL_UNDEFINED 0x00U
+#define VIDEO_XU_REBOOT_CONTROL    0x01U
 
 /*! @brief Video device class-specific VideoStreaming Interface control selector */
 #define VIDEO_VS_CONTROL_UNDEFINED            0x00U

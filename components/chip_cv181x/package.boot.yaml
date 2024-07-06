@@ -156,7 +156,7 @@ source_file:
   - src/drivers/dma/cvi/src/cvi_dma.c
   - src/drivers/dma/cvi/src/csi_dma.c
   - src/drivers/spiflash/v2.0/src/*.c
- # - src/drivers/spinand/v2.0/src/*.c
+  - src/drivers/spinand/v2.0/src/*.c
   - src/drivers/spi/dw/v2.0/src/*.c
   - src/drivers/timer/cvi/v1/src/*.c
  # - src/drivers/rtc/cvi/src/cvi_rtc.c
