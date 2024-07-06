@@ -5,10 +5,17 @@
 #include <stdlib.h>
 #include "tiny_bbm.h"
 
+#if CONFIG_DEBUG
 #define LOGD(mod, fmt, ...) printf("[bbm][D][%s,%d] "fmt"\r\n", __func__, __LINE__, ##__VA_ARGS__)
 #define LOGI(mod, fmt, ...) printf("[bbm][I][%s,%d] "fmt"\r\n", __func__, __LINE__, ##__VA_ARGS__)
 #define LOGW(mod, fmt, ...) printf("[bbm][W][%s,%d] "fmt"\r\n", __func__, __LINE__, ##__VA_ARGS__)
 #define LOGE(mod, fmt, ...) printf("[bbm][E][%s,%d] "fmt"\r\n", __func__, __LINE__, ##__VA_ARGS__)
+#else
+#define LOGD(mod, fmt, ...)
+#define LOGI(mod, fmt, ...)
+#define LOGW(mod, fmt, ...)
+#define LOGE(mod, fmt, ...) printf("[bbm][E][%s,%d] "fmt"\r\n", __func__, __LINE__, ##__VA_ARGS__)
+#endif
 
 #define TAG "tinybbm"
 

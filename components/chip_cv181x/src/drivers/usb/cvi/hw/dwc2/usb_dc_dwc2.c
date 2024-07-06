@@ -1237,21 +1237,11 @@ void USBD_IRQHandler(void)
                     if ((epint & USB_OTG_DOEPINT_XFRC) == USB_OTG_DOEPINT_XFRC) {
                         if (ep_idx == 0) {
                             if (g_dwc2_udc.out_ep[ep_idx].xfer_len == 0) {
-                            //     if((epint & USB_OTG_DOEPINT_STUP) == USB_OTG_DOEPINT_STUP
-                            //         || ((epint & USB_OTG_DOEPINT_STUP) != USB_OTG_DOEPINT_STUP && (epint & USB_OTG_DOEPINT_STPKTRX) == USB_OTG_DOEPINT_STPKTRX )){
-                            //             #if CONFIG_USB_DWC2_DMA_ENABLE
-                            //             csi_dcache_invalid_range((uint64_t *)&g_dwc2_udc.setup,roundup(sizeof(g_dwc2_udc.setup),64));
-                            //             #endif
-                            //             usbd_event_ep0_setup_complete_handler((uint8_t *)&g_dwc2_udc.setup);
-                            //         }else{
-                            //             if((epint & USB_OTG_DOEPINT_STPKTRX) != USB_OTG_DOEPINT_STPKTRX){
-                            //                 dwc2_ep0_start_read_setup((uint8_t *)&g_dwc2_udc.setup);
-                            //             }
-                            //         }
                                 /* Out status, start reading setup */
                                 //udelay(3 * 1000);
                                 // aos_debug_printf("A\n");
-                                dwc2_ep0_start_read_setup((uint8_t *)&g_dwc2_udc.setup);
+                                if (!((epint & USB_OTG_DOEPINT_STUP) || (DoepintReg & USB_OTG_DOEPINT_STUP)))
+                                    dwc2_ep0_start_read_setup((uint8_t *)&g_dwc2_udc.setup);
                                 // aos_debug_printf("B\n");
                             } else {
                                 g_dwc2_udc.out_ep[ep_idx].actual_xfer_len = g_dwc2_udc.out_ep[ep_idx].xfer_len - ((USB_OTG_OUTEP(ep_idx)->DOEPTSIZ) & USB_OTG_DOEPTSIZ_XFRSIZ);
@@ -1306,7 +1296,7 @@ void USBD_IRQHandler(void)
                         }
                     }
 
-                    if ((epint & USB_OTG_DOEPINT_STUP) == USB_OTG_DOEPINT_STUP) {
+                    if ((epint & USB_OTG_DOEPINT_STUP) || (DoepintReg & USB_OTG_DOEPINT_STUP)) {
                         #if CONFIG_USB_DWC2_DMA_ENABLE
                         if(fifo_dma_mode == ON){
                             csi_dcache_invalid_range( (uint64_t *)&g_dwc2_udc.setup,
@@ -1480,12 +1470,12 @@ void USBD_IRQHandler(void)
         #endif
             USB_OTG_GLB->GINTSTS |= USB_OTG_GINTSTS_WKUINT;
         }
-    #if CONFIG_USB_BULK_UVC
+        #if CONFIG_USB_BULK_UVC
         if (gint_status & USB_OTG_GINTSTS_DATAFSUSP) {
             USB_LOG_ERR("USB_OTG_GINTSTS_DATAFSUSP\n");
             USB_OTG_GLB->GINTSTS |= USB_OTG_GINTSTS_DATAFSUSP;
         }
-    #endif
+        #endif
         if (gint_status & USB_OTG_GINTSTS_OTGINT) {
             temp = USB_OTG_GLB->GOTGINT;
             if ((temp & USB_OTG_GOTGINT_SEDET) == USB_OTG_GOTGINT_SEDET) {
@@ -1495,4 +1485,3 @@ void USBD_IRQHandler(void)
         }
     }
 }
-

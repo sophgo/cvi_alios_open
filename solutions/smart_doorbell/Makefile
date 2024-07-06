@@ -11,6 +11,7 @@ STRIP:=riscv64-unknown-elf-strip
 HOST_TOOLS := $(CURDIR)/../../host-tools/Xuantie-900-gcc-elf-newlib-x86_64-V2.6.1/bin
 export PATH := $(HOST_TOOLS):$(PATH)
 PROJECT := turnkey
+CHIP_ARCH := cv180x
 .PHONY:startup
 startup: all
 
@@ -20,7 +21,7 @@ all:
 	$(CPRE) if [ -e $(CURDIR)/prebuild.sh ]; then bash $(CURDIR)/prebuild.sh $(shell echo $(CHIP_ARCH) | tr A-Z a-z); fi
 	$(CPRE) if [ -e package.yaml ]; then rm -f package.yaml; fi
 	$(CPRE) ln -sf customization/$(PROJECT)/package.$(PROJECT).yaml package.yaml
-	$(CPRE) scons $(VERB) --board=$(BOARD) -j4
+	$(CPRE) scons $(VERB) --board=$(BOARD) -j$(NPROC)
 	$(CPRE) if [ -e $(CURDIR)/yoc_sdk/lib/libcviai.a ]; then $(STRIP) --strip-unneeded $(CURDIR)/yoc_sdk/lib/libcviai.a; fi
 	@cp yoc.bin $(MK_GENERATED_IMGS_PATH)/data/prim
 ifeq ($(YOC_COMPRESS),y)

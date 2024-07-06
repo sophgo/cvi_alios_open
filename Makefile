@@ -1,9 +1,8 @@
 SRCTREE := $(CURDIR)
 YOC_FILE := $(SRCTREE)/.yoc
-#NPROC ?= $(shell expr $(shell nproc) - 1)
-NPROC := 7
+NPROC ?= $(shell nproc)
 $(info "NPROC = $(NPROC)")
-export SRCTREE OBJYOC_FILE NPROC
+export SRCTREE YOC_FILE NPROC
 
 ifeq ("$(wildcard $(YOC_FILE))","")
 $(error ".yoc is not present, please do 'yoc init' first!!")
@@ -14,12 +13,10 @@ CC := $(HOST_TOOLS)/riscv64-unknown-elf-gcc
 CXX := $(HOST_TOOLS)/riscv64-unknown-elf-g++
 AR := $(HOST_TOOLS)/riscv64-unknown-elf-ar
 STRIP := $(HOST_TOOLS)/riscv64-unknown-elf-strip
-CHIP_ARCH := cv181x
 export CC CXX AR STRIP
 export PATH := $(HOST_TOOLS):$(PATH)
-export CHIP_ARCH
 #
-TOPSUBDIRS := smart_doorbell autotest smart_pad cv181x_boot peripherals_test usb_cam ipc barcode_scan sophpi
+TOPSUBDIRS := smart_doorbell autotest smart_pad cv181x_boot peripherals_test usb_cam ipc barcode_scan sophpi mpi_sample mpi_self_test
 #
 .PHONY:all clean install $(TOPSUBDIRS)
 

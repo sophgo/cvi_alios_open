@@ -375,6 +375,7 @@ static CVI_S32 _vi_get_chn_frame(CVI_U8 chn, CVI_U8 loop)
 		int fd = aos_open(img_name, O_CREAT | O_RDWR | O_TRUNC);
 		if (fd <= 0) {
 			printf("aos_open dst file failed\n");
+			CVI_VI_ReleaseChnFrame(0, chn, &stVideoFrame);
 			return CVI_FAILURE;
 		}
 
@@ -565,6 +566,7 @@ void dump_vi_raw(int32_t argc, char **argv)
 				fd = aos_open(img_name, O_CREAT | O_RDWR | O_TRUNC);
 				if (fd <= 0) {
 					printf("aos_open dst file failed\n");
+					CVI_VI_ReleasePipeFrame(dev, stVideoFrame);
 					return;
 				}
 

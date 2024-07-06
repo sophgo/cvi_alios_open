@@ -25,7 +25,7 @@ void YOC_SYSTEM_FsVfsInit()
 		LOGE("app", "aos_vfs_init failed(%d).\n", ret);
 
 
-#if CONFIG_SUPPORT_NORFLASH
+#if CONFIG_SUPPORT_NORFLASH || CONFIG_PARTITION_SUPPORT_SPINANDFLASH
 	int fatfs_en = 0;
     ret = partition_init();
     if(ret >= 0)

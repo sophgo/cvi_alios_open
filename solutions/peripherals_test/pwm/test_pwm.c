@@ -46,6 +46,7 @@ void test_pwm(int32_t argc, char **argv)
             polarity = atoi(argv[6]);
 
             csi_pwm_init(&pwm, bank);
+            csi_pwm_out_stop(&pwm, channel);
             csi_pwm_out_config(&pwm, channel, period_us, duty_us,
                                 polarity ? PWM_POLARITY_HIGH : PWM_POLARITY_LOW);
             csi_pwm_out_start(&pwm, channel);

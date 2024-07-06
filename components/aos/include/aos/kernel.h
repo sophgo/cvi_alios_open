@@ -947,6 +947,12 @@ void aos_free_align(void *ptr);
  */
 void aos_reboot(void);
 
+//////////////////////////////////////////////////////////////////////////////////
+/**
+ * Poweroff system.
+ */
+void aos_poweroff(void);
+
 /**
  * Get HZ(ticks per second).
  *

@@ -50,6 +50,8 @@
 #include "cvi_sys.h"
 #include "gui_display.h"
 
+#include "sensor_i2c.h"
+
 #if CONFIG_APP_DUMP_FRAME
 #include <drv/tick.h>
 #include "fatfs_vfs.h"
@@ -58,69 +60,7 @@
 
 static PARAM_VENC_CFG_S *g_pstVencCfg = NULL;
 static int g_mediaVideoRunStatus = 0;
-#if 0
-CVI_S32 _getFileSize(FILE *fp, CVI_U32 *size)
-{
-	CVI_S32 ret = CVI_SUCCESS;
 
-	fseek(fp, 0L, SEEK_END);
-	*size = ftell(fp);
-	rewind(fp);
-
-	return ret;
-}
-
-void * load_para_from_bin(void *data)
-{
-	CVI_S32 ret = CVI_SUCCESS;
-	FILE *fp = NULL;
-	CVI_U8 *buf = NULL;
-	CVI_CHAR binName[BIN_FILE_LENGTH] = { 0 };
-	CVI_U32 u32TempLen = 0, u32FileSize = 0;
-	enum CVI_BIN_SECTION_ID id = (enum CVI_BIN_SECTION_ID)data;
-
-	CVI_BIN_GetBinName(binName);
-	fp = fopen((const CVI_CHAR *)binName, "rb");
-	if (fp == NULL) {
-		MEDIABUG_PRINTF("Can't find bin(%s)\n", binName);
-		ret = CVI_FAILURE;
-		goto ERROR_HANDLER;
-	}
-	_getFileSize(fp, &u32FileSize);
-
-	buf = (CVI_U8 *)malloc(u32FileSize);
-	if (buf == NULL) {
-		ret = CVI_FAILURE;
-		MEDIABUG_PRINTF("Allocate memory fail\n");
-		goto ERROR_HANDLER;
-	}
-	u32TempLen = fread(buf, u32FileSize, 1, fp);
-	if (u32TempLen <= 0) {
-		MEDIABUG_PRINTF("read data to buff fail!\n");
-		ret = CVI_FAILURE;
-		goto ERROR_HANDLER;
-	}
-
-	if (id >= CVI_BIN_ID_ISP0 && id <= CVI_BIN_ID_ISP3) {
-		CVI_BIN_LoadParamFromBin(CVI_BIN_ID_HEADER, buf);
-	}
-	ret = CVI_BIN_LoadParamFromBin(id, buf);
-	if (ret != CVI_SUCCESS) {
-		MEDIABUG_PRINTF("id[%d] Bin Version not match, use default parameters\n", id);
-	}
-
-ERROR_HANDLER:
-	if (fp != NULL) {
-		fclose(fp);
-	}
-	if (buf != NULL) {
-		free(buf);
-	}
-
-
-	return 0;
-}
-#endif
 static int start_isp(ISP_PUB_ATTR_S stPubAttr, VI_PIPE ViPipe)
 {
 	//Param init
@@ -868,7 +808,9 @@ int MEDIA_VIDEO_SysInit()
     cvi_snsr_i2c_probe();
     vi_core_init();
     vpss_core_init();
+#if (CONFIG_APP_VO_SUPPORT)
     vo_core_init();
+#endif
     rgn_core_init();
     cvi_ldc_probe();
 #if (CONFIG_SUPPORT_TEST_IVE == 1)
@@ -1401,7 +1343,10 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
                 stAttr.stRcAttr.stMjpegFixQp.fr32DstFrameRate = pstVecncChnCtx->stRcParam.u8DstFrameRate;
                 stAttr.stRcAttr.stMjpegFixQp.u32Qfactor = pstVecncChnCtx->stRcParam.u8Qfactor;
             } else if (stAttr.stRcAttr.enRcMode == VENC_RC_MODE_MJPEGVBR) {
-                return CVI_FAILURE;
+		stAttr.stRcAttr.stMjpegVbr.bVariFpsEn = pstVecncChnCtx->stRcParam.u8VariFpsEn;
+		stAttr.stRcAttr.stMjpegVbr.fr32DstFrameRate = pstVecncChnCtx->stRcParam.u8DstFrameRate;
+		stAttr.stRcAttr.stMjpegVbr.u32MaxBitRate = pstVecncChnCtx->stRcParam.u32MaxBitRate;
+		stAttr.stRcAttr.stMjpegVbr.u32StatTime = pstVecncChnCtx->stRcParam.u8StartTime;
             } else {
                 return CVI_FAILURE;
             }
@@ -1498,12 +1443,14 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
 
         case PT_MJPEG: {
             if (stAttr.stRcAttr.enRcMode == VENC_RC_MODE_MJPEGCBR) {
-                stRcParam.stParamMjpegCbr.u32MaxQfactor = 99;
-                stRcParam.stParamMjpegCbr.u32MinQfactor = 1;
+		stRcParam.stParamMjpegCbr.u32MaxQfactor = 99;
+		stRcParam.stParamMjpegCbr.u32MinQfactor = 1;
             } else if (stAttr.stRcAttr.enRcMode == VENC_RC_MODE_MJPEGFIXQP) {
                 break;
             } else if (stAttr.stRcAttr.enRcMode == VENC_RC_MODE_MJPEGVBR) {
-                return CVI_FAILURE;
+		stRcParam.stParamMjpegVbr.u32MaxQfactor = pstVecncChnCtx->stRcParam.u8MaxQfactor;
+		stRcParam.stParamMjpegVbr.u32MinQfactor = pstVecncChnCtx->stRcParam.u8MinQfactor;
+		stRcParam.stParamMjpegVbr.s32ChangePos  = pstVecncChnCtx->stRcParam.u8ChangePos;
             } else {
                 return CVI_FAILURE;
             }
@@ -1749,30 +1696,6 @@ int MEDIA_VIDEO_VencRequstIDR(int VencChn)
     return CVI_VENC_RequestIDR(VencChn,0);
 }
 
-#if (CONFIG_ENABLE_FASTBOOT == 1)
-void efuse_fastboot()
-{
-    csi_efuse_t efuse = {0};
-    csi_efuse_init(&efuse, 0);
-    int ret = CVI_EFUSE_EnableFastBoot();
-    if (ret == CVI_SUCCESS) {
-        printf("fast boot enable\n");
-    }else {
-        printf("CVI_EFUSE_EnableFastBoot ret=%d\n", ret);
-    }
-
-    ret = CVI_EFUSE_IsFastBootEnabled();
-    if (ret == CVI_SUCCESS) {
-        printf("fast boot enable\n");
-    }
-    else {
-        printf("CVI_EFUSE_IsFastBootEnabled ret=%d\n", ret);
-    }
-
-    csi_efuse_uninit(&efuse);
-}
-#endif
-
 #if CONFIG_BOOT_FREQ_HIGHER
 void efuse_bootFreqHigher()
 {
@@ -1848,9 +1771,6 @@ static int _MEDIA_VIDEO_Step2Init()
 #if (CONFIG_APP_AI_SUPPORT == 1)
     APP_AiStart();
 #endif
-#if (CONFIG_ENABLE_FASTBOOT == 1)
-    efuse_fastboot();
-#endif
 #if CONFIG_BOOT_FREQ_HIGHER
     efuse_bootFreqHigher();
 #endif
@@ -1888,54 +1808,17 @@ int MEDIA_VIDEO_Deinit()
     return CVI_SUCCESS;
 }
 
-void testMedia_video_Deinit(int32_t argc, char **argv)
-{
-    MEDIA_VIDEO_Deinit();
-}
-
-void testMedia_video_init(int32_t argc, char **argv)
-{
-    MEDIA_VIDEO_Init();
-}
-
-void testMedia_switch_pipeline(int32_t argc, char **argv)
-{
-    if(argc < 2) {
-        printf("please input 0/1 chose RGB or IR\n");
-        printf("testMedia_switch_pipeline 0/1 \n");
-        return ;
-    }
-    if(atoi(argv[1]) == 0 || atoi(argv[1]) == 1) {
-        PARAM_setPipeline(atoi(argv[1]));
-    }
-}
-
 /**
- * @brief Modify frame rate ratio based in dual_switch mode
+ * @brief  Modify frame rate ratio based in dual_switch mode
  * @note
- *
- * @param  argc: the number of command line arguments
- * @param  argv: the command line arguments
- *
- * @retval
+ * @param  dstFrm0: sensor0 target frame rate
+ * @param  dstFrm1: sensor1 target frame rate
+ * @retval CVI_SUCCESS if switch sensor's frame rate ratio successfully
  */
-int switch_frame_rate_ratio(int32_t argc, char** argv) {
-    if (argc != 3) {
-        printf("Usage: switch_frame_rate_ratio dstFrm0 dstFrm1\n");
-        return CVI_FAILURE;
-    }
-    int dstFrm0 = atoi(argv[1]);
-    int dstFrm1 = atoi(argv[2]);
-
-    if (dstFrm0 == 0 || dstFrm1 == 0) {
-        printf("Input dstFrm value is invalid\n");
-        return CVI_FAILURE;
-    }
-    printf("dstFrm 0 = %d\n", dstFrm0);
-    printf("dstFrm 1 = %d\n", dstFrm1);
-
+int32_t switch_frame_rate_ratio(int32_t dstFrm0, int32_t dstFrm1)
+{
     /* Confirm target AEResponseFrame value */
-    int aeRespFrm0, aeRespFrm1;
+    int32_t aeRespFrm0, aeRespFrm1;
     if (dstFrm0 == 1) {
         aeRespFrm0 = 3;
         if (dstFrm1 == 1) {
@@ -1948,20 +1831,17 @@ int switch_frame_rate_ratio(int32_t argc, char** argv) {
         aeRespFrm1 = 3;
     }
 
-    struct timeval start, end;
-    gettimeofday(&start, NULL);
-
     /* Modify dstFrm */
-    CVI_U8 devNum = 2;
-    VI_DEV ViDev = 0;
+    uint8_t devNum = 2;
+    VI_DEV ViDev;
     VI_DEV_ATTR_S stViDevAttr[VI_MAX_DEV_NUM];
     ISP_CMOS_SENSOR_IMAGE_MODE_S stSnsrMode[VI_MAX_DEV_NUM];
     PARAM_VI_CFG_S* pstViCfg = PARAM_getViCtx();
 
-    for (int i = 0; i < devNum; i++) {
+    for (int32_t i = 0; i < devNum; i++) {
         ViDev = pstViCfg->pstDevInfo[i].u8AttachDev > 0
-                  ? VI_MAX_PHY_DEV_NUM + pstViCfg->pstDevInfo[i].u8AttachDev - 1
-                  : i;
+                ? VI_MAX_PHY_DEV_NUM + pstViCfg->pstDevInfo[i].u8AttachDev - 1
+                : i;
         /* Disable VI dev for reload dev attribute configuration */
         MEDIA_CHECK_RET(CVI_VI_DisableDev(ViDev), "CVI_VI_DisableDev fail");
 
@@ -1973,7 +1853,6 @@ int switch_frame_rate_ratio(int32_t argc, char** argv) {
         }
 
         MEDIA_CHECK_RET(getDevAttr(i, &stViDevAttr[ViDev]), "getDevAttr fail");
-        printf("stViDevAttr[ViDev].isMux = %d\n", stViDevAttr[ViDev].isMux);
         if (pstViCfg->pstDevInfo[i].isMux) {
             stViDevAttr[ViDev].isMux = pstViCfg->pstDevInfo[i].isMux;
             stViDevAttr[ViDev].switchGpioIdx = pstViCfg->pstDevInfo[i].switchGpioIdx;
@@ -1986,7 +1865,6 @@ int switch_frame_rate_ratio(int32_t argc, char** argv) {
                 stViDevAttr[2].dstFrm = dstFrm1;
             }
             stViDevAttr[ViDev].isFrmCtrl = pstViCfg->pstDevInfo[i].isFrmCtrl;
-            ;
         }
 
         MEDIA_CHECK_RET(getSnsMode(i, &stSnsrMode[i]), "stSnsrMode fail");
@@ -1998,6 +1876,78 @@ int switch_frame_rate_ratio(int32_t argc, char** argv) {
         MEDIA_CHECK_RET(CVI_VI_SetDevAttr(ViDev, &stViDevAttr[ViDev]), "CVI_VI_SetDevAttr fail");
         MEDIA_CHECK_RET(CVI_VI_EnableDev(ViDev), "CVI_VI_EnableDev fail");
     }
+    return CVI_SUCCESS;
+}
+
+/*------------------------------FOLLOWING FUNCS FOR MEDIA TEST-----------------------------------*/
+
+/**
+ * @brief  switch vpss channel's scale coefficient level
+ *
+ * @retval CVI_SUCCESS if vpss scale mode modified
+ */
+int testMedia_switch_vpss_scale_mode(int32_t argc, char** argv)
+{
+    if (argc != 2) {
+        printf("Usage: switch_vpss_scale_mode [grp] [chn] [coef_level(0~6)]\n");
+        return CVI_FAILURE;
+    }
+    int coef_level = atoi(argv[1]);
+    MEDIA_CHECK_RET(CVI_VPSS_SetChnScaleCoefLevel(0, 0, coef_level),
+                    "CVI_VPSS_SetChnScaleCoefLevel Fail");
+    VPSS_SCALE_COEF_E cur_level;
+    CVI_VPSS_GetChnScaleCoefLevel(0, 0, &cur_level);
+
+    printf("vpss grp %d chn %d cur_level = %d\n", 0, 0, cur_level);
+    return CVI_SUCCESS;
+}
+
+
+void testMedia_video_Deinit(int32_t argc, char** argv)
+{
+    MEDIA_VIDEO_Deinit();
+}
+
+void testMedia_video_init(int32_t argc, char** argv)
+{
+    MEDIA_VIDEO_Init();
+}
+
+void testMedia_switch_pipeline(int32_t argc, char** argv)
+{
+    if (argc < 2) {
+        printf("please input 0/1 chose RGB or IR\n");
+        printf("testMedia_switch_pipeline 0/1 \n");
+        return;
+    }
+    if (atoi(argv[1]) == 0 || atoi(argv[1]) == 1) {
+        PARAM_setPipeline(atoi(argv[1]));
+    }
+}
+
+
+int32_t testMedia_switch_frame_rate_ratio(int32_t argc, char** argv)
+{
+    if (argc != 3) {
+        printf("Usage: switch_frame_rate_ratio dstFrm0 dstFrm1\n");
+        return CVI_FAILURE;
+    }
+    int32_t dstFrm0 = atoi(argv[1]);
+    int32_t dstFrm1 = atoi(argv[2]);
+
+    if (dstFrm0 == 0 || dstFrm1 == 0) {
+        printf("Input dstFrm value is invalid\n");
+        return CVI_FAILURE;
+    }
+    printf("dstFrm 0 = %d\n", dstFrm0);
+    printf("dstFrm 1 = %d\n", dstFrm1);
+
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
+
+    if (switch_frame_rate_ratio(dstFrm0, dstFrm1)) {
+        return CVI_FAILURE;
+    }
 
     gettimeofday(&end, NULL);
     printf("switch_frame_rate_ratio cost time = %ldus\n",
@@ -2005,11 +1955,58 @@ int switch_frame_rate_ratio(int32_t argc, char** argv) {
 
     return CVI_SUCCESS;
 }
-ALIOS_CLI_CMD_REGISTER(switch_frame_rate_ratio, switch_frame_rate_ratio, swtich frame rate ratio in dual_switch mode);
 
-ALIOS_CLI_CMD_REGISTER(testMedia_video_init, testMedia_video_init, testMedia_video_init);
+
+/**
+ * @brief  switch video pipeline in scene of single mipi multiplex
+ * @note
+ * * when sensor doesn't support resume/standby, user should restart VI for single mipi multiplex
+ *
+ * @retval None
+ */
+void testMedia_multiplex_switch_pipeline(int32_t argc, char** argv)
+{
+    if (argc < 2) {
+        printf("please input 0/1 chose RGB or IR\n");
+        printf("testMedia_switch_pipeline 0/1 \n");
+        return;
+    }
+
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
+
+    /* For some sensors, user should set proper page select, current config is for SP2509 */
+    if (atoi(argv[1]) == 0) {
+        sensor_i2c_write(0x1, 0x3d, 0xfd, 0x0, 0x1, 0x1);
+    } else {
+        sensor_i2c_write(0x0, 0x3d, 0xfd, 0x0, 0x1, 0x1);
+    }
+
+    _MEDIA_VIDEO_ViDeInit();
+    g_mediaVideoRunStatus = 0;
+
+    /* set specific pipeline param */
+    if (atoi(argv[1]) == 0 || atoi(argv[1]) == 1) {
+        PARAM_setPipeline(atoi(argv[1]));
+    }
+
+    _MEDIA_VIDEO_ViInit();
+    g_mediaVideoRunStatus = 1;
+    gettimeofday(&end, NULL);
+    printf("switch pipeline cost time = %ldus\n",
+           (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec));
+}
+
+ALIOS_CLI_CMD_REGISTER(testMedia_switch_vpss_scale_mode, testMedia_switch_vpss_scale_mode,
+                       switch vpss scale coefficient level);
 ALIOS_CLI_CMD_REGISTER(testMedia_video_Deinit, testMedia_video_Deinit, testMedia_video_Deinit);
-ALIOS_CLI_CMD_REGISTER(testMedia_switch_pipeline, testMedia_switch_pipeline, testMedia_switch_pipeline);
+ALIOS_CLI_CMD_REGISTER(testMedia_video_init, testMedia_video_init, testMedia_video_init);
+ALIOS_CLI_CMD_REGISTER(testMedia_switch_pipeline, testMedia_switch_pipeline,
+                       testMedia_switch_pipeline);
+ALIOS_CLI_CMD_REGISTER(testMedia_switch_frame_rate_ratio, testMedia_switch_frame_rate_ratio,
+                       swtich frame rate ratio in dual_switch mode);
+ALIOS_CLI_CMD_REGISTER(testMedia_multiplex_switch_pipeline, testMedia_multiplex_switch_pipeline,
+                       switch video pipeline in scene of single mipi multiplex);
 
 #if CONFIG_SENSOR_DUAL_SWITCH
 void testMedia_sensor_switch(int32_t argc, char **argv)

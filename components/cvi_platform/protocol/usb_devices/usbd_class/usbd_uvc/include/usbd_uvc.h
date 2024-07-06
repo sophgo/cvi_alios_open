@@ -3,8 +3,9 @@
 #include <stdio.h>
 
 #include "usbd_core.h"
+#include "usbd_video.h"
 
-#define USBD_UVC_NUM			1
+#define USBD_UVC_NUM	CONFIG_USBD_UVC_NUM
 
 #if ((CONFIG_USB_BULK_UVC) && (USBD_UVC_NUM > 1))
 // TODO
@@ -24,6 +25,7 @@ struct uvc_device_info {
     uint8_t ep;        //assigned in-endpoint
     uint8_t formats;   //number of supported format
     uint8_t interface_nums;
+    uint8_t format_index; // uvc_format_info index.
 	volatile bool streaming_on;
 	volatile bool tx_busy;
     volatile bool xfer_flag;
@@ -41,5 +43,21 @@ struct uvc_device_info {
 
 int uvc_init(void);
 int uvc_deinit(void);
+
+struct uvc_device_info *uvc_container_of_device_id(uint8_t device_id);
+
+/* usbd video contorl unit/terminal request handler */
+int usbd_vc_input_terminal_request_handler(struct usbd_video_cfg_priv *usbd_video_cfg,
+                                           uint16_t terminal_type,
+                                           struct usb_setup_packet *setup,
+                                           uint8_t **data, uint32_t *len);
+
+int usbd_vc_processing_unit_request_handler(struct usbd_video_cfg_priv *usbd_video_cfg,
+                                            struct usb_setup_packet *setup,
+                                            uint8_t **data, uint32_t *len);
+
+int usbd_vc_extension_unit_request_handler(struct usbd_video_cfg_priv *usbd_video_cfg,
+                                           struct usb_setup_packet *setup,
+                                           uint8_t **data, uint32_t *len);
 
 #endif

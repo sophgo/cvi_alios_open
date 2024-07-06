@@ -47,16 +47,17 @@ static int audio_debug_pp_cmd(int argc, char *argv[])
     int iChannels = 2;
     int s32Readbyte = 0;
 
-    printf("***********************************************\n"
-           "***Audio PP TEST[internal test] ***\n"
-           "usage	: <input.raw> <output.raw> <sample rate> <channels> <preiod size>\n"
-           "sample	: audio_test_pp input.raw output.raw 48000 2 960\n"
-           "sample	: audio_test_pp input.raw output.raw 8000 2 320\n"
-           "***********************************************\n");
-    if (argc < 6) {
-        printf("[Error]Please check the usage\n");
-        printf("[Error]Input argument is not enough!!!\n");
-        return 1;
+	printf("***********************************************\n"
+			"***Audio PP TEST[internal test] ***\n"
+			"usage	: <input.raw> <output.raw> <sample rate> <channels> <preiod size> <flag>\n"
+			"flag:bit 0 -> high pass, bit 1->eq, bit 2->drc, bit 3->limiter, bit 4->dc\n"
+			"sample	: audio_test_pp input.raw output.raw 48000 2 960  0x1\n"
+			"sample	: audio_test_pp input.raw output.raw 8000 2 320   0x10\n"
+			"***********************************************\n");
+	if (argc < 6) {
+		printf("[Error]Please check the usage\n");
+		printf("[Error]Input argument is not enough!!!\n");
+		return 1;
     }
 
     sampleRate = atoi(argv[3]);//eq only support 48k
@@ -87,7 +88,11 @@ static int audio_debug_pp_cmd(int argc, char *argv[])
         printf("Create post process func failure..\n");
         goto ERROR;
     }
+	if (argc > 6) {
+		int flag = atoi(argv[6]);
 
+		cvi_audio_pp_set_flag(handle, flag);
+	}
     int frameLenBytes = destFrame * iChannels * 2;
 
     printf("post process start\n");

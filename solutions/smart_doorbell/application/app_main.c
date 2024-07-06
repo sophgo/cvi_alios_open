@@ -17,6 +17,7 @@
 #include "ethernet_init.h"
 #include "media_nightvision.h"
 #include "usbd_comp.h"
+#include "efuse_fastboot.h"
 
 
 #if CONFIG_USBD_CDC_RNDIS
@@ -153,7 +154,10 @@ int main(int argc, char *argv[])
 	csi_uart_set_output_stat(1);
 	_print_record_time();
 #endif
-	while (1) {
+#if (CONFIG_ENABLE_FASTBOOT == 1)
+    efuse_fastboot();
+#endif
+    while (1) {
 		aos_msleep(3000);
 	};
 }

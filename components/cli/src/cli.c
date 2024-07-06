@@ -1189,10 +1189,16 @@ static void reboot_cmd(char *buf, int len, int argc, char **argv)
     aos_reboot();
 }
 
+static void poweroff_cmd(char *buf, int len, int argc, char **argv)
+{
+	aos_poweroff();
+}
+
 static const struct cli_command built_ins[] = {
-    /*cli self*/
-    {"help", "print this", help_cmd},
-    {"reboot", "reboot system", reboot_cmd},
+	/*cli self*/
+	{"help", "print this", help_cmd},
+	{"reboot", "reboot system", reboot_cmd},
+	{"poweroff", "poweroff system", poweroff_cmd},
 };
 
 static int32_t cli_register_default_commands(void)

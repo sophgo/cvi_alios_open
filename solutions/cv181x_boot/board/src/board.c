@@ -8,6 +8,11 @@
 #include <sys_clk.h>
 #include <mmio.h>
 
+csi_dma_t dma_hdl;
+void board_dma_init(void)
+{
+    csi_dma_init(&dma_hdl, 0);
+}
 void board_init(void)
 {
 #if 0
@@ -26,4 +31,5 @@ void board_init(void)
 	 BIT_CLK_DIV_FACT_18);
 #endif
 #endif
+	board_dma_init();
 }

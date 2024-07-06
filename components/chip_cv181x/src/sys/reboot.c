@@ -12,6 +12,7 @@
 #include <soc.h>
 #include <drv/wdt.h>
 #include <drv/porting.h>
+#include <cvi_rtc_pwr.h>
 
 boot_reason_t soc_get_boot_reason(void)
 {
@@ -41,4 +42,13 @@ void drv_reboot(void)
 
 
     csi_irq_restore(irq_flag);
+}
+
+void drv_poweroff(void)
+{
+	//default wakup source: pwr_button1
+	rtc_set_wakeup_source(RTC_EN_PWRUP_PWR_BUTTON1);
+
+	//do poweroff
+	rtc_do_poweroff();
 }

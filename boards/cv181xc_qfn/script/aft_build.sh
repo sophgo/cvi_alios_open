@@ -6,6 +6,11 @@ MK_CHIP_PATH=$CHIP_PATH
 MK_SOLUTION_PATH=$SOLUTION_PATH
 MK_SOLUTION_PARTITION_NAME=
 MK_OPTARG=
+
+if [ -z "$PROJECT" ]; then
+    PROJECT="turnkey"
+fi
+
 echo "[INFO] Generated output files ..."
 echo $BASE_PWD
 
@@ -77,6 +82,7 @@ fi
 [ -f "${MK_BOARD_PATH}/bootimgs/boot0" ] && cp -arf ${MK_BOARD_PATH}/bootimgs/boot0 ${MK_GENERATED_PATH}/data/
 
 [ -f yoc.bin ] && cp -arf yoc.bin ${MK_GENERATED_PATH}/data/prim
+[ -f yoc.bin ] && cp -arf yoc.bin ${MK_GENERATED_PATH}/data/prima
 if [ ${MK_SOLUTION_PARTITION_NAME} != "" ]; then
     echo "MK_SOLUTION_PARTITION_NAME is ${MK_SOLUTION_PARTITION_NAME}"
     cp -arf ${MK_BOARD_PATH}/configs/config.${MK_SOLUTION_PARTITION_NAME}.yaml ${MK_GENERATED_PATH}/data/config.yaml
@@ -115,7 +121,8 @@ if [ ! -f gdbinit ]; then
 fi
 
 cp -arf $MK_BOARD_PATH/script/mkflash.sh $BASE_PWD
-
+if [  -z "$MK_SOLUTION_PARTITION_NAME" ]; then
 [ -f "${MK_BOARD_PATH}/bootimgs/fip_fsbl.bin" ] && cp -arf ${MK_BOARD_PATH}/bootimgs/fip_fsbl.bin ${MK_GENERATED_PATH}/data/
 [ -f "${MK_BOARD_PATH}/configs/partition_alios_spinor.xml" ] && cp -arf ${MK_BOARD_PATH}/configs/partition_alios_spinor.xml ${MK_GENERATED_PATH}/data/
 [ -f yoc.bin ] && cp -arf yoc.bin ${MK_GENERATED_PATH}/data/
+fi

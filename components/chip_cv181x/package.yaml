@@ -173,6 +173,7 @@ source_file:
   - src/drivers/timer/cvi/v1/src/*.c ? <CONFIG_KERNEL_NONE>
   - src/drivers/timer/cvi/v2/src/*.c ? <CONFIG_KERNEL_RHINO>
   - src/drivers/rtc/cvi/src/cvi_rtc.c
+  - src/drivers/rtc/cvi/src/cvi_rtc_pwr.c
   - src/drivers/rtc/cvi/src/csi_rtc.c
   - src/drivers/rtc/cvi/src/rtc_lib.c
   - src/drivers/dma/cvi/src/sysdma_remap.c

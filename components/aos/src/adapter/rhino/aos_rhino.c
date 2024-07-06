@@ -1470,6 +1470,12 @@ void aos_reboot(void)
     aos_reboot_ext(0);
 }
 
+void aos_poweroff(void)
+{
+	extern void drv_poweroff(void);
+	drv_poweroff();
+}
+
 uint64_t aos_kernel_tick2ms(uint64_t ticks)
 {
     return (uint64_t)krhino_ticks_to_ms(ticks);

@@ -161,6 +161,9 @@ typedef struct _venChnAttr {
 
 	CVI_BOOL bEsBufQueueEn;
 	CVI_BOOL bStopVenc;
+
+	CVI_U32 u32MinQfactor;
+	CVI_U32 u32MaxQfactor;
 } venChnAttr;
 
 static pthread_t VencTask[VENC_MAX_CHN_NUM];
@@ -205,6 +208,8 @@ static venChnAttr attr[VENC_TEST_MAX_CHN] = {
 		.minIprop = 1,
 		.u32ThrdLv = 2,
 		.s32ChangePos = DEF_26X_CHANGE_POS,
+		.u32MinQfactor = 1,
+		.u32MaxQfactor = 99,
 	},
 
 	{
@@ -252,6 +257,8 @@ static venChnAttr attr[VENC_TEST_MAX_CHN] = {
 		.minIprop = 1,
 		.u32ThrdLv = 2,
 		.s32ChangePos = DEF_26X_CHANGE_POS,
+		.u32MinQfactor = 1,
+		.u32MaxQfactor = 99,
 	},
 };
 
@@ -368,8 +375,11 @@ static CVI_S32 venc_init(VENC_CHN VeChn, venChnAttr attr)
 				stAttr.stRcAttr.stMjpegCbr.u32BitRate = attr.bitrate;
 				stAttr.stRcAttr.stMjpegCbr.u32StatTime = attr.statTime;
 			} else if (attr.rcMode == VENC_RC_VBR) {
-				printf("chn:%d rcMode:%d not support \n", attr.VeChn, attr.rcMode);
-				return -1;
+				stAttr.stRcAttr.enRcMode = VENC_RC_MODE_MJPEGVBR;
+				stAttr.stRcAttr.stMjpegVbr.bVariFpsEn = attr.bVariFpsEn;
+				stAttr.stRcAttr.stMjpegVbr.fr32DstFrameRate = attr.framerate;
+				stAttr.stRcAttr.stMjpegVbr.u32MaxBitRate = attr.maxbitrate;
+				stAttr.stRcAttr.stMjpegVbr.u32StatTime = attr.statTime;
 			} else {
 				printf("chn:%d rcMode:%d not support \n", attr.VeChn, attr.rcMode);
 				return -1;
@@ -459,11 +469,12 @@ static CVI_S32 venc_init(VENC_CHN VeChn, venChnAttr attr)
 
 		case PT_MJPEG: {
 			if (attr.rcMode == VENC_RC_CBR) {
-				stRcParam.stParamMjpegCbr.u32MaxQfactor = 99;
-				stRcParam.stParamMjpegCbr.u32MinQfactor = 1;
+				stRcParam.stParamMjpegCbr.u32MaxQfactor = attr.u32MaxQfactor;
+				stRcParam.stParamMjpegCbr.u32MinQfactor = attr.u32MinQfactor;
 			} else if (attr.rcMode == VENC_RC_VBR) {
-				printf("chn:%d rcMode:%d not support \n", attr.VeChn, attr.rcMode);
-				return -1;
+				stRcParam.stParamMjpegVbr.s32ChangePos = attr.s32ChangePos;
+				stRcParam.stParamMjpegVbr.u32MaxQfactor = attr.u32MaxQfactor;
+				stRcParam.stParamMjpegVbr.u32MinQfactor = attr.u32MinQfactor;
 			} else {
 				printf("chn:%d rcMode:%d not support \n", attr.VeChn, attr.rcMode);
 				return -1;

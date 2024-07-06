@@ -272,6 +272,33 @@ static CVI_U32 Again_table[] = {
 
 static const CVI_U32 again_table_size = ARRAY_SIZE(Again_table);
 
+static struct gain_tbl_info_s DgainInfo[1] = {
+    {
+    .gainMax = 4080,
+    .idxBase = 0,
+    .regGain = 0x00,
+    .regGainFineBase = 0x40,
+    .regGainFineStep = 1,
+    },
+};
+
+static CVI_U32 Dgain_table[] = {
+    1024, 1040, 1056, 1072, 1088, 1104, 1120, 1136, 1152, 1168, 1184, 1200, 1216, 1232, 1248, 1264,
+    1280, 1296, 1312, 1328, 1344, 1360, 1376, 1392, 1408, 1424, 1440, 1456, 1472, 1488, 1504, 1520,
+    1536, 1552, 1568, 1584, 1600, 1616, 1632, 1648, 1664, 1680, 1696, 1712, 1728, 1744, 1760, 1776,
+    1792, 1808, 1824, 1840, 1856, 1872, 1888, 1904, 1920, 1936, 1952, 1968, 1984, 2000, 2016, 2032,
+    2048, 2064, 2080, 2096, 2112, 2128, 2144, 2160, 2176, 2192, 2208, 2224, 2240, 2256, 2272, 2288,
+    2304, 2320, 2336, 2352, 2368, 2384, 2400, 2416, 2432, 2448, 2464, 2480, 2496, 2512, 2528, 2544,
+    2560, 2576, 2592, 2608, 2624, 2640, 2656, 2672, 2688, 2704, 2720, 2736, 2752, 2768, 2784, 2800,
+    2816, 2832, 2848, 2864, 2880, 2896, 2912, 2928, 2944, 2960, 2976, 2992, 3008, 3024, 3040, 3056,
+    3072, 3088, 3104, 3120, 3136, 3152, 3168, 3184, 3200, 3216, 3232, 3248, 3264, 3280, 3296, 3312,
+    3328, 3344, 3360, 3376, 3392, 3408, 3424, 3440, 3456, 3472, 3488, 3504, 3520, 3536, 3552, 3568,
+    3584, 3600, 3616, 3632, 3648, 3664, 3680, 3696, 3712, 3728, 3744, 3760, 3776, 3792, 3808, 3824,
+    3840, 3856, 3872, 3888, 3904, 3920, 3936, 3952, 3968, 3984, 4000, 4016, 4032, 4048, 4064, 4080,
+};
+
+static const CVI_U32 dgain_table_size = ARRAY_SIZE(Dgain_table);
+
 static CVI_S32 cmos_again_calc_table(VI_PIPE ViPipe, CVI_U32 *pu32AgainLin, CVI_U32 *pu32AgainDb)
 {
 	CVI_U32 i;
@@ -297,60 +324,88 @@ static CVI_S32 cmos_again_calc_table(VI_PIPE ViPipe, CVI_U32 *pu32AgainLin, CVI_
 	return CVI_SUCCESS;
 }
 
-static CVI_S32 cmos_dgain_calc_table(VI_PIPE ViPipe, CVI_U32 *pu32DgainLin, CVI_U32 *pu32DgainDb)
+static CVI_S32 cmos_dgain_calc_table(VI_PIPE ViPipe, CVI_U32* pu32DgainLin, CVI_U32* pu32DgainDb)
 {
+    CVI_U32 i;
 
-	(void) ViPipe;
+    (void)ViPipe;
 
-	CMOS_CHECK_POINTER(pu32DgainLin);
-	CMOS_CHECK_POINTER(pu32DgainDb);
+    CMOS_CHECK_POINTER(pu32DgainLin);
+    CMOS_CHECK_POINTER(pu32DgainDb);
+    if (*pu32DgainLin >= Dgain_table[dgain_table_size - 1]) {
+        *pu32DgainLin = Dgain_table[dgain_table_size - 1];
+        *pu32DgainDb = dgain_table_size - 1;
+        return CVI_SUCCESS;
+    }
 
-	*pu32DgainLin = 1024;
-	*pu32DgainDb = 0;
+    for (i = 1; i < dgain_table_size; i++) {
+        if (*pu32DgainLin < Dgain_table[i]) {
+            *pu32DgainLin = Dgain_table[i - 1];
+            *pu32DgainDb = i - 1;
+            break;
+        }
+    }
 
-	return CVI_SUCCESS;
+    return CVI_SUCCESS;
 }
 
-static CVI_S32 cmos_gains_update(VI_PIPE ViPipe, CVI_U32 *pu32Again, CVI_U32 *pu32Dgain)
+static CVI_S32 cmos_gains_update(VI_PIPE ViPipe, CVI_U32* pu32Again, CVI_U32* pu32Dgain)
 {
-	ISP_SNS_STATE_S *pstSnsState = CVI_NULL;
-	ISP_SNS_REGS_INFO_S *pstSnsRegsInfo = CVI_NULL;
-	CVI_U32 u32Again;
-	struct gain_tbl_info_s *info;
-	int i, tbl_num;
+    ISP_SNS_STATE_S* pstSnsState = CVI_NULL;
+    ISP_SNS_REGS_INFO_S* pstSnsRegsInfo = CVI_NULL;
+    CVI_U32 u32Again;
+    CVI_U32 u32Dgain;
+    struct gain_tbl_info_s* info;
+    int i, tbl_num;
 
-	OV02B10_SENSOR_GET_CTX(ViPipe, pstSnsState);
-	CMOS_CHECK_POINTER(pstSnsState);
-	CMOS_CHECK_POINTER(pu32Again);
-	CMOS_CHECK_POINTER(pu32Dgain);
-	pstSnsRegsInfo = &pstSnsState->astSyncInfo[0].snsCfg;
+    OV02B10_SENSOR_GET_CTX(ViPipe, pstSnsState);
+    CMOS_CHECK_POINTER(pstSnsState);
+    CMOS_CHECK_POINTER(pu32Again);
+    CMOS_CHECK_POINTER(pu32Dgain);
+    pstSnsRegsInfo = &pstSnsState->astSyncInfo[0].snsCfg;
 
-	u32Again = pu32Again[0];
+    u32Again = pu32Again[0];
+    u32Dgain = pu32Dgain[0];
 
-	if (pstSnsState->enWDRMode == WDR_MODE_NONE) {
-		/* linear mode */
+    if (pstSnsState->enWDRMode == WDR_MODE_NONE) {
+        /* linear mode */
 
-		/* find Again register setting. */
-		tbl_num = sizeof(AgainInfo)/sizeof(struct gain_tbl_info_s);
-		for (i = tbl_num - 1; i >= 0; i--) {
-			info = &AgainInfo[i];
+        /* find Again register setting. */
+        tbl_num = sizeof(AgainInfo) / sizeof(struct gain_tbl_info_s);
+        for (i = tbl_num - 1; i >= 0; i--) {
+            info = &AgainInfo[i];
 
-			if (u32Again >= info->idxBase)
-				break;
-		}
+            if (u32Again >= info->idxBase)
+                break;
+        }
+        /* Set Again register */
+        pstSnsRegsInfo->astI2cData[LINEAR_PAGE_1].u32Data = 0X01;
+        u32Again = info->regGainFineBase + (u32Again - info->idxBase) * info->regGainFineStep;
+        pstSnsRegsInfo->astI2cData[LINEAR_AGAIN_0].u32Data = u32Again & 0xFF;
 
-		pstSnsRegsInfo->astI2cData[LINEAR_PAGE_1].u32Data = 0X01;
-		u32Again = info->regGainFineBase + (u32Again - info->idxBase) * info->regGainFineStep;
-		pstSnsRegsInfo->astI2cData[LINEAR_AGAIN_0].u32Data = u32Again & 0xFF;
+        /* find Dgain register setting. */
+        tbl_num = sizeof(DgainInfo) / sizeof(struct gain_tbl_info_s);
+        for (i = tbl_num - 1; i >= 0; i--) {
+            info = &DgainInfo[i];
 
-	} else {
-		CVI_TRACE_SNS(CVI_DBG_ERR, "Not support WDR: %d\n", pstSnsState->enWDRMode);
-		return CVI_FAILURE;
-	}
+            if (u32Dgain >= info->idxBase)
+                break;
+        }
+        /* Set Dgain register */
+        pstSnsRegsInfo->astI2cData[LINEAR_PAGE_1].u32Data = 0X03;
+        u32Dgain = info->regGainFineBase + (u32Dgain - info->idxBase) * info->regGainFineStep;
+        pstSnsRegsInfo->astI2cData[LINEAR_DGAIN_0].u32Data = u32Dgain & 0xFF;
 
-	return CVI_SUCCESS;
+        /* Set Page Register to 1 avoid other register configuration conflict */
+        pstSnsRegsInfo->astI2cData[LINEAR_PAGE_1].u32Data = 0X01;
+
+    } else {
+        CVI_TRACE_SNS(CVI_DBG_ERR, "Not support WDR: %d\n", pstSnsState->enWDRMode);
+        return CVI_FAILURE;
+    }
+
+    return CVI_SUCCESS;
 }
-
 
 static CVI_S32 cmos_init_ae_exp_function(AE_SENSOR_EXP_FUNC_S *pstExpFuncs)
 {

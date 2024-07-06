@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 #include "func.h"
+#include "pinunlock.h"
 
 #define NELEMS(x) (sizeof(x) / sizeof((x)[0]))
 #define PINMUX_BASE 0x03001000
@@ -139,6 +140,13 @@ int cvi_pinmux_func(int argc, char *argv[])
 				mmio_write_32(PINMUX_BASE + pin_list[i].offset, f_val);
 			} else {
 				printf("\nInvalid option: %s\n", optarg);
+			}
+			for (i = 0; i < NELEMS(pin_unlock); i++) {
+				if (strstr(pin_unlock[i].name, pin) != NULL && strstr(func, "GPIO") != NULL) {
+					mmio_write_32(RTC_IO_BASE + pin_unlock[i].offset, 0x111);
+					printf("The registers %s/0x%x in the RTC domain have been operated\n",
+						pin_unlock[i].name, RTC_IO_BASE + pin_unlock[i].offset);
+				}
 			}
 			break;
 

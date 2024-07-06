@@ -9,6 +9,7 @@
 #include "cvi_audio_eq.h"
 #include "cvi_audio_drc.h"
 #include "cvi_audio_hpf.h"
+#include "cvi_audio_dcf.h"
 
 #define FRAME_SIZE	(960)
 
@@ -16,12 +17,13 @@ typedef struct {
 	int sample_rate;
 	int channel;
 	float input_gain;
-	int flag;//bit 0, high pass, bit 1, eq, bit 2, drc
+	int flag;//bit 0, high pass, bit 1, eq, bit 2, drc, bit 3, limiter, bit 4 dc
 	void *cvi_hpf;
 	void *cvi_eq;
 	void *cvi_limiter;
 	void *cvi_compress;
 	void *cvi_expander;
+	void *cvi_dcf;
 	float *input;
 	float *output;
 } pp_handle, *pp_handle_t;

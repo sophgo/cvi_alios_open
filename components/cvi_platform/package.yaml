@@ -13,9 +13,9 @@ license: Apache license v2.0                        # <可选项> 源代码的�
 # sdk_chip:                                # <可选项> 该组件依赖sdk组件，合理的依赖才能保证组件能编译、使用
 #   - sdk_chip_csky_dummy: v7.4.0
 #   - sdk_chip_riscv_dummy: v7.4.0
-# depends:                                 # <可选项> 该组件依赖其他的组件，合理的依赖才能保证组件能编译、使用
-#   - minilibc: v7.4.0
-#   - aos: v7.4.0
+depends:                                 # <可选项> 该组件依赖其他的组件，合理的依赖才能保证组件能编译、使用
+  - protocol: develop
+  - facekit: develop
 
 ## 第四部分：编译连接信息
 # build_config:                            # <可选项> 编译配置项
@@ -40,19 +40,23 @@ build_config:
     - disk/sd_disk/include
     - media/include
     - param/include
+    - efuse/include
     - netctrl/ethernet/include
     - netctrl/wifi/include
     - netctrl/bt/include
     - netctrl/gprs/include
     - protocol/rtsp/include
+    - protocol/tcp_server/include
     - gui/littlevGL/include
-    - ai/include
+    - ai/app_tdl/include
+    - ai/facekit_algo_sev3x/include
+    - ai/facekit_algo_zhv2x/include
     - protocol/usb_devices/usbd_class/usbd_uvc/include
     - protocol/usb_devices/usbd_class/usbd_uac/include
     - protocol/usb_devices/usbd_class/usbd_cdc_uart/include
     - protocol/usb_devices/usbd_class/usbd_cdc_rndis/include
     - protocol/usb_devices/usbd_class/usbd_hid_keyboard/include
-
+    - protocol/usb_devices/usbd_class/usbd_winusb/include
     - protocol/usb_devices/usbd_composite/include
 
 
@@ -67,21 +71,24 @@ source_file:
   - disk/sd_disk/src/*.c
   - media/src/*.c
   - param/src/*.c
+  - util/src/*.c
+  - efuse/src/*.c ? <CONFIG_ENABLE_FASTBOOT>
   - netctrl/ethernet/src/*.c ? <CONFIG_APP_ETHERNET_SUPPORT>
   - netctrl/wifi/src/*.c ? <CONFIG_APP_WIFI_SUPPORT>
   - netctrl/bt/src/*.c ? <CONFIG_APP_BT_SUPPORT>
   - netctrl/gprs/src/*.c ? <CONFIG_APP_GPRS_SUPPORT>
-  # - protocol/linkvisual/src/*.c
   - protocol/rtsp/src/*.c ? <CONFIG_APP_RTSP_SUPPORT>
-  - util/src/*.c
+  - protocol/tcp_server/src/*.c ? <CONFIG_TCP_SERVER_SUPPORT>
   - gui/littlevGL/src/*.c ? <CONFIG_APP_GUI_SUPPORT>
-  - ai/src/*.c ? <CONFIG_APP_AI_SUPPORT>
+  - ai/app_tdl/src/*.c ? <CONFIG_APP_AI_SUPPORT>
+  - ai/facekit_algo_sev3x/src/*.c ? <CONFIG_FACEKIT_SEV3X_SUPPORT>
+  - ai/facekit_algo_zhv2x/src/*.c ? <CONFIG_FACEKIT_ZHV2X_SUPPORT>
   - protocol/usb_devices/usbd_class/usbd_uvc/src/*.c ? <CONFIG_USBD_UVC>
   - protocol/usb_devices/usbd_class/usbd_uac/src/*.c ? <CONFIG_USBD_UAC>
   - protocol/usb_devices/usbd_class/usbd_cdc_uart/src/*.c ? <CONFIG_USBD_CDC_UART>
   - protocol/usb_devices/usbd_class/usbd_cdc_rndis/src/*.c ? <CONFIG_USBD_CDC_RNDIS>
   - protocol/usb_devices/usbd_class/usbd_hid_keyboard/src/*.c ? <CONFIG_USBD_HID_KEYBOARD>
-
+  - protocol/usb_devices/usbd_class/usbd_winusb/src/*.c ? <CONFIG_USBD_WINUSB>
   - protocol/usb_devices/usbd_composite/src/*.c ? <CONFIG_SUPPORT_USB_DC>
 
 # - ./hichannel_test/
@@ -91,6 +98,11 @@ def_config:                              # 组件的可配置项
 #   CONFIG_PARAM_NOT_CHECK: y
 #   CONFIG_CLI: y
   CONFIG_APP_ISP_BYPASS: 1
+  CONFIG_USBD_UVC_NUM: 1                   # UVC 设备 Sensor 的数量
+  CONFIG_UVC_MJPEG_BITRATE: 20480          # UVC 推流时，设置视频编码器 MJPEG 的码率，单位 kbps
+  CONFIG_UVC_H264_H265_BITRATE: 4096       # UVC 推流时，设置视频编码器 H264/H265 的码率，单位 kbps
+  CONFIG_UVC_CROP_BEFORE_SCALE: 0          # UVC 推流时，是否对视频进行裁剪，以保证缩放前后长宽比一致（可能会有视野丢失）
+  CONFIG_UVC_COMM_FUNC: 0                  # USB camera 使能亮度、色调、对比度等调整功能
 
 ## 第六部分：安装信息
 # install:

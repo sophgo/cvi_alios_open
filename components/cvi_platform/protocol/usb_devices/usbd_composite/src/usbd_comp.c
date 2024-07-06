@@ -12,6 +12,7 @@
 #include "usbd_cdc_uart.h"
 #include "usbd_cdc_rndis.h"
 #include "usbd_hid_keyboard.h"
+#include "usbd_winusb.h"
 
 #define MAX_COMP_DEVICE_NUMS 4
 #define MAX_COMP_STRING_NUMS 8
@@ -120,10 +121,30 @@ static const struct UVC_STRING_DESCRIPTOR(10) comp_string_descriptor_serial = {
     },
 };
 
-DECLARE_UVC_STRING_DESCRIPTOR(13);
 
-static const struct UVC_STRING_DESCRIPTOR(13) uvc_string_descriptor_product = {
-    .bLength            = UVC_STRING_DESCRIPTOR_SIZE(13),
+static const struct UVC_STRING_DESCRIPTOR(10) dev_string_descriptor_product = {
+    .bLength            = UVC_STRING_DESCRIPTOR_SIZE(10),
+    .bDescriptorType    = USB_DESCRIPTOR_TYPE_STRING,
+    .wData              = {
+        cpu_to_le16('C'),
+        cpu_to_le16('V'),
+        cpu_to_le16('I'),
+        cpu_to_le16('T'),
+        cpu_to_le16('E'),
+        cpu_to_le16('K'),
+        cpu_to_le16('-'),
+        cpu_to_le16('D'),
+        cpu_to_le16('E'),
+        cpu_to_le16('V'),
+    },
+};
+
+
+/* UVC Camera max name length is 32  */
+DECLARE_UVC_STRING_DESCRIPTOR(32);
+
+static const struct UVC_STRING_DESCRIPTOR(32) uvc_string_descriptor_video1_name = {
+    .bLength            = UVC_STRING_DESCRIPTOR_SIZE(14), // name length 14
     .bDescriptorType    = USB_DESCRIPTOR_TYPE_STRING,
     .wData              = {
         cpu_to_le16('C'),
@@ -133,12 +154,75 @@ static const struct UVC_STRING_DESCRIPTOR(13) uvc_string_descriptor_product = {
         cpu_to_le16('E'),
         cpu_to_le16('K'),
         cpu_to_le16(' '),
-        cpu_to_le16('U'),
-        cpu_to_le16('S'),
-        cpu_to_le16('B'),
-        cpu_to_le16('D'),
+        cpu_to_le16('C'),
+        cpu_to_le16('A'),
+        cpu_to_le16('M'),
         cpu_to_le16('E'),
+        cpu_to_le16('R'),
+        cpu_to_le16('A'),
+        cpu_to_le16('1'),
+    },
+};
+
+static const struct UVC_STRING_DESCRIPTOR(32) uvc_string_descriptor_video2_name = {
+    .bLength            = UVC_STRING_DESCRIPTOR_SIZE(14),
+    .bDescriptorType    = USB_DESCRIPTOR_TYPE_STRING,
+    .wData              = {
+        cpu_to_le16('C'),
         cpu_to_le16('V'),
+        cpu_to_le16('I'),
+        cpu_to_le16('T'),
+        cpu_to_le16('E'),
+        cpu_to_le16('K'),
+        cpu_to_le16(' '),
+        cpu_to_le16('C'),
+        cpu_to_le16('A'),
+        cpu_to_le16('M'),
+        cpu_to_le16('E'),
+        cpu_to_le16('R'),
+        cpu_to_le16('A'),
+        cpu_to_le16('2'),
+    },
+};
+
+static const struct UVC_STRING_DESCRIPTOR(32) uvc_string_descriptor_video3_name = {
+    .bLength            = UVC_STRING_DESCRIPTOR_SIZE(14),
+    .bDescriptorType    = USB_DESCRIPTOR_TYPE_STRING,
+    .wData              = {
+        cpu_to_le16('C'),
+        cpu_to_le16('V'),
+        cpu_to_le16('I'),
+        cpu_to_le16('T'),
+        cpu_to_le16('E'),
+        cpu_to_le16('K'),
+        cpu_to_le16(' '),
+        cpu_to_le16('C'),
+        cpu_to_le16('A'),
+        cpu_to_le16('M'),
+        cpu_to_le16('E'),
+        cpu_to_le16('R'),
+        cpu_to_le16('A'),
+        cpu_to_le16('3'),
+    },
+};
+
+DECLARE_UVC_STRING_DESCRIPTOR(12);
+static const struct UVC_STRING_DESCRIPTOR(12) uac_string_descriptor_audio = {
+    .bLength            = UVC_STRING_DESCRIPTOR_SIZE(12),
+    .bDescriptorType    = USB_DESCRIPTOR_TYPE_STRING,
+    .wData              = {
+        cpu_to_le16('C'),
+        cpu_to_le16('V'),
+        cpu_to_le16('I'),
+        cpu_to_le16('T'),
+        cpu_to_le16('E'),
+        cpu_to_le16('K'),
+        cpu_to_le16(' '),
+        cpu_to_le16('A'),
+        cpu_to_le16('U'),
+        cpu_to_le16('D'),
+        cpu_to_le16('I'),
+        cpu_to_le16('O'),
     },
 };
 
@@ -146,8 +230,13 @@ static const struct UVC_STRING_DESCRIPTOR(13) uvc_string_descriptor_product = {
 static const struct usb_descriptor_header * const comp_string_descriptors[] = {
     (struct usb_descriptor_header *) &comp_string_descriptor_zero,
     (struct usb_descriptor_header *) &comp_string_descriptor_manufacturer,
-    (struct usb_descriptor_header *) &uvc_string_descriptor_product,
+    (struct usb_descriptor_header *) &dev_string_descriptor_product,
     (struct usb_descriptor_header *) &comp_string_descriptor_serial,
+    (struct usb_descriptor_header *) &comp_string_descriptor_zero,
+    (struct usb_descriptor_header *) &uac_string_descriptor_audio,
+    (struct usb_descriptor_header *) &uvc_string_descriptor_video1_name,
+    (struct usb_descriptor_header *) &uvc_string_descriptor_video2_name,
+    (struct usb_descriptor_header *) &uvc_string_descriptor_video3_name,
     NULL,
 };
 
@@ -334,7 +423,10 @@ uint32_t usbd_comp_init()
 #if CONFIG_USBD_HID_KEYBOARD
     hid_keyboard_init();
 #endif
-
+#if CONFIG_USBD_WINUSB
+    // Other composite interfaces must be disabled to use winusb
+    winusb_init();
+#endif
     comp_descriptor = comp_build_descriptors();
     usbd_desc_register(comp_descriptor);
 
@@ -361,5 +453,3 @@ void usbd_comp_deinit()
     usbd_deinitialize();
     comp_destroy_descriptors();
 }
-
-

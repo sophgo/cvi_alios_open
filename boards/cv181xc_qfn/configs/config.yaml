@@ -36,7 +36,6 @@ partitions:
   - { name: weight, address: 0x4DE000, size: 0x850000, index: 0 }                                 # 8.3125 MB
   - { name: misc,   address: 0xD2E000, size: 0x280000, index: 0 }                                 # 2.6875 MB
   - { name: kv,     address: 0xFAE000, size: 0x010000, index: 0 }                                # 64 KB
-  # - { name: spiffs, address: 0xCD0000, size: 0x100000, index: 0, filename: lfs.bin }            # 1 MB
   - { name: cxrot,  address: 0xFBE000, size: 0x001000, index: 0  }                                # 4 KB
   - { name: cxuser, address: 0xFBF000, size: 0x004000, index: 0  }                                # 16 KB
   - { name: cxface, address: 0xFC3000, size: 0x03C000, index: 0  }                                # 240 KB

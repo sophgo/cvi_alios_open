@@ -23,7 +23,7 @@ depends:
   - rhino_arch: develop
   - aos: develop
   - cli: develop
- # - kv: develop
+  # - kv: develop
   - ulog: develop
   - csi: v7.5.1
   - debug: develop
@@ -34,34 +34,42 @@ depends:
   - uservice: develop
   - partition: develop
   - littlefs: v7.6.1
- # - key_mgr: develop
- # - sec_crypto: develop
+  # - key_mgr: develop
+  # - sec_crypto: develop
   - posix: develop
   - drv_sdmmc: v2.0
   - lwip: develop
-  - netmgr: develop
- # - drv_wifi_hi3861l_fnlink: develop
- # - cjson: develop
- # - cvi_miniz: develop
+  # - netmgr: develop
+  # - drv_wifi_hi3861l_fnlink: develop
+  # - cjson: develop
+  # - cvi_json_c: develop
+  # - cvi_miniz: develop
   - fatfs: cv_dev
   - vfs: develop
- # - lwext4: develop
+  # - lwext4: develop
   - cv180xb_qfn: v0.0.1
   - chip_cv180x: v0.0.1
- # - cviai: v0.0.1
+  # - cvi_osdrv_vo: v0.0.1
+  # - cvi_osdrv_ive: v0.0.1
+  # - cviai: v0.0.1
   - minialsa: v7.5.1
   - drv_snd_cv181x: v7.5.1
- # - lvgl: develop
+  # - lvgl: develop
+  # - cvi_mw_vdec: v0.0.1
+  # - cvi_mw_ive: v0.0.1
   - cvi_sensor: develop
-  - rtsp: develop
- # - cvi_mw_tpu: v0.0.1
+  # - rtsp: develop
+  # - cvi_mw_isp_com_raw_replay: develop
+  # - cvi_mw_isp_com_raw_dump: develop
+  # - cvi_mw_isp_daemon: develop
   - cherryusb: develop
   - cvi_platform: develop
-  - g711: v0.0.1
-  - zlib: develop
-  - cvi_test: develop
+  # - g711: v0.0.1
+  # - zlib: develop
+  # - cvi_test: develop
+  # - facekit: develop
 
-  - cvi_mmf_sdk_cv181xx: develop
+  - cvi_mmf_sdk_cv180xx: develop
 ## 第三部分：板级信息
 # hw_info:                                 # 对 solution、board、chip 三个字段的改进，统称为 hw_info 字段
 #   cpu_id: cpu0
@@ -207,35 +215,12 @@ def_config:
   CONFIG_VENC_TEST_CHN: 2
   CONFIG_NIGHT_VISION_SUPPORT: 0
   CONFIG_APP_DUMP_FRAME: 0
-  CONFIG_DISABLE_VENC_H264: 0
+  CONFIG_DISABLE_VENC_H264: 1
   CONFIG_DISABLE_VENC_H265: 1
 
  ## Sensor
-  CONFIG_SENSOR_GCORE_GC1054: 0
-  CONFIG_SENSOR_GCORE_GC2053: 0
-  CONFIG_SENSOR_GCORE_GC2053_1L: 0
-  CONFIG_SENSOR_GCORE_GC2093: 0
-  CONFIG_SENSOR_GCORE_GC4653: 0
-  CONFIG_SENSOR_SMS_SC530AI_4L: 0
-  CONFIG_SENSOR_SMS_SC200AI: 0
-  CONFIG_SENSOR_SMS_SC2336: 0
-  CONFIG_SENSOR_SMS_SC2336P: 0
-  CONFIG_SENSOR_SMS_SC2336P_1L: 0
-  CONFIG_SENSOR_SMS_SC030IOT: 0
-  CONFIG_SENSOR_SMS_SC201CS: 0
-  CONFIG_SENSOR_SMS_SC201CS_SLAVE: 0
-  CONFIG_SENSOR_SMS_SC202CS: 0
-  CONFIG_SENSOR_SMS_SC202CS_SLAVE: 0
-  CONFIG_SENSOR_SMS_SC230AI: 0
-  CONFIG_SENSOR_SMS_SC230AI_SLAVE: 0
-  CONFIG_SENSOR_SMS_SC031IOT: 0
-  CONFIG_SENSOR_SONY_IMX307: 0
-  CONFIG_SENSOR_SONY_IMX327: 0
-  CONFIG_SENSOR_BYD_BF314A: 0
   CONFIG_SENSOR_GCORE_GC02M1: 1
-  CONFIG_SENSOR_GCORE_GC02M1_SLAVE: 0
   CONFIG_SENSOR_GCORE_GC02M1_MULTI: 1
-  CONFIG_SENSOR_SPIX_SP2509: 0
 
   CONFIG_SENSOR_QUICK_STARTUP: 0
   CONFIG_SENSOR_DUAL_SWITCH: 1
@@ -244,31 +229,35 @@ def_config:
   CONFIG_SNS1_TYPE: 11
   CONFIG_SNS2_TYPE: 0
 
-  ## Panel
-  CONFIG_PANEL_HX8394: 0
-  CONFIG_PANEL_ILI9488: 0
-  CONFIG_PANEL_GC9503CV: 0
-  CONFIG_QFN_PANEL_REWORK: 0
-
 ## USB
   CONFIG_USB_DWC2_PORT: 1
   CONFIG_USB_HS: 1
   CONFIG_SUPPORT_USB_DC: 1
   CONFIG_SUPPORT_USB_HC: 0
-  CONFIG_USB_DWC2_DMA_ENABLE: 0
+  CONFIG_USB_DWC2_DMA_ENABLE: 1
   CONFIG_USB_BULK_UVC: 0
 
   CONFIG_USBD_UVC: 1
-  CONFIG_USBD_UAC: 0
+  CONFIG_USBD_UAC: 1
   CONFIG_USBD_CDC_UART: 0
-  CONFIG_USBD_CDC_RNDIS: 1
+  CONFIG_USBD_CDC_RNDIS: 0
   CONFIG_USBD_HID_KEYBOARD: 0
 
-
 ## Misc
-  CONFIG_PQTOOL_SUPPORT: 1
+  CONFIG_PQTOOL_SUPPORT: 0
   CONFIG_PQBIN_USE_JSON: 0
   CONFIG_ISP_SUPPORT_PROC: 0
+  CONFIG_FACEKIT_SEV3X_SUPPORT: 0
+  CONFIG_FACEKIT_ZHV2X_SUPPORT: 1
+
+## network
+  CONFIG_TCP_SERVER_SUPPORT: 0
+
+## protocol
+  CONFIG_PROTOCOL_SEV3X: 0
+  CONFIG_PROTOCOL_ZHV2X: 1
+## datalink
+  CONFIG_DATALINK_UART: 1
 
 
 ## 第六部分：安装信息
