@@ -7,7 +7,9 @@
 #include "gui_display.h"
 #include "app_ai.h"
 #include "rtsp_func.h"
+#if (CONFIG_FACEKIT_ENABLE == 1)
 #include "ai_facekit.h"
+#endif
 
 #if CONFIG_USBD_UVC
 #define UVCSWITCH_BY_PIN 1
@@ -97,8 +99,10 @@ int APP_CustomEventStart(void)
 #if (CONFIG_APP_RTSP_SUPPORT == 1)
     cvi_rtsp_init();
 #endif
+#if (CONFIG_FACEKIT_ENABLE == 1)
     cvi_tpu_init();
-	Ai_FACEKIT_INIT();
+    Ai_FACEKIT_INIT();
+#endif
 #if CONFIG_TCP_SERVER_SUPPORT
 	static pthread_t tcpserver_task;
     if (pthread_create(&tcpserver_task, NULL, handle_tcp_server, NULL)) {

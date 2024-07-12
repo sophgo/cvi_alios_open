@@ -15,7 +15,6 @@ license: Apache license v2.0                        # <可选项> 源代码的�
 #   - sdk_chip_riscv_dummy: v7.4.0
 depends:                                 # <可选项> 该组件依赖其他的组件，合理的依赖才能保证组件能编译、使用
   - protocol: develop
-  - facekit: develop
 
 ## 第四部分：编译连接信息
 # build_config:                            # <可选项> 编译配置项
@@ -49,8 +48,6 @@ build_config:
     - protocol/tcp_server/include
     - gui/littlevGL/include
     - ai/app_tdl/include
-    - ai/facekit_algo_sev3x/include
-    - ai/facekit_algo_zhv2x/include
     - protocol/usb_devices/usbd_class/usbd_uvc/include
     - protocol/usb_devices/usbd_class/usbd_uac/include
     - protocol/usb_devices/usbd_class/usbd_cdc_uart/include
@@ -81,8 +78,6 @@ source_file:
   - protocol/tcp_server/src/*.c ? <CONFIG_TCP_SERVER_SUPPORT>
   - gui/littlevGL/src/*.c ? <CONFIG_APP_GUI_SUPPORT>
   - ai/app_tdl/src/*.c ? <CONFIG_APP_AI_SUPPORT>
-  - ai/facekit_algo_sev3x/src/*.c ? <CONFIG_FACEKIT_SEV3X_SUPPORT>
-  - ai/facekit_algo_zhv2x/src/*.c ? <CONFIG_FACEKIT_ZHV2X_SUPPORT>
   - protocol/usb_devices/usbd_class/usbd_uvc/src/*.c ? <CONFIG_USBD_UVC>
   - protocol/usb_devices/usbd_class/usbd_uac/src/*.c ? <CONFIG_USBD_UAC>
   - protocol/usb_devices/usbd_class/usbd_cdc_uart/src/*.c ? <CONFIG_USBD_CDC_UART>

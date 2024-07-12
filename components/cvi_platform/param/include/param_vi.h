@@ -42,6 +42,13 @@ typedef struct _PARAM_SNS_CFG_S {
     CVI_BOOL bDualSwitch;
 }PARAM_SNS_CFG_S;
 
+typedef struct _PARAM_VI_LDC_CFG_S {
+    CVI_BOOL bLdcEn;           // Whether enable vi ldc
+    CVI_CHAR* pPartitionName;  // flash's partition name which store ldc mesh.bin
+    CVI_U32 u32Offset;         // offset of partition
+    CVI_U32 u32MeshSize;       // size of mesh.bin
+} PARAM_VI_LDC_CFG_S;
+
 typedef struct _PARAM_DEV_CFG_S {
     void * pViDmaBuf;
     CVI_U32 u32ViDmaBufSize;
@@ -52,6 +59,7 @@ typedef struct _PARAM_DEV_CFG_S {
     CVI_U8 switchGPioPol;
     CVI_U8 dstFrm;
     CVI_BOOL isFrmCtrl;
+    PARAM_VI_LDC_CFG_S stViLdcCfg;  // configuration of vi ldc
 } PARAM_DEV_CFG_S;
 
 typedef struct _PARAM_CHN_CFG_S {
