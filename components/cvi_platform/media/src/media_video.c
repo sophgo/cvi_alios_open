@@ -51,6 +51,8 @@
 #include "gui_display.h"
 
 #include "sensor_i2c.h"
+#include <yoc/partition.h>
+#include "cvi_gdc.h"
 
 #if CONFIG_APP_DUMP_FRAME
 #include <drv/tick.h>
@@ -580,6 +582,41 @@ CVI_S32 dual_sns_sync_task_callback(VI_SYNC_TASK_DATA_S *data)
     return 0;
 }
 #endif
+
+int MEDIA_VIDEO_ViLdcInit(PARAM_DEV_CFG_S* pstViDevInfo, uint32_t u32ViChn)
+{
+    printf("Start VI LDC Init, ViChn = %d\n", u32ViChn);
+
+    struct vi_chn_ldc_cfg stViLdcCfg;
+
+    PARAM_VI_LDC_CFG_S* pstViLdcCfg = &(pstViDevInfo->stViLdcCfg);
+    partition_t u32Partition = partition_open(pstViDevInfo->stViLdcCfg.pPartitionName);
+    if (u32Partition < 0) {
+        printf("Open partition %s failed\n", pstViDevInfo->stViLdcCfg.pPartitionName);
+        return CVI_FAILURE;
+    }
+    printf("Open partition %s passed\n", pstViDevInfo->stViLdcCfg.pPartitionName);
+
+    uint32_t u32Offset = 0;
+    uint32_t u32MeshSize = pstViLdcCfg->u32MeshSize;
+
+    /* Allocate memory space for LDC mesh.bin */
+    void* pMeshBuf = aos_malloc_align(DEFAULT_ALIGN, u32MeshSize + DEFAULT_ALIGN);
+    int32_t s32Ret = partition_read(u32Partition, u32Offset, pMeshBuf, u32MeshSize);
+    if (s32Ret < 0) {
+        printf("Partition read %s failed\n", pstViDevInfo->stViLdcCfg.pPartitionName);
+        return CVI_FAILURE;
+    }
+    printf("Partition read %s passed\n", pstViDevInfo->stViLdcCfg.pPartitionName);
+
+    MESH_DUMP_ATTR_S stMeshDumpAttr;
+    stMeshDumpAttr.enModId = CVI_ID_VI;
+    stMeshDumpAttr.viMeshAttr.chn = u32ViChn;
+    CVI_GDC_LoadMeshWithBuf(&stMeshDumpAttr, &stViLdcCfg.stLDCAttr.stAttr, pMeshBuf, u32MeshSize);
+
+    return CVI_SUCCESS;
+}
+
 static int _MEDIA_VIDEO_ViInit()
 {
     PARAM_VI_CFG_S * pstViCfg = PARAM_getViCtx();
@@ -680,6 +717,11 @@ int MEDIA_VIDEO_ViInit(PARAM_VI_CFG_S * pstViCfg)
         if(pSnsObj[i]->pfnMirrorFlip) {
             CVI_VI_RegChnFlipMirrorCallBack(i,ViDev,(void *)pSnsObj[i]->pfnMirrorFlip);
         }
+
+        if (pstViCfg->pstDevInfo[i].stViLdcCfg.bLdcEn) {
+            MEDIA_VIDEO_ViLdcInit(&pstViCfg->pstDevInfo[i], ViChn);
+        }
+
         MEDIA_CHECK_RET(CVI_VI_EnableChn(ViDev, ViChn), "CVI_VI_EnableChn fail");
         if(pstViCfg->pstSensorCfg[i].u8Rotation != ROTATION_0) {
             MEDIA_CHECK_RET(CVI_VI_SetChnRotation(ViDev,ViChn,pstViCfg->pstSensorCfg[i].u8Rotation),"CVI_VI_SetChnRotation fail");

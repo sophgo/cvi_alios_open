@@ -62,31 +62,41 @@ PARAM_CLASSDEFINE(PARAM_ISP_CFG_S,ISPCFG,CTX,ISP)[] = {
     },
 };
 
-PARAM_CLASSDEFINE(PARAM_DEV_CFG_S,VIDEVCFG,CTX,VI)[] = {
+static PARAM_DEV_CFG_S VIDEVCFG_CTX_VI[] = {
     {
-        .pViDmaBuf = NULL,
+        .pViDmaBuf       = NULL,
         .u32ViDmaBufSize = 0,
-    #if CONFIG_SENSOR_DUAL_SWITCH
-        .isMux = true,
-        .u8AttachDev = 0,
+        .stViLdcCfg =
+        {
+            /* Developer should configure other params when enable vi ldc */
+            .bLdcEn = false,
+        },
+#if CONFIG_SENSOR_DUAL_SWITCH
+        .isMux         = true,
+        .u8AttachDev   = 0,
         .switchGpioIdx = -1,
         .switchGpioPin = -1,
         .switchGPioPol = -1,
-        .dstFrm = 2,
-        .isFrmCtrl = true,
-    #endif
+        .dstFrm        = 2,
+        .isFrmCtrl     = true,
+#endif
     },
     {
-    #if CONFIG_SENSOR_DUAL_SWITCH
-        .isMux = true,
-        .u8AttachDev = 1,
+        .stViLdcCfg =
+        {
+            /* Developer should configure other params when enable vi ldc */
+            .bLdcEn = false,
+        },
+#if CONFIG_SENSOR_DUAL_SWITCH
+        .isMux         = true,
+        .u8AttachDev   = 1,
         .switchGpioIdx = -1,
         .switchGpioPin = -1,
         .switchGPioPol = -1,
-        .dstFrm = 1,
-        .isFrmCtrl = true,
-    #endif
-    }
+        .dstFrm        = 1,
+        .isFrmCtrl     = true,
+#endif
+    },
 };
 
 PARAM_VI_CFG_S g_stViCtx = {
