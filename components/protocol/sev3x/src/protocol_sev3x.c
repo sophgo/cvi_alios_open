@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <aos/kernel.h>
 #include "uart_communication.h"
+#include "media_video.h"
 #include <pin.h>
 
 
@@ -1258,10 +1259,13 @@ static void do_mid_enroll_single(void)
     if(NULL != g_protocol_handles.enroll_single){
         /* 启动note */
         upgrade_service_status(SS_NID_FACE_STATE, 1);
+        extern int32_t switch_frame_rate_ratio(int32_t dstFrm0, int32_t dstFrm1);
         extern void PLATFORM_LightCtl(int type, int value);
+        switch_frame_rate_ratio(2, 1);
         PLATFORM_LightCtl(1, 1);
         result = g_protocol_handles.enroll_single(&msg_enroll_data, &reply_enroll_data);
         PLATFORM_LightCtl(1, 0);
+        switch_frame_rate_ratio(10, 1);
         /* 停止note */
         upgrade_service_status(SS_SLEEP, 1);
     }else{
@@ -1283,10 +1287,13 @@ static void do_mid_enroll(void)
     if(NULL != g_protocol_handles.enroll){
         /* 启动note */
         upgrade_service_status(SS_NID_FACE_STATE, 1);
+        extern int32_t switch_frame_rate_ratio(int32_t dstFrm0, int32_t dstFrm1);
         extern void PLATFORM_LightCtl(int type, int value);
+        switch_frame_rate_ratio(2, 1);
         PLATFORM_LightCtl(1, 1);
         result = g_protocol_handles.enroll(&req_msg, &res_msg);
         PLATFORM_LightCtl(1, 0);
+        switch_frame_rate_ratio(10, 1);
         /* 停止note */
         upgrade_service_status(SS_SLEEP, 1);
     }else{
@@ -1312,10 +1319,13 @@ static void do_mid_enroll_itg(void)
     if(NULL != g_protocol_handles.enroll_itg){
         /* 启动note */
         upgrade_service_status(SS_NID_FACE_STATE, 1);
+        extern int32_t switch_frame_rate_ratio(int32_t dstFrm0, int32_t dstFrm1);
         extern void PLATFORM_LightCtl(int type, int value);
+        switch_frame_rate_ratio(2, 1);
         PLATFORM_LightCtl(1, 1);
         result = g_protocol_handles.enroll_itg(&req_msg, &res_msg);
         PLATFORM_LightCtl(1, 0);
+        switch_frame_rate_ratio(10, 1);
         /* 停止note */
         upgrade_service_status(SS_SLEEP, 1);
     }else{
@@ -1338,10 +1348,13 @@ static void do_mid_verify(void)
     if(NULL != g_protocol_handles.verify){
         /* 启动note */
         upgrade_service_status(SS_NID_FACE_STATE, 1);
+        extern int32_t switch_frame_rate_ratio(int32_t dstFrm0, int32_t dstFrm1);
         extern void PLATFORM_LightCtl(int type, int value);
+        switch_frame_rate_ratio(2, 1);
         PLATFORM_LightCtl(1, 1);
         result = g_protocol_handles.verify(&req_msg, &res_msg);
         PLATFORM_LightCtl(1, 0);
+        switch_frame_rate_ratio(10, 1);
         /* 暂停note */
         upgrade_service_status(SS_SLEEP, 1);
     }else{
