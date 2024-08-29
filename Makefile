@@ -33,6 +33,7 @@ YOC_COMPRESS := n
 all: $(TOPSUBDIRS)
 #
 $(TOPSUBDIRS):
+	@echo "make $(MAKECMDGOALS) $(MAKEFLAGS)"
 	$(MAKE) -C solutions/$@ $(patsubst $@,,$(MAKECMDGOALS))
 #
 clean:

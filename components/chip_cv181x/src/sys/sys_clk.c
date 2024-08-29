@@ -58,6 +58,11 @@ uint32_t soc_get_coretim_freq(void)
     return 25 * 1000000;
 }
 
+uint32_t soc_get_coretim_us_freq(void)
+{
+    return 25;
+}
+
 uint32_t soc_get_ahb_freq(uint32_t idx)
 {
     return 0;

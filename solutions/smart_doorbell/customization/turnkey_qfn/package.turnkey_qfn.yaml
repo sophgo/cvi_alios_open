@@ -57,6 +57,7 @@ depends:
   - g711: v0.0.1
   - zlib: develop
   - cvi_test: develop
+  - fw_h26x: v0.0.1
 
   - cvi_mmf_sdk_cv181xx: develop
 ## 第三部分：板级信息

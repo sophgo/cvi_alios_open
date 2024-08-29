@@ -81,9 +81,11 @@
 	 (fmt == PIXEL_FORMAT_NV16) || (fmt == PIXEL_FORMAT_NV61) ||				\
 	 (fmt == PIXEL_FORMAT_YUYV) || (fmt == PIXEL_FORMAT_UYVY) ||				\
 	 (fmt == PIXEL_FORMAT_YVYU) || (fmt == PIXEL_FORMAT_VYUY))
-#define GDC_SUPPORT_FMT(fmt) \
-	((fmt == PIXEL_FORMAT_NV12) || (fmt == PIXEL_FORMAT_NV21) ||				       \
-	 (fmt == PIXEL_FORMAT_YUV_400))
+#define GDC_SUPPORT_FMT(fmt)                                                   \
+		((fmt == PIXEL_FORMAT_NV12) || (fmt == PIXEL_FORMAT_NV21) ||		   \
+		 (fmt == PIXEL_FORMAT_YUV_400) || (fmt == PIXEL_FORMAT_RGB_888_PLANAR) ||	 \
+		 (fmt == PIXEL_FORMAT_BGR_888_PLANAR) || (fmt == PIXEL_FORMAT_YUV_PLANAR_444) || \
+		 (fmt == PIXEL_FORMAT_YUV_PLANAR_420))
 #else
 #error "ARCH not defined"
 #endif
@@ -236,9 +238,6 @@ CVI_S32 vo_dev_open(CVI_VOID);
 CVI_S32 vo_dev_close(CVI_VOID);
 CVI_S32 dwa_dev_open(CVI_VOID);
 CVI_S32 dwa_dev_close(CVI_VOID);
-CVI_S32 get_rgn_fd(void);
-CVI_S32 rgn_dev_open(void);
-CVI_S32 rgn_dev_close(void);
 
 extern struct cvi_gdc_mesh vi_mesh[VI_MAX_CHN_NUM];
 extern struct cvi_gdc_mesh mesh[VPSS_MAX_GRP_NUM][VPSS_MAX_CHN_NUM];

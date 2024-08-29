@@ -77,7 +77,7 @@ static PARAM_DEV_CFG_S VIDEVCFG_CTX_VI[] = {
         .switchGpioIdx = -1,
         .switchGpioPin = -1,
         .switchGPioPol = -1,
-        .dstFrm        = 2,
+        .dstFrm        = 10,
         .isFrmCtrl     = true,
 #endif
     },
@@ -111,10 +111,3 @@ PARAM_VI_CFG_S * PARAM_GET_VI_CFG(void) {
     g_stViCtx.pstIspCfg[0].astPQBinDes[1].u32IspBinDataLen = cvi_turnkey_cv180zb_gc02m1_ir_pq_param_face_length;
     return &g_stViCtx;
 }
-
-
-
-
-
-
-

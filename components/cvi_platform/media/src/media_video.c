@@ -850,7 +850,11 @@ int MEDIA_VIDEO_SysInit()
 #if (CONFIG_APP_VO_SUPPORT)
     vo_core_init();
 #endif
+
+#if (CONFIG_APP_RGN_USE)
     rgn_core_init();
+#endif
+
     cvi_ldc_probe();
 #if (CONFIG_SUPPORT_TEST_IVE == 1)
 	cvi_ive_init();

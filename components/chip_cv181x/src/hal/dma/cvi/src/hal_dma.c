@@ -3,6 +3,13 @@
 */
 
 #include <cvi_dma_ll.h>
+
+#ifndef CONFIG_USE_AOS_KERNEL_INC
+#include <aos/kernel.h>
+
+extern aos_mutex_t g_dma_mutex;
+#endif
+
 void hal_dma_ch_resume(struct dw_dma *dma, uint8_t ch_mask);
 void hal_dma_dwc_clk_set(int enable)
 {
@@ -55,22 +62,35 @@ void hal_dma_ch_on(struct dw_dma *dma, uint8_t ch_mask)
 {
 	uint64_t ch_en;
 
+#ifndef CONFIG_USE_AOS_KERNEL_INC
+	aos_mutex_lock(&g_dma_mutex, AOS_WAIT_FOREVER);
+#endif
 	ch_en = dma_readq(dma, CH_EN);
 	ch_en |= (ch_mask << DW_DMAC_CH_EN_WE_OFFSET) | ch_mask;
 	dma_writeq(dma, CH_EN, ch_en);
+#ifndef CONFIG_USE_AOS_KERNEL_INC
+	aos_mutex_unlock(&g_dma_mutex);
+#endif
 }
 
 void hal_dma_ch_off(struct dw_dma *dma, uint8_t ch_mask)
 {
 	uint64_t dma_ch_en;
+
+#ifndef CONFIG_USE_AOS_KERNEL_INC
+	aos_mutex_lock(&g_dma_mutex, AOS_WAIT_FOREVER);
+#endif
 	dma_ch_en = dma_readq(dma, CH_EN);
 	if(dma_ch_en & (1 << (__ffs(ch_mask) + DW_DMAC_CH_PAUSE_OFFSET)))
 			hal_dma_ch_resume(dma, ch_mask);
 	dma_ch_en |= (ch_mask << DW_DMAC_CH_EN_WE_OFFSET);
 	dma_ch_en &= ~ch_mask;
 	dma_writeq(dma, CH_EN, dma_ch_en);
-	//while (dma_readq(dma, CH_EN) & ch_mask)
-	//		barrier();
+	while (dma_readq(dma, CH_EN) & ch_mask)
+		barrier();
+#ifndef CONFIG_USE_AOS_KERNEL_INC
+	aos_mutex_unlock(&g_dma_mutex);
+#endif
 }
 
 void hal_dma_ch_pause(struct dw_dma *dma, uint8_t ch_mask)

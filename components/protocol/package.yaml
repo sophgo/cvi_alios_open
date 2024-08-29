@@ -37,13 +37,11 @@ depends:                                 # <可选项> 该组件依赖其他的�
 build_config:
   include:
     - sev3x/include
-    - zhv2x/include
   internal_include:
   libs:
   libpath:
 source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
-    - sev3x/src/*.c ? <CONFIG_PROTOCOL_SEV3X>                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
-    - zhv2x/src/*.c ? <CONFIG_PROTOCOL_ZHV2X>  
+    - sev3x/src/*.c ? <CONFIG_PROTOCOL_SEV3X>                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件  
 
 
 # - ./hichannel_test/

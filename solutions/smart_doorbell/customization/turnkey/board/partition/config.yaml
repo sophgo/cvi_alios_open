@@ -36,8 +36,8 @@ partitions:
   - { name: algodm, address: 0x02F000, size: 0x062000, index: 0, filename: detect_v1_0_20231210.bin }           # 392 KB
   - { name: algofl, address: 0x091000, size: 0x04C000, index: 0, filename: face_lazy_v1_0_20231210.bin }        # 304 KB
   - { name: algofm, address: 0x0DD000, size: 0x32B000, index: 0, filename: facekit_v1_0_20231210.bin }          # 3244 KB
-  - { name: prim,   address: 0x408000, size: 0x3B4000, index: 0, filename: yoc.bin, load_addr: 0x80040000, update: FULL, car: xz }          # 3792 KB
-  - { name: misc,   address: 0x7BC000, size: 0x002000, index: 0 }                                               # 8 KB
-  - { name: kv,     address: 0x7BE000, size: 0x002000, index: 0 }                                               # 8 KB
-  - { name: wgt,    address: 0x7C0000, size: 0x040000, index: 0 }                                               # 256 KB
+  - { name: prim,   address: 0x408000, size: 0x374000, index: 0, filename: yoc.bin, load_addr: 0x80040000, update: FULL, car: xz }          # 3792 KB
+  - { name: misc,   address: 0x77C000, size: 0x002000, index: 0 }                                               # 8 KB
+  - { name: kv,     address: 0x77E000, size: 0x002000, index: 0 }                                               # 8 KB
+  - { name: wgt,    address: 0x780000, size: 0x080000, index: 0 }                                               # 256 KB
   - { name: fatfs,  address: 0x000000, size: 0, index: 2 }                                                      # size = 0 let device decide size

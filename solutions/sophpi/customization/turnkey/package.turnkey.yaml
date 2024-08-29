@@ -65,6 +65,7 @@ depends:
   - ble_host: develop
   - av_limited: develop
   - tiny_bbm: develop
+  - fw_h26x: v0.0.1
 
   - cvi_mmf_sdk_cv181xx: develop
 ## 第三部分：板级信息
@@ -218,7 +219,7 @@ def_config:
   CONFIG_SENSOR_OV_OV5647: 1
   CONFIG_SUPPORT_NORFLASH: 0
   CONFIG_SUPPORT_EMMC: 1
-  CONFIG_SUPPORT_USB_HC: 0 
+  CONFIG_SUPPORT_USB_HC: 0
 
   CONFIG_EXT4_PARTITION_NAME: "ext4"
 # SHOW_PART_INFO_EN: 1

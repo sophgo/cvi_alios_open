@@ -14,7 +14,7 @@ startup: all
 all:
 	@cp ${BOOT_YAML_PATH}/package.yaml ${BOOT_YAML_PATH}/package.yaml.bak
 	@cp ${BOOT_YAML_PATH}/package.boot.yaml ${BOOT_YAML_PATH}/package.yaml
-	$(CPRE) scons $(VERB) -j8
+	$(CPRE) scons $(VERB) -j$(NPROC)
 	@echo YoC SDK Done
 	@mv ${BOOT_YAML_PATH}/package.yaml.bak ${BOOT_YAML_PATH}/package.yaml
 

@@ -716,7 +716,7 @@ static void cli_down_history(char *inaddr)
  *  Ctrl K               Delete to the end of the line
  *  Ctrl U               Delete the entire line
  */
-static int32_t cli_get_input(char *inbuf, uint32_t size)
+int32_t cli_get_input(char *inbuf, uint32_t size)
 {
     char c;
     uint32_t i;

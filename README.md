@@ -13,13 +13,13 @@
   - [编译环境准备](#编译环境准备)
     - [Ubuntu 安装 Python \& pip](#ubuntu-安装-python--pip)
     - [YOCTOOL 安装](#yoctool-安装)
+    - [编译工具链下载](#编译工具链下载)
   - [编译步骤及说明](#编译步骤及说明)
     - [编译步骤](#编译步骤)
     - [镜像文件说明](#镜像文件说明)
   - [固件烧录](#固件烧录)
   - [运行说明](#运行说明)
 - [User Manual](#user-manual)
-  - [Project](#project)
   - [USB](#usb)
   - [OTA](#ota)
   - [Peripheral](#peripheral)
@@ -147,9 +147,8 @@ package.yaml 配置及使用可参考 https://help.aliyun.com/document_detail/30
 - 使用`yoc -V`查看对应版本，确保版本处于或者高于**2.0.54**
 
   ```shell
-    cvi_tek@WORKSTATION:cvi_alios_open$ ls -gGh boards/tools/fip/181x/total 888K
-    -rw-rw-r-- 1 397K 7月   6 20:11 fip.bin
-    -rw-rw-r-- 1 485K 7月   6 20:11 fip.bin.secureboot
+    cvi_tek@WORKSTATION:cvi_alios_open$ yoc -V
+    2.0.54
   ```
 
 - 输入 product version 查看 product 的版本，确保 product 安装成功
@@ -158,6 +157,14 @@ package.yaml 配置及使用可参考 https://help.aliyun.com/document_detail/30
     v1.0.45
     Mar 17 2023,14:16:38
   ```
+
+<br>
+
+### 编译工具链下载
+
+在[Release](https://github.com/sophgo/cvi_alios_open/releases)板块下载玄铁交叉编译工具链`Xuantie-900-gcc-elf-newlib-x86_64-V2.6.1`
+
+解压后，将编译工具链文件夹放置于 SDK 的`host-tools`目录下
 
 <br>
 
@@ -207,7 +214,8 @@ package.yaml 配置及使用可参考 https://help.aliyun.com/document_detail/30
   生成的 fip.bin 位于/boards/tools/fip/board_type 目录下
 
   ```shell
-    cvi_tek@WORKSTATION:cvi_alios_open$ ls -gGh boards/tools/fip/181x/total 888K
+    cvi_tek@WORKSTATION:cvi_alios_open$ ls -gGh boards/tools/fip/181x
+    total 888K
     -rw-rw-r-- 1 397K 7月   6 20:11 fip.bin
     -rw-rw-r-- 1 485K 7月   6 20:11 fip.bin.secureboot
   ```
@@ -261,12 +269,12 @@ package.yaml 配置及使用可参考 https://help.aliyun.com/document_detail/30
 
 # User Manual
 
-## Project
+<!-- ## Project -->
 <!-- - [新增客制化Project配置指南]() -->
 
 ## USB
 
-- [UVC & RTSP 出流指南](docs/docs/uvc_rtsp_streaming_manual.md)
+- [UVC & RTSP 出流指南](docs/uvc_rtsp_streaming_manual.md)
 - [UVC 配置指南](docs/uvc_config_manual.md)
 - [UVC 猫眼屏调试指南](docs/peephole_panel_adapt_manual.md)
 - [UAC 配置指南](docs/uac_cfg_manual.md)

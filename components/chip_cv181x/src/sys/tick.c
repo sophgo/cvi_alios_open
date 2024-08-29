@@ -73,7 +73,7 @@ uint32_t csi_tick_get_ms(void)
 {
     uint32_t time;
 
-    time = (uint32_t)((csi_clint_get_value() - timer_init_value) * 1000U / (uint64_t)soc_get_coretim_freq());
+    time = (uint32_t)((csi_clint_get_value() - timer_init_value) / ((uint64_t)soc_get_coretim_us_freq() * 1000));
     last_time_ms = time;
     return time;
 }
@@ -82,7 +82,7 @@ uint64_t csi_tick_get_us(void)
 {
     uint64_t time;
 
-    time = (csi_clint_get_value() - timer_init_value) * 1000U * 1000U / (uint64_t)soc_get_coretim_freq();
+    time = (csi_clint_get_value() - timer_init_value) / (uint64_t)soc_get_coretim_us_freq();
     last_time_us = time;
     return time;
 }

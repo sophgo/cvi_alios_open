@@ -22,7 +22,7 @@ all:
 	$(CPRE) if [ -e package.yaml ]; then rm -f package.yaml; fi
 	$(CPRE) ln -sf customization/$(PROJECT)/package.$(PROJECT).yaml package.yaml
 	$(CPRE) scons $(VERB) --board=$(BOARD) -j$(NPROC)
-	$(CPRE) if [ -e $(CURDIR)/yoc_sdk/lib/libcviai.a ]; then $(STRIP) --strip-unneeded $(CURDIR)/yoc_sdk/lib/libcviai.a; fi
+	$(CPRE) $(STRIP) --strip-unneeded $(CURDIR)/yoc_sdk/lib/*.a
 	@cp yoc.bin $(MK_GENERATED_IMGS_PATH)/data/prim
 ifeq ($(YOC_COMPRESS),y)
 	@echo YoC Compress start

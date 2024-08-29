@@ -10,7 +10,9 @@
 #define DEFAULT_MESH_PADDR	0x80000000
 #define GDC_SUPPORT_FMT(fmt)                                                   \
 	((fmt == PIXEL_FORMAT_NV12) || (fmt == PIXEL_FORMAT_NV21) ||           \
-	 (fmt == PIXEL_FORMAT_YUV_400))
+	 (fmt == PIXEL_FORMAT_YUV_400) || (fmt == PIXEL_FORMAT_RGB_888_PLANAR) ||    \
+	 (fmt == PIXEL_FORMAT_BGR_888_PLANAR) || (fmt == PIXEL_FORMAT_YUV_PLANAR_444) || \
+	 (fmt == PIXEL_FORMAT_YUV_PLANAR_420))
 
 enum GDC_USAGE {
 	GDC_USAGE_ROTATION,

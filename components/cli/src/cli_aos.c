@@ -2,6 +2,7 @@
  * Copyright (C) 2015-2021 Alibaba Group Holding Limited
  */
 
+#include <string.h>
 #include "stdarg.h"
 #include "aos/cli.h"
 #include "aos/errno.h"
@@ -68,4 +69,31 @@ int aos_cli_printf(const char *fmt, ...)
     ret = cli_va_printf(fmt, params);
     va_end(params);
     return ret;
+}
+
+int aos_cli_scanf(const char *s_type, void *data)
+{
+	char c[CLI_CMD_STR_SIZE];
+
+	cli_get_input(c, CLI_CMD_STR_SIZE);
+	if (strcmp(s_type, "%d") == 0) {
+		*(int *)data = atoi(c);
+	} else if (strcmp(s_type, "%s") == 0) {
+		memcpy((char *)data, c, strlen(c));
+	} else if (strcmp(s_type, "%lx") == 0) {
+		*(unsigned long *)data = strtoul(c, NULL, 0);
+	} else if (strcmp(s_type, "%x") == 0) {
+		*(unsigned int *)data = strtoul(c, NULL, 0);
+	} else if (strcmp(s_type, "%f") == 0) {
+		*(float *)data = strtof(c, NULL);
+	} else if (strcmp(s_type, "%lf") == 0) {
+		*(double *)data = strtod(c, NULL);
+	} else if (strcmp(s_type, "%c") == 0) {
+		*(char *)data = c[0];
+	} else {
+		aos_cli_printf("don't support type[%s]\r\n", s_type);
+		return CLI_ERR_INVALID;
+	}
+	aos_cli_printf("\r\n");
+	return CLI_OK;
 }

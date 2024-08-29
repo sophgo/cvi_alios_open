@@ -172,6 +172,8 @@ CVI_S32 CVI_VI_RegPmCallBack(VI_DEV ViDev, VI_PM_OPS_S *pstPmOps, void *pvData);
 CVI_S32 CVI_VI_UnRegPmCallBack(VI_DEV ViDev);
 CVI_S32 CVI_VI_RegSyncTask(VI_PIPE ViPipe, VI_SYNC_TASK_NODE_S *pstSyncTask);
 CVI_S32 CVI_VI_UnRegSyncTask(VI_PIPE ViPipe, VI_SYNC_TASK_NODE_S *pstSyncTask);
+CVI_S32 CVI_VI_DisableFrameValid(VI_DEV ViDev);
+CVI_S32 CVI_VI_EnableFrameValid(VI_DEV ViDev);
 
 // for fpga test
 CVI_S32 _CVI_VI_CFG_CTRL_TEST(void);

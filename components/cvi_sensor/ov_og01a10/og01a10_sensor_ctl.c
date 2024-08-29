@@ -28,7 +28,7 @@ int og01a10_i2c_exit(VI_PIPE ViPipe)
 {
 	CVI_U8 i2c_id = (CVI_U8)g_aunOg01a10_BusInfo[ViPipe].s8I2cDev;
 
-	return sensor_i2c_init(i2c_id);
+	return sensor_i2c_exit(i2c_id);
 }
 
 int og01a10_read_register(VI_PIPE ViPipe, int addr)

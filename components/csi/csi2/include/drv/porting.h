@@ -59,6 +59,7 @@ uint32_t soc_get_emmc_freq(uint32_t idx);
 uint32_t soc_get_usb_freq(uint32_t idx);
 uint32_t soc_get_ref_clk_freq(uint32_t idx);
 uint32_t soc_get_coretim_freq(void);
+uint32_t soc_get_coretim_us_freq(void);
 uint32_t soc_get_cur_cpu_freq(void);
 uint32_t soc_get_sys_freq(void);
 
