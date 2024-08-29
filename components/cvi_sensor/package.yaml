@@ -98,6 +98,7 @@ build_config:
     - gcore_gc4653
     - opnous_opn8018
     - sms_sc200ai
+    - sms_sc1346_1L
     - sms_sc2336
     - sms_sc2336_1L
     - sms_sc2336p
@@ -128,6 +129,7 @@ build_config:
     - ov_og01a10
     - ov_og01a1b
     - ov_ov02b10
+    - ov_ov02b10_multi
     - cista_c2599
     - cvsens_cv2003
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
@@ -147,6 +149,7 @@ source_file:
   - gcore_gc4653/*.c ? <CONFIG_SENSOR_GCORE_GC4653>
   - opnous_opn8018/*.c ? <CONFIG_SENSOR_OPNOUS_OPN8018>
   - sms_sc200ai/*.c ? <CONFIG_SENSOR_SMS_SC200AI>
+  - sms_sc1346_1L/*.c ? <CONFIG_SENSOR_SMS_SC1346_1L>
   - sms_sc2336/*.c ? <CONFIG_SENSOR_SMS_SC2336>
   - sms_sc2336_1L/*.c ? <CONFIG_SENSOR_SMS_SC2336_1L>
   - sms_sc2336p/*.c ? <CONFIG_SENSOR_SMS_SC2336P>
@@ -177,6 +180,7 @@ source_file:
   - ov_og01a10/*.c ? <CONFIG_SENSOR_OV_OG01A10>
   - ov_og01a1b/*.c ? <CONFIG_SENSOR_OV_OG01A1B>
   - ov_ov02b10/*.c ? <CONFIG_SENSOR_OV_OV02B10>
+  - ov_ov02b10_multi/*.c ? <CONFIG_SENSOR_OV_OV02B10_MULTI>
   - cista_c2599/*.c ? <CONFIG_SENSOR_CISTA_C2599>
   - cvsens_cv2003/*.c ? <CONFIG_SENSOR_CVSENS_CV2003>
 ## 第五部分：配置信息

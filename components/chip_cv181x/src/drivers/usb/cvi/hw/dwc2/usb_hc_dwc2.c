@@ -77,7 +77,7 @@ void USBH_IRQHandler(void);
 
 static inline int dwc2_reset(void)
 {
-    uint32_t count = 0U, val;
+    uint32_t count = 0U;
 
     /* Wait for AHB master IDLE state. */
     do {
@@ -91,15 +91,15 @@ static inline int dwc2_reset(void)
     USB_OTG_GLB->GRSTCTL |= USB_OTG_GRSTCTL_CSRST;
 
     do {
-        if (++count > 200000U) {
+        udelay(1);
+        if (++count > 10000U) {
+            aos_debug_printf("core soft reset failed!\n");
             return -1;
         }
-    } while (USB_OTG_GLB->GRSTCTL & (0x1UL << 29));
+    } while ((USB_OTG_GLB->GRSTCTL & USB_OTG_GRSTCTL_CSRSTDONE) != USB_OTG_GRSTCTL_CSRSTDONE);
 
-    val = USB_OTG_GLB->GRSTCTL;
-    val &= ~USB_OTG_GRSTCTL_CSRST;
-    val |= (0x1UL << 29);
-    USB_OTG_GLB->GRSTCTL = val;
+    USB_OTG_GLB->GRSTCTL &= ~(USB_OTG_GRSTCTL_CSRST);
+
     count = 0U;
     do {
         if (++count > 200000U) {

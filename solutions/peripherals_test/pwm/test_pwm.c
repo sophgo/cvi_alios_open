@@ -9,19 +9,19 @@ void test_pwm(int32_t argc, char **argv)
 {
 	/* test sdcard 命令实现
 	 * for example:
-	 * testpwm bank(0~3) channel(0~3) o period_us duty_us polarity
-     * testpwm bank(0~3) channel(0~3) i
+	 * testpwm bank(0~3) channel(0~3) o period_ns duty_ns polarity
+	 * testpwm bank(0~3) channel(0~3) i
 	 */
 
     // csi_error_t ret;
     csi_pwm_t pwm;
     int value, timeout = 5;
-    uint32_t bank, channel, period_us, duty_us, polarity;
+	uint32_t bank, channel, period_ns, duty_ns, polarity;
 
 	if (argc < 4) {
 		aos_cli_printf("please run(example): \n"
-                        "\ttestpwm bank(0~3) channel(0~3) o period_us duty_us polarity\n"
-                        "\ttestpwm bank(0~3) channel(0~3) i\n");
+						"\ttestpwm bank(0~3) channel(0~3) o period_ns duty_ns polarity\n"
+						"\ttestpwm bank(0~3) channel(0~3) i\n");
 		return;
 	}
 
@@ -41,13 +41,13 @@ void test_pwm(int32_t argc, char **argv)
             //     return;
             // }
 
-            period_us = atoi(argv[4]);
-            duty_us = atoi(argv[5]);
+			period_ns = atoi(argv[4]);
+			duty_ns = atoi(argv[5]);
             polarity = atoi(argv[6]);
 
             csi_pwm_init(&pwm, bank);
             csi_pwm_out_stop(&pwm, channel);
-            csi_pwm_out_config(&pwm, channel, period_us, duty_us,
+			csi_pwm_out_config(&pwm, channel, period_ns, duty_ns,
                                 polarity ? PWM_POLARITY_HIGH : PWM_POLARITY_LOW);
             csi_pwm_out_start(&pwm, channel);
 

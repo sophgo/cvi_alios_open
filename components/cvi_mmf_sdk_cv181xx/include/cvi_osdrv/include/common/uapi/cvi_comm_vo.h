@@ -8,7 +8,7 @@
 
 #ifndef __CVI_COMM_VO_H__
 #define __CVI_COMM_VO_H__
-
+#include "stdbool.h"
 #include <cvi_type.h>
 #include <cvi_common.h>
 #include <cvi_comm_video.h>
@@ -18,6 +18,8 @@
 extern "C" {
 #endif
 #endif /* End of #ifdef __cplusplus */
+#define MAX_VO_PINS 32
+#define MAX_MCU_INSTR 256
 
 
 /* VO video output interface type */
@@ -33,7 +35,8 @@ extern "C" {
 #define VO_INTF_MIPI (0x01L << 13)
 #define VO_INTF_MIPI_SLAVE (0x01L << 14)
 #define VO_INTF_HDMI (0x01L << 15)
-#define VO_INTF_I80 (0x01L << 16)
+#define VO_INTF_I80_SW (0x01L << 16)
+#define VO_INTF_I80_HW (0x01L << 17)
 
 #define COLOR_RGB_RED RGB_8BIT(0xFF, 0, 0)
 #define COLOR_RGB_GREEN RGB_8BIT(0, 0xFF, 0)
@@ -109,13 +112,19 @@ typedef enum _VO_CSC_MATRIX_E {
 	VO_CSC_MATRIX_BUTT
 } VO_CSC_MATRIX_E;
 
-typedef enum _VO_I80_FORMAT {
-	VO_I80_FORMAT_RGB444 = 0,
-	VO_I80_FORMAT_RGB565,
-	VO_I80_FORMAT_RGB666,
-	VO_I80_FORMAT_MAX
-} VO_I80_FORMAT;
-
+enum VO_PATTERN_MODE {
+	VO_PAT_OFF = 0,
+	VO_PAT_SNOW,
+	VO_PAT_AUTO,
+	VO_PAT_RED,
+	VO_PAT_GREEN,
+	VO_PAT_BLUE,
+	VO_PAT_COLORBAR,
+	VO_PAT_GRAY_GRAD_H,
+	VO_PAT_GRAY_GRAD_V,
+	VO_PAT_BLACK,
+	VO_PAT_MAX,
+};
 enum VO_LVDS_LANE_ID {
 	VO_LVDS_LANE_CLK = 0,
 	VO_LVDS_LANE_0,
@@ -197,6 +206,27 @@ typedef struct _VO_SYNC_INFO_S {
 	CVI_BOOL bIvs;
 } VO_SYNC_INFO_S;
 
+struct sync_info_s {
+	unsigned short  vid_hsa_pixels;
+	unsigned short  vid_hbp_pixels;
+	unsigned short  vid_hfp_pixels;
+	unsigned short  vid_hline_pixels;
+	unsigned short  vid_vsa_lines;
+	unsigned short  vid_vbp_lines;
+	unsigned short  vid_vfp_lines;
+	unsigned short  vid_active_lines;
+	unsigned short  edpi_cmd_size;
+	bool            vid_vsa_pos_polarity;
+	bool            vid_hsa_pos_polarity;
+};
+
+typedef enum SW_I80_FORMAT {
+	VO_I80_FORMAT_RGB444 = 0,
+	VO_I80_FORMAT_RGB565,
+	VO_I80_FORMAT_RGB666,
+	VO_I80_FORMAT_MAX
+}SW_I80_FORMAT_E;
+
 /* Define I80's lane (0~3)
  *
  * CS: Chip Select
@@ -204,12 +234,12 @@ typedef struct _VO_SYNC_INFO_S {
  * WR: MCU Write to bus
  * RD: MCU Read from bus
  */
-typedef struct _VO_I80_LANE_S {
+struct SW_I80_LANE_S {
 	CVI_U8 CS;
 	CVI_U8 RS;
 	CVI_U8 WR;
 	CVI_U8 RD;
-} VO_I80_LANE_S;
+};
 
 /* Define I80's config
  *
@@ -217,11 +247,13 @@ typedef struct _VO_I80_LANE_S {
  * fmt: format of data
  * cycle_time: cycle time of WR/RD, unit ns, max 250
  */
-typedef struct _VO_I80_CFG_S {
-	VO_I80_LANE_S lane_s;
-	VO_I80_FORMAT fmt;
+typedef struct _SW_I80_CFG_S {
+	struct SW_I80_LANE_S lane_s;
+	SW_I80_FORMAT_E fmt;
 	CVI_U16 cycle_time;
-} VO_I80_CFG_S;
+	struct sync_info_s sync_info;
+} SW_I80_CFG_S;
+
 
 /* Define I80's cmd
  *
@@ -229,11 +261,11 @@ typedef struct _VO_I80_CFG_S {
  * data_type: Data(1)/Command(0)
  * data: data to send
  */
-typedef struct _VO_I80_INSTR_S {
-	CVI_U8	delay;
-	CVI_U8  data_type;
-	CVI_U8	data;
-} VO_I80_INSTR_S;
+typedef struct SW_I80_INSTR_S {
+	CVI_U8 delay;
+	CVI_U8 data_type;
+	CVI_U8 data;
+} SW_I80_INSTR_S;
 
 struct VO_LVDS_CTL_PIN_S {
 	uint32_t gpio_num;
@@ -247,7 +279,9 @@ struct VO_LVDS_CTL_PIN_S {
  * lane_id: lane mapping, -1 no used
  * lane_pn_swap: lane pn-swap if true
  */
+ 
 typedef struct _VO_LVDS_ATTR_S {
+	enum VO_LVDS_MODE_E lvds_vesa_mode;
 	enum VO_LVDS_OUT_BIT_E out_bits;
 	uint8_t chn_num;
 	CVI_BOOL data_big_endian;
@@ -255,12 +289,83 @@ typedef struct _VO_LVDS_ATTR_S {
 	CVI_BOOL lane_pn_swap[VO_LVDS_LANE_MAX];
 	struct _VO_SYNC_INFO_S stSyncInfo;
 	uint32_t pixelclock;
-	struct VO_LVDS_CTL_PIN_S backlight_pin;
-	enum VO_LVDS_MODE_E lvds_vesa_mode;
+	unsigned short			u16FrameRate;
     #if 0
     #endif
 } VO_LVDS_ATTR_S;
 
+enum VO_TOP_BT_MUX {
+	VO_MUX_BT_VS = 0,
+	VO_MUX_BT_HS,
+	VO_MUX_BT_HDE,
+	VO_MUX_BT_DATA0,
+	VO_MUX_BT_DATA1,
+	VO_MUX_BT_DATA2,
+	VO_MUX_BT_DATA3,
+	VO_MUX_BT_DATA4,
+	VO_MUX_BT_DATA5,
+	VO_MUX_BT_DATA6,
+	VO_MUX_BT_DATA7,
+	VO_MUX_BT_DATA8,
+	VO_MUX_BT_DATA9,
+	VO_MUX_BT_DATA10,
+	VO_MUX_BT_DATA11,
+	VO_MUX_BT_DATA12,
+	VO_MUX_BT_DATA13,
+	VO_MUX_BT_DATA14,
+	VO_MUX_BT_DATA15,
+	VO_MUX_TG_HS_TILE = 30,
+	VO_MUX_TG_VS_TILE,
+	VO_BT_MUX_MAX,
+};
+
+typedef enum  _VO_TOP_D_SEL_E {
+	VO_MIPI_TXP2 = 0,
+	VO_VIVO_CLK = 1,
+	VO_MIPI_TXM2 = 2,
+	VO_MIPI_TXP1 = 3,
+	VO_MIPI_TXM1 = 4,
+	VO_MIPI_TXP0 = 5,
+	VO_MIPI_TXM0 = 6,
+	VO_MIPI_RXP0 = 7,
+	VO_MIPI_RXN0 = 8,
+	VO_MIPI_RXP1 = 9,
+	VO_MIPI_RXN1 = 10,
+	VO_MIPI_RXP2 = 11,
+	VO_MIPI_RXN2 = 12,
+	VO_MIPI_RXP5 = 13,
+	VO_MIPI_RXN5 = 14,
+	VO_VIVO_D0 = 15,
+	VO_VIVO_D1 = 16,
+	VO_VIVO_D2 = 17,
+	VO_VIVO_D3 = 18,
+	VO_VIVO_D4 = 19,
+	VO_VIVO_D5 = 20,
+	VO_VIVO_D6 = 21,
+	VO_VIVO_D7 = 22,
+	VO_VIVO_D8 = 23,
+	VO_VIVO_D9 = 24,
+	VO_VIVO_D10 = 25,
+	VO_MIPI_TXM4 = 26,
+	VO_MIPI_TXP4 = 27,
+	VO_MIPI_TXM3 = 28,
+	VO_MIPI_TXP3 = 29,
+	VO_PAD_MAX = 30
+}VO_TOP_D_SEL_E;
+
+struct VO_D_REMAP {
+	VO_TOP_D_SEL_E sel;
+	CVI_U32 mux;
+};
+
+struct VO_PINMUX {
+	unsigned char pin_num;
+	struct VO_D_REMAP d_pins[MAX_VO_PINS];
+};
+
+typedef struct _VO_BT_ATTR_S {
+	struct VO_PINMUX pins;
+} VO_BT_ATTR_S;
 /*
  * u32BgColor: Background color of a device, in RGB format.
  * enIntfType: Type of a VO interface.
@@ -275,8 +380,9 @@ typedef struct _VO_PUB_ATTR_S {
 	VO_INTF_SYNC_E enIntfSync;
 	VO_SYNC_INFO_S stSyncInfo;
 	union {
-		VO_I80_CFG_S sti80Cfg;
+		SW_I80_CFG_S sti80Cfg;
 		VO_LVDS_ATTR_S stLvdsAttr;
+		VO_BT_ATTR_S stBtAttr;
 	};
 } VO_PUB_ATTR_S;
 

@@ -13,6 +13,9 @@
 #include <mmio.h>
 #include <devices/devicelist.h>
 #include "board_config.h"
+#if (CONFIG_APP_HI3861_WIFI_SUPPORT == 1)
+#include <hi3861l_devops.h>
+#endif
 
 #define GPIO_PIN_MASK(_gpio_num) (1 << _gpio_num)
 

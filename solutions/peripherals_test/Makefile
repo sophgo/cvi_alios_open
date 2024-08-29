@@ -18,7 +18,7 @@ all:
 	$(CPRE) if [ -e $(CURDIR)/prebuild.sh ]; then bash $(CURDIR)/prebuild.sh $(shell echo $(CHIP_ARCH) | tr A-Z a-z); fi
 	$(CPRE) if [ -e package.yaml ]; then rm -f package.yaml; fi
 	$(CPRE) ln -sf customization/$(PROJECT)/package.$(PROJECT).yaml package.yaml
-	$(CPRE) scons $(VERB) --board=$(BOARD) -j4
+	$(CPRE) scons $(VERB) --board=$(BOARD) -j$(NPROC)
 	@cp yoc.bin $(MK_GENERATED_IMGS_PATH)/data/prim
 	@echo YoC SDK Done
 	@echo [INFO] Create bin files

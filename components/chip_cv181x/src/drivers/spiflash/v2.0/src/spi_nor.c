@@ -107,6 +107,8 @@ const struct flash_info spi_flash_ids[] = {
 		RD_FULL | WR_QPP | SECT_4K) },
 	{ "GD25F64F", INFO(0xc84317, 0x0, 64 * 1024, 128,
 		RD_FULL | WR_QPP | SECT_4K | _10_DUMMY_CYCLE | NO_QE | ADJUST_DUMMY) },
+	{ "TH25Q64HA", INFO(0xCD6017, 0x0, 64 * 1024, 128,
+		RD_FULL | WR_QPP | SECT_4K) },
 
 	{},     /* Empty entry to terminate the list */
 
@@ -624,6 +626,7 @@ static int set_quad_mode(struct spi_nor *nor)
 		case SNOR_MFR_PY:
 		case SNOR_MFR_FUDAN:
 		case SNOR_MFR_BOYA:
+		case SNOR_MFR_TH:
 			return quad_enable_SR2_bit1(nor);
 
 		default:

@@ -3,6 +3,7 @@
 
 #include <cvi_comm_vpss.h>
 #include <cvi_comm_vo.h>
+#include <cvi_comm_hw_i80.h>
 #include "rtos_types.h"
 #ifdef __cplusplus
 	extern "C" {
@@ -94,6 +95,7 @@ enum VO_SDK_CTRL {
 	VO_SDK_SUSPEND,
 	VO_SDK_RESUME,
 	VO_SDK_CLEAR_CHNBUF,
+	VO_SDK_HWI80_INIT,
 };
 
 struct vo_bt_timings {
@@ -288,6 +290,11 @@ struct vo_dev_cfg {
 struct vo_pub_attr_cfg {
 	__u8 VoDev;
 	VO_PUB_ATTR_S pstPubAttr;
+};
+
+struct vo_hwi80_attr_cfg {
+	__u8 VoDev;
+	HW_I80_CFG_S pstHwI80Attr;
 };
 
 struct vo_video_plane_pix_format {

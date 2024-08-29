@@ -141,6 +141,12 @@ int32_t cli_set_echo_status(int32_t status);
 */
 void cli_main(void *arg);
 
+/**
+ * @brief cli_get_input
+ *
+ */
+int32_t cli_get_input(char *inbuf, uint32_t size);
+
 #if CLI_UAGENT_ENABLE
 /**
 * @brief CLI Uagent init

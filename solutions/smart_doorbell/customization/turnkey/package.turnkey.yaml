@@ -68,6 +68,7 @@ depends:
   # - zlib: develop
   # - cvi_test: develop
   # - facekit: develop
+  - fw_h26x: v0.0.1
 
   - cvi_mmf_sdk_cv180xx: develop
 ## 第三部分：板级信息

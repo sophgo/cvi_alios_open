@@ -17,6 +17,8 @@ extern "C" {
 /* This struct is used to define the cli cmd format */
 typedef void (*cmd_fun_t)(char *outbuf, int len, int argc, char **argv);
 
+#define CLI_CMD_STR_SIZE 64
+
 struct cli_command
 {
     const char *name;
@@ -144,6 +146,15 @@ int aos_cli_get_commands_num(void);
  */
 struct cli_command *aos_cli_get_command(int index);
 
+/**
+ * @brief rewrite scanf
+ *
+ * @param[in] s_type specify the input format
+ * @param[in] data   pointer to the input data
+ *
+ * @return 0 on success, otherwise failed
+ */
+int aos_cli_scanf(const char *s_type, void *data);
 
 /**
  * @}

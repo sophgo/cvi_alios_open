@@ -367,6 +367,7 @@ int32_t hal_uart_recv_II(uart_dev_t *uart, void *data, uint32_t expect_size,
     long long    time_enter, used_time;
     void *       temp_buf   = data;
     uint32_t     temp_count = expect_size;
+	uint32_t     start_flag = 0;
     time_enter              = aos_now_ms();
 
     /* if shadow dev inited, normal dev stop working */
@@ -394,6 +395,13 @@ int32_t hal_uart_recv_II(uart_dev_t *uart, void *data, uint32_t expect_size,
         }
         temp_count = temp_count - ret;
         temp_buf   = (uint8_t *)temp_buf + ret;
+
+		if (ret > 0) {
+			if (start_flag == 0) {
+				start_flag = 1;
+				time_enter = aos_now_ms();
+			}
+		}
         used_time  = aos_now_ms() - time_enter;
 
         if (timeout <= used_time || temp_count == 0 || timeout == 0) {

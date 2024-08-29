@@ -5,10 +5,24 @@
 #include "rtos_types.h"
 #include "cvi_vip.h"
 #include "cvi_common.h"
+#include "cvi_comm_vo.h"
 
 #define CMD_MAX_NUM    128
 #define RX_MAX_NUM     4
 #define LANE_MAX_NUM   5
+
+struct dsc_instr {
+	CVI_U8	delay;
+	CVI_U8  data_type;
+	CVI_U8	size;
+	CVI_U8	*data;
+};
+
+struct mipi_hs_timing_cfg {
+	CVI_U8 prepare;
+	CVI_U8 zero;
+	CVI_U8 trail;
+};
 
 enum output_mode_e {
 	OUTPUT_MODE_CSI            = 0x0,              /* csi mode */
@@ -43,20 +57,6 @@ enum mipi_tx_lane_id {
 	MIPI_TX_LANE_2,
 	MIPI_TX_LANE_3,
 	MIPI_TX_LANE_MAX,
-};
-
-struct sync_info_s {
-	unsigned short  vid_hsa_pixels;
-	unsigned short  vid_hbp_pixels;
-	unsigned short  vid_hfp_pixels;
-	unsigned short  vid_hline_pixels;
-	unsigned short  vid_vsa_lines;
-	unsigned short  vid_vbp_lines;
-	unsigned short  vid_vfp_lines;
-	unsigned short  vid_active_lines;
-	unsigned short  edpi_cmd_size;
-	bool            vid_vsa_pos_polarity;
-	bool            vid_hsa_pos_polarity;
 };
 
 /*
@@ -95,6 +95,13 @@ struct cmd_info_s {
 #endif
 };
 
+struct cmd_info_msg_s {
+	unsigned int        devno;                   /* device number */
+	unsigned short      data_type;
+	unsigned short      cmd_size;
+	unsigned char       cmd[CMD_MAX_NUM];
+};
+
 /*
  * devno: device number
  * data_type: DSI data type
@@ -115,6 +122,14 @@ struct get_cmd_info_s {
 	unsigned int        padding1;
 	unsigned char       *get_data;
 #endif
+};
+
+struct get_cmd_info_msg_s {
+	unsigned int        devno;
+	unsigned short      data_type;
+	unsigned short      data_param;
+	unsigned short      get_data_size;
+	unsigned char       get_data[CMD_MAX_NUM];
 };
 
 struct hs_settle_s {

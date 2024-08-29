@@ -34,6 +34,7 @@
 #define SNOR_MFR_FUDAN          0xA1
 #define SNOR_MFR_CYPRESS	0x34
 #define SNOR_MFR_BOYA		0x68
+#define SNOR_MFR_TH		0xCD
 
 #define JEDEC_MFR(info)               ((info)->id[0])
 

@@ -288,8 +288,9 @@ CVI_S32 CVI_ISP_GetNoiseProfileAttr(VI_PIPE ViPipe, ISP_CMOS_NOISE_CALIBRATION_S
 /* MIPI related function. */
 CVI_S32 CVI_MIPI_SetMipiReset(CVI_S32 devno, CVI_U32 reset);
 CVI_S32 CVI_MIPI_SetSensorClock(CVI_S32 devno, CVI_U32 enable);
+CVI_S32 CVI_MIPI_SetSnsGpioInit(CVI_S32 devno, CVI_S32 rst_port_idx, CVI_S32 rst_pin, CVI_S32 rst_pol);
 CVI_S32 CVI_MIPI_SetSensorReset(CVI_S32 devno, CVI_U32 reset);
-CVI_S32 CVI_MIPI_SetMipiAttr(CVI_S32 ViPipe, const CVI_VOID *devAttr);
+CVI_S32 CVI_MIPI_SetMipiAttr(CVI_S32 ViPipe, CVI_VOID *devAttr);
 CVI_S32 CVI_MIPI_SetClkEdge(CVI_S32 devno, CVI_U32 is_up);
 CVI_S32 CVI_MIPI_SetSnsMclk(SNS_MCLK_S *mclk);
 

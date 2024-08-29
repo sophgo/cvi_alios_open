@@ -44,37 +44,22 @@ int gc2083_1l_write_register(VI_PIPE ViPipe, int addr, int data)
 
 void gc2083_1l_standby(VI_PIPE ViPipe)
 {
-	gc2083_1l_write_register(ViPipe, 0x003e, 0x00);
+	gc2083_1l_write_register(ViPipe, 0x023e, 0x00);
 	gc2083_1l_write_register(ViPipe, 0x03f7, 0x00);
 	gc2083_1l_write_register(ViPipe, 0x03fc, 0x01);
-	gc2083_1l_write_register(ViPipe, 0x03f9, 0x41);
+	gc2083_1l_write_register(ViPipe, 0x03f9, 0x42);
+	gc2083_1l_write_register(ViPipe, 0x03f5, 0x00);
 
 	printf("%s...", __func__);
 }
 
 void gc2083_1l_restart(VI_PIPE ViPipe)
 {
-	WDR_MODE_E enWDRMode;
-	CVI_U8     u8ImgMode;
-
-	enWDRMode   = g_pastGc2083_1L[ViPipe]->enWDRMode;
-	u8ImgMode   = g_pastGc2083_1L[ViPipe]->u8ImgMode;
-
-	if (enWDRMode == WDR_MODE_2To1_LINE) {
-		if (u8ImgMode == GC2083_1L_MODE_1920X1080P30_WDR) {
-			gc2083_1l_write_register(ViPipe, 0x03f9, 0x40);
-			usleep(1);
-			gc2083_1l_write_register(ViPipe, 0x03f7, 0x01);
-			gc2083_1l_write_register(ViPipe, 0x03fc, 0x8e);
-			gc2083_1l_write_register(ViPipe, 0x003e, 0x91);
-		}
-	} else {
-		gc2083_1l_write_register(ViPipe, 0x03f9, 0x42);
-		usleep(1);
-		gc2083_1l_write_register(ViPipe, 0x03f7, 0x11);
-		gc2083_1l_write_register(ViPipe, 0x03fc, 0x8e);
-		gc2083_1l_write_register(ViPipe, 0x003e, 0x91);
-	}
+	gc2083_1l_write_register(ViPipe, 0x03f5, 0xc0);
+	gc2083_1l_write_register(ViPipe, 0x03f9, 0x43);
+	gc2083_1l_write_register(ViPipe, 0x03f7, 0x01);
+	gc2083_1l_write_register(ViPipe, 0x03fc, 0xae);
+	gc2083_1l_write_register(ViPipe, 0x023e, 0x98);
 
 	printf("%s...", __func__);
 }

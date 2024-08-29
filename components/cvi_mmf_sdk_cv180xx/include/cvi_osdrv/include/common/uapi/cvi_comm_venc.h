@@ -649,12 +649,14 @@ typedef struct _VENC_ATTR_JPEG_S {
 typedef struct _VENC_ATTR_H264_S {
 	CVI_BOOL bRcnRefShareBuf; /* RW; Range:[0, 1]; Whether to enable the Share Buf of Rcn and Ref .*/
 	CVI_BOOL bSingleLumaBuf; /* Use single luma buffer*/
+	CVI_BOOL addrRemapEn; /* Use addrRemapEn mode*/
 	// reserved
 } VENC_ATTR_H264_S;
 
 /*the attribute of h265e*/
 typedef struct _VENC_ATTR_H265_S {
 	CVI_BOOL bRcnRefShareBuf; /* RW; Range:[0, 1]; Whether to enable the Share Buf of Rcn and Ref .*/
+	CVI_BOOL addrRemapEn; /* Use addrRemapEn mode*/
 	// reserved
 } VENC_ATTR_H265_S;
 

@@ -60,4 +60,6 @@ int vo_sdk_set_chnrotation(int fd, struct vo_chn_rotation_cfg *cfg);
 int vo_sdk_get_chnrotation(int fd, struct vo_chn_rotation_cfg *cfg);
 int vo_sdk_get_waitvsync(int fd, int *cfg);
 int vo_set_flush_event_cb_ctrl(int fd, void (*cfg)(void));
+int vo_sdk_hwi80_init(int fd, struct vo_hwi80_attr_cfg *cfg);
+
 #endif

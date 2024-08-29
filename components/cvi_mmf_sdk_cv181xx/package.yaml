@@ -47,6 +47,7 @@ build_config:
     - include/cvi_middleware/include/cvi_mw_isp_com_raw_dump
     - include/cvi_middleware/include/cvi_mw_vpu
     - include/cvi_middleware/include/cvi_mw_isp_com_raw_replay
+    - include/cvi_middleware/include/cvi_mw_rgn
     - include/cvi_middleware/include/
     - include/cvi_tpu/include/cvi_math
     - include/cvi_tpu/include/cvi_runtime
@@ -85,6 +86,7 @@ build_config:
     - include/cvi_middleware/include/cvi_mw_isp_com_raw_dump
     - include/cvi_middleware/include/cvi_mw_isp_com_raw_replay
     - include/cvi_middleware/include/cvi_mw_vpu
+    - include/cvi_middleware/include/cvi_mw_rgn
     - include/cvi_tpu/include/cvi_math
     - include/cvi_tpu/include/cvi_runtime
     - include/cvi_tpu/include/cvi_kernel
@@ -123,6 +125,7 @@ build_config:
     - cvi_mw_isp_com_raw_dump
     - cvi_mw_isp_com_raw_replay
     - cvi_mw_vpu
+    - cvi_mw_rgn
     - cvi_math
     - cvi_runtime
     - cvi_kernel

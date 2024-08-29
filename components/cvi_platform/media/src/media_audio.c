@@ -23,7 +23,7 @@
 static aos_pcm_t *capture_handle,*playback_handle;
 static unsigned int rate = 8000;       //ai ao default 16K
 static void *pssp_handle = NULL;
-
+aos_mutex_t g_dma_mutex;
 
 static void audio_capture_init(void)
 {
@@ -171,6 +171,7 @@ void* MEDIA_AUDIO_AlgoHandle(void)
 
 int MEDIA_AUDIO_Init()
 {
+	aos_mutex_new(&g_dma_mutex);
     _Snd_DriverRegister();
     audio_capture_init();
 #if(ENABLE_AUDALGO)
@@ -193,5 +194,6 @@ int MEDIA_AUDIO_DeInit()
     PLATFORM_SpkMute(0);
     printf("alios audio deinit success\r\n");
     _Snd_DriverUnRegister();
+	aos_mutex_free(&g_dma_mutex);
     return 0;
 }

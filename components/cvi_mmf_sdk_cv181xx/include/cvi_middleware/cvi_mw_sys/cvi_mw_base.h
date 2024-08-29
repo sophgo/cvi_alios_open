@@ -238,9 +238,6 @@ CVI_S32 vo_dev_open(CVI_VOID);
 CVI_S32 vo_dev_close(CVI_VOID);
 CVI_S32 dwa_dev_open(CVI_VOID);
 CVI_S32 dwa_dev_close(CVI_VOID);
-CVI_S32 get_rgn_fd(void);
-CVI_S32 rgn_dev_open(void);
-CVI_S32 rgn_dev_close(void);
 
 extern struct cvi_gdc_mesh vi_mesh[VI_MAX_CHN_NUM];
 extern struct cvi_gdc_mesh mesh[VPSS_MAX_GRP_NUM][VPSS_MAX_CHN_NUM];

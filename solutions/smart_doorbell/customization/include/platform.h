@@ -15,4 +15,5 @@ void PLATFORM_PanelBacklightCtl(int level);
 void PLATFORM_SpkMute(int value);
 void PLATFORM_SpkUnMute(int value);
 int PLATFORM_IrCutCtl(int duty);
+void cvi_cal_isp_param();
 #endif

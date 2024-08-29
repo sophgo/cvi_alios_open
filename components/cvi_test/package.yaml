@@ -58,7 +58,7 @@ source_file:
   - test/vdec/*.c ? <CONFIG_APP_TEST>
   - test/gdc/*.c ? <CONFIG_APP_TEST>
   - test/vo/*.c ? <CONFIG_APP_TEST>
-  - test/rgn/*.c ? <CONFIG_APP_TEST>
+  - test/rgn/*.c ? <CONFIG_APP_RGN_USE>
   - test/dma/*.c ? <CONFIG_APP_TEST>
   - test/spi/*.c ? <CONFIG_APP_TEST>
   - test/sys/*.c ? <CONFIG_APP_TEST>

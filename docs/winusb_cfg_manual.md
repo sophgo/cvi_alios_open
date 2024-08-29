@@ -104,7 +104,7 @@ ALIOS_CLI_CMD_REGISTER(winusb_out_test， winusb_out_test， usb winusb_out_test
 
 用户可参照下文代码开发上位测试应用
  - 经实际测试，WinUSB上位机接收速度约为18MB/s
- - 依赖的 `libusb` 库路径:`host-tools/libusb/libusb_dll.zip`
+ - 依赖的 `libusb` 库路径:`host-tools/libusb_dll`
 
 ```shell
 import usb.core

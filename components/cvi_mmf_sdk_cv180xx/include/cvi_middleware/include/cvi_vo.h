@@ -24,14 +24,6 @@ extern "C"
 
 CVI_S32 CVI_VO_SetPubAttr(VO_DEV VoDev, const VO_PUB_ATTR_S *pstPubAttr);
 CVI_S32 CVI_VO_GetPubAttr(VO_DEV VoDev, VO_PUB_ATTR_S *pstPubAttr);
-/* CVI_VO_I80Init: init i80 per instructions
- *
- * @param VoDev: the chn which has vb to be released
- * @param pi80Instr: i80 init instructions
- * @param size: number of pi80Instr
- * @return: status of operation. CVI_SUCCESS if OK.
- */
-CVI_S32 CVI_VO_I80Init(VO_DEV VoDev, const VO_I80_INSTR_S *pi80Instr, CVI_U8 size);
 
 CVI_BOOL CVI_VO_IsEnabled(VO_DEV VoDev);
 CVI_S32 CVI_VO_Enable(VO_DEV VoDev);
@@ -123,6 +115,9 @@ CVI_S32 CVI_VO_GetGammaInfo(VO_GAMMA_INFO_S *pinfo);
 CVI_S32 CVI_VO_GetWaitVSync(CVI_S32 timeout);
 CVI_S32 CVI_VO_SetFlushEventCb(void (*flush_cb)(void));
 CVI_S32 CVI_VO_ShowPattern(VO_DEV VoDev, enum cvi_vip_pattern PatternId);
+
+CVI_S32 CVI_VO_Suspend(void);
+CVI_S32 CVI_VO_Resume(void);
 #ifdef __cplusplus
 #if __cplusplus
 }
