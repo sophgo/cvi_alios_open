@@ -32,6 +32,8 @@ static volatile bool rx_flag = 0;
 static volatile bool ep_tx_busy_flag = false;
 static volatile bool ep_rx_busy_flag = false;
 static int uac_session_init_flag = CVI_FALSE;
+static u32 uac_tx_cnt  = 0;
+static u32 uac_rx_cnt  = 0;
 
 static struct uac_device_info uac_info;
 static uint8_t *uac_descriptor = NULL;
@@ -70,10 +72,12 @@ void usbd_audio_open(uint8_t intf)
         rx_flag = 1;
         usbd_ep_start_read(uac_info.audio_out_ep.ep_addr, out_buffer, AUDIO_OUT_PACKET);
         ep_rx_busy_flag = false;
+        uac_rx_cnt = 0;
     } else {
         // in
         tx_flag = 1;
         ep_tx_busy_flag = false;
+        uac_tx_cnt = 0;
     }
 
     if (!g_utimer.StartFlag) {
@@ -114,7 +118,7 @@ static void usbd_audio_out_callback(uint8_t ep, uint32_t nbytes)
     // USB_LOG_DBG("actual out len:%u\r\n", nbytes);
 
     if (nbytes == 0) {
-        nbytes = AUDIO_OUT_PACKET;
+        goto EXIT;
     }
 
     ring_buffer_put(g_ring_buf[UAC_SPEAKER_INDEX], (void *)out_buffer, nbytes);
@@ -122,7 +126,11 @@ static void usbd_audio_out_callback(uint8_t ep, uint32_t nbytes)
         aos_sem_signal(&g_audio_write_sem);
     }
 
-    usbd_ep_start_read(uac_info.audio_out_ep.ep_addr, out_buffer, nbytes);
+    uac_rx_cnt++;
+
+EXIT:
+    ep_rx_busy_flag = true;
+    usbd_ep_start_read(uac_info.audio_out_ep.ep_addr, out_buffer, AUDIO_OUT_PACKET);
 }
 
 static void usbd_audio_in_callback(uint8_t ep, uint32_t nbytes)
@@ -182,6 +190,7 @@ static void uac_timer_send_data_cb(void *timer, void *arg)
         if (ret > 0) {
             ep_tx_busy_flag = true;
             usbd_ep_start_write(uac_info.audio_in_ep.ep_addr, in_buffer, ret);
+            uac_tx_cnt++;
         }
     }
 
@@ -203,6 +212,7 @@ static void audio_write(void *arg)
             int ret = ring_buffer_get(g_ring_buf[UAC_SPEAKER_INDEX], (void *)write_pcm_buf, play_len);
             if (ret > 0) {
                 MEDIA_AUDIO_PcmWrite(write_pcm_buf, play_len);
+                ep_rx_busy_flag = false;
             }
         }
     }
@@ -296,9 +306,8 @@ static void uac_desc_register_cb()
 	uac_destroy_descriptor(uac_descriptor);
 }
 
-int uac_init(void)
+int uac_desc_register(void)
 {
-    aos_task_t read_handle;
     uint32_t desc_len;
 
     uac_info.audio_out_ep.ep_cb = usbd_audio_out_callback;
@@ -306,8 +315,8 @@ int uac_init(void)
     uac_info.audio_in_ep.ep_cb = usbd_audio_in_callback;
     uac_info.audio_in_ep.ep_addr = comp_get_available_ep(1);
     uac_info.interface_nums = comp_get_interfaces_num();
-    printf("uac out ep:%#x\n", uac_info.audio_out_ep.ep_addr);
-    printf("uac int ep:%#x\n", uac_info.audio_in_ep.ep_addr);
+    USB_LOG_INFO("uac out ep:%#x\n", uac_info.audio_out_ep.ep_addr);
+    USB_LOG_INFO("uac int ep:%#x\n", uac_info.audio_in_ep.ep_addr);
     USB_LOG_INFO("uac interface_nums:%d\n", uac_info.interface_nums);
 
 	uac_descriptor = uac_build_descriptor(&uac_info, &desc_len);
@@ -322,6 +331,12 @@ int uac_init(void)
     usbd_audio_add_entity(0x05, AUDIO_CONTROL_FEATURE_UNIT);
 
     USB_LOG_INFO("intf_num %d,%d\n", uac_info.uac_intf1.intf_num, uac_info.uac_intf2.intf_num);
+    return 0;
+}
+
+int uac_init(void)
+{
+    aos_task_t read_handle;
 
     uac_event_sem_init();
     // media_audio_init();
@@ -354,3 +369,35 @@ int uac_deinit(void)
     return 0;
 }
 
+
+#define UAC_DBG_BUF_SIZE 1*1024
+void _uac_dbg_proc_show(int32_t argc, char **argv)
+{
+    int pos = 0;
+    char *buf = NULL;
+    uint8_t ep_interval = HS_EP_INTERVAL;
+    buf = calloc(1, UAC_DBG_BUF_SIZE);
+    if (!buf) {
+        printf("fail to malloc\n");
+        return;
+    }
+
+    if (usbd_comp_get_speed() != USB_SPEED_HIGH) {
+        ep_interval = FS_EP_INTERVAL;
+    }
+
+    pos += sprintf(buf + pos, "[UAC Debug Info]\n");
+    pos += sprintf(buf + pos, "AudioFreq\t\t:%d\t\tAudioChnNum\t\t:%d\n", AUDIO_FREQ, AUDIO_CHANNEL_NUM);
+    pos += sprintf(buf + pos, "AudioAlgoStatus\t\t:%d\t\tEpInterval\t\t:%d\n", MEDIA_AUDIO_AlgoIsEnable(), ep_interval);
+    pos += sprintf(buf + pos, "[FLAG Info]\n");
+    pos += sprintf(buf + pos, "TxFlag\t\t\t:%d\t\tRxFlag\t\t:%d\n", tx_flag, rx_flag);
+    pos += sprintf(buf + pos, "[EP Flag Info]\n");
+    pos += sprintf(buf + pos, "EpTxBusyFlag\t\t:%d\t\tEpRxBusyFlag\t:%d\n",ep_tx_busy_flag,ep_rx_busy_flag);
+    pos += sprintf(buf + pos, "[UAC Cnt Info]\n");
+    pos += sprintf(buf + pos, "UacTxCnt\t\t:%d\t\tUacRxCnt\t:%d\n",uac_tx_cnt,uac_rx_cnt);
+
+    printf(buf);
+    free(buf);
+}
+
+ALIOS_CLI_CMD_REGISTER(_uac_dbg_proc_show, proc_uac, dump uac debug info);

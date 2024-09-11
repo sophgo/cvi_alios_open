@@ -5,6 +5,9 @@
 
 #include "usbd_uac.h"
 
+#define HS_EP_INTERVAL 0x04
+#define FS_EP_INTERVAL 0x01
+
 /* AUDIO Class Config */
 #define AUDIO_FREQ 8000U
 

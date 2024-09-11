@@ -6,24 +6,6 @@
 #include "usbd_comp.h"
 #include "usbd_uac.h"
 
-
-#if CONFIG_USB_HS
-#define EP_INTERVAL 0x04
-#else
-#define EP_INTERVAL 0x01
-#endif
-
-// /* AUDIO ep address*/
-// #if CONFIG_MULTI_AV_COMP_SUPPORT
-// #define AUDIO_IN_EP  0x85
-// #define AUDIO_OUT_EP 0x04
-// #define AUDIO_FIRST_INTERFACE 6
-// #else
-// #define AUDIO_IN_EP  0x83
-// #define AUDIO_OUT_EP 0x02
-// #define AUDIO_FIRST_INTERFACE 2
-// #endif
-
 #define AUDIO_INTERFACE_COUNT 3
 #define AUDIO_STREAM_INTF_COUNT 2
 
@@ -253,7 +235,7 @@ static struct audio_ep_descriptor as_iso_out_ep_desc  = {
 	.bEndpointAddress =	0, /* dynamic */
 	.bmAttributes =		USB_ENDPOINT_TYPE_ISOCHRONOUS,
 	.wMaxPacketSize	=	cpu_to_le16(64),
-	.bInterval =		EP_INTERVAL,
+	.bInterval =		0, /* dynamic */
 };
 
 /* Class-specific AS ISO OUT Endpoint Descriptor */
@@ -336,7 +318,7 @@ static struct audio_ep_descriptor as_iso_in_ep_desc  = {
 	.bEndpointAddress =	0, /* dynamic */
 	.bmAttributes =		USB_ENDPOINT_TYPE_ISOCHRONOUS,
 	.wMaxPacketSize	=	cpu_to_le16(64),
-	.bInterval =		EP_INTERVAL,
+	.bInterval =		0, /* dynamic */
 };
 
 /* Class-specific AS ISO OUT Endpoint Descriptor */
@@ -393,6 +375,13 @@ static uint8_t *__uac_build_descriptor(uint32_t *len, uint8_t in_ep,  uint8_t ou
 	void *mem = NULL;
 	uint32_t bytes = 0;
 	uint32_t tmp_count = 0;
+	uint8_t ep_interval = HS_EP_INTERVAL;
+
+	if (usbd_comp_get_speed() != USB_SPEED_HIGH) {
+		ep_interval = FS_EP_INTERVAL;
+	}
+	as_iso_out_ep_desc.bInterval = ep_interval;
+	as_iso_in_ep_desc.bInterval = ep_interval;
 
 	iad_desc.bFirstInterface = *interface_total;
 	std_ac_if_desc.bInterfaceNumber = *interface_total;
@@ -463,5 +452,6 @@ void uac_destroy_descriptor(uint8_t *desc)
 {
 	if (desc) {
 		free(desc);
+		desc = NULL;
 	}
 }

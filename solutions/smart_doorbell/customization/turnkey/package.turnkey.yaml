@@ -51,7 +51,10 @@ depends:
   - chip_cv180x: v0.0.1
   # - cvi_osdrv_vo: v0.0.1
   # - cvi_osdrv_ive: v0.0.1
-  # - cviai: v0.0.1
+  - cvi_kernel: v0.0.1
+  - cvi_runtime: v0.0.1
+  - cvi_math: v0.0.1
+  # - cvi_tdl: v0.0.1
   - minialsa: v7.5.1
   - drv_snd_cv181x: v7.5.1
   # - lvgl: develop
@@ -165,7 +168,7 @@ source_file:
 #   CONFIG_PARAM_NOT_CHECK: y
 #   CONFIG_CLI: y
 def_config:
-
+  CONFIG_ALIOS: 1
 ## System
   CONFIG_DEBUG: 1
   CONFIG_DEBUG_MM: 1

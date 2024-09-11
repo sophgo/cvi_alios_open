@@ -234,5 +234,6 @@ void winusb_destroy_descriptor(uint8_t* desc)
 {
     if (desc) {
         free(desc);
+        desc = NULL;
     }
 }

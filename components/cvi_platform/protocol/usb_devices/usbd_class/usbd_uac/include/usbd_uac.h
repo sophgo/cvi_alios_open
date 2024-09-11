@@ -14,6 +14,7 @@ struct uac_device_info {
     uint8_t interface_nums;
 };
 
+int uac_desc_register(void);
 int uac_init(void);
 int uac_deinit(void);
 

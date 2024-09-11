@@ -65,16 +65,14 @@ void usbd_hid_keyboard_int_callback(uint8_t ep, uint32_t nbytes)
     hid_keyboard_state = HID_STATE_IDLE;
 }
 
-
-void hid_keyboard_init()
+void hid_keyboard_desc_register()
 {
-
     uint32_t desc_len;
 
     hid_keyboard_info.hid_keyboard_int_ep.ep_cb = usbd_hid_keyboard_int_callback;
     hid_keyboard_info.hid_keyboard_int_ep.ep_addr = comp_get_available_ep(1);
     hid_keyboard_info.interface_nums = comp_get_interfaces_num();
-    printf("hid_keyboard int ep:%#x\n", hid_keyboard_info.hid_keyboard_int_ep.ep_addr);
+    USB_LOG_INFO("hid_keyboard int ep:%#x\n", hid_keyboard_info.hid_keyboard_int_ep.ep_addr);
     USB_LOG_INFO("interface_nums:%d\n", hid_keyboard_info.interface_nums);
 
     hid_keyboard_descriptor = hid_keyboard_build_descriptor(&hid_keyboard_info, &desc_len);
@@ -82,6 +80,11 @@ void hid_keyboard_init()
 
     usbd_add_interface(usbd_hid_init_intf(&hid_keyboard_info.hid_keyboard_intf0, hid_keyboard_report_desc, HID_KEYBOARD_REPORT_DESC_SIZE));
     usbd_add_endpoint(&hid_keyboard_info.hid_keyboard_int_ep);
+}
+
+void hid_keyboard_init()
+{
+
 }
 
 void hid_keyboard_deinit()

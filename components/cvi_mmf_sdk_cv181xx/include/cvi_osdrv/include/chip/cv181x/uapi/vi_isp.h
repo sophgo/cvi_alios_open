@@ -17,6 +17,7 @@ enum ISP_SCENE_INFO {
 	FE_ON_BE_OFF_POST_ON_SC,  //182x
 	FE_OFF_BE_ON_POST_OFF_SC, //182x
 	FE_OFF_BE_ON_POST_ON_SC,  //182x
+	FE_OFF_BE_ON_POST_SWITCH,
 };
 
 enum cvi_isp_source {

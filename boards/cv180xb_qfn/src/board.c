@@ -58,10 +58,11 @@ void board_clk_init(void)
 #elif CONSOLE_UART_CLK == 297000000
     mmio_write_32(DIV_CLK_CAM0_200 , BIT_DIV_RESET_CONT | BIT_SELT_DIV_REG | BIT_CLK_SRC |
 	 BIT_CLK_DIV_FACT_18);
-#else
-    //default 170M
+#elif CONSOLE_UART_CLK == 170000000
     mmio_write_32(DIV_CLK_CAM0_200 , BIT_DIV_RESET_CONT | BIT_SELT_DIV_REG | BIT_CLK_SRC |
 	 BIT_CLK_DIV_FACT_16 | BIT_CLK_DIV_FACT_17 | BIT_CLK_DIV_FACT_18);
+#else
+	// #pragma message("#### UART CLK: 25M ####")
 #endif
 }
 

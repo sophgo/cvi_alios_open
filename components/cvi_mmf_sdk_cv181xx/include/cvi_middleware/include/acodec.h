@@ -1,0 +1,89 @@
+/*
+ * Copyright (C) Cvitek Co., Ltd. 2019-2020. All rights reserved.
+ *
+ * File Name: include/acodec.h
+ * Description: audio codec define and api
+ */
+#ifndef _ACODEC_H_
+#define _ACODEC_H_
+
+#define IOC_TYPE_ACODEC 'A'
+
+typedef enum cviACODEC_FS_E {
+	ACODEC_FS_8000  =   0x1,
+	ACODEC_FS_11025 =   0x2,
+	ACODEC_FS_12000 =   0x3,
+	ACODEC_FS_16000 =   0x4,
+	ACODEC_FS_22050 =   0x5,
+	ACODEC_FS_24000 =   0x6,
+	ACODEC_FS_32000 =   0x7,
+	ACODEC_FS_44100 =   0x8,
+	ACODEC_FS_48000 =   0x9,
+	ACODEC_FS_64000 =   0xa,
+	ACODEC_FS_96000 =   0xb,
+
+	ACODEC_FS_BUTT = 0x1c,
+} ACODEC_FS_E;
+
+typedef enum cviACODEC_MIXER_E {
+	ACODEC_MIXER_IN0   = 0x0,   /* 16CV500/16DV300 Unsupport IN0. */
+	ACODEC_MIXER_IN1   = 0x1,
+	ACODEC_MIXER_IN_D  = 0x2,
+
+	ACODEC_MIXER_BUTT,
+} ACODEC_MIXER_E;
+
+typedef struct {
+	/*volume control, 0x00~0x7e, 0x7F:mute*/
+	unsigned int vol_ctrl;
+	/*adc/dac mute control, 1:mute, 0:unmute*/
+	unsigned int vol_ctrl_mute;
+} ACODEC_VOL_CTRL;
+
+typedef enum cviACODEC_IOCTL_E {
+	IOC_NR_SOFT_RESET_CTRL = 0x0,
+
+	IOC_NR_SET_INPUT_VOL,
+	IOC_NR_SET_OUTPUT_VOL,
+	IOC_NR_GET_INPUT_VOL,
+	IOC_NR_GET_OUTPUT_VOL,
+
+	IOC_NR_SET_I2S1_FS,
+	IOC_NR_SET_MIXER_MIC,
+	IOC_NR_SEL_DAC_CLK,
+	IOC_NR_SEL_ADC_CLK,
+	IOC_NR_SEL_ANA_MCLK,
+	IOC_NR_SET_GAIN_MICL,
+	IOC_NR_SET_GAIN_MICR,
+	IOC_NR_SET_DACL_VOL,
+	IOC_NR_SET_DACR_VOL,
+	IOC_NR_SET_ADCL_VOL,
+	IOC_NR_SET_ADCR_VOL,
+	IOC_NR_SET_MICL_MUTE,
+	IOC_NR_SET_MICR_MUTE,
+	IOC_NR_SET_DACL_MUTE,
+	IOC_NR_SET_DACR_MUTE,
+	IOC_NR_BOOSTL_ENABLE,
+	IOC_NR_BOOSTR_ENABLE,
+
+	IOC_NR_GET_GAIN_MICL,
+	IOC_NR_GET_GAIN_MICR,
+	IOC_NR_GET_DACL_VOL,
+	IOC_NR_GET_DACR_VOL,
+	IOC_NR_GET_ADCL_VOL,
+	IOC_NR_GET_ADCR_VOL,
+
+	IOC_NR_SET_PD_DACL,
+	IOC_NR_SET_PD_DACR,
+	IOC_NR_SET_PD_ADCL,
+	IOC_NR_SET_PD_ADCR,
+	IOC_NR_SET_PD_LINEINL,
+	IOC_NR_SET_PD_LINEINR,
+
+	IOC_NR_SET_DAC_DE_EMPHASIS,
+	IOC_NR_SET_ADC_HP_FILTER,
+
+	IOC_NR_SET_I2S1_DATAWIDTH,
+} ACODEC_IOCTL_E;
+
+#endif /* End of #ifndef _ACODEC_H_ */

@@ -175,6 +175,7 @@ struct vi_event {
 	__u32			type;
 	__u32			frame_sequence;
 	struct timespec		timestamp;
+	__u8			lft_frm;
 };
 
 #define MO_TBL_SIZE 256

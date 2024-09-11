@@ -361,7 +361,6 @@ aos_pcm_sframes_t aos_pcm_readn(aos_pcm_t *pcm, void **bufs, aos_pcm_uframes_t s
 int aos_pcm_hw_params_alloca(aos_pcm_hw_params_t **p)
 {
     *p = aos_zalloc_check(sizeof(aos_pcm_hw_params_t));
-
     return 0;
 }
 

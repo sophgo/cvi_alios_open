@@ -159,6 +159,7 @@ typedef enum {
 	PT_G726          = 21,
 	PT_G729A         = 22,
 	PT_LPCM          = 23,
+	PT_SBC           = 24,
 	PT_CelB          = 25,
 	PT_JPEG          = 26,
 	PT_CUSM          = 27,

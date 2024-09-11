@@ -14,6 +14,7 @@ struct cdc_uart_device_info {
     uint8_t interface_nums;
 };
 
+void cdc_uart_desc_register(void);
 void cdc_uart_init(void);
 void cdc_uart_deinit(void);
 

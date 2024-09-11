@@ -133,7 +133,7 @@ static CVI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSns
 		pstAeSnsDft->u32InitAESpeed = 64;
 		pstAeSnsDft->u32InitAETolerance = 5;
 		pstAeSnsDft->u32SnsResponseFrame = 4;
-		pstAeSnsDft->u32AEResponseFrame = 3;
+		pstAeSnsDft->u32AEResponseFrame = 4;
 		pstAeSnsDft->enAeExpMode = AE_EXP_HIGHLIGHT_PRIOR;
 		pstAeSnsDft->u32InitExposure = g_au32InitExposure[ViPipe];
 
@@ -392,13 +392,9 @@ static CVI_S32 cmos_gains_update(VI_PIPE ViPipe, CVI_U32* pu32Again, CVI_U32* pu
                 break;
         }
         /* Set Dgain register */
-        pstSnsRegsInfo->astI2cData[LINEAR_PAGE_1].u32Data = 0X03;
+        pstSnsRegsInfo->astI2cData[LINEAR_PAGE_3].u32Data = 0X03;
         u32Dgain = info->regGainFineBase + (u32Dgain - info->idxBase) * info->regGainFineStep;
         pstSnsRegsInfo->astI2cData[LINEAR_DGAIN_0].u32Data = u32Dgain & 0xFF;
-
-        /* Set Page Register to 1 avoid other register configuration conflict */
-        pstSnsRegsInfo->astI2cData[LINEAR_PAGE_1].u32Data = 0X01;
-
     } else {
         CVI_TRACE_SNS(CVI_DBG_ERR, "Not support WDR: %d\n", pstSnsState->enWDRMode);
         return CVI_FAILURE;
@@ -572,7 +568,8 @@ static CVI_S32 cmos_get_sns_regs_info(VI_PIPE ViPipe, ISP_SNS_SYNC_INFO_S *pstSn
 		switch (pstSnsState->enWDRMode) {
 		default:
 			pstI2c_data[LINEAR_PAGE_1].u32RegAddr = OV02B1_PAGE_ADDR;
-			pstI2c_data[LINEAR_RESTART_0].u32RegAddr = OV02B1_RESTART_ADDR;
+            pstI2c_data[LINEAR_PAGE_3].u32RegAddr = OV02B1_PAGE_ADDR;
+            pstI2c_data[LINEAR_RESTART_0].u32RegAddr = OV02B1_RESTART_ADDR;
 			pstI2c_data[LINEAR_EXP_0].u32RegAddr = OV02B10_MULTI_EXP1_ADDR;
 			pstI2c_data[LINEAR_EXP_1].u32RegAddr = OV02B10_MULTI_EXP1_ADDR + 1;
 			pstI2c_data[LINEAR_AGAIN_0].u32RegAddr = OV02B10_MULTI_AGAIN_ADDR;
@@ -596,10 +593,10 @@ static CVI_S32 cmos_get_sns_regs_info(VI_PIPE ViPipe, ISP_SNS_SYNC_INFO_S *pstSn
 				pstCfg0->snsCfg.need_update = CVI_TRUE;
 			}
 
-			if(i == LINEAR_PAGE_1 || i == LINEAR_RESTART_0){
-				pstCfg0->snsCfg.astI2cData[i].bUpdate = CVI_TRUE;
-			}
-		}
+            if (i == LINEAR_PAGE_1 || i == LINEAR_PAGE_3 || i == LINEAR_RESTART_0) {
+                pstCfg0->snsCfg.astI2cData[i].bUpdate = CVI_TRUE;
+            }
+        }
 		/* check update isp crop or not */
 		pstCfg0->ispCfg.need_update = (sensor_cmp_wdr_size(&pstCfg0->ispCfg, &pstCfg1->ispCfg) ?
 				CVI_TRUE : CVI_FALSE);

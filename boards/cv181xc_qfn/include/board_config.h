@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 #define CONSOLE_UART_IDX                (0)
-#define CONSOLE_UART_CLK                (1188000000)
+#define CONSOLE_UART_CLK                (25000000)
 #define CONFIG_CLI_USART_BAUD           (115200)
 #define CONFIG_CONSOLE_UART_BUFSIZE     (512)
 

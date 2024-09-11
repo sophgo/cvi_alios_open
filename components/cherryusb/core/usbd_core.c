@@ -642,9 +642,23 @@ static bool usbd_std_endpoint_req_handler(struct usb_setup_packet *setup, uint8_
             break;
         case USB_REQUEST_CLEAR_FEATURE:
             if (setup->wValue == USB_FEATURE_ENDPOINT_HALT) {
+#if CONFIG_USB_BULK_UVC
+                usb_slist_t *i;
+                usb_slist_for_each(i, &usbd_intf_head)
+                {
+                    struct usbd_interface *intf = usb_slist_entry(i, struct usbd_interface, list);
+                    if (intf->class_interface_handler && (intf->intf_num == (setup->wIndex & 0xF))) {
+                        (*data)[0] = 0x00;
+                        setup->wValue = 0x200;
+                        setup->bRequest = 1;
+                        setup->wIndex = intf->intf_num;
+                        intf->class_interface_handler(setup, data, len);
+                    }
+                }
+#else
                 USB_LOG_ERR("ep:%02x clear halt\r\n", ep);
-
                 usbd_ep_clear_stall(ep);
+#endif
                 break;
             } else {
                 ret = false;
@@ -1143,6 +1157,12 @@ void usbd_add_endpoint(struct usbd_endpoint *ep)
 bool usb_device_is_configured(void)
 {
     return usbd_core_cfg.configured;
+}
+
+uint8_t usbd_get_speed(void)
+{
+    usbd_core_cfg.speed = usbd_get_port_speed(0);
+    return usbd_core_cfg.speed;
 }
 
 int usbd_initialize(void)

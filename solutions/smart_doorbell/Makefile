@@ -12,6 +12,7 @@ HOST_TOOLS := $(CURDIR)/../../host-tools/Xuantie-900-gcc-elf-newlib-x86_64-V2.6.
 export PATH := $(HOST_TOOLS):$(PATH)
 PROJECT := turnkey
 CHIP_ARCH := cv180x
+TDL_DIR := $(CURDIR)/../../components/cvi_tdl
 .PHONY:startup
 startup: all
 

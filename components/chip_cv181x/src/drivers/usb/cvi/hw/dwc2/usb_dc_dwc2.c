@@ -72,10 +72,6 @@ int fifo_dma_mode = OFF;
 #error "please select CONFIG_USB_DWC2_PORT with FS_PORT or HS_PORT"
 #endif
 
-#if ((CONFIG_USB_DWC2_DMA_ENABLE) && (CONFIG_USBD_CDC_RNDIS))
-#error "FIXME: Rndis currently does not support dma mode."
-#endif
-
 #if CONFIG_USB_DWC2_PORT == FS_PORT
 
 #define USB_RAM_SIZE 1280 /* define with minimum value*/
@@ -212,6 +208,8 @@ struct dwc2_udc {
     __attribute__((aligned(CONFIG_USB_ALIGN_SIZE))) struct dwc2_ep_state in_ep[USB_NUM_BIDIR_ENDPOINTS];  /*!< IN endpoint parameters*/
     struct dwc2_ep_state out_ep[USB_NUM_BIDIR_ENDPOINTS]; /*!< OUT endpoint parameters */
 } g_dwc2_udc;
+
+static void (*usb_dc_enum_cb)(void);
 
 void USBD_IRQHandler(void);
 
@@ -596,6 +594,11 @@ __WEAK void usb_dc_low_level_init(void)
 
 __WEAK void usb_dc_low_level_deinit(void)
 {
+}
+
+void usb_dc_register_enum_cb(void (*cb)(void))
+{
+    usb_dc_enum_cb = cb;
 }
 
 int usb_dc_init(void)
@@ -1398,10 +1401,12 @@ void USBD_IRQHandler(void)
             dwc2_set_turnaroundtime(SystemCoreClock, dwc2_get_devspeed());
 
             USB_OTG_DEV->DCTL |= USB_OTG_DCTL_CGINAK;
+
+            if (usb_dc_enum_cb) {
+                usb_dc_enum_cb();
+            }
+
             aos_debug_printf("============ enum speed done ============\n");
-        }
-        if (gint_status & USB_OTG_GINTSTS_SOF) {
-            USB_OTG_GLB->GINTSTS |= USB_OTG_GINTSTS_SOF;
         }
 
         if (gint_status & USB_OTG_GINTSTS_PXFR_INCOMPISOOUT) {
@@ -1476,6 +1481,9 @@ void USBD_IRQHandler(void)
             } else {
             }
             USB_OTG_GLB->GOTGINT |= temp;
+        }
+        if (gint_status & USB_OTG_GINTSTS_SOF) {
+            USB_OTG_GLB->GINTSTS |= USB_OTG_GINTSTS_SOF;
         }
     }
 }

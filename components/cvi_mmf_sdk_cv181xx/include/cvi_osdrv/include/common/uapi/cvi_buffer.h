@@ -19,6 +19,7 @@ extern "C" {
 #include <cvi_type.h>
 #include <cvi_common.h>
 #include <cvi_comm_video.h>
+#include <string.h>
 
 #ifndef UNUSED
 #define UNUSED(x) ((void)(x))

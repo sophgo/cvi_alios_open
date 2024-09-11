@@ -6,8 +6,6 @@ type: common
 keywords:
   - base
 license: Copyright (C) Cvitek Co., Ltd. 2019-2020. All rights reserved.
-depends:
-  - csi_cv: develop
 build_config:
   include:
     - include
@@ -15,17 +13,6 @@ build_config:
     - include/cvi_miniz/include/
     - include/cvi_json_c/include/cvi_json_c
     - include/cvi_json_c/include/
-    - include/cviai/include/core/object
-    - include/cviai/include/core/core
-    - include/cviai/include/core/face
-    - include/cviai/include/core/utils
-    - include/cviai/include/core/deepsort
-    - include/cviai/include/core
-    - include/cviai/include/cviai
-    - include/cviai/include/service
-    - include/cviai/include/cvi_tdl_evaluation
-    - include/cviai/include/cvi_tdl_app/capture
-    - include/cviai/include/cvi_tdl_app
     - include/cviai/include/
     - include/cvi_middleware/include/cvi_mw_isp_bin
     - include/cvi_middleware/include/cvi_mw_isp_algo
@@ -49,16 +36,6 @@ build_config:
     - include/cvi_middleware/include/cvi_mw_isp_com_raw_replay
     - include/cvi_middleware/include/cvi_mw_rgn
     - include/cvi_middleware/include/
-    - include/cvi_tpu/include/cvi_math
-    - include/cvi_tpu/include/cvi_runtime
-    - include/cvi_tpu/include/cvimath
-    - include/cvi_tpu/include/runtime
-    - include/cvi_tpu/include/bmkernel/bm1822
-    - include/cvi_tpu/include/bmkernel
-    - include/cvi_tpu/include/cvi_kernel
-    - include/cvi_tpu/include/cvikernel/cv180x
-    - include/cvi_tpu/include/cvikernel/cv181x
-    - include/cvi_tpu/include/cvikernel
     - include/cvi_tpu/include/
     - include/cvi_miniz/include
     - include/cvi_json_c/include
@@ -68,7 +45,6 @@ build_config:
     - include/cvi_tpu/include
     - include/cvi_miniz/include/cvi_miniz
     - include/cvi_json_c/include/cvi_json_c
-    - include/cviai/include/cviai
     - include/cvi_middleware/include/cvi_mw_isp_bin
     - include/cvi_middleware/include/cvi_mw_isp_algo
     - include/cvi_middleware/include/cvi_mw_audio
@@ -87,16 +63,12 @@ build_config:
     - include/cvi_middleware/include/cvi_mw_isp_com_raw_replay
     - include/cvi_middleware/include/cvi_mw_vpu
     - include/cvi_middleware/include/cvi_mw_rgn
-    - include/cvi_tpu/include/cvi_math
-    - include/cvi_tpu/include/cvi_runtime
-    - include/cvi_tpu/include/cvi_kernel
     - include/cvi_osdrv/include/common/kapi
     - include/cvi_osdrv/include/chip/<CVI_SOC_NAME>/uapi
     - include/cvi_osdrv/include/common/uapi
   libs:
     - cvi_miniz
     - cvi_json_c
-    - cviai
     - cvi_osdrv_vo
     - cvi_osdrv_tpu
     - cvi_osdrv_vcodec
@@ -126,9 +98,6 @@ build_config:
     - cvi_mw_isp_com_raw_replay
     - cvi_mw_vpu
     - cvi_mw_rgn
-    - cvi_math
-    - cvi_runtime
-    - cvi_kernel
   libpath:
     - lib
 source_file:

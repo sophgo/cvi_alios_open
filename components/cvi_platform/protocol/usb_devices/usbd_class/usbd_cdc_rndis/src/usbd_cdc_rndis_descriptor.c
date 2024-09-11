@@ -183,6 +183,7 @@ void cdc_rndis_destroy_descriptor(uint8_t *desc)
 {
 	if (desc) {
 		free(desc);
+		desc = NULL;
 	}
 }
 

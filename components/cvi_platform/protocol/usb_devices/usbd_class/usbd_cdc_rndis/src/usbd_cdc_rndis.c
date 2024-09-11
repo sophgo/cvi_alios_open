@@ -306,7 +306,7 @@ static void cdc_rndis_desc_register_cb()
 	cdc_rndis_destroy_descriptor(cdc_rndis_descriptor);
 }
 
-void cdc_rndis_init(void)
+void cdc_rndis_desc_register(void)
 {
     uint32_t desc_len;
 
@@ -314,9 +314,9 @@ void cdc_rndis_init(void)
     cdc_rndis_info.cdc_rndis_out_ep.ep_addr = comp_get_available_ep(0);
     cdc_rndis_info.cdc_rndis_int_ep.ep_addr = comp_get_available_ep(1);
     cdc_rndis_info.interface_nums = comp_get_interfaces_num();
-    printf("cdc_rndis in ep:%#x\n", cdc_rndis_info.cdc_rndis_in_ep.ep_addr);
-    printf("cdc_rndis out ep:%#x\n", cdc_rndis_info.cdc_rndis_out_ep.ep_addr);
-    printf("cdc_rndis int ep:%#x\n", cdc_rndis_info.cdc_rndis_int_ep.ep_addr);
+    USB_LOG_INFO("cdc_rndis in ep:%#x\n", cdc_rndis_info.cdc_rndis_in_ep.ep_addr);
+    USB_LOG_INFO("cdc_rndis out ep:%#x\n", cdc_rndis_info.cdc_rndis_out_ep.ep_addr);
+    USB_LOG_INFO("cdc_rndis int ep:%#x\n", cdc_rndis_info.cdc_rndis_int_ep.ep_addr);
 
     cdc_rndis_descriptor = cdc_rndis_build_descriptor(&cdc_rndis_info, &desc_len);
     cdc_rndis_info.interface_nums = 2;
@@ -328,6 +328,10 @@ void cdc_rndis_init(void)
     usbd_add_interface(usbd_rndis_init_intf(&cdc_rndis_info.cdc_rndis_intf1,
         cdc_rndis_info.cdc_rndis_out_ep.ep_addr, cdc_rndis_info.cdc_rndis_in_ep.ep_addr, cdc_rndis_info.cdc_rndis_int_ep.ep_addr, mac));
 
+}
+
+void cdc_rndis_init(void)
+{
     usbd_rndis_set_read_cb(_read_cb);
 }
 

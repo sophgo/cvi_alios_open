@@ -82,6 +82,7 @@ source_file:
   - test/i2c_tool/*.c ? <CONFIG_APP_TEST>
   - test/pinmux/*.c ? <CONFIG_APP_TEST>
   - test/ae/*.c ? <CONFIG_APP_TEST>
+  - test/awb/*.c ? <CONFIG_APP_TEST>
   - test/uart/*.c ? <CONFIG_APP_TEST>
   - test/gpio_pin/*.c ? <CONFIG_APP_TEST>
   - test/audio/g711/*.c ? <CONFIG_SUPPORT_TEST_G711>

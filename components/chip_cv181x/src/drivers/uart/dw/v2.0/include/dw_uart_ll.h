@@ -277,7 +277,7 @@ typedef struct {
     __IOM uint32_t MCR;              /* Offset: 0x010 (R/W)  Modem control register */
     __IM  uint32_t LSR;              /* Offset: 0x014 (R/ )  Line state register */
     __IM  uint32_t MSR;              /* Offset: 0x018 (R/ )  Modem state register */
-    uint32_t RESERVED1[21];
+    uint32_t RESERVED1[24];
     __IM  uint32_t USR;              /* Offset: 0x07c (R/ )  UART state register */
 } dw_uart_regs_t;
 

@@ -406,6 +406,21 @@ csi_error_t csi_codec_output_analog_gain(csi_codec_output_t *ch, uint32_t val)
 }
 
 /**
+  \brief       Get codec ouput channel analog gain.
+  \param[in]   ch codec output channel handle.
+  \param[in]   val gain val.
+  \return      error code
+*/
+csi_error_t csi_codec_get_output_analog_gain(csi_codec_output_t *ch, uint32_t *val)
+{
+    CSI_PARAM_CHK(ch, CSI_ERROR);
+    csi_error_t ret = CSI_OK;
+
+    ret = cv182xdac_ioctl(ACODEC_GET_OUTPUT_VOL, (u64)val);
+    return ret;
+}
+
+/**
   \brief       Set codec ouput channel mix gain.
   \param[in]   ch codec output channel handle.
   \param[in]   val gain val.
@@ -728,7 +743,7 @@ csi_error_t csi_codec_input_analog_gain(csi_codec_input_t *ch, uint32_t val)
     CSI_PARAM_CHK(ch, CSI_ERROR);
     csi_error_t ret = CSI_OK;
     u32 vol = val;
-    if(ch->codec->dev.idx)
+    if(!ch->codec && ch->codec->dev.idx)
       return CSI_UNSUPPORTED;
 
     /*
@@ -737,6 +752,21 @@ csi_error_t csi_codec_input_analog_gain(csi_codec_input_t *ch, uint32_t val)
     */
     ret = cv182xadc_ioctl(ACODEC_SET_ADCL_VOL, (u64)&vol);
 
+    return ret;
+}
+
+/**
+  \brief       Get codec input channel analog gain.
+  \param[in]   ch codec input channel handle.
+  \param[in]   val gain val.
+  \return      error code
+*/
+csi_error_t csi_codec_get_input_analog_gain(csi_codec_input_t *ch, uint32_t *val)
+{
+    CSI_PARAM_CHK(ch, CSI_ERROR);
+    csi_error_t ret = CSI_OK;
+
+    ret = cv182xadc_ioctl(ACODEC_GET_INPUT_VOL, (u64)val);
     return ret;
 }
 

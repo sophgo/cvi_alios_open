@@ -255,6 +255,13 @@ csi_error_t csi_codec_output_digital_gain(csi_codec_output_t *ch, uint32_t val);
 csi_error_t csi_codec_output_analog_gain(csi_codec_output_t *ch, uint32_t val);
 
 /**
+  \brief       Get codec ouput channel analog gain.
+  \param[in]   ch codec output channel handle.
+  \param[in]   val gain val.
+  \return      error code
+*/
+csi_error_t csi_codec_get_output_analog_gain(csi_codec_output_t *ch, uint32_t *val);
+/**
   \brief       Set codec ouput channel mix gain
   \param[in]   ch     Codec output channel handle
   \param[in]   val    Gain val
@@ -397,6 +404,14 @@ csi_error_t csi_codec_input_digital_gain(csi_codec_input_t *ch, uint32_t val);
   \return      error code \ref csi_error_t
 */
 csi_error_t csi_codec_input_analog_gain(csi_codec_input_t *ch, uint32_t val);
+
+/**
+  \brief       Get codec input channel analog gain.
+  \param[in]   ch codec input channel handle.
+  \param[in]   val gain val.
+  \return      error code
+*/
+csi_error_t csi_codec_get_input_analog_gain(csi_codec_input_t *ch, uint32_t *val);
 
 /**
   \brief       Set codec input channel mix gain

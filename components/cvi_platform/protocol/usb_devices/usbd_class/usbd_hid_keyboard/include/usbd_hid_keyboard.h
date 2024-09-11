@@ -11,6 +11,7 @@ struct hid_keyboard_device_info {
     uint8_t interface_nums;
 };
 
+void hid_keyboard_desc_register();
 void hid_keyboard_init(void);
 void hid_keyboard_deinit(void);
 

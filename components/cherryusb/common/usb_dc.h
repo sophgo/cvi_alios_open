@@ -26,6 +26,11 @@ struct usbd_endpoint_cfg {
 };
 
 /**
+ * @brief register usb enum callback.
+ */
+void usb_dc_register_enum_cb(void (*cb)(void));
+
+/**
  * @brief init device controller registers.
  * @return On success will return 0, and others indicate fail.
  */

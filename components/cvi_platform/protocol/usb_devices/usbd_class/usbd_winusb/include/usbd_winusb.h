@@ -12,6 +12,7 @@ struct winusb_device_info {
     uint8_t interface_nums;
 };
 
+void winusb_desc_register(void);
 void winusb_init(void);
 void winusb_deinit(void);
 

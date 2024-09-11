@@ -27,7 +27,7 @@ static void dump_audiodata(char *filename, char *buf, unsigned int len)
 	fclose(fp);
 }
 
-void _check_and_dump(const char *filename, char *buf, unsigned int sizebytes)
+void check_and_dump(const char *filename, char *buf, unsigned int sizebytes)
 {
 	if (access(filename, F_OK) == 0) {
 		char newfilename[128] = {0};
@@ -101,11 +101,11 @@ static int audio_debug_pp_cmd(int argc, char *argv[])
         if(s32Readbyte == 0){
             break;
         }
-        _check_and_dump("/mnt/sd/dump_before_pp", (char *)dataIn, frameLenBytes);
+        check_and_dump("/mnt/sd/dump_before_pp", (char *)dataIn, frameLenBytes);
 
         cvi_audio_pp_process(handle, dataIn, dataOut, destFrame);
 
-        _check_and_dump("/mnt/sd/dump_after_pp", (char *)dataOut, frameLenBytes);
+        check_and_dump("/mnt/sd/dump_after_pp", (char *)dataOut, frameLenBytes);
         int ret = aos_write(fdout, dataOut, frameLenBytes);
         if(ret < 0){
             printf("write err\r\n");

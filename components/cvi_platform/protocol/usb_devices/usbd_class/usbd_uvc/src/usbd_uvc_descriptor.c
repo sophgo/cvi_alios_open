@@ -74,13 +74,12 @@ static struct usb_endpoint_descriptor uvc_hs_streaming_ep = {
     .bEndpointAddress   = 0, /* dynamic */
 #if CONFIG_USB_BULK_UVC
     .bmAttributes       = USB_ENDPOINT_XFER_BULK,
-    .bInterval          = 0,
-    .wMaxPacketSize     = cpu_to_le16(MAX_PAYLOAD_SIZE_PER_TRANSACTION),
+    .bInterval          = EP_INTERVAL,
 #else
     .bmAttributes       = USB_ENDPOINT_XFER_ISOC,
-    .bInterval          = 1,
-    .wMaxPacketSize     = cpu_to_le16(VIDEO_PACKET_SIZE),
+    .bInterval          = EP_INTERVAL,
 #endif
+    .wMaxPacketSize     = 0, /* dynamic */
 };
 
 #if CONFIG_USB_BULK_UVC
@@ -624,6 +623,8 @@ uvc_build_descriptor(struct uvc_format_info_st *format_info,
     unsigned int streaming_size;
     unsigned int n_desc;
     unsigned int bytes;
+    unsigned int video_packet_size;
+    unsigned int size_pre_trans;
     void *mem;
 
     uvc_control_desc = uvc_fs_control_cls;
@@ -689,7 +690,8 @@ uvc_build_descriptor(struct uvc_format_info_st *format_info,
     //VedioControl I/F
     uvc_control_intf.bInterfaceNumber = *interface_total;
     (*interface_total)++;
-    uvc_control_intf.iInterface += idx; // update name descriptor
+    if(idx)
+    uvc_control_intf.iInterface ++; // update name descriptor
     UVC_COPY_DESCRIPTOR(mem, dst, &uvc_control_intf);
 
     terminal_total++;
@@ -725,6 +727,14 @@ uvc_build_descriptor(struct uvc_format_info_st *format_info,
     uvc_streaming_intf_alt1.bInterfaceNumber = *interface_total;;
     // uvc_hs_streaming_ep.bEndpointAddress = in_ep + interface_total/2;
     uvc_hs_streaming_ep.bEndpointAddress = in_ep;
+
+    uvc_get_trans_size(&size_pre_trans, NULL, &video_packet_size);
+#if CONFIG_USB_BULK_UVC
+    uvc_hs_streaming_ep.wMaxPacketSize = cpu_to_le16(size_pre_trans);
+#else
+    uvc_hs_streaming_ep.wMaxPacketSize = cpu_to_le16(video_packet_size);
+#endif
+
     UVC_COPY_DESCRIPTORS(mem, dst, uvc_streaming_std);
 
     (*interface_total)++;
@@ -752,7 +762,6 @@ void uvc_set_video_frame_info(const struct uvc_frame_info_st *video_frame_info){
 void uvc_get_video_frame_info(struct uvc_frame_info_st *video_frame_info){
 	memcpy(video_frame_info, &uvc_frame_info, sizeof(struct uvc_frame_info_st));
 }
-
 
 uint8_t *uvc_build_descriptors(struct uvc_device_info *uvc, uint32_t *desc_len, uint8_t uvc_nums)
 {
@@ -806,6 +815,7 @@ void uvc_destroy_descriptor(uint8_t *desc)
 {
 	if (desc) {
 		free(desc);
+        desc = NULL;
 	}
     terminal_total = 0;
 }

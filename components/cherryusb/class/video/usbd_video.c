@@ -168,8 +168,12 @@ static int usbd_video_stream_request_handler(struct usb_setup_packet *setup, uin
                     struct video_probe_and_commit_controls *commit = (struct video_probe_and_commit_controls *)*data;
                     usbd_video_commit_set_cur(commit);
 #if CONFIG_USB_BULK_UVC
-                    if (uvc_evt_callbacks && uvc_evt_callbacks->uvc_event_stream_on) {
+                    if (uvc_evt_callbacks && uvc_evt_callbacks->uvc_event_stream_on && (*data)[0]) {
                         uvc_evt_callbacks->uvc_event_stream_on((uint8_t)setup->wIndex, 1);
+                    }else if (uvc_evt_callbacks && uvc_evt_callbacks->uvc_event_stream_on && !((*data)[0]))
+                    {
+                        uvc_evt_callbacks->uvc_event_stream_on((uint8_t)setup->wIndex, 0);
+                        return 0;
                     }
 #endif
                     break;

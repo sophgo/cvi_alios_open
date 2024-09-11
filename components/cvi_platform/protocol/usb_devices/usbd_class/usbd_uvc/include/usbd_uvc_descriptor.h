@@ -21,7 +21,6 @@
 #include "usbd_video.h"
 #include "usbd_uvc.h"
 
-
 /* --------------------------------------------------------------------------
  * UVC constants
  */
@@ -658,39 +657,6 @@ struct UVC_FRAME_FRAMEBASED(n) {		\
 
 /*-------------------------------------------------------------------------*/
 
-#ifndef USBD_UVC_MAX_NUM
-#define USBD_UVC_MAX_NUM 3
-#endif
-
-#if CONFIG_USB_HS
-	#if CONFIG_USB_BULK_UVC
-		#define MAX_PAYLOAD_SIZE_PER_TRANSACTION (512)
-		#define TRANSACTION_PER_MICROFRAME (8)  //the payload number for each URB
-	#else
-		#define MAX_PAYLOAD_SIZE_PER_TRANSACTION (1024)
-		#if (USBD_UVC_NUM > 1)
-			#define TRANSACTION_PER_MICROFRAME (2)
-		#else
-			#define TRANSACTION_PER_MICROFRAME (3)
-		#endif
-	#endif
-#else
-	#if CONFIG_USB_BULK_UVC
-		#define MAX_PAYLOAD_SIZE_PER_TRANSACTION (64)
-	#else
-		#define MAX_PAYLOAD_SIZE_PER_TRANSACTION (1023)
-	#endif
-	#define TRANSACTION_PER_MICROFRAME (1)
-#endif
-
-#define MAX_PAYLOAD_SIZE  (MAX_PAYLOAD_SIZE_PER_TRANSACTION * TRANSACTION_PER_MICROFRAME) // for high speed with three transcations every one micro frame
-#define VIDEO_PACKET_SIZE (unsigned int)((MAX_PAYLOAD_SIZE_PER_TRANSACTION) | ((TRANSACTION_PER_MICROFRAME - 1) << 11))
-
-// Frame interval in 100 ns units.
-#define FRAME_INTERVAL_FPS(N)   (1000 * 1000 * 10 / N)
-
-/*-------------------------------------------------------------------------*/
-
 typedef enum _UVC_FORMAT_E {
     UVC_FORMAT_MJPEG = 0,
     UVC_FORMAT_H264,
@@ -723,6 +689,7 @@ void uvc_set_video_format_info(const struct uvc_format_info_st *video_format_inf
 void uvc_get_video_format_info(struct uvc_format_info_st *video_format_info);
 void uvc_set_video_frame_info(const struct uvc_frame_info_st *video_frame_info);
 void uvc_get_video_frame_info(struct uvc_frame_info_st *video_frame_info);
+void uvc_get_trans_size(uint32_t *size_pre_trans, uint32_t *trans_pre_microframe, uint32_t *video_packet_size);
 
 uint8_t *uvc_build_descriptors(struct uvc_device_info *uvc, uint32_t *desc_len, uint8_t uvc_nums);
 void uvc_destroy_descriptor(uint8_t *desc);

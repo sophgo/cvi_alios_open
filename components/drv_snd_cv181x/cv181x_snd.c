@@ -498,7 +498,7 @@ static int pcmd_param_set(aos_pcm_t *pcm, struct aos_pcm_hw_params *params)
     csi_codec_input_config_t input_config;
     csi_codec_input_t *codec = aos_zalloc(sizeof(csi_codec_input_t));
 
- 
+
     CHECK_RET_TAG_WITH_RET(NULL != codec, -1);
 
     // pcm->pcm_name[4] is ch ascii data, change to decimal num

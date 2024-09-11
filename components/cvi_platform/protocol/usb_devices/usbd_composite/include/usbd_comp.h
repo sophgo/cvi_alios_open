@@ -13,6 +13,7 @@ enum USBD_TYPE {
     USB_TYPE_WINUSB,
 };
 
+uint8_t usbd_comp_get_speed(void);
 int32_t comp_register_descriptors(enum USBD_TYPE type, uint8_t* desc, uint32_t desc_len,
                                   uint8_t interfaces_num, void (*cb)(void));
 int32_t comp_register_cfg_done(enum USBD_TYPE type, void (*cb)(void));

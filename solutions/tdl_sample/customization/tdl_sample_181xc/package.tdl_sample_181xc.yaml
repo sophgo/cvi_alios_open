@@ -1,0 +1,148 @@
+## 第一部分： 基础信息
+name: tdl_sample                                    # <必选项> 包名称 （符合C语言变量命名规则），长度少于等于64字节
+version: v7.5.1                                     # <必选项> 组件版本号
+description: yoc tdl_sample                         # <必选项> 建议至少20字以上
+type: solution                                      # <必选项> 组件类型，为：solution, chip, board, common, sdk
+
+hw_info:
+  cpu_id: ""
+  cpu_name: ""
+  vendor_name: ""
+  chip_name: ""
+  board_name: cv181xc_qfn
+  ld_script: ""
+  flash_program: ""
+## 第二部分：依赖信息
+#           指定该组件依赖的组件及版本，版本支持条件比较，支持：>=v1.0, >v1.0, ==v1.0, <=v1.0, <v1.0, v1.0
+#           未指定条件时，默认为 ==，如 v1.0 与 ==v1.0
+# depends:                                 # <可选项> 该组件依赖其他的组件，合理的依赖才能保证组件能编译、使用
+#   - minilibc: v7.2.0
+#   - aos: >=v7.2.0
+depends:
+  - rhino: develop
+  - rhino_arch: develop
+  - aos: develop
+  - cli: develop
+  - kv: develop
+  - ulog: develop
+  - csi: v7.5.1
+  - debug: develop
+  - aoshal: develop
+  - devices: develop
+  - drivers: develop
+  - libc_stub: develop
+  - uservice: develop
+  - drv_wifi_hi3861l_fnlink: develop
+  - partition: develop
+  - littlefs: v7.6.1
+  - key_mgr: develop
+  - sec_crypto: develop
+  - posix: develop
+  - drv_sdmmc: v2.0
+  - lwip: develop
+  - netmgr: develop
+  - cjson: develop
+  - fatfs: cv_dev
+  - vfs: develop
+  - cv181xc_qfn: v0.0.1
+  - chip_cv181x: v0.0.1
+  - cvi_kernel: v0.0.1
+  - cvi_runtime: v0.0.1
+  - cvi_math: v0.0.1
+  - cvi_tdl: v0.0.1
+  - minialsa: v7.5.1
+  - drv_snd_cv181x: v7.5.1
+  - cvi_sensor: develop
+  - rtsp: develop
+  # - cvi_mw_tpu: v0.0.1
+  - cvi_platform: develop
+  # - cvi_test: develop
+  - fw_h26x: v0.0.1
+
+build_config:
+  include:
+    - application/common/include
+    - customization/include
+    - common/include
+    - 3rdparty/inih
+    - sample/utils
+
+  internal_include:
+
+  cflag: "-Wno-error"
+  cxxflag: ""
+  asmflag: ""
+  define:
+  libs:
+  libpath:
+# source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
+#   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
+source_file:
+  - application/*.c
+  - application/common/src/*.c
+  - customization/tdl_sample_181xc/src/*.c
+  - common/src/*.c
+  - 3rdparty/inih/*.c
+  - sample/utils/*.c
+  - sample/sample_adas.c ? <CONFIG_TDL_SAMPLE_ADAS>
+  - sample/sample_fd_liveness.c ? <CONFIG_TDL_SAMPLE_LIVENESS>
+  - sample/sample_fd_tracking.c ? <CONFIG_TDL_SAMPLE_FACE_TRACKING>
+  - sample/sample_fd.c ? <CONFIG_TDL_SAMPLE_FACE_DETECTION>
+  - sample/sample_face_recog.c ? <CONFIG_TDL_SAMPLE_FACE_RECOGNITION>
+  - sample/sample_pedestrian.c ? <CONFIG_TDL_SAMPLE_PEDESTRIAN>
+
+## 第五部分：配置信息
+# def_config:                              # 组件的可配置项
+#   CONFIG_DEBUG: y
+#   CONFIG_PARAM_NOT_CHECK: y
+#   CONFIG_CLI: y
+def_config:
+  __CV181X__: 1
+  _MIDDLEWARE_V2_: 1
+  AOS_COMP_CLI: 1
+  CONFIG_DEBUG: 1
+  CONFIG_DEBUG_MM: 1
+  CONFIG_SUPPORT_TPU: 1
+  CONFIG_KV_ENABLE_CACHE: 0
+  CONFIG_INIT_TASK_STACK_SIZE: 8192
+  # Demo APP Func config
+  CONFIG_APP_TEST: 1
+  CONFIG_APP_VENC_SUPPORT: 1
+  CONFIG_APP_RTSP_SUPPORT: 1
+  CONFIG_APP_ETHERNET_SUPPORT: 1
+  CONFIG_APP_HI3861_WIFI_SUPPORT: 0
+  # UART_MODE_SYNC: 1
+  CONFIG_BOARD_CV181XC: 1
+  CONFIG_BOARD_CV181XH: 0
+  CONFIG_SD_FATFS_MOUNTPOINT: "/mnt/sd"
+  CLI_CONFIG_STACK_SIZE: 8192
+  # ULOG_CONFIG_POP_FS: 1
+  ULOG_CONFIG_ASYNC: 1 # ulog异步配置项，1表示开启异步打印，0表示同步打印
+  ULOG_CONFIG_SYNC_LOG_DETAILS: 1
+  ULOG_CONFIG_ASYNC_BUF_SIZE: 8192
+  ULOG_CONFIG_LOG_SIZE: 512
+  USE_4K_ERASE_SECTION: 1
+  CONFIG_SIMPLE_FONTMOD: 1
+  CONFIG_VENC_TEST_CHN: 2
+  CONFIG_SENSOR_GCORE_GC4653: 1
+  CONFIG_SUPPORT_NORFLASH: 1
+
+  CONFIG_SNS0_TYPE: 15
+  CONFIG_SNS1_TYPE: 0
+  CONFIG_SNS2_TYPE: 0
+
+  CONFIG_PANEL_HX8394: 0
+  CONFIG_PANEL_ILI9488: 0
+
+  CONFIG_PQTOOL_SUPPORT: 0
+  CONFIG_PQBIN_USE_JSON: 0
+  CONFIG_ISP_SUPPORT_PROC: 0
+  CONFIG_ENABLE_FASTBOOT: 0
+
+  # these tdl config can only select one of them
+  CONFIG_TDL_SAMPLE_ADAS: 0
+  CONFIG_TDL_SAMPLE_LIVENESS: 0
+  CONFIG_TDL_SAMPLE_FACE_TRACKING: 0
+  CONFIG_TDL_SAMPLE_FACE_DETECTION: 0
+  CONFIG_TDL_SAMPLE_FACE_RECOGNITION: 0
+  CONFIG_TDL_SAMPLE_PEDESTRIAN: 0

@@ -14,6 +14,7 @@ struct cdc_rndis_device_info {
     uint8_t interface_nums;
 };
 
+void cdc_rndis_desc_register(void);
 void cdc_rndis_init(void);
 void cdc_rndis_deinit(void);
 

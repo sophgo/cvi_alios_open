@@ -25,15 +25,16 @@ do {                                                   \
 } while (0)
 
 enum ov02b10_multi_linear_regs_e {
-	LINEAR_PAGE_1,
-	LINEAR_EXP_0,
-	LINEAR_EXP_1,
-	LINEAR_AGAIN_0,
-	LINEAR_VTS_0,
-	LINEAR_VTS_1,
-	LINEAR_DGAIN_0,
-	LINEAR_RESTART_0,
-	LINEAR_REGS_NUM
+    LINEAR_PAGE_1,
+    LINEAR_EXP_0,
+    LINEAR_EXP_1,
+    LINEAR_AGAIN_0,
+    LINEAR_VTS_0,
+    LINEAR_VTS_1,
+    LINEAR_RESTART_0,
+    LINEAR_PAGE_3,
+    LINEAR_DGAIN_0,
+    LINEAR_REGS_NUM
 };
 
 typedef enum _OV02B10_MULTI_MODE_E {

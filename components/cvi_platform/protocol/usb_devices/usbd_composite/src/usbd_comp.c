@@ -68,7 +68,6 @@ static struct usb_config_descriptor comp_config_descriptor = {
     .bMaxPower              = 50,
 };
 
-#if CONFIG_USB_HS
 static struct usb_qualifier_descriptor comp_qual_descriptor = {
     .bLength             = USB_DT_QUALIFIER_SIZE,
     .bDescriptorType     = USB_DESCRIPTOR_TYPE_DEVICE_QUALIFIER,
@@ -80,7 +79,6 @@ static struct usb_qualifier_descriptor comp_qual_descriptor = {
     .bNumConfigurations  = 1,
     .bRESERVED           = 0,
 };
-#endif
 
 DECLARE_UVC_STRING_DESCRIPTOR(1);
 static const struct UVC_STRING_DESCRIPTOR(1) comp_string_descriptor_zero = {
@@ -254,11 +252,11 @@ struct comp_cfg_done_cb_list_t {
 
 struct ep_pool_t {
     uint8_t pool[MAX_COMP_EP_NUMS];
-	uint8_t cur_idx;;
+	volatile uint8_t cur_idx;;
 };
 
 static struct comp_desc_list_t comp_desc_list[MAX_COMP_DEVICE_NUMS];
-static uint8_t comp_desc_list_nums;
+static volatile uint8_t comp_desc_list_nums;
 
 static struct comp_cfg_done_cb_list_t comp_cfg_done_cb_list[MAX_COMP_DEVICE_NUMS];
 static uint8_t comp_cfg_done_cb_list_nums;
@@ -269,8 +267,8 @@ static struct ep_pool_t ep_pool = {
 };
 
 static uint8_t *comp_descriptor = NULL;
-static uint32_t comp_descriptor_len = 0;
-static uint8_t comp_interfaces_num = 0;
+static volatile uint32_t comp_descriptor_len = 0;
+static volatile uint8_t comp_interfaces_num = 0;
 
 void usbd_configure_done_callback(void)
 {
@@ -286,6 +284,8 @@ int32_t comp_register_descriptors(enum USBD_TYPE type, uint8_t *desc, uint32_t d
 	if (comp_desc_list_nums >= MAX_COMP_DEVICE_NUMS) {
 		return -1;
 	}
+
+    USB_LOG_INFO("comp_desc_list_num[%d] tpye:%d\n",comp_desc_list_nums,type);
 
     comp_desc_list[comp_desc_list_nums].type = type;
 	comp_desc_list[comp_desc_list_nums].desc = desc;
@@ -335,6 +335,11 @@ uint8_t comp_get_interfaces_num(void)
     return comp_interfaces_num;
 }
 
+uint8_t usbd_comp_get_speed(void)
+{
+    return usbd_get_port_speed(0);
+}
+
 static uint8_t *comp_build_descriptors(void)
 {
 	uint8_t *comp_desc = NULL;
@@ -356,9 +361,10 @@ static uint8_t *comp_build_descriptors(void)
     for (src = comp_string_descriptors; *src; ++src) {
         bytes += (*src)->bLength;
     }
-#if CONFIG_USB_HS
-    bytes += comp_qual_descriptor.bLength;
-#endif
+
+    if (usbd_comp_get_speed() == USB_SPEED_HIGH) {
+        bytes += comp_qual_descriptor.bLength;
+    }
 
 	comp_desc = malloc(bytes + 1 + n_desc * sizeof(*src));
 	mem = comp_desc;
@@ -380,14 +386,15 @@ static uint8_t *comp_build_descriptors(void)
     // Copy string
     COMP_COPY_DESCRIPTORS(mem, dst, comp_string_descriptors);
 
-#if CONFIG_USB_HS
-    COMP_COPY_DESCRIPTOR(mem, dst, &comp_qual_descriptor);
-#endif
+    if (usbd_comp_get_speed() == USB_SPEED_HIGH) {
+        COMP_COPY_DESCRIPTOR(mem, dst, &comp_qual_descriptor);
+    }
 
     ((uint8_t *)mem)[0] = 0x00;
 
     for (uint8_t i = 0; i < comp_desc_list_nums; i++) {
         if (comp_desc_list[i].cb) {
+            USB_LOG_INFO("comp_desc_list_num[%d/%d] tpye:%d\n",i,comp_desc_list_nums,comp_desc_list[i].type);
             comp_desc_list[i].cb();
         }
 	}
@@ -403,10 +410,45 @@ static void comp_destroy_descriptors(void)
     }
     comp_descriptor_len = 0;
     comp_interfaces_num = 0;
+    comp_desc_list_nums = 0;
+    ep_pool.cur_idx = 0;
+}
+
+void usbd_comp_desc_register()
+{
+    if(comp_descriptor){
+        comp_destroy_descriptors();
+    }
+
+#if CONFIG_USBD_CDC_RNDIS
+    // Rndis must be the first IDA on windows.
+    cdc_rndis_desc_register();
+#endif
+#if CONFIG_USBD_UVC
+    uvc_desc_register();
+#endif
+#if CONFIG_USBD_UAC
+    uac_desc_register();
+#endif
+#if CONFIG_USBD_CDC_UART
+    cdc_uart_desc_register();
+#endif
+#if CONFIG_USBD_HID_KEYBOARD
+    hid_keyboard_desc_register();
+#endif
+#if CONFIG_USBD_WINUSB
+    // Other composite interfaces must be disabled to use winusb
+    winusb_desc_register();
+#endif
+    comp_descriptor = comp_build_descriptors();
+    usbd_desc_register(comp_descriptor);
 }
 
 uint32_t usbd_comp_init()
 {
+    usb_dc_register_enum_cb(usbd_comp_desc_register);
+    usbd_initialize();
+
 #if CONFIG_USBD_CDC_RNDIS
     // Rndis must be the first IDA on windows.
     cdc_rndis_init();
@@ -427,10 +469,6 @@ uint32_t usbd_comp_init()
     // Other composite interfaces must be disabled to use winusb
     winusb_init();
 #endif
-    comp_descriptor = comp_build_descriptors();
-    usbd_desc_register(comp_descriptor);
-
-    usbd_initialize();
 
     return 0;
 }

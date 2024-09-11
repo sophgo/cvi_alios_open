@@ -81,7 +81,7 @@ static void winusb_configure_done_callback(void)
     usbd_ep_start_read(winusb_info.winusb_in_ep.ep_addr, read_buffer_test, WINUSB_MPS);
 }
 
-void winusb_init(void)
+void winusb_desc_register(void)
 {
     uint32_t desc_len;
 
@@ -90,8 +90,8 @@ void winusb_init(void)
     winusb_info.winusb_out_ep.ep_cb = usbd_winusb_out;
     winusb_info.winusb_out_ep.ep_addr = comp_get_available_ep(0);
     winusb_info.interface_nums = comp_get_interfaces_num();
-    printf("winusb int ep:%#x\n", winusb_info.winusb_in_ep.ep_addr);
-    printf("winusb out ep:%#x\n", winusb_info.winusb_out_ep.ep_addr);
+    USB_LOG_INFO("winusb int ep:%#x\n", winusb_info.winusb_in_ep.ep_addr);
+    USB_LOG_INFO("winusb out ep:%#x\n", winusb_info.winusb_out_ep.ep_addr);
     USB_LOG_INFO("interface_nums:%d\n", winusb_info.interface_nums);
 
     winusb_descriptor = winusb_build_descriptor(&winusb_info, &desc_len);
@@ -102,6 +102,11 @@ void winusb_init(void)
     usbd_add_interface(&intf0);
     usbd_add_endpoint(&winusb_info.winusb_in_ep);
     usbd_add_endpoint(&winusb_info.winusb_out_ep);
+}
+
+void winusb_init(void)
+{
+
 }
 
 void winusb_deinit()

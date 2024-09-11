@@ -186,6 +186,7 @@ void cdc_uart_destroy_descriptor(uint8_t *desc)
 {
 	if (desc) {
 		free(desc);
+		desc = NULL;
 	}
 }
 

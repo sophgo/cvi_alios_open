@@ -4,12 +4,27 @@
 
 #include "usbd_core.h"
 #include "usbd_video.h"
+#include <aos/kernel.h>
+#include <k_atomic.h>
 
 #define USBD_UVC_NUM	CONFIG_USBD_UVC_NUM
 
-#if ((CONFIG_USB_BULK_UVC) && (USBD_UVC_NUM > 1))
-// TODO
-#error "uvc num has been 1 in bulk mode"
+#if CONFIG_USB_BULK_UVC
+    #define EP_INTERVAL 0x00
+#else
+    #define EP_INTERVAL 0x01
+#endif
+
+#ifndef USBD_UVC_MAX_NUM
+#define USBD_UVC_MAX_NUM 3
+#endif
+
+// Frame interval in 100 ns units.
+#define FRAME_INTERVAL_FPS(N)   (1000 * 1000 * 10 / N)
+
+#if CONFIG_USB_BULK_UVC
+    #define FRM_BUFFER_LEN 2
+    #define FRM_BUFFER_GET_IDX(idx) (idx&(FRM_BUFFER_LEN-1))
 #endif
 
 struct video_source {
@@ -36,11 +51,21 @@ struct uvc_device_info {
     struct uvc_format_info_st *format_info;
 	uint8_t *packet_buffer_uvc;
     bool header_flip;
-
-
+    uint32_t tx_cnt;
+    uint32_t max_payload_size;
+    uint32_t cam_fps;
+    uint32_t interval;
+#if CONFIG_USB_BULK_UVC
+    volatile uint32_t rx_frm_idx;
+    volatile uint32_t tx_frm_idx;
+    volatile uint32_t frm_sz[FRM_BUFFER_LEN];
+    aos_workqueue_t uvc_workqueue;
+    aos_work_t uvc_frame_submmit;
+#endif
 	// interval max_frame_size max_payload_size
 };
 
+void uvc_desc_register();
 int uvc_init(void);
 int uvc_deinit(void);
 

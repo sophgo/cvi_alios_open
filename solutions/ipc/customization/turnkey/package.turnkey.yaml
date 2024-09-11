@@ -47,6 +47,9 @@ depends:
   - lwext4: develop
   - cv181xh_bga: v0.0.1
   - chip_cv181x: v0.0.1
+  - cvi_kernel: v0.0.1
+  - cvi_runtime: v0.0.1
+  - cvi_math: v0.0.1
   - minialsa: v7.5.1
   - drv_snd_cv181x: v7.5.1
   - lvgl: develop
@@ -193,10 +196,11 @@ def_config:
   CONFIG_SIMPLE_FONTMOD: 1
   CONFIG_SENSOR_GCORE_GC2053: 1
   CONFIG_SENSOR_GCORE_GC2053_1L: 1
-  CONFIG_SENSOR_GCORE_GC2093: 1
   CONFIG_SENSOR_GCORE_GC4653: 1
   CONFIG_SENSOR_SONY_IMX307: 1
   CONFIG_SENSOR_SONY_IMX327: 1
+  CONFIG_SENSOR_GCORE_GC1054: 1
+  CONFIG_SENSOR_GCORE_GC2093: 1
   CONFIG_SENSOR_SMS_SC200AI: 1
   CONFIG_SUPPORT_NORFLASH: 0
   CONFIG_SUPPORT_EMMC: 1

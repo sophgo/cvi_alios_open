@@ -292,7 +292,7 @@ package.yaml 配置及使用可参考 https://help.aliyun.com/document_detail/30
 
 ## ISP
 
-- [ISP 图像参数加载使用指南](docs/isp_param_load_manual.md)
+- [PQtool 使用手册](docs/pqtool_manual.md)
 - [SmartAE 使用指南](docs/smartAE_manual.md)
 
 ## Algo

@@ -47,6 +47,10 @@ depends:
   - lwext4: develop
   - cv181xc_qfn: v0.0.1
   - chip_cv181x: v0.0.1
+  - cvi_kernel: v0.0.1
+  - cvi_runtime: v0.0.1
+  - cvi_math: v0.0.1
+  - cvi_tdl: v0.0.1
   - minialsa: v7.5.1
   - drv_snd_cv181x: v7.5.1
   - lvgl: develop
@@ -173,6 +177,7 @@ source_file:
 def_config:
   __CV181X__: 1
   AOS_COMP_CLI: 1
+  CONFIG_ALIOS: 1
   CONFIG_DEBUG: 1
   CONFIG_DEBUG_MM: 1
   CONFIG_APP_DEBUG_JTAG: 1
@@ -209,6 +214,8 @@ def_config:
   CONFIG_SENSOR_SMS_SC2336: 1
   CONFIG_SENSOR_SONY_IMX307: 1
   CONFIG_SENSOR_SONY_IMX327: 1
+  CONFIG_SENSOR_GCORE_GC1054: 1
+  CONFIG_SENSOR_GCORE_GC2093: 1
   CONFIG_SUPPORT_NORFLASH: 1
 
   CONFIG_SNS0_TYPE: 1
