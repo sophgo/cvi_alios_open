@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022 Alibaba Group Holding Limited
+ * Copyright (C) 2019-2022 Alibaba Group Holding Limited
  */
 
 #include <string.h>
@@ -132,25 +132,25 @@ bool LoadFromJson(const std::string& json,
 }
 
 void Dump(const std::vector<Pipeline>& pipelines) {
-  printf("\r\nNumber pipelines: %u\r\n", (unsigned)pipelines.size());
+  printf("\nNumber pipelines: %zu\n", pipelines.size());
   for (const auto& pipeline : pipelines) {
-    printf("%s\r\n", pipeline.name.c_str());
+    printf("%s\n", pipeline.name.c_str());
     for (const auto& node : pipeline.nodes) {
-      printf("  %s\r\n", node.name.c_str());
+      printf("  %s\n", node.name.c_str());
       if (!node.device_id.empty())
-        printf("    device_id: %s\r\n", node.device_id.c_str());
+        printf("    device_id: %s\n", node.device_id.c_str());
       if (!node.plugin.empty())
-        printf("    plugin: %s\r\n", node.plugin.c_str());
+        printf("    plugin: %s\n", node.plugin.c_str());
       if (node.props.size() > 0) {
-        printf("    props:\r\n");
+        printf("    props:\n");
         for (const auto& prop : node.props) {
-          printf("      %s: %s\r\n", prop.first.c_str(), prop.second.c_str());
+          printf("      %s: %s\n", prop.first.c_str(), prop.second.c_str());
         }
       }
       if (node.use_standalone_thread) {
-        printf("    use_standalone_thread: true\r\n");
-        printf("      priority: %d\r\n", node.thread_conf.priority);
-        printf("      stack_size: %d\r\n", node.thread_conf.stack_size);
+        printf("    use_standalone_thread: true\n");
+        printf("      priority: %d\n", node.thread_conf.priority);
+        printf("      stack_size: %d\n", node.thread_conf.stack_size);
       }
       if (node.next.size() > 0) {
         printf("    next: ");
@@ -161,7 +161,7 @@ void Dump(const std::vector<Pipeline>& pipelines) {
           else
             printf(", %s", next.name.c_str());
         }
-        printf("\r\n");
+        printf("\n");
       }
     }
   }
@@ -201,22 +201,22 @@ void Dump(const Graph& graph) {
   auto& vertices = graph.vertices;
   auto& edges = graph.edges;
 
-  printf("\r\nGraphs:\r\n");
-  printf("%s\r\n", graph.name.c_str());
+  printf("\nGraphs:\n");
+  printf("%s\n", graph.name.c_str());
   for (const auto& v : vertices) {
-    printf("  Plugin: %s\r\n", v.node->plugin.c_str());
+    printf("  Plugin: %s\n", v.node->plugin.c_str());
     // {Replicas_ID}/graph_name/dst_node_name#dst_input_port
     for (int i : v.e_in) {
       std::string name = graph.name +
           "/" + vertices.at(edges.at(i).v_dst).node->name +
           "#" + std::to_string(edges.at(i).port_dst);
-      printf("    Reader: %s\r\n", name.c_str());
+      printf("    Reader: %s\n", name.c_str());
     }
     for (int i : v.e_out) {
       std::string name = graph.name +
           "/" + vertices.at(edges.at(i).v_dst).node->name +
           "#" + std::to_string(edges.at(i).port_dst);
-      printf("    Writer: %s\r\n", name.c_str());
+      printf("    Writer: %s\n", name.c_str());
     }
   }
 }

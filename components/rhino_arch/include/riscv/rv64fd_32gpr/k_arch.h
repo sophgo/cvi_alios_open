@@ -44,14 +44,6 @@
 
 #ifndef __ASSEMBLY__
 typedef struct {
-#ifdef __riscv_vector
-    long VPU[32 + 32];
-    long VL;
-    long VTYPE;
-    long VSTART;
-    long VXSAT;
-    long VXRM;
-#endif
     long X1;
     long X3;
     long X4;

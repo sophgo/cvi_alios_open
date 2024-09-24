@@ -1,211 +1,312 @@
 /*
  * Copyright (C) 2019-2020 Alibaba Group Holding Limited
  */
-#include "yoc/partition.h"
-
-#if (CONFIG_PARTITION_SUPPORT_SPINORFLASH || CONFIG_PARTITION_SUPPORT_EFLASH || CONFIG_PARTITION_SUPPORT_SPINANDFLASH) \
-    && !defined(CONFIG_KERNEL_NONE) && !defined(CONFIG_AOS_FLASH)
 #include <errno.h>
 #include <string.h>
-#include <inttypes.h>
-#include <devices/flash.h>
-#include "yoc/partition_device.h"
+#include "yoc/partition.h"
+#include "yoc/partition_flash.h"
 #include "mtb_log.h"
 
-static int part_flash_info_get(void *handle, partition_device_info_t *info)
+#if defined(CONFIG_KERNEL_NONE)
+#warning "Please implement flash operation interface."
+void *part_flash_open(int id)
+{
+    (void)id;
+    return NULL;
+}
+
+int part_flash_close(void *handle)
+{
+    (void)handle;
+    return 0;
+}
+
+int part_flash_info_get(void *handle, partition_flash_info_t *info)
+{
+    return 0;
+}
+
+int part_flash_read(void *handle, unsigned long addr, void *data, size_t data_len)
+{
+    (void)handle;
+    memcpy(data, (void *)addr, data_len);
+
+    return 0;
+}
+
+int part_flash_write(void *handle, unsigned long addr, void *data, size_t data_len)
+{
+    (void)handle;
+
+    return 0;
+}
+
+int part_flash_erase(void *handle, unsigned long addr, size_t len)
+{
+    (void)handle;
+
+    return 0;
+}
+
+#else
+
+#include "aos/hal/flash.h"
+
+void *part_flash_open(int id)
+{
+    switch (id)
+    {
+    default:
+    case 0:
+        return (void*)HAL_ALL_FLASH_0;
+    case 1:
+        return (void*)HAL_ALL_FLASH_1;
+    case 2:
+        return (void*)HAL_ALL_FLASH_2;
+    }
+    return NULL;
+}
+
+int part_flash_close(void *handle)
+{
+    // FIXME:
+    return 0;
+}
+
+int part_flash_info_get(void *handle, partition_flash_info_t *info)
 {
     int rc;
-    rvm_hal_flash_dev_info_t flash_info;
+    hal_logic_partition_t partition;
 
     if (handle && info) {
-        rc = rvm_hal_flash_get_info(handle, &flash_info);
+        rc = hal_flash_info_get((hal_partition_t)handle, &partition);
         if (rc == 0) {
-            info->base_addr = flash_info.start_addr;
-            info->sector_size = flash_info.sector_size;
-            info->device_size = flash_info.sector_size * flash_info.sector_count;
-            info->erase_size = info->sector_size;
-            info->block_size = 0;
-#if defined(CONFIG_DEBUG) && CONFIG_DEBUG > 2
-            static int iprintflag = 0;
-            if (!iprintflag) {
-                MTB_LOGD("info->base_addr:0x%" PRIX64, info->base_addr);
-                MTB_LOGD("info->sector_size:0x%x", info->sector_size);
-                MTB_LOGD("info->block_size:0x%x", info->block_size);
-                MTB_LOGD("info->erase_size:0x%x", info->erase_size);
-                MTB_LOGD("info->device_size:0x%" PRIX64, info->device_size);
-                iprintflag = 1;
-            }
-#endif
+            info->start_addr   = partition.partition_start_addr;
+            info->sector_size  = partition.partition_length / partition.partition_options;
+            info->sector_count = partition.partition_options;
+            MTB_LOGD("info->start_addr:0x%lx", info->start_addr);
+            MTB_LOGD("info->sector_size:0x%x", info->sector_size);
+            MTB_LOGD("info->sector_count:0x%x", info->sector_count);
             return 0;
         }
     }
     return -EINVAL;
 }
 
-static int part_flash_read(void *handle, off_t offset, void *data, size_t data_len)
+int part_flash_read(void *handle, unsigned long addr, void *data, size_t data_len)
 {
-    int rc;
+    int rc, offset;
 
     if (data_len == 0) {
         return 0;
     }
 
     if (handle && data && data_len > 0) {
-        uint32_t device_size;
-        rvm_hal_flash_dev_info_t flash_info;
+        hal_logic_partition_t partition;
 
-        rc = rvm_hal_flash_get_info(handle, &flash_info);
+        rc = hal_flash_info_get((hal_partition_t)handle, &partition);
         if (rc == 0) {
-            device_size = flash_info.sector_size * flash_info.sector_count;
-            if (data_len > device_size || offset + data_len > device_size) {
-                MTB_LOGE("read size overflow.");
+            if (addr < partition.partition_start_addr ||
+                data_len > partition.partition_length ||
+                addr + data_len > partition.partition_start_addr + partition.partition_length) {
                 return -EINVAL;
             }
-            return rvm_hal_flash_read(handle, offset, data, data_len);
+            offset = addr - partition.partition_start_addr;
+
+            return hal_flash_read((hal_partition_t)handle, (uint32_t*)&offset, data, data_len);
         }
     }
-    MTB_LOGE("read size arg e.");
     return -EINVAL;
 }
 
-static int part_flash_write(void *handle, off_t offset, void *data, size_t data_len)
+int part_flash_write(void *handle, unsigned long addr, void *data, size_t data_len)
 {
-    int rc;
+    int rc, offset;
 
     if (data_len == 0) {
         return 0;
     }
 
     if (handle && data && data_len > 0) {
-        uint32_t device_size;
-        rvm_hal_flash_dev_info_t flash_info;
+        hal_logic_partition_t partition;
 
-        rc = rvm_hal_flash_get_info(handle, &flash_info);
+        rc = hal_flash_info_get((hal_partition_t)handle, &partition);
         if (rc == 0) {
-            device_size = flash_info.sector_size * flash_info.sector_count;
-            if (data_len > device_size || offset + data_len > device_size) {
-                MTB_LOGE("write size overflow.");
+            if (addr < partition.partition_start_addr ||
+                data_len > partition.partition_length ||
+                addr + data_len > partition.partition_start_addr + partition.partition_length) {
                 return -EINVAL;
             }
-            return rvm_hal_flash_program(handle, offset, data, data_len);
+            offset = addr - partition.partition_start_addr;
+
+            return hal_flash_write((hal_partition_t)handle, (uint32_t*)&offset, data, data_len);
         }
     }
-    MTB_LOGE("write size arg e.");
     return -EINVAL;
 }
 
-static int part_flash_erase(void *handle, off_t offset, size_t len)
+int part_flash_erase(void *handle, unsigned long addr, size_t len)
 {
-    int rc;
+    int rc, offset;
 
     if (len == 0) {
         return 0;
     }
 
     if (handle && len > 0) {
-        uint32_t device_size;
-        rvm_hal_flash_dev_info_t flash_info;
+        hal_logic_partition_t partition;
 
-        rc = rvm_hal_flash_get_info(handle, &flash_info);
+        rc = hal_flash_info_get((hal_partition_t)handle, &partition);
         if (rc == 0) {
-            device_size = flash_info.sector_size * flash_info.sector_count;
-            if (len > device_size || offset + len > device_size) {
-                MTB_LOGE("erase size overflow.");
+            if (addr < partition.partition_start_addr ||
+                len > partition.partition_length ||
+                addr + len > partition.partition_start_addr + partition.partition_length) {
                 return -EINVAL;
             }
-            return rvm_hal_flash_erase(handle, offset, (len + flash_info.sector_size -1) / flash_info.sector_size);
+            offset = addr - partition.partition_start_addr;
+
+            return hal_flash_erase((hal_partition_t)handle, offset, len);
         }
     }
-    MTB_LOGE("erase size arg e.");
     return -EINVAL;
 }
 
-static int part_flash_close(void *handle)
-{
-    if (handle)
-        return rvm_hal_flash_close(handle);
-    return -EINVAL;
-}
+#endif /* CONFIG_KERNEL_NONE */
 
-#if CONFIG_PARTITION_SUPPORT_SPINORFLASH
-static void *part_flash_find(int id)
-{
-    char buffer[16];
-
-    snprintf(buffer, sizeof(buffer), "flash%d", id);
-    rvm_dev_t *handle = rvm_hal_flash_open(buffer);
-    return handle;
-}
-
-static partition_device_ops_t default_flash_ops = {
-    .storage_info.id    = 0,
-    .storage_info.type  = MEM_DEVICE_TYPE_SPI_NOR_FLASH,
-    .find     = part_flash_find,
+static const partition_flash_ops_t default_flash_ops = {
+    .hdl_mgr.index = 0,
+    .open     = part_flash_open,
     .close    = part_flash_close,
     .info_get = part_flash_info_get,
     .read     = part_flash_read,
     .write    = part_flash_write,
     .erase    = part_flash_erase
 };
+static int g_init_default = 0;
+static partition_flash_ops_t g_flash_ops[CONFIG_FLASH_NUM];
 
-int partition_flash_register(void)
+static void _get_handle_id(hdl_mgr_t *hdl_mgr, void **out_handle, uint32_t *id)
 {
-    return partition_device_register(&default_flash_ops);
-}
-#endif
-
-#if CONFIG_PARTITION_SUPPORT_EFLASH
-static void *part_eflash_find(int id)
-{
-    char buffer[16];
-
-    snprintf(buffer, sizeof(buffer), "eflash%d", id);
-    rvm_dev_t *handle = rvm_hal_flash_open(buffer);
-    return handle;
+    *out_handle = NULL;
+    *id = 0;
+    if (hdl_mgr) {
+        *id = hdl_mgr->index;
+        *out_handle = hdl_mgr->handle;
+    }
 }
 
-static partition_device_ops_t default_eflash_ops = {
-    .storage_info.id    = 0,
-    .storage_info.type  = MEM_DEVICE_TYPE_EFLASH,
-    .find     = part_eflash_find,
-    .close    = part_flash_close,
-    .info_get = part_flash_info_get,
-    .read     = part_flash_read,
-    .write    = part_flash_write,
-    .erase    = part_flash_erase
-};
-
-int partition_eflash_register(void)
+void partition_flash_register(partition_flash_ops_t *ops)
 {
-    return partition_device_register(&default_eflash_ops);
-}
-#endif
+    // init default
+    if (g_init_default != 1) {
+        memcpy(&g_flash_ops[0], &default_flash_ops, sizeof(partition_flash_ops_t));
+        g_init_default = 1;
+    }
 
-#if CONFIG_PARTITION_SUPPORT_SPINANDFLASH
-static void *part_spinandflash_find(int id)
-{
-    char buffer[16];
-
-    snprintf(buffer, sizeof(buffer), "spinand%d", id);
-    rvm_dev_t *handle = rvm_hal_flash_open(buffer);
-    return handle;
+    // register new
+    if (ops != NULL) {
+        if (ops->hdl_mgr.index < CONFIG_FLASH_NUM)
+            memcpy(&g_flash_ops[ops->hdl_mgr.index], ops, sizeof(partition_flash_ops_t));
+    }
 }
 
-static partition_device_ops_t default_spinand_ops = {
-    .storage_info.id    = 0,
-    .storage_info.type  = MEM_DEVICE_TYPE_SPI_NAND_FLASH,
-    .find     = part_spinandflash_find,
-    .close    = part_flash_close,
-    .info_get = part_flash_info_get,
-    .read     = part_flash_read,
-    .write    = part_flash_write,
-    .erase    = part_flash_erase
-};
-
-int partition_spinandflash_register(void)
+void partition_flash_register_default(void)
 {
-    return partition_device_register(&default_spinand_ops);
+    // init default
+    if (g_init_default != 1) {
+        memcpy(&g_flash_ops[0], &default_flash_ops, sizeof(partition_flash_ops_t));
+        g_init_default = 1;
+    }
 }
-#endif
 
-#endif
+void *partition_flash_open(int id)
+{
+    if (id > CONFIG_FLASH_NUM - 1) {
+        return NULL;
+    }
+    if (g_flash_ops[id].open) {
+        void *handle = g_flash_ops[id].open(id);
+        g_flash_ops[id].hdl_mgr.index = id;
+        g_flash_ops[id].hdl_mgr.handle = handle;
+        return &g_flash_ops[id].hdl_mgr;
+    }
+    return NULL;
+}
+
+int partition_flash_close(void *handle)
+{
+    void *hd;
+    uint32_t id;
+
+    _get_handle_id((hdl_mgr_t *)handle, &hd, &id);
+    if (g_flash_ops[id].close) {
+        return g_flash_ops[id].close(hd);
+    }
+    return -1;
+}
+
+int partition_flash_info_get(void *handle, partition_flash_info_t *info)
+{
+    void *hd;
+    uint32_t id;
+
+    _get_handle_id((hdl_mgr_t *)handle, &hd, &id);
+    if (g_flash_ops[id].info_get) {
+        return g_flash_ops[id].info_get(hd, info);
+    }
+    return -1;
+}
+
+int partition_flash_read(void *handle, unsigned long addr, void *data, size_t data_len)
+{
+    int ret;
+    void *hd;
+    uint32_t id;
+
+    if (data_len == 0) {
+        return 0;
+    }
+
+    if (data == NULL) {
+        return -EINVAL;
+    }
+    _get_handle_id((hdl_mgr_t *)handle, &hd, &id);
+    ret = -1;
+    if (g_flash_ops[id].read) {
+        ret = g_flash_ops[id].read(hd, addr, data, data_len);
+    }
+    return ret;
+}
+
+int partition_flash_write(void *handle, unsigned long addr, void *data, size_t data_len)
+{
+    void *hd;
+    uint32_t id;
+
+    if (data_len == 0) {
+        return 0;
+    }
+
+    if (data == NULL) {
+        return -EINVAL;
+    }
+    _get_handle_id((hdl_mgr_t *)handle, &hd, &id);
+    if (g_flash_ops[id].write)
+        return g_flash_ops[id].write(hd, addr, data, data_len);
+    return -1;
+}
+
+int partition_flash_erase(void *handle, unsigned long addr, size_t len)
+{
+    void *hd;
+    uint32_t id;
+
+    if (len == 0) {
+        return 0;
+    }
+
+    _get_handle_id((hdl_mgr_t *)handle, &hd, &id);
+    if (g_flash_ops[id].erase)
+        return g_flash_ops[id].erase(hd, addr, len);
+    return -1;
+}

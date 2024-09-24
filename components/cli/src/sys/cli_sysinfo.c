@@ -19,31 +19,15 @@
 
 static void cmd_get_sysinfo_func(char *wbuf, int wbuf_len, int argc, char **argv)
 {
-    char *ret = NULL;
     if (argc > 1) {
         if (0 == strcmp(argv[1], "os")) {
-            ret = aos_get_os_version();
-            if(ret == NULL){
-                printf("os version is NULL\n");
-            } else {
-                printf("%s\n", ret);
-            }
+            printf("%s\n", aos_get_os_version());
             return;
         } else if (0 == strcmp(argv[1], "id")) {
-            ret = aos_get_device_id();
-            if(ret == NULL){
-                printf("device id is NULL\n");
-            } else {
-                printf("%s\n", ret);
-            }
+            printf("%s\n", aos_get_device_id());
             return;
         } else if (0 == strcmp(argv[1], "app")) {
-            ret = aos_get_app_version();
-            if(ret == NULL){
-                printf("app version is NULL\n");
-            } else {
-                printf("%s\n", ret);
-            }
+            printf("%s\n", aos_get_app_version());
             return;
         } else if (0 == strcmp(argv[1], "reboot")) {
             aos_reboot();

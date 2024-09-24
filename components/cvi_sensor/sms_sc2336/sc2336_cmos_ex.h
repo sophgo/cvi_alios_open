@@ -7,13 +7,13 @@ extern "C" {
 #endif
 #endif
 
-#ifdef ARCH_CV182X
-#include "cvi_vip_cif_uapi.h"
-#else
-#include "cif_uapi.h"
-#endif
+#include "cvi_comm_cif.h"
 #include "cvi_type.h"
 #include "cvi_sns_ctrl.h"
+
+#ifndef UNUSED
+#define UNUSED(x) ((void)(x))
+#endif
 
 #define syslog(level, fmt, ...)            \
 do {                                                   \

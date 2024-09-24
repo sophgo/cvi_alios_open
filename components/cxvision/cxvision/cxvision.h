@@ -1,7 +1,3 @@
-/*
- * Copyright (C) 2021-2022 Alibaba Group Holding Limited
- */
-
 #ifndef CXVISION_CXVISION_H_
 #define CXVISION_CXVISION_H_
 
@@ -14,11 +10,5 @@
 #include "cxvision/proto/simple_meta.h"
 #include "cxvision/proto/voice.h"
 #endif
-
-namespace cx {
-
-  bool Init();
-
-}  // namespace cx
 
 #endif  // CXVISION_CXVISION_H_

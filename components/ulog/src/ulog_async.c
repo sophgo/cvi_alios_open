@@ -14,10 +14,6 @@
 #include "k_config.h"
 // #include "uagent.h"
 
-#if defined (AOS_COMP_DEBUG) && AOS_COMP_DEBUG
-#include <debug/dbg.h>
-#endif
-
 static aos_task_t ulog_routine;
 
 typedef void(*on_ulog_man_service)(const uint32_t, const uint32_t);
@@ -43,7 +39,7 @@ const ulog_man_handler_service_t ulog_man_handler_service[] = {
 #endif
 };
 
-static void ulog_handler_normal(void* para, void* log_text, const uint16_t log_len)
+static void ulog_handler(void* para, void* log_text, const uint16_t log_len)
 {
     if ((log_text != NULL) && log_len > 0) {
         char *str = (char*)log_text;
@@ -89,23 +85,12 @@ static void ulog_handler_normal(void* para, void* log_text, const uint16_t log_l
     }
 }
 
-static void ulog_handler_panic(void* para, void* log_text, const uint16_t log_len)
-{
-    if (log_text && log_len > LOG_PREFIX_LEN) {
-#if defined (AOS_COMP_DEBUG) && AOS_COMP_DEBUG
-        aos_debug_printf("%s", &((char*)log_text)[LOG_PREFIX_LEN]);
-#else
-        puts(&((char*)log_text)[LOG_PREFIX_LEN]);
-#endif
-    }
-}
-
 static void log_routine(void* para)
 {
     while (1) {
         /* PRI      HEADER            MSG */
         /* <130>Oct 9 22:33:20.111 soc kernel.c[111]: The audit daemon is exiting. */
-        uring_fifo_pop_cb(ulog_handler_normal, NULL);
+        uring_fifo_pop_cb(ulog_handler, NULL);
     }
 }
 
@@ -117,17 +102,19 @@ void ulog_async_init()
 #endif
     uring_fifo_init();
 
-    aos_task_new_ext(&ulog_routine,
-                     "ulog",
-                     log_routine,
-                     NULL,
-                     LOG_ROUTINE_TASK_STACK_DEPTH,
-                     RHINO_CONFIG_USER_PRI_MAX);
+    if (0 == aos_task_new_ext(&ulog_routine,
+                              "ulog",
+                              log_routine,
+                              NULL,
+                              LOG_ROUTINE_TASK_STACK_DEPTH,
+                              RHINO_CONFIG_USER_PRI_MAX)) {
+
+    }
 }
 
 void ulog_async_flush()
 {
-    uring_fifo_flush(ulog_handler_panic, NULL);
+    uring_fifo_flush(ulog_handler, NULL);
 }
 
 void ulog_man_handler(const char* raw_str)

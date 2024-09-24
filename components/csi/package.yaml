@@ -60,10 +60,12 @@ install:
   - dest: "include/"
     source:
       - "<CONFIG_CSI>/include/*.h"
-      - "<CONFIG_CSI>/include/*.h"
   - dest: "include/core"
     source:
       - "<CONFIG_CSI>/include/core/*.h"
+  - dest: "include/core/cmsis"
+    source:
+      - "<CONFIG_CSI>/include/core/cmsis/*.h"
   - dest: "include/drv"
     source:
       - "<CONFIG_CSI>/include/drv/*.h"

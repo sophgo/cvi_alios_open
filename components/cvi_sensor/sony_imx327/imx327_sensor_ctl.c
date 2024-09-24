@@ -1,6 +1,5 @@
 #include "cvi_sns_ctrl.h"
 #include "cvi_comm_video.h"
-#include "cvi_sns_ctrl.h"
 #include "imx327_cmos_ex.h"
 #include "drv/common.h"
 #include "sensor_i2c.h"

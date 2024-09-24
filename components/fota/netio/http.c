@@ -18,7 +18,7 @@ static int http_read(netio_t *io, uint8_t *buffer, int length, int timeoutms)
 {
     int content_len;
     char *head_end;
-    http_t *http = (http_t*)io->priv;
+    http_t *http = (http_t*)io->private;
 
     if (io->offset >= io->size) {
         LOGD(TAG, "http_read done: %d %d", io->size, io->offset);
@@ -35,7 +35,7 @@ static int http_read(netio_t *io, uint8_t *buffer, int length, int timeoutms)
     if (io->size > 0) {
         range_end = range_end < (io->size - 1)? range_end : (io->size - 1);
     }
-    snprintf(range, 56, "bytes=%lu-%d", (unsigned long)io->offset, range_end);
+    snprintf(range, 56, "bytes=%zu-%d", io->offset, range_end);
     http_head_sets(http, "Range", range);
     aos_free(range);
     http_head_sets(http, "Connection", "keep-alive");
@@ -70,7 +70,7 @@ static int http_open(netio_t *io, const char *path)
 
     io->offset = 0;
     io->block_size = CONFIG_FOTA_BUFFER_SIZE;// 1024
-    // io->priv = http;
+    // io->private = http;
 
     int content_len;
     char *range;
@@ -85,7 +85,7 @@ static int http_open(netio_t *io, const char *path)
     if (io->size > 0) {
         range_end = range_end < (io->size - 1)? range_end : (io->size - 1);
     }
-    snprintf(range, 56, "bytes=%lu-%d", (unsigned long)io->offset, range_end);
+    snprintf(range, 56, "bytes=%zu-%d", io->offset, range_end);
     http_head_sets(http, "Range", range);
     aos_free(range);
     http_head_sets(http, "Connection", "keep-alive");
@@ -107,14 +107,14 @@ static int http_open(netio_t *io, const char *path)
 
     LOGD(TAG, "range_len: %d", io->size);
 
-    io->priv = http;
+    io->private = http;
 
     return 0;
 }
 
 static int http_seek(netio_t *io, size_t offset, int whence)
 {
-    // http_t *http = (http_t*)io->priv;
+    // http_t *http = (http_t*)io->private;
 
     io->offset = offset;
 
@@ -123,7 +123,7 @@ static int http_seek(netio_t *io, size_t offset, int whence)
 
 static int http_close(netio_t *io)
 {
-    http_t *http = (http_t*)io->priv;
+    http_t *http = (http_t*)io->private;
 
     return http_deinit(http);
 }
@@ -134,7 +134,7 @@ const netio_cls_t http_cls = {
     .seek = http_seek,
     .open = http_open,
     .close = http_close,
-    // .priv = http,
+    // .private = http,
     // .getinfo = http_getinfo,
 };
 

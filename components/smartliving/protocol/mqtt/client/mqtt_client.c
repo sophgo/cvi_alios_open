@@ -3286,14 +3286,7 @@ int IOT_MQTT_Yield(void *handle, int timeout_ms)
 
     do {
         if (SUCCESS_RETURN != rc) {
-            /* print err every certain time, do not print all the time*/
-            static int prt_cnt = 0;
-            int step = 20;
-
-            if (prt_cnt % step == 0) {
-                mqtt_err("error occur rc=%d", rc);
-            }
-            prt_cnt++;
+            mqtt_err("error occur rc=%d", rc);
         }
 
         HAL_MutexLock(pClient->lock_yield);

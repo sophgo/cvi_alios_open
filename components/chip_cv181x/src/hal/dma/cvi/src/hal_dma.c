@@ -3,7 +3,7 @@
 */
 
 #include <cvi_dma_ll.h>
-void hal_dma_ch_resume(struct dw_dma *dma, uint8_t ch_mask);
+
 void hal_dma_dwc_clk_set(int enable)
 {
 	uint32_t clk_state;
@@ -63,44 +63,14 @@ void hal_dma_ch_on(struct dw_dma *dma, uint8_t ch_mask)
 void hal_dma_ch_off(struct dw_dma *dma, uint8_t ch_mask)
 {
 	uint64_t dma_ch_en;
+
 	dma_ch_en = dma_readq(dma, CH_EN);
-	if(dma_ch_en & (1 << (__ffs(ch_mask) + DW_DMAC_CH_PAUSE_OFFSET)))
-			hal_dma_ch_resume(dma, ch_mask);
 	dma_ch_en |= (ch_mask << DW_DMAC_CH_EN_WE_OFFSET);
 	dma_ch_en &= ~ch_mask;
 	dma_writeq(dma, CH_EN, dma_ch_en);
-	//while (dma_readq(dma, CH_EN) & ch_mask)
-	//		barrier();
+	while (dma_readq(dma, CH_EN) & ch_mask)
+		barrier();
 }
-
-void hal_dma_ch_pause(struct dw_dma *dma, uint8_t ch_mask)
-{
-	unsigned int count = 20; /* timeout iterations */
-	uint64_t mask = ch_mask;
-
-	dma_set_bit(dma, CH_EN,
-		    (1 << (__ffs(mask) + DW_DMAC_CH_PAUSE_OFFSET))
-		    | (1 << (__ffs(mask) + DW_DMAC_CH_PAUSE_EN_OFFSET)));
-
-	while (!(dma_readq(dma, CH_EN)
-		 & (1 << (__ffs(ch_mask) + DW_DMAC_CH_PAUSE_OFFSET)))
-	       && count--)
-		udelay(2);
-
-}
-
-void hal_dma_ch_resume(struct dw_dma *dma, uint8_t ch_mask)
-{
-	uint64_t mask = ch_mask;
-	uint64_t dma_ch_en;
-
-	dma_ch_en = dma_readq(dma, CH_EN);
-	dma_ch_en |= (mask << DW_DMAC_CH_EN_WE_OFFSET);
-	dma_ch_en |= (1 << (__ffs(mask) + DW_DMAC_CH_PAUSE_EN_OFFSET));
-	dma_ch_en &= ~(1 << (__ffs(mask) + DW_DMAC_CH_PAUSE_OFFSET));
-	dma_writeq(dma,CH_EN,dma_ch_en);
-}
-
 
 uint64_t hal_dma_get_intstatus(dw_dma_t *dma)
 {
@@ -149,7 +119,7 @@ void hal_dma_reset(dw_dma_t *dma)
 
 void hal_sdma_dma_int_mux_set_c906b(void)
 {
-	*(volatile uint32_t *)SDMA_DMA_INT_MUX = SDMA_DMA_INT_MUX_C906B;
+	*(volatile uint32_t *)SDMA_DMA_INT_MUX = SDMA_DMA_INT_MUX_C906L;
 }
 
 /* ---------------------- show debug info -------------------------- */

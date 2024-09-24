@@ -27,8 +27,10 @@ typedef struct _cvi_adc_t {
     cvi_error_t             (*stop)(struct _cvi_adc_t *adc);   ///< Stop function
     cvi_state_t             state;       ///< ADC current state
     void                    *priv;
+    uint8_t                 ch_id;
 } cvi_adc_t;
 
+void cvi_adc_trim(cvi_adc_t *adc);
 cvi_error_t cvi_adc_init(cvi_adc_t *adc);
 void cvi_adc_uninit(cvi_adc_t *adc);
 cvi_error_t cvi_adc_set_buffer(cvi_adc_t *adc, uint32_t *data, uint32_t num);

@@ -4,13 +4,21 @@
 
 #include "key_mgr_port.h"
 #include <sec_crypto_sha.h>
-#include <yoc/partition_device.h>
+#include <yoc/partition.h>
+#include <yoc/partition_flash.h>
 
-int get_data_from_addr(unsigned long addr, uint8_t *data, size_t data_len, partition_info_t *part_info)
+int get_data_from_addr(unsigned long addr, uint8_t *data, size_t data_len)
 {
 #ifdef CONFIG_NON_ADDRESS_FLASH
-    void *handle = partition_device_find(&part_info->storage_info);
-    return partition_device_read(handle, addr - part_info->base_addr, data, data_len);
+    void *handle;
+    int flashid = 0;
+
+#if CONFIG_MULTI_FLASH_SUPPORT
+    flashid = get_flashid_by_abs_addr(addr);
+#endif
+    handle = partition_flash_open(flashid);
+    partition_flash_read(handle, addr, data, data_len);
+    partition_flash_close(handle);
 #else
     memcpy(data, (uint8_t *)addr, data_len);
 #endif /* CONFIG_NON_ADDRESS_FLASH */

@@ -2,18 +2,15 @@
  * Copyright (C) 2019-2020 Alibaba Group Holding Limited
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <lwip/netdb.h>
-#include <lwip/ip_addr.h>
 #include <aos/aos.h>
 
 #include <devices/wifi.h>
-#include <devices/netdrv.h>
 #include <devices/device.h>
 #include <lwip/apps/dhcps.h>
 
@@ -26,7 +23,7 @@ static void dns_server_entry(void *arg);
 #define MAP_AP 15
 #define SSID_LIST_SIZE_MAX (2048)
 
-static rvm_hal_wifi_ap_record_t g_ap_records[MAP_AP];
+static wifi_ap_record_t g_ap_records[MAP_AP];
 static int g_ap_number;
 
 const char *ok_html =
@@ -36,12 +33,11 @@ static uint8_t is_dns_server_run = 0;
 static uint8_t is_prov_runing = 0;
 
 struct ap_prov_context {
-    rvm_dev_t *dev;
+    aos_dev_t *dev;
     int prov_enable;
     char ap_ssid[33];
     wifi_prov_cb calllback_fn;
     wifi_prov_result_t res;
-    ip_addr_t ip;
 };
 
 typedef struct http_client {
@@ -129,7 +125,6 @@ static void http_client_handle(void *args)
     int iNewSockFD = ((http_client_t*)args)->fd;
     int iStatus;
     int socket_recv_size = 2048;
-    char *ip = ipaddr_ntoa(&context->ip);
 
     LOGD(TAG, "Start process client %d", iNewSockFD);
     // waits packets from the connected TCP client
@@ -158,8 +153,7 @@ static void http_client_handle(void *args)
         /** get index.html */
         if ((strstr((char *)socket_recv_buf, "GET / HTTP/1") ||
              strstr((char *)socket_recv_buf, "GET /index.html HTTP/1")) &&
-            (strstr((char *)socket_recv_buf, "Host: ")) && 
-            (strstr((char *)socket_recv_buf, ip)) ) {
+            (strstr((char *)socket_recv_buf, "Host: 192.168.1.1"))) {
 
             LOGD(TAG, "Received HTTP GET, Send response HTTP/1.0");
             /** send response */
@@ -195,17 +189,14 @@ static void http_client_handle(void *args)
         }
 
         if ((strstr((char *)socket_recv_buf, "GET ")) != NULL) {
+
+            LOGD(TAG, "Received HTTP GET, Send response 301");
             /** send response */
-            char *http_header_fmt;
-            asprintf(&http_header_fmt,  "HTTP/1.0 301 Moved Permanently\r\n"
-                                        "Location: http://%s/index.html\r\n\r\n", ip);
+            char *http_header_fmt = "HTTP/1.0 301 Moved Permanently\r\n"
+                                    "Location: http://192.168.1.1/index.html\r\n\r\n";
 
-            LOGD(TAG, "Received HTTP GET, Send response 301 (IP:%s)", ip);
+            sendall(iNewSockFD, (uint8_t*)http_header_fmt, strlen((char *)http_header_fmt), 0);
 
-            if (http_header_fmt) {
-                sendall(iNewSockFD, (uint8_t*)http_header_fmt, strlen((char *)http_header_fmt), 0);
-                free(http_header_fmt);
-            }
             goto Exit;
         }
 
@@ -409,8 +400,9 @@ static int http_server(struct ap_prov_context *context)
         LOGE(TAG, "TCP ERROR: listen tcp server socket fd error %d", iStatus);
         goto Exit1;
     }
+
     aos_task_t task_handle;
-    aos_check_param(!aos_task_new_ext(&task_handle, "dns_server", dns_server_entry, context, 2048, 32));
+    aos_check_param(!aos_task_new_ext(&task_handle, "dns_server", dns_server_entry, NULL, 2048, 32));
 
 Restart:
     iNewSockFD = -1;
@@ -584,7 +576,6 @@ static void process_query(int fd)
             LOGE(TAG, "process_query sendto error.");
         }
     }
-	(void)domain;
 }
 
 static void dns_server_entry(void *arg)
@@ -655,33 +646,36 @@ static void ap_prov_callback(struct ap_prov_context *context)
 static void prov_thread(void *arg)
 {
     int i = 0;
-    ip_addr_t netmask;
-    ip_addr_t gw;
     struct ap_prov_context *context = (struct ap_prov_context *)arg;
 
-    while(1) {
-        rvm_hal_wifi_sta_list_t sta_list = {0};
-        rvm_hal_wifi_ap_get_sta_list(context->dev, &sta_list);
-        if (sta_list.num) {
-            for (i = 0; i < sta_list.num; i++) {
-                LOGD(TAG, "STA[%d]=%02x:%02x:%02x:%02x:%02x:%02x\n",
-                    i,
-                    sta_list.sta[i].mac[0],
-                    sta_list.sta[i].mac[1],
-                    sta_list.sta[i].mac[2],
-                    sta_list.sta[i].mac[3],
-                    sta_list.sta[i].mac[4],
-                    sta_list.sta[i].mac[5]);
-            }
+    while (1) {
+        if (dhcps_get_client_number() > 0)
             break;
-        }
-        aos_msleep(1000);
+        else
+            aos_msleep(1000);
+
+        if (context->prov_enable == 0)
+            goto exit;
     }
 
-    rvm_hal_net_get_ipaddr(context->dev, &context->ip, &netmask, &gw);
+    {
+        wifi_sta_list_t sta_list = {0};
+        hal_wifi_ap_get_sta_list(context->dev, &sta_list);
+        for (i = 0; i < sta_list.num; i++) {
+            LOGD(TAG, "STA[%d]=%02x:%02x:%02x:%02x:%02x:%02x\n",
+                 i,
+                 sta_list.sta[i].mac[0],
+                 sta_list.sta[i].mac[1],
+                 sta_list.sta[i].mac[2],
+                 sta_list.sta[i].mac[3],
+                 sta_list.sta[i].mac[4],
+                 sta_list.sta[i].mac[5]);
+        }
+    }
 
     http_server(context);
 
+exit:
     if (is_dns_server_run == 1) {
         is_dns_server_run = 2;
     }
@@ -705,15 +699,15 @@ static void prov_thread_start(struct ap_prov_context *context)
     aos_task_t task_handle;
     is_prov_runing = 1;
 
-    if (0 != aos_task_new_ext(&task_handle, "prov_thread", prov_thread, context, 8 * 1024, AOS_DEFAULT_APP_PRI + 3)) {
+    if (0 != aos_task_new_ext(&task_handle, "prov_thread", prov_thread, context, 5*1024, AOS_DEFAULT_APP_PRI + 3)) {
         LOGE(TAG, "Create network task failed.");
     }
 }
 
-void scan_compeleted(rvm_dev_t *dev, uint16_t number, rvm_hal_wifi_ap_record_t *ap_records)
+void scan_compeleted(aos_dev_t *dev, uint16_t number, wifi_ap_record_t *ap_records)
 {
     // sort with rssi
-    rvm_hal_wifi_ap_record_t wifiApRecord;
+    wifi_ap_record_t wifiApRecord;
     for (int j = 0; j < number; ++j) {
         for (int i = j + 1; i < number; ++i) {
             if (ap_records[i].rssi > ap_records[j].rssi) {
@@ -739,7 +733,7 @@ void scan_compeleted(rvm_dev_t *dev, uint16_t number, rvm_hal_wifi_ap_record_t *
             }
 
             if (j == g_ap_number) {
-                memcpy(&g_ap_records[g_ap_number], &ap_records[i], sizeof(rvm_hal_wifi_ap_record_t));
+                memcpy(&g_ap_records[g_ap_number], &ap_records[i], sizeof(wifi_ap_record_t));
                 LOGD(TAG, "ssid: %s, rssi, %d", g_ap_records[g_ap_number].ssid, g_ap_records[g_ap_number].rssi);
                 g_ap_number++;
             }
@@ -747,7 +741,7 @@ void scan_compeleted(rvm_dev_t *dev, uint16_t number, rvm_hal_wifi_ap_record_t *
     }
 }
 
-static rvm_hal_wifi_event_func wifi_event = {
+static wifi_event_func wifi_event = {
     NULL,
     NULL,
     scan_compeleted,
@@ -760,33 +754,33 @@ static rvm_hal_wifi_event_func wifi_event = {
 static int ap_prov_start(wifi_prov_cb cb)
 {
     uint8_t mac[6] = {0};
-    rvm_hal_wifi_config_t config;
+    wifi_config_t config;
 
     struct ap_prov_context *context = &g_softap_prov_ctx;
 
-    context->dev = rvm_hal_device_open("wifi0");
+    context->dev = device_open_id("wifi", 0);
     context->calllback_fn = cb;
     context->prov_enable = 1;
 
     LOGI(TAG, "Scan Start");
     memset(&config, 0, sizeof(config));
     config.mode = WIFI_MODE_STA;
-    rvm_hal_wifi_start(context->dev, &config);
-    rvm_hal_wifi_install_event_cb(context->dev, &wifi_event);
+    hal_wifi_start(context->dev, &config);
+    hal_wifi_install_event_cb(context->dev, &wifi_event);
     aos_msleep(2000);
-    rvm_hal_wifi_get_mac_addr(context->dev, mac);
+    hal_wifi_get_mac_addr(context->dev, mac);
 
-    rvm_hal_wifi_start_scan(context->dev, NULL, 1);
-    rvm_hal_wifi_stop(context->dev);
+    hal_wifi_start_scan(context->dev, NULL, 1);
+    hal_wifi_stop(context->dev);
 
-    rvm_hal_device_close(context->dev);
+    device_close(context->dev);
     aos_msleep(1000);
 
-    context->dev = rvm_hal_device_open("wifi0");
+    context->dev = device_open_id("wifi", 0);
 
     LOGI(TAG, "Start AP");
 
-    memset(&config, 0, sizeof(rvm_hal_wifi_config_t));
+    memset(&config, 0, sizeof(wifi_config_t));
 
 #define snprintf_nowarn(...) (snprintf(__VA_ARGS__) < 0 ? abort() : (void)0)
     snprintf_nowarn(config.ssid, sizeof(config.ssid), "%s[%02x:%02x:%02x:%02x:%02x:%02x]",
@@ -794,7 +788,7 @@ static int ap_prov_start(wifi_prov_cb cb)
     config.ssid[sizeof(config.ssid) - 1] = 0;
     config.mode = WIFI_MODE_AP;
 
-    rvm_hal_wifi_start(context->dev, &config);
+    hal_wifi_start(context->dev, &config);
 
     prov_thread_start(context);
 
@@ -810,9 +804,9 @@ static void ap_prov_stop()
         LOGD(TAG, "wait ap_prov_stop");
     }
 
-    rvm_hal_wifi_stop(g_softap_prov_ctx.dev); // close AP when prov finished
-    rvm_hal_wifi_install_event_cb(g_softap_prov_ctx.dev, NULL);
-    rvm_hal_device_close(g_softap_prov_ctx.dev);
+    hal_wifi_stop(g_softap_prov_ctx.dev); // close AP when prov finished
+    hal_wifi_install_event_cb(g_softap_prov_ctx.dev, NULL);
+    device_close(g_softap_prov_ctx.dev);
 }
 
 static wifi_prov_t softap_prov = {
@@ -830,3 +824,6 @@ int wifi_prov_softap_register(char *ap_ssid)
 
     return 0;
 }
+
+
+

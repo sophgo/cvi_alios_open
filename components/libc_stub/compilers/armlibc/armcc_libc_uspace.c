@@ -5,7 +5,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <sys/time.h>
-#include <aos/kernel.h>
+#include "k_config.h"
+#include <aos/hal/uart.h>
 #include <umm.h>
 
 #if defined (__CC_ARM)
@@ -22,12 +23,14 @@ void __stack_chk_fail(void)
 
 unsigned long __stack_chk_guard __attribute__((weak)) = 0xDEADDEAD;
 
+extern uint64_t krhino_sys_time_get(void);
+
 #pragma weak  gettimeofday
 int gettimeofday(struct timeval *tv, void *tzp)
 {
     uint64_t t;
 
-    t = aos_now_ms();
+    t = krhino_sys_time_get();
 
     tv->tv_sec  = t / 1000;
     tv->tv_usec = (t % 1000) * 1000;
@@ -86,9 +89,12 @@ char * strdup(const char *s)
 #pragma weak fputc
 int fputc(int ch, FILE *f)
 {
-    extern int uart_write(const void *buf, size_t size);
-    uart_write((uint8_t *)(&ch), 1);
-    return ch;
+    uart_dev_t uart_stdio;
+
+    memset(&uart_stdio, 0, sizeof(uart_stdio));
+    uart_stdio.port = 0;
+    /* Send data. */
+    return hal_uart_send(&uart_stdio, (uint8_t *)(&ch), 1, 1000);
 }
 #pragma weak  bzero
 /* referred from ota_socket.o */

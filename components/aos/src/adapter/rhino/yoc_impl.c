@@ -19,6 +19,7 @@
 #include <soc.h>
 #include <csi_core.h>
 #include <drv/timer.h>
+#include "cvi_board_memmap.h"
 
 /* auto define heap size */
 extern size_t __heap_start;
@@ -51,6 +52,11 @@ __attribute__((weak)) k_mm_region_t g_mm_region[] = {
     {(uint8_t *)&__heap_start, (size_t)0},
 };
 __attribute__((weak)) int g_region_num  = sizeof(g_mm_region)/sizeof(k_mm_region_t);
+
+__attribute__((weak)) k_mm_region_t g_mm_region_resv[] = {
+    {(uint8_t *)CVIMMAP_ALIOS_RESV_ADDR, (size_t)CVIMMAP_ALIOS_RESV_SIZE},
+};
+__attribute__((weak)) int g_region_num_resv  = sizeof(g_mm_region_resv)/sizeof(k_mm_region_t);
 
 #if (RHINO_CONFIG_INTRPT_GUARD > 0)
 void soc_intrpt_guard(void)

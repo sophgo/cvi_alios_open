@@ -32,6 +32,7 @@
 #include "lwip/udp.h"
 #include "lwip/timeouts.h"
 #include "lwip/debug.h"
+#include "../../../../csi/csi2/include/drv/spiflash.h"
 
 #if LWIP_UDP
 

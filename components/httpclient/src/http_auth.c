@@ -21,10 +21,10 @@
 #include "lwip/sockets.h"
 #include "mbedtls/base64.h"
 #include "mbedtls/md5.h"
+#include "transport/tperrors.h"
 
 #include "http_utils.h"
 #include "http_auth.h"
-#include "http_client.h"
 
 
 #define MD5_MAX_LEN (33)
@@ -52,7 +52,7 @@ static int md5_printf(char *md, const char *fmt, ...)
     len = vasprintf((char **)&buf, fmt, ap);
     if (buf == NULL) {
         va_end(ap);
-        return HTTP_CLI_FAIL;
+        return WEB_FAIL;
     }
 
     mbedtls_md5_init(&md5_ctx);

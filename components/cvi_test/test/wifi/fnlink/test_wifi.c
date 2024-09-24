@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include "wifi_if.h"
 
-#define USE_PROVATE_PROTOCOL     0
 
 #define TESTWIFI_EVENT(CMD) TESTWIFI_##CMD
 #define HOST_CMD_GET_MAC 0
@@ -20,11 +19,11 @@
 static void TESTWIFI_connect(int32_t argc,char **argv)
 {
     //Note 链接WIFI Note
+#if (CONFIG_APP_HI3861_WIFI_SUPPORT == 1)
     if(argc < 3) {
         printf("%s input err\n",__func__);
         return ;
     }
-#if ((CONFIG_APP_HI3861_WIFI_SUPPORT == 1) && (USE_PROVATE_PROTOCOL == 1))
     unsigned char data[512] = {0};
     int passwdlength = 0;
     unsigned long len;
@@ -57,44 +56,16 @@ static void TESTWIFI_connect(int32_t argc,char **argv)
     offset = offset + 3 + passwdlength;
     offset += 1;
     Wifi_SendMsgData(data, offset);
-#else
-    CVI_S32 s32Ret;
-    CVI_CHAR SSID[64] = {0};
-    CVI_CHAR Passwd[64] = {0};
-    CVI_S32 SSIDLen = 0;
-    CVI_S32 PasswdLen = 0;
-
-    SSIDLen = strlen(argv[2]);
-    PasswdLen = strlen(argv[3]);
-    if(SSIDLen > 64 || PasswdLen > 64) {
-        printf("ssid /password len less than 64\n");
-        return ;
-    }
-    strncpy(SSID,argv[2],SSIDLen);
-    strncpy(Passwd,argv[3],PasswdLen);
-
-    s32Ret = WifiConnect((CVI_U8 *)SSID, strlen(SSID), (CVI_U8 *)Passwd, strlen(Passwd));
-    if(s32Ret != CVI_SUCCESS) {
-        printf("Wifi Connect [%s] fail \r\n",SSID);
-        return ;
-    }
-    printf("Wifi Connect [%s] success \r\n",SSID);
 #endif
 }
 
 static void TESTWIFI_disconnect(int32_t argc,char **argv)
 {
     //Note unlink wifi Note
-#if ((CONFIG_APP_HI3861_WIFI_SUPPORT == 1) && (USE_PROVATE_PROTOCOL == 1))
+#if (CONFIG_APP_HI3861_WIFI_SUPPORT == 1)
     unsigned char data[64] = {0};
     data[0] = HOST_CMD_STOP_STA;
     Wifi_SendMsgData(data, 1);
-#else
-    if(CVI_SUCCESS !=  WifiDisConnect()) {
-        printf("Wifi DisConnect fail \r\n");
-        return ;
-    }
-    printf("Wifi DisConnect success \r\n");
 #endif
 }
 
@@ -185,34 +156,19 @@ static void TESTWIFI_recovery(int32_t argc,char **argv)
 
 static void TESTWIFI_getmac(int32_t argc,char **argv)
 {
-#if ((CONFIG_APP_HI3861_WIFI_SUPPORT == 1) && (USE_PROVATE_PROTOCOL == 1))
+#if (CONFIG_APP_HI3861_WIFI_SUPPORT == 1)
     unsigned char data[64] = {0};
     data[0] = HOST_CMD_GET_MAC;
     Wifi_SendMsgData(data, 1);
-#else
-    CVI_U8 mac[64] = {0};
-    if(CVI_SUCCESS != WifiGetMac(mac)) {
-        printf("Wifi getMac fail \r\n");
-        return ;
-    }
-    printf("Wifi Mac ");
-    printf("%02x:%02x:%02x:%02x:%02x:%02x\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 #endif
 }
 
 static void TESTWIFI_getip(int32_t argc,char **argv)
 {
-#if ((CONFIG_APP_HI3861_WIFI_SUPPORT == 1) && (USE_PROVATE_PROTOCOL == 1))
+#if (CONFIG_APP_HI3861_WIFI_SUPPORT == 1)
     unsigned char data[64] = {0};
     data[0] = HOST_CMD_GET_IP;
     Wifi_SendMsgData(data, 1);
-#else
-    CVI_U8 ip_addr[64] = {0};
-    if(CVI_SUCCESS != WifiGetIp(ip_addr)) {
-        printf("Wifi get IP fail \r\n");
-        return ;
-    }
-    printf("WiFi IP addr : %s \r\n",ip_addr);
 #endif
 }
 void TESTWIFI_eventrecv(uint32_t event_id, const void *data, void *context)
@@ -280,7 +236,7 @@ void test_wifi_cmd_handler(int32_t argc, char **argv)
         printf("5.test_wifi_cmd getFourElements\n");
         printf("6.test_wifi_cmd recovery \n");
         printf("7.test_wifi_cmd getmac\n");
-        printf("8.test_wifi cmd getip\n");
+        printf("8.test_wifi cmd getip");
         return ;
     }
 #if (CONFIG_APP_HI3861_WIFI_SUPPORT == 1)
@@ -304,5 +260,4 @@ void test_wifi_cmd_handler(int32_t argc, char **argv)
         TESTWIFI_EVENT(getip)(argc,argv);
     }
 }
-
 ALIOS_CLI_CMD_REGISTER(test_wifi_cmd_handler, test_wifi_cmd, wifi cmd )

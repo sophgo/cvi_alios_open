@@ -1,22 +1,22 @@
 /*
- * Copyright (C) 2022 Alibaba Group Holding Limited
+ * Copyright (C) 2015-2018 Alibaba Group Holding Limited
  */
+
 #ifndef __BLE_AIS_H__
 #define __BLE_AIS_H__
 
 #include "k_api.h"
 
-#define AIS_DISCONNECT_TIMEOUT 1000 // 1s
+#define AIS_DISCONNECT_TIMEOUT 1000 //1s
 
-#define AIS_SERVICE_UUID       BT_UUID_DECLARE_16(0xFEB3)
-#define AIS_READ_UUID          BT_UUID_DECLARE_16(0xFED4)
-#define AIS_WRITE_UUID         BT_UUID_DECLARE_16(0xFED5)
-#define AIS_INDICATE_UUID      BT_UUID_DECLARE_16(0xFED6)
+#define AIS_SERVICE_UUID BT_UUID_DECLARE_16(0xFEB3)
+#define AIS_READ_UUID BT_UUID_DECLARE_16(0xFED4)
+#define AIS_WRITE_UUID BT_UUID_DECLARE_16(0xFED5)
+#define AIS_INDICATE_UUID BT_UUID_DECLARE_16(0xFED6)
 #define AIS_WRITE_WO_RESP_UUID BT_UUID_DECLARE_16(0xFED7)
-#define AIS_NOTIFY_UUID        BT_UUID_DECLARE_16(0xFED8)
+#define AIS_NOTIFY_UUID BT_UUID_DECLARE_16(0xFED8)
 
-enum
-{
+enum {
     AIS_STATE_DISCON,
     AIS_STATE_CONNECT,
     AIS_STATE_AUTH,
@@ -25,24 +25,23 @@ enum
     AIS_STATE_REBOOT,
 };
 
-enum
-{
-    AIS_RESP_ERR    = 0x0F,
+enum {
+    AIS_RESP_ERR = 0x0F,
     AIS_SCRT_RANDOM = 0x10,
     AIS_SCRT_CIPHER = 0x11,
     AIS_SCRT_RESULT = 0x12,
-    AIS_SCRT_ACK    = 0x13,
+    AIS_SCRT_ACK = 0x13,
     AIS_LINK_STATUS = 0x14,
-    AIS_LINK_ACK    = 0x15,
+    AIS_LINK_ACK = 0x15,
 };
 
-// AIS PDU FORMAT
+//AIS PDU FORMAT
 typedef struct {
     uint8_t msg_id : 4;
-    uint8_t enc    : 1;
-    uint8_t ver    : 3;
+    uint8_t enc : 1;
+    uint8_t ver : 3;
     uint8_t cmd;
-    uint8_t seq         : 4;
+    uint8_t seq : 4;
     uint8_t total_frame : 4;
     uint8_t payload_len;
 } __attribute__((packed)) ais_header_t;
@@ -65,11 +64,11 @@ typedef struct {
 
 typedef struct {
     ais_header_t header;
-    uint8_t      payload[16];
+    uint8_t payload[16];
 } __attribute__((packed)) ais_pdu_t;
 
 typedef struct _ble_ais_ctx_s {
-    uint8_t     state;
+    uint8_t state;
     ota_timer_t state_update_timer;
     ota_timer_t disconnect_timer;
 } ais_ctx_t;

@@ -7,11 +7,8 @@ extern "C" {
 #endif
 #endif
 
-#ifdef ARCH_CV182X
-#include "cvi_vip_cif_uapi.h"
-#else
-#include "cif_uapi.h"
-#endif
+
+#include "cvi_comm_cif.h"
 #include "cvi_type.h"
 #include "cvi_sns_ctrl.h"
 
@@ -38,7 +35,6 @@ enum gc02m1_linear_regs_e {
 
 typedef enum _GC02M1_MODE_E {
 	GC02M1_MODE_1600X1200P30 = 0,
-	GC02M1_MODE_800X600P30,
 	GC02M1_MODE_LINEAR_NUM,
 	GC02M1_MODE_NUM
 } GC02M1_MODE_E;

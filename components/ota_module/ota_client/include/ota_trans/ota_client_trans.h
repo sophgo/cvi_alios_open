@@ -1,14 +1,12 @@
-/*
- * Copyright (C) 2022 Alibaba Group Holding Limited
- */
 #ifndef __OTA_TRANS_H__
 #define __OTA_TRANS_H__
 #include "stdint.h"
 
-typedef void (*ota_client_event_cb)(uint8_t event, const void *event_data, uint8_t len);
 
-typedef enum
-{
+typedef void (*ota_client_event_cb)(uint8_t event,const void *event_data, uint8_t len);
+
+
+typedef enum {
     OTA_CLIENT_EVENT_CONN,
     OTA_CLIENT_EVENT_DISCONN,
     OTA_CLIENT_EVENT_MTU_EXCHANGE,

@@ -18,11 +18,6 @@
 #include "block.h"
 
 #define RW_FLAG_SIZE 5
-#if CONFIG_KV_GET_ERASE_FLAG_AUTO
-uint32_t g_kv_erase_flag = 0xFFFF0000;
-#else
-uint32_t g_kv_erase_flag = 0;
-#endif
 
 static inline int align4(int x)
 {
@@ -109,19 +104,12 @@ void kvblock_init(kvblock_t *block, uint8_t *mem, int size)
 {
     block->size = size;
     block->mem  = mem;
-#if CONFIG_KV_GET_ERASE_FLAG_AUTO
-    if (g_kv_erase_flag == 0xFFFF0000) {
-        block_read(block, size, &g_kv_erase_flag, BLOCK_RESERVE_SPACE);
-        g_kv_erase_flag = ~g_kv_erase_flag;
-        printf("%s, %d, g_kv_erase_flag:0x%x\n", __func__, __LINE__, g_kv_erase_flag);
-    }
-#endif
+
     kvblock_calc(block);
 
     if (block->count == 0) {
 #ifdef CONFIG_NON_ADDRESS_FLASH
         uint32_t *v = (uint32_t*)malloc(block->size);
-        aos_check_mem(v);
         block_read(block, 0, v, block->size);
 #else
         uint32_t *v = (uint32_t *)block->mem;
@@ -151,7 +139,7 @@ void kvnode_rm(kvnode_t *node)
     if (NODE_VAILD(node) && node->rw != 0) {
         kvblock_t *block = node->block;
         if (block->count - block->ro_count > 1) {
-            uint32_t x = g_kv_erase_flag;
+            int x = ERASE_FLAG;
 
             block_write(block, node->next_offset - 4, &x, 4);
             block->dirty_size += node->node_size;
@@ -234,7 +222,7 @@ int kvblock_set(kvblock_t *block, const char *key, void *value, int size, int ve
             block->count++;
         } else {
             printf("kv: write verify failed, may be have bad block. id = %d, offset = %d\n", block->id, offset);
-            uint32_t zero = g_kv_erase_flag;
+            int zero = ERASE_FLAG;
             block_write(block, offset + malloc_size, &zero, 4);
             offset = -1;
         }
@@ -300,7 +288,7 @@ int kvblock_search(kvblock_t *block, uint8_t *c, kvnode_t *node)
             if (delim) {
                 node->version    = 0;
                 node->val_size   = c - delim - 1;
-                node->erase_flag = ~g_kv_erase_flag; //0xFFFF;
+                node->erase_flag = 0xFFFF;
                 node->rw         = 0;
 
                 node->value_offset =  KVNODE_CACHE2OFFSET(node, delim) + 1;
@@ -585,7 +573,6 @@ void kvblock_cache_malloc(kvblock_t *block)
     if (block->mem_cache == NULL) {
         block->mem_cache = (uint8_t*)malloc(block->size);
         if (block->mem_cache == NULL) {
-            aos_check_mem(block->mem_cache);
             return;
         }
         block_read(block, 0, block->mem_cache, block->size);

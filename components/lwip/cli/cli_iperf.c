@@ -774,4 +774,10 @@ void cli_reg_cmd_iperf(void)
 
     return;
 }
+
+static void test_iperf(int argc, char **argv)
+{
+    iperf(NULL, 0, argc, argv);
+}
+ALIOS_CLI_CMD_REGISTER(test_iperf, iperf, iperf test);
 #endif

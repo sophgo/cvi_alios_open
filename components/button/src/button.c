@@ -16,10 +16,10 @@
 
 #include "internal.h"
 
-#define MIN_ST_TMOUT (90)
+#define MIN_ST_TMOUT (60)
 #define MAX_EVENT_TMOUT (500)
 
-#define BUTTON_SCAN_TIME (30)
+#define BUTTON_SCAN_TIME (20)
 
 
 #define BUTTON_OPS(b, fn) \
@@ -109,7 +109,7 @@ static int cnt_hdl(button_t *button)
     if (button->is_pressed && button->press_time_cnt) {
         if ((aos_now_ms() - button->st_ms) >= button->press_time[button->press_time_subscript]) {
             button->active = 1;
-            button->press_type = BUTTON_PRESS_LONG_DOWN;
+            button->event_id = BUTTON_PRESS_LONG_DOWN;
             button->press_time_subscript ++;
 
             if (button->press_time_subscript >= button->press_time_cnt) {
@@ -121,9 +121,9 @@ static int cnt_hdl(button_t *button)
     } else {
         button->state = HIGH;
         button->active = 1;
-        button->press_type = BUTTON_PRESS_DOWN;
+        button->event_id = BUTTON_PRESS_DOWN;
         g_button_srv.start_tmr = 1;
-        button->old_press_type = BUTTON_PRESS_DOWN;
+        button->old_evt_id = BUTTON_PRESS_DOWN;
     }
 
     return 0;
@@ -135,10 +135,10 @@ static int high_hdl(button_t *button)
         button->state = END;
         button->active = 1;
 
-        if (button->press_type == BUTTON_PRESS_LONG_DOWN) {
-            button->press_type = -1;
+        if (button->event_id == BUTTON_PRESS_LONG_DOWN) {
+            button->event_id = -1;
         } else {
-            button->press_type = BUTTON_PRESS_UP;
+            button->event_id = BUTTON_PRESS_UP;
         }
 
         g_button_srv.start_tmr = 1;
@@ -166,7 +166,7 @@ static int _button_hdl(button_t *button)
 {
     button->is_pressed = read_level(button);
 
-    //LOGD(TAG, "is_pressed:%d state:%d",  button->is_pressed, button->state);
+    // LOGD(TAG, "is_pressed:%d state:%d",  button->is_pressed, button->state);
 
     switch (button->state) {
         case NONE:
@@ -191,8 +191,10 @@ static int _button_hdl(button_t *button)
             break;
     }
 
+    // LOGD(TAG, "state:%d, name:%d active:%d evt:%d", button->state, button->button_id, button->active, button->event_id);
+
     if (button->active) {
-        if ((button->event_flag & (1 << button->press_type)) == 0) {
+        if ((button->event_flag & (1 << button->event_id)) == 0) {
             button->active = 0;
         }
     }
@@ -208,14 +210,11 @@ static void button_adc_sttime_check(void)
 {
     button_t *b = NULL;
 
-    extern void button_adc_start_read();
-    button_adc_start_read();
-
     slist_for_each_entry(&g_button_srv.button_head, b, button_t, next) {
         button_ops_t *ops = &adc_ops;
 
         if ((b->ops == ops) && b->irq_flag == 0 && b->st_ms == 0) {
-            int is_pressed = b->ops->read(b);
+            bool is_pressed = b->ops->read(b);
 
             if (is_pressed) {
                 b->is_pressed = true;
@@ -235,7 +234,7 @@ static int event_pool_add(button_t *b)
     event_pool_elem_t *event_elem = &g_button_srv.event_pool[g_button_srv.event_pool_depth];
 
     event_elem->button_id  = b->button_id;
-    event_elem->press_type   = b->press_type;
+    event_elem->event_id   = b->event_id;
 
     if (b->press_time_subscript) {
         event_elem->press_time = b->press_time[b->press_time_subscript - 1];
@@ -346,23 +345,9 @@ static int event_manage(void)
     int cnt = 0;
     slist_for_each_entry(&g_button_srv.event_node_head, node, event_node_t, next) {
         if (node->button_count >= g_button_srv.event_pool_depth) {
-            int ret = 0;
-            for (int i = 0; i < g_button_srv.event_pool_depth; i++) {
-                int j = 0;
-                for (j = 0; j < g_button_srv.event_pool_depth; j++) {
-                    if (node->buttons[i].button_id == g_button_srv.event_pool[j].button_id) {
-                        ret = memcmp(&node->buttons[i], &g_button_srv.event_pool[j], sizeof(event_pool_elem_t));
-                        if(ret == 0){
-                            break;
-                        }
-                    }
-                }
-                if (j == g_button_srv.event_pool_depth) {
-                    ret |= -1;
-                    break;
-                }
-            }
-            
+            int ret = memcmp(node->buttons, g_button_srv.event_pool, \
+                             sizeof(event_pool_elem_t) * g_button_srv.event_pool_depth);
+
             if (ret == 0) {
                 node->event_depth = g_button_srv.event_pool_depth;
 
@@ -468,7 +453,7 @@ static int button_new(button_t **b, int type)
     }
 
     if (*b) {
-        (*b)->press_type = -1;
+        (*b)->event_id = -1;
     }
 
     return *b == NULL ? -1 : 0;
@@ -569,8 +554,8 @@ static int event_buttons_count(button_evt_t *buttons, int button_conut)
     int cnt = 0;
 
     for (int i = 0; i < button_conut; i++) {
-        if (buttons[i].press_type == BUTTON_PRESS_DOUBLE || buttons[i].press_type == BUTTON_PRESS_TRIPLE) {
-            cnt += ((buttons[i].press_type - 1) * 2);
+        if (buttons[i].event_id == BUTTON_PRESS_DOUBLE || buttons[i].event_id == BUTTON_PRESS_TRIPLE) {
+            cnt += ((buttons[i].event_id - 1) * 2);
         } else {
             cnt ++;
         }
@@ -582,16 +567,16 @@ static int event_buttons_count(button_evt_t *buttons, int button_conut)
 static int event_copy(event_node_t *e_node, button_evt_t *buttons, int button_conut)
 {
     button_evt_t *b_dec = e_node->buttons;
-    int offset = 0;
+    int offset = 0;;
 
     for (int i = 0; i < button_conut; i++) {
-        if (buttons[i].press_type == BUTTON_PRESS_DOUBLE || buttons[i].press_type == BUTTON_PRESS_TRIPLE) {
-            int count = buttons[i].press_type - 1;
+        if (buttons[i].event_id == BUTTON_PRESS_DOUBLE || buttons[i].event_id == BUTTON_PRESS_TRIPLE) {
+            int count = buttons[i].event_id - 1;
 
             for (int j = 0; j < count; j++) {
-                b_dec[offset + j * 2].press_type    =  BUTTON_PRESS_DOWN;
+                b_dec[offset + j * 2].event_id    =  BUTTON_PRESS_DOWN;
                 b_dec[offset + j * 2].button_id   = buttons[i].button_id;
-                b_dec[offset + j * 2 + 1].press_type  =  BUTTON_PRESS_UP;
+                b_dec[offset + j * 2 + 1].event_id  =  BUTTON_PRESS_UP;
                 b_dec[offset + j * 2 + 1].button_id = buttons[i].button_id;
             }
 
@@ -599,7 +584,7 @@ static int event_copy(event_node_t *e_node, button_evt_t *buttons, int button_co
         } else {
             memcpy(&b_dec[offset], &buttons[i], sizeof(button_evt_t));
 
-            if (buttons[i].press_type != BUTTON_PRESS_LONG_DOWN) {
+            if (buttons[i].event_id != BUTTON_PRESS_LONG_DOWN) {
                 b_dec[offset].press_time = 0;
             }
 
@@ -659,7 +644,7 @@ static int event_map_button(event_node_t *e_node)
         button_t *b = button_find(buttons[i].button_id);
 
         ret = 0;
-        if (buttons[i].press_type == BUTTON_PRESS_LONG_DOWN) {
+        if (buttons[i].event_id == BUTTON_PRESS_LONG_DOWN) {
             ret = button_longpress_check(b, buttons[i].press_time);
         }
 
@@ -667,14 +652,14 @@ static int event_map_button(event_node_t *e_node)
             continue;
         }
 
-        if (buttons[i].press_type == BUTTON_PRESS_DOUBLE || buttons[i].press_type == BUTTON_PRESS_TRIPLE) {
+        if (buttons[i].event_id == BUTTON_PRESS_DOUBLE || buttons[i].event_id == BUTTON_PRESS_TRIPLE) {
             b->event_flag |= (1 << BUTTON_PRESS_DOWN);
             b->event_flag |= (1 << BUTTON_PRESS_UP);
         } else {
-            b->event_flag |= (1 << buttons[i].press_type);
+            b->event_flag |= (1 << buttons[i].event_id);
         }
 
-        if (buttons[i].press_type == BUTTON_PRESS_LONG_DOWN) {
+        if (buttons[i].event_id == BUTTON_PRESS_LONG_DOWN) {
             b->press_time_cnt ++;
             b->press_time = aos_realloc_check(b->press_time, sizeof(int) * b->press_time_cnt);
             b->press_time[b->press_time_cnt - 1] = buttons[i].press_time;
@@ -775,7 +760,7 @@ int button_add_event(int evt_id, button_evt_t *buttons, int button_count, button
         e_node->evt_cb       = evt_cb;
         e_node->priv         = priv;
         e_node->button_count = cnt;
-
+        
         event_copy(e_node, buttons, button_count);
         event_add(e_node);
         event_pool_new(cnt);

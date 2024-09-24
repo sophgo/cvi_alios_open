@@ -59,6 +59,8 @@ csi_error_t csi_adc_init(csi_adc_t *adc, uint32_t idx);
 */
 void csi_adc_uninit(csi_adc_t *adc);
 
+void csi_adc_trim(csi_adc_t *adc);
+
 /**
   \brief       Set adc receive buffer
   \param[in]   adc    ADC handle to operate
@@ -98,7 +100,8 @@ csi_error_t csi_adc_stop_async(csi_adc_t *adc);
 /**
   \brief       ADC channel enable
   \param[in]   adc          ADC handle to operate
-  \param[in]   ch_id        ADC channel id
+  \param[in]   ch_id        For cv181xc: chip0, ch1 --> ADC; chip1, ch1 --> PWR_GPIO[2], ch2 --> PWR_GPIO[1];
+ *               For cv181xh：chip0, ch1, 2, 3 --> ADC1,2,3; chip1, ch1 --> PWR_GPIO[2], ch2 --> PWR_GPIO[1];
   \param[in]   is_enable    true->enable, false->disable
   \return      Error code \ref csi_error_t
 */

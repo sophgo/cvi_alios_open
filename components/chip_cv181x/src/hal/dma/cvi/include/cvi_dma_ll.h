@@ -21,7 +21,7 @@ void dma_hs_remap_init(void);
 #endif
 
 #define DW_DMA_BASE 0x4330000U
-#define DW_DMA_IRQn 29U
+#define DW_DMA_IRQn 25U
 
 #define DMA_CLK_EN_REG		0x03002004
 #define CLK_SDMA_AXI_BIT	1
@@ -148,6 +148,7 @@ static inline void mmio_write_32(uintptr_t addr, uint32_t value)
 #ifdef __riscv
 #define SDMA_DMA_INT_MUX 0x03000298
 #define SDMA_DMA_INT_MUX_C906B (0xff << 10)
+#define SDMA_DMA_INT_MUX_C906L (0xff << 20)
 
 static inline uint32_t sdma_dma_int_mux_get(void)
 {
@@ -191,7 +192,7 @@ static inline struct dw_desc *get_first_desc(dlist_t *list)
 	return dlist_first_entry(list, struct dw_desc, list);
 }
 
-static inline void __cvi_list_splice(const dlist_t *list,
+static inline void __list_splice(const dlist_t *list,
 				 dlist_t *prev,
 				 dlist_t *next)
 {
@@ -206,29 +207,29 @@ static inline void __cvi_list_splice(const dlist_t *list,
 }
 
 /**
- * cvi_list_splice - join two lists, this is designed for stacks
+ * list_splice - join two lists, this is designed for stacks
  * @list: the new list to add.
  * @head: the place to add it in the first list.
  */
-static inline void cvi_list_splice(const dlist_t *list,
+static inline void list_splice(const dlist_t *list,
 				dlist_t *head)
 {
 	if (!dlist_empty(list))
-		__cvi_list_splice(list, head, head->next);
+		__list_splice(list, head, head->next);
 }
 
 /**
- * cvi_list_splice_init - join two lists and reinitialise the emptied list.
+ * list_splice_init - join two lists and reinitialise the emptied list.
  * @list: the new list to add.
  * @head: the place to add it in the first list.
  *
  * The list at @list is reinitialised
  */
-static inline void cvi_list_splice_init(dlist_t *list,
+static inline void list_splice_init(dlist_t *list,
 					dlist_t *head)
 {
 	if (!dlist_empty(list)) {
-		__cvi_list_splice(list, head, head->next);
+		__list_splice(list, head, head->next);
 		INIT_AOS_DLIST_HEAD(list);
 	}
 }

@@ -30,136 +30,85 @@
 #define SNOR_MFR_ZBIT           0x5e
 #define SNOR_MFR_WINBOND        0xef
 #define SNOR_MFR_ISSI           0x9d
-#define SNOR_MFR_PY             0x85
-#define SNOR_MFR_FUDAN          0xA1
-#define SNOR_MFR_CYPRESS	0x34
-#define SNOR_MFR_BOYA		0x68
 
 #define JEDEC_MFR(info)               ((info)->id[0])
 
-/* Status Register bits. */
-#define CVI_SR_WIP                  BIT(0)  /* Write in progress */
-#define CVI_SR_WEL                  BIT(1)  /* Write enable latch */
-/* meaning of other SR_* bits may differ between vendors */
-#define CVI_SR_BP0                  BIT(2)  /* Block protect 0 */
-#define CVI_SR_BP1                  BIT(3)  /* Block protect 1 */
-#define CVI_SR_BP2                  BIT(4)  /* Block protect 2 */
-#define CVI_SR_TB                   BIT(5)  /* Top/Bottom protect */
-#define CVI_SR_SRWD                 BIT(7)  /* SR write protect */
-/* Spansion/Cypress specific status bits */
-#define CVI_SR_E_ERR                BIT(5)
-#define CVI_SR_P_ERR                BIT(6)
-
-#define CVI_SR_QUAD_EN_MX           BIT(6)  /* Macronix Quad I/O */
-
-/* Enhanced Volatile Configuration Register bits */
-#define CVI_EVCR_QUAD_EN_MICRON     BIT(7)  /* Micron Quad I/O */
-
-/* Used for Macronix and Winbond flashes. */
-/* Enter 4-byte mode */
-#define CVI_SPINOR_OP_EN4B          0xb7   
- /* Exit 4-byte mode */ 
-#define CVI_SPINOR_OP_EX4B          0xe9  
-
-/* Used for SST flashes only. */
- /* Byte program */
-#define CVI_SPINOR_OP_BP            0x02   
- /* Write disable */
-#define CVI_SPINOR_OP_WRDI          0x04   
-/* Auto address increment word program */
-#define CVI_SPINOR_OP_AAI_WP        0xad     
-
-#define CVI_SPINOR_OP_READ_1_1_1_DTR_4B     0x0e
-#define CVI_SPINOR_OP_READ_1_2_2_DTR_4B     0xbe
-#define CVI_SPINOR_OP_READ_1_4_4_DTR_4B     0xee
-
-/* Double Transfer Rate opcodes - defined in JEDEC JESD216B. */
-#define CVI_SPINOR_OP_READ_1_1_1_DTR        0x0d
-#define CVI_SPINOR_OP_READ_1_2_2_DTR        0xbd
-#define CVI_SPINOR_OP_READ_1_4_4_DTR        0xed
 /* Flash opcodes. */
- /* Write status register 1 byte */
-#define CVI_SPINOR_OP_WRSR          0x01 
-/* Page program (up to 256 bytes) */  
-#define CVI_SPINOR_OP_PP            0x02   
-/* Read data bytes (low frequency) */ 
-#define CVI_SPINOR_OP_READ          0x03  
- /* Read status register */  
-#define CVI_SPINOR_OP_RDSR          0x05   
- /* Write enable */
-#define CVI_SPINOR_OP_WREN          0x06 
-/* Read data bytes (high frequency) */ 
-#define CVI_SPINOR_OP_READ_FAST     0x0b 
-/* Erase 4KiB block */  
-#define CVI_SPINOR_OP_BE_4K         0x20  
-/* Write status register 2 */ 
-#define CVI_SPINOR_OP_WRSR2         0x31  
-/* Quad page program */ 
-#define CVI_SPINOR_OP_PP_1_1_4      0x32 
-/* Read configuration register */
-#define CVI_SPINOR_OP_RDCR          0x35 
-/* Quad page program */  
-#define CVI_SPINOR_OP_PP_1_4_4      0x38    
-/* Read data bytes (Dual Output SPI) */
-#define CVI_SPINOR_OP_READ_1_1_2    0x3b 
- /* Read status register 2 */
-#define CVI_SPINOR_OP_RDSR2         0x3f  
-/* Clear flag status register */  
-#define CVI_SPINOR_OP_CLFSR         0x50  
-/* Erase 32KiB block */  
-#define CVI_SPINOR_OP_BE_32K        0x52 
- /* Read SFDP */
-#define CVI_SPINOR_OP_RDSFDP        0x5a   
- /* Read data bytes (Quad Output SPI) */  
-#define CVI_SPINOR_OP_READ_1_1_4    0x6b 
-/* Read flag status register */   
-#define CVI_SPINOR_OP_RDFSR         0x70 
-/* Read JEDEC ID */  
-#define CVI_SPINOR_OP_RDID          0x9f 
-/* Write Extended Address Register */   
-#define CVI_SPINOR_OP_WREAR         0xc5    
- /* Erase whole flash chip */
-#define CVI_SPINOR_OP_CHIP_ERASE    0xc7 
-/* Read Extended Address Register */ 
-#define CVI_SPINOR_OP_RDEAR         0xc8 
-/* Read data bytes (Dual I/O SPI) */
-#define CVI_SPINOR_OP_READ_1_2_2    0xbb  
-/* Erase 4KiB block on PMC chips */  
-#define CVI_SPINOR_OP_BE_4K_PMC     0xd7 
- /* Sector erase (usually 64KiB) */  
-#define CVI_SPINOR_OP_SE            0xd8 
-/* Read data bytes (Quad I/O SPI) */   
-#define CVI_SPINOR_OP_READ_1_4_4    0xeb  
- 
-
+#define SPINOR_OP_WREN          0x06    /* Write enable */
+#define SPINOR_OP_RDSR          0x05    /* Read status register */
+#define SPINOR_OP_WRSR          0x01    /* Write status register 1 byte */
+#define SPINOR_OP_RDSR2         0x3f    /* Read status register 2 */
+#define SPINOR_OP_WRSR2         0x31    /* Write status register 2 */
+#define SPINOR_OP_READ          0x03    /* Read data bytes (low frequency) */
+#define SPINOR_OP_READ_FAST     0x0b    /* Read data bytes (high frequency) */
+#define SPINOR_OP_READ_1_1_2    0x3b    /* Read data bytes (Dual Output SPI) */
+#define SPINOR_OP_READ_1_2_2    0xbb    /* Read data bytes (Dual I/O SPI) */
+#define SPINOR_OP_READ_1_1_4    0x6b    /* Read data bytes (Quad Output SPI) */
+#define SPINOR_OP_READ_1_4_4    0xeb    /* Read data bytes (Quad I/O SPI) */
+#define SPINOR_OP_PP            0x02    /* Page program (up to 256 bytes) */
+#define SPINOR_OP_PP_1_1_4      0x32    /* Quad page program */
+#define SPINOR_OP_PP_1_4_4      0x38    /* Quad page program */
+#define SPINOR_OP_BE_4K         0x20    /* Erase 4KiB block */
+#define SPINOR_OP_BE_4K_PMC     0xd7    /* Erase 4KiB block on PMC chips */
+#define SPINOR_OP_BE_32K        0x52    /* Erase 32KiB block */
+#define SPINOR_OP_CHIP_ERASE    0xc7    /* Erase whole flash chip */
+#define SPINOR_OP_SE            0xd8    /* Sector erase (usually 64KiB) */
+#define SPINOR_OP_RDID          0x9f    /* Read JEDEC ID */
+#define SPINOR_OP_RDSFDP        0x5a    /* Read SFDP */
+#define SPINOR_OP_RDCR          0x35    /* Read configuration register */
+#define SPINOR_OP_RDFSR         0x70    /* Read flag status register */
+#define SPINOR_OP_CLFSR         0x50    /* Clear flag status register */
+#define SPINOR_OP_RDEAR         0xc8    /* Read Extended Address Register */
+#define SPINOR_OP_WREAR         0xc5    /* Write Extended Address Register */
 
 /* 4-byte address opcodes - used on Spansion and some Macronix flashes. */
-/* Read data bytes (high frequency) */  
-#define CVI_SPINOR_OP_READ_FAST_4B  0x0c 
-/* Page program (up to 256 bytes) */  
-#define CVI_SPINOR_OP_PP_4B         0x12 
-/* Read data bytes (low frequency) */
-#define CVI_SPINOR_OP_READ_4B       0x13  
- /* Erase 4KiB block */  
-#define CVI_SPINOR_OP_BE_4K_4B      0x21 
- /* Quad page program */  
-#define CVI_SPINOR_OP_PP_1_1_4_4B   0x34  
-/* Read data bytes (Dual Output SPI) */   
-#define CVI_SPINOR_OP_READ_1_1_2_4B 0x3c  
-/* Quad page program */ 
-#define CVI_SPINOR_OP_PP_1_4_4_4B   0x3e 
- /* Erase 32KiB block */  
-#define CVI_SPINOR_OP_BE_32K_4B     0x5c 
- /* Read data bytes (Quad Output SPI) */
-#define CVI_SPINOR_OP_READ_1_1_4_4B 0x6c   
- /* Read data bytes (Dual I/O SPI) */  
-#define CVI_SPINOR_OP_READ_1_2_2_4B 0xbc   
-/* Sector erase (usually 64KiB) */  
-#define CVI_SPINOR_OP_SE_4B         0xdc  
-/* Read data bytes (Quad I/O SPI) */
-#define CVI_SPINOR_OP_READ_1_4_4_4B 0xec  
- 
+#define SPINOR_OP_READ_4B       0x13    /* Read data bytes (low frequency) */
+#define SPINOR_OP_READ_FAST_4B  0x0c    /* Read data bytes (high frequency) */
+#define SPINOR_OP_READ_1_1_2_4B 0x3c    /* Read data bytes (Dual Output SPI) */
+#define SPINOR_OP_READ_1_2_2_4B 0xbc    /* Read data bytes (Dual I/O SPI) */
+#define SPINOR_OP_READ_1_1_4_4B 0x6c    /* Read data bytes (Quad Output SPI) */
+#define SPINOR_OP_READ_1_4_4_4B 0xec    /* Read data bytes (Quad I/O SPI) */
+#define SPINOR_OP_PP_4B         0x12    /* Page program (up to 256 bytes) */
+#define SPINOR_OP_PP_1_1_4_4B   0x34    /* Quad page program */
+#define SPINOR_OP_PP_1_4_4_4B   0x3e    /* Quad page program */
+#define SPINOR_OP_BE_4K_4B      0x21    /* Erase 4KiB block */
+#define SPINOR_OP_BE_32K_4B     0x5c    /* Erase 32KiB block */
+#define SPINOR_OP_SE_4B         0xdc    /* Sector erase (usually 64KiB) */
+/* Double Transfer Rate opcodes - defined in JEDEC JESD216B. */
+#define SPINOR_OP_READ_1_1_1_DTR        0x0d
+#define SPINOR_OP_READ_1_2_2_DTR        0xbd
+#define SPINOR_OP_READ_1_4_4_DTR        0xed
 
+#define SPINOR_OP_READ_1_1_1_DTR_4B     0x0e
+#define SPINOR_OP_READ_1_2_2_DTR_4B     0xbe
+#define SPINOR_OP_READ_1_4_4_DTR_4B     0xee
+
+/* Used for SST flashes only. */
+#define SPINOR_OP_BP            0x02    /* Byte program */
+#define SPINOR_OP_WRDI          0x04    /* Write disable */
+#define SPINOR_OP_AAI_WP        0xad    /* Auto address increment word program */
+
+/* Used for Macronix and Winbond flashes. */
+#define SPINOR_OP_EN4B          0xb7    /* Enter 4-byte mode */
+#define SPINOR_OP_EX4B          0xe9    /* Exit 4-byte mode */
+
+/* Status Register bits. */
+#define SR_WIP                  BIT(0)  /* Write in progress */
+#define SR_WEL                  BIT(1)  /* Write enable latch */
+/* meaning of other SR_* bits may differ between vendors */
+#define SR_BP0                  BIT(2)  /* Block protect 0 */
+#define SR_BP1                  BIT(3)  /* Block protect 1 */
+#define SR_BP2                  BIT(4)  /* Block protect 2 */
+#define SR_TB                   BIT(5)  /* Top/Bottom protect */
+#define SR_SRWD                 BIT(7)  /* SR write protect */
+/* Spansion/Cypress specific status bits */
+#define SR_E_ERR                BIT(5)
+#define SR_P_ERR                BIT(6)
+
+#define SR_QUAD_EN_MX           BIT(6)  /* Macronix Quad I/O */
+
+/* Enhanced Volatile Configuration Register bits */
+#define EVCR_QUAD_EN_MICRON     BIT(7)  /* Micron Quad I/O */
 
 
 #define		_16M				(0x1000000UL)

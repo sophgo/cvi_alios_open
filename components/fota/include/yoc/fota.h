@@ -17,7 +17,7 @@ extern "C" {
 #define FW_URL_KEY  "FW_URL_KEY"
 #define KV_FOTA_OFFSET "fota_offset"
 #define KV_FOTA_CLOUD_PLATFORM "fota_cldp"
-#define KV_FOTA_FROM_URL "otaurl"
+#define KV_FOTA_FROM_URL "fota_fromurl"
 #define KV_FOTA_TO_URL "fota_tourl"
 #define KV_FOTA_READ_TIMEOUTMS "fota_rtmout"
 #define KV_FOTA_WRITE_TIMEOUTMS "fota_wtmout"
@@ -25,7 +25,6 @@ extern "C" {
 #define KV_FOTA_SLEEP_TIMEMS "fota_slptm"
 #define KV_FOTA_AUTO_CHECK "fota_autock"
 #define KV_FOTA_FINISH "fota_finish"
-#define KV_COP_VERSION "cop_version"
 
 #ifndef CONFIG_FOTA_TASK_STACK_SIZE
 #define CONFIG_FOTA_TASK_STACK_SIZE (8 * 1024)
@@ -72,7 +71,7 @@ typedef enum fota_status {
 } fota_status_e;
 
 typedef struct {
-    char *cur_version;     /*!< the local image version*/
+    char *cur_version;     /*!< the local image version, read from kv*/
     char *local_changelog; /*!< the local image changelog, read from kv*/
     char *new_version;     /*!< the incoming image version, read from cloud server*/
     char *changelog;       /*!< the incoming image changelog, read from cloud server*/
@@ -120,7 +119,7 @@ struct fota {
     fota_config_t config;           /*!< fota config */
     fota_info_t info;               /*!< fota information */
     aos_timer_t restart_timer;      /*!< the timer to norify to restart */
-    void *priv;                     /*!< user data context */
+    void *private;                  /*!< user data context */
 };
 
 /**

@@ -28,7 +28,7 @@ typedef struct {
     size_t size;                /*!< file size or partition size */
     size_t block_size;          /*!< the size for transmission(sector size) */
 
-    void *priv;                 /*!< user data */
+    void *private;              /*!< user data */
 } netio_t;
 
 struct netio_cls {
@@ -41,7 +41,7 @@ struct netio_cls {
     int (*remove)(netio_t *io);
     int (*seek)(netio_t *io, size_t offset, int whence);
 
-    void *priv;
+    void *private;
 };
 
 /**
@@ -69,12 +69,6 @@ int netio_register_httpc(const char *cert);
  * @return 0 on success, -1 on failed
  */
 int netio_register_flash(void);
-
-/**
- * @brief  将ab flash操作功能注册到netio
- * @return 0 on success, -1 on failed
- */
-int netio_register_flashab(void);
 
 /**
  * @brief  将coap操作功能注册到netio

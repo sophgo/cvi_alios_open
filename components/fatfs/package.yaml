@@ -1,8 +1,8 @@
 
 ## 第一部分： 基础信息
 name: fatfs                                         # <必选项> 包名称 （符合C语言变量命名规则），长度少于等于64字节
-version: develop                                    # <必选项> 组件版本号
-description: 小型嵌入式系统文件系统                 # <必选项> 建议至少20字以上
+version: cv_dev                                     # <必选项> 组件版本号
+description: 小型嵌入式系统文件系统                   # <必选项> 建议至少20字以上
 type: common                                        # <必选项> 组件类型，为：solution, chip, board, common, sdk
 tag: 文件系统                                       # <可选项> 组件分类，缺省值： ''
 keywords:                                           # <可选项> 标签，会影响到组件被搜索的效果，合理的标签很重要
@@ -38,12 +38,11 @@ license: Apache license v2.0                        # <可选项> 源代码的�
 #   libpath:                               # 指定静态库所在的路径（相对于该组件路径）
 #     - libs                               #   -Llibs
 build_config:
-  internal_include:
-    - src/sd_disk
   include:
     - src/include/
     - src/
     - include/
+    - src/sd_disk/
 
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
@@ -51,7 +50,6 @@ source_file:
   - "src/ffsystem.c"
   - "src/diskio.c"
   - "src/ff.c"
-  - "src/fattime.c"
   - "src/fatfs_vfs.c"
   - "src/ffunicode.c"
   - "src/sd_disk/sd_disk.c"
@@ -65,7 +63,6 @@ source_file:
 #   CONFIG_CLI: y
 def_config:
   AOS_COMP_FATFS: 1
-  CONFIG_FATFS_MODIFIED_TIME: 1
 
 ## 第六部分：安装信息
 # install:
@@ -73,18 +70,9 @@ def_config:
 #     source:                              # 安装源列表
 #      - src/*.h                           # 支持通配符，相对路径
 install:
-  - dest: "src/include/"
-    source:
-      - "src/include/*"
-  - dest: "src/"
-    source:
-      - "src/*"
   - dest: "include/"
     source:
       - "include/*"
-  - dest: "src/sd_disk/"
-    source:
-      - "src/sd_disk/*"
 
 ## 第七部分：导出部分
 # export:

@@ -113,7 +113,7 @@ static int fota_prepare(fota_t *fota)
         LOGE(TAG, "fota->from_path or fota->to_path is NULL");
         return -EINVAL;
     }
-    LOGD(TAG, "###fota->from_path:%s\n, fota->to_path:%s", fota->from_path, fota->to_path);
+    LOGD(TAG, "###fota->from_path:%s, fota->to_path:%s", fota->from_path, fota->to_path);
     fota->buffer = aos_malloc(CONFIG_FOTA_BUFFER_SIZE);
     fota->from = netio_open(fota->from_path);
     fota->to = netio_open(fota->to_path);
@@ -140,12 +140,12 @@ static int fota_prepare(fota_t *fota)
 
     if (netio_seek(fota->from, fota->offset, SEEK_SET) != 0) {
         LOGD(TAG, "from seek error");
-        goto seek_error;
+        goto error;
     }
 
     if (netio_seek(fota->to, fota->offset, SEEK_SET) != 0) {
         LOGD(TAG, "to seek error");
-        goto seek_error;
+        goto error;
     }
 
     fota->status = FOTA_DOWNLOAD;
@@ -153,12 +153,6 @@ static int fota_prepare(fota_t *fota)
     LOGD(TAG, "fota prepare ok.");
     return 0;
 
-seek_error:
-    LOGD(TAG, "reset fota offset.");
-    if (aos_kv_setint(KV_FOTA_OFFSET, 0) < 0) {
-        goto error;
-    }
-    fota->offset = 0;
 error:
     if (fota->buffer) {
         aos_free(fota->buffer);
@@ -532,12 +526,6 @@ int fota_restart(fota_t *fota, int delay_ms)
         }
 #endif
         fota->cls->restart();
-        if (delay_ms == 0) {
-            if (fota->event_cb) {
-                fota->error_code = FOTA_ERROR_NULL;
-                fota->event_cb(fota, FOTA_EVENT_RESTART);
-            } 
-        }
     }
     return 0;
 }

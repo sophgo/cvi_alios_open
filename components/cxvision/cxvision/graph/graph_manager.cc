@@ -1,16 +1,12 @@
 /*
- * Copyright (C) 2021-2022 Alibaba Group Holding Limited
+ * Copyright (C) 2019-2022 Alibaba Group Holding Limited
  */
 
 #include <string.h>
-#ifdef CXVISION_STATISTICS_ENABLE
 #include <aos/cli.h>
-#endif
-#include <posto/base/host.h>
 #include <posto/base/mutex.h>
 
 #include "cxvision/graph/config.h"
-#include "cxvision/graph/graph_agent.h"
 #include "cxvision/graph/graph_manager.h"
 
 namespace cx {
@@ -30,8 +26,8 @@ struct StatisticsHelper {
 
 posto::base::mutex StatisticsHelper::mutex_;
 std::vector<GraphManager*> StatisticsHelper::graph_mgrs_;
-//bool StatisticsHelper::inited_{false};
-#if 0
+bool StatisticsHelper::inited_{false};
+
 void StatisticsHelper::cmd_func(char *wbuf, int wbuf_len, int argc, char **argv) {
   if (argc == 1 || 0 == strcmp(argv[1], "statistics")) {
     mutex_.lock();
@@ -43,9 +39,8 @@ void StatisticsHelper::cmd_func(char *wbuf, int wbuf_len, int argc, char **argv)
     printf("usage: cxvision {statistics}\n");
   }
 }
-#endif
+
 void StatisticsHelper::Init() {
-/* TODO
   static const struct cli_command _cmd_info = {
       "cxvision",
       "cxvision statistics",
@@ -60,7 +55,6 @@ void StatisticsHelper::Init() {
     }
     mutex_.unlock();
   }
-*/
 }
 
 void StatisticsHelper::Add(GraphManager* mgr) {
@@ -93,34 +87,20 @@ GraphManager::~GraphManager() {
 }
 
 bool GraphManager::Start() {
-  std::string host_id = std::to_string(posto::base::host::get_id());
-  // host id/pid/object address
-  std::string manager_id = host_id + "/0/" + std::to_string((uintptr_t)this);
   std::vector<cx::config::Pipeline> pipelines;
   if (cx::config::LoadFromJson(json_, pipelines)) {
     for (const auto& pipeline : pipelines) {
       cx::config::Graph graph;
       if (cx::config::CreateGraph(pipeline, graph)) {
         for (const auto& v : graph.vertices) {
-          if (v.node->device_id.empty() || v.node->device_id == host_id) {
-            auto mgr = cx::plugin::Manager::Instance();
-            auto plugin = mgr->Create(v.node->plugin);
-            if (plugin) {
-              plugin->_CreateIoPorts(manager_id, graph, v);
-              plugin->Init(v.node->props);
-              plugin->_Start();
-              auto& plugins = graphs_[graph.name];
-              plugins.push_back({v.node->name, plugin});
-            }
-          } else {
-            auto it = agents_.find(v.node->device_id);
-            if (it == agents_.end()) {
-              auto agent_client = std::make_shared<internal::GraphAgentClient>(
-                  manager_id, v.node->device_id);
-              agent_client->Init();
-              agent_client->Start(json_);
-              agents_[v.node->device_id] = agent_client;
-            }
+          auto mgr = cx::plugin::Manager::Instance();
+          auto plugin = mgr->Create(v.node->plugin);
+          if (plugin) {
+            plugin->_CreateIoPorts(graph, v);
+            plugin->Init(v.node->props);
+            plugin->_Start();
+            auto& plugins = graphs_[graph.name];
+            plugins.push_back({v.node->name, plugin});
           }
         }
       }

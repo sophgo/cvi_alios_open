@@ -1,9 +1,6 @@
 /*
- * Copyright (C) 2021-2022 Alibaba Group Holding Limited
+ * Copyright (C) 2019-2022 Alibaba Group Holding Limited
  */
-
-#ifndef CXVISION_PROTO_SIMPLE_META_H_
-#define CXVISION_PROTO_SIMPLE_META_H_
 
 #include <cstring>
 #include <string>
@@ -44,5 +41,3 @@ private:
 
 }  // namespace proto
 }  // namespace cx
-
-#endif  // CXVISION_PROTO_SIMPLE_META_H_

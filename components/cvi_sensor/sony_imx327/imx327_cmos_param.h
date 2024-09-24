@@ -7,12 +7,8 @@ extern "C" {
 #endif
 #endif
 
-#ifdef ARCH_CV182X
-#include "cvi_vip_cif_uapi.h"
-#else
-#include "cif_uapi.h"
-#endif
-//#include <linux/cvi_vip_snsr.h>
+#include "cvi_comm_cif.h"
+
 #include "cvi_type.h"
 #include "cvi_sns_ctrl.h"
 #include "imx327_cmos_ex.h"

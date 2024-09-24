@@ -83,6 +83,7 @@ cpu_stack_t  g_workqueue_stack[RHINO_CONFIG_WORKQUEUE_STACK_SIZE];
 
 #if (RHINO_CONFIG_MM_TLF > 0)
 k_mm_head *g_kmm_head;
+k_mm_head *g_kmm_head_resv;
 #endif
 
 #if (RHINO_CONFIG_CPU_NUM > 1)

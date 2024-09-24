@@ -4,6 +4,7 @@
 #include "k_api.h"
 #include "debug_api.h"
 
+extern uint32_t g_panic_occur;
 /* convert int to ascii(HEX)
    while using format % in libc, malloc/free is involved.
    this function avoid using malloc/free. so it works when heap corrupt. */
@@ -107,8 +108,60 @@ void debug_mm_overview(int (*print_func)(const char *fmt, ...))
                 "---------------------------------------------------------------------------\r\n");
 #endif
 }
+void debug_mm_overview_resv(int (*print_func)(const char *fmt, ...))
+{
+#if (RHINO_CONFIG_MM_BLK > 0)
+    mblk_info_t pool_info;
+#endif
+
+    size_t max_free_blk_size = 0;
+#if (RHINO_CONFIG_MM_TLF > 0)
+    max_free_blk_size = krhino_mm_max_free_size_get_resv();
+#endif
+
+    char s_heap_overview[] =
+                "      | 0x         | 0x         | 0x         | 0x         | 0x            |\r\n";
+
+    print_func(
+                "---------------------------------------------------------------------------\r\n");
+    print_func(
+                "[HEAP]| TotalSz    | FreeSz     | UsedSz     | MinFreeSz  | MaxFreeBlkSz  |\r\n");
+
+    k_int2str((int)(g_kmm_head_resv->free_size + g_kmm_head_resv->used_size),
+              &s_heap_overview[10]);
+    k_int2str((int)g_kmm_head_resv->free_size, &s_heap_overview[23]);
+    k_int2str((int)g_kmm_head_resv->used_size, &s_heap_overview[36]);
+    k_int2str((int)(g_kmm_head_resv->free_size + g_kmm_head_resv->used_size -
+                    g_kmm_head_resv->maxused_size),
+              &s_heap_overview[49]);
+    k_int2str((int)max_free_blk_size, &s_heap_overview[62]);
+    print_func(s_heap_overview);
+
+    print_func(
+                "---------------------------------------------------------------------------\r\n");
+
+#if (RHINO_CONFIG_MM_BLK > 0)
+    (void)krhino_mblk_info_nolock((mblk_pool_t *)g_kmm_head_resv->fix_pool, &pool_info);
+    print_func(
+                "[POOL]| PoolSz     | FreeSz     | UsedSz     | MinFreeSz  | MaxFreeBlkSz  |\r\n");
+
+    k_int2str((int)pool_info.pool_size, &s_heap_overview[10]);
+    k_int2str((int)(pool_info.pool_size - pool_info.used_size), &s_heap_overview[23]);
+    k_int2str((int)pool_info.used_size, &s_heap_overview[36]);
+    k_int2str((int)(pool_info.pool_size - pool_info.max_used_size), &s_heap_overview[49]);
+    k_int2str((int)pool_info.max_blk_size, &s_heap_overview[62]);
+    print_func(s_heap_overview);
+
+    print_func(
+                "---------------------------------------------------------------------------\r\n");
+#endif
+}
 #else
 void debug_mm_overview(int (*print_func)(const char *fmt, ...))
+{
+    print_func("K_MM_STATISTIC in k_config.h is closed!\r\n");
+}
+void debug_mm_overview_resv(int (*print_func)(const char *fmt, ...))
 {
     print_func("K_MM_STATISTIC in k_config.h is closed!\r\n");
 }
@@ -217,6 +270,7 @@ void debug_buf_queue_overview(int (*print_func)(const char *fmt, ...))
 {
     int           i;
     klist_t      *listnode;
+    klist_t      *listnode_inner;
     klist_t      *blk_list_head;
     ktask_t      *task;
     kbuf_queue_t *buf_queue;
@@ -268,10 +322,93 @@ void debug_buf_queue_overview(int (*print_func)(const char *fmt, ...))
 
         /* print */
         print_func(s_buf_queue_overview);
+        // print all waiting task name
+        if (g_panic_occur && !is_klist_empty(blk_list_head)) {
+            print_func("AllTaskWaiting:");
+            for (listnode_inner = blk_list_head->next;
+                listnode_inner != blk_list_head; listnode_inner = listnode_inner->next){
+                    task = krhino_list_entry(listnode_inner, ktask_t, task_list);
+                    task_name = task->task_name == NULL ? "anonym" : task->task_name;
+                    print_func("%s|", task_name);
+            }
+            print_func("\r\n");
+        }
     }
 }
 #else
 void debug_buf_queue_overview(int (*print_func)(const char *fmt, ...))
+{
+    print_func("RHINO_CONFIG_KOBJ_LIST in k_config.h is closed!\r\n");
+}
+#endif
+#endif
+
+#if (RHINO_CONFIG_EVENT_FLAG > 0)
+#if (RHINO_CONFIG_KOBJ_LIST > 0)
+void debug_event_overview(int (*print_func)(const char *fmt, ...))
+{
+    int           i;
+    klist_t      *listnode;
+    klist_t      *listnode_inner;
+    klist_t      *blk_list_head;
+    ktask_t      *task;
+    kevent_t     *event;
+    const name_t *task_name;
+    char          s_event_overview[] =
+                "0x         0x                               \r\n";
+
+    print_func("-------------------------------------\r\n");
+    print_func("EvtAddr    flags        TaskWaiting\r\n");
+    print_func("-------------------------------------\r\n");
+
+    for (listnode = g_kobj_list.event_head.next;
+         listnode != &g_kobj_list.event_head; listnode = listnode->next) {
+
+        event = krhino_list_entry(listnode, kevent_t, event_item);
+        if (event->blk_obj.obj_type != RHINO_EVENT_OBJ_TYPE) {
+            print_func("Event Type error!\r\n");
+            break;
+        }
+
+        /* set queue information */
+        k_int2str((int)(uintptr_t)event, &s_event_overview[2]);
+        k_int2str((int)event->flags, &s_event_overview[13]);
+
+        /* set pending task name */
+        blk_list_head = &event->blk_obj.blk_list;
+        if (is_klist_empty(blk_list_head)) {
+            task_name = " ";
+        } else {
+            task = krhino_list_entry(blk_list_head->next, ktask_t, task_list);
+            task_name = task->task_name == NULL ? "anonym" : task->task_name;
+        }
+        for (i = 0; i < 20; i++) {
+            s_event_overview[24 + i] = ' ';
+        }
+        for (i = 0; i < 20; i++) {
+            if (task_name[i] == '\0') {
+                break;
+            }
+            s_event_overview[24 + i] = task_name[i];
+        }
+
+        /* print */
+        print_func(s_event_overview);
+        // print all waiting task name
+        if (g_panic_occur && !is_klist_empty(blk_list_head)) {
+            print_func("AllTaskWaiting:");
+            for (listnode_inner = blk_list_head->next;
+                listnode_inner != blk_list_head; listnode_inner = listnode_inner->next){
+                    task = krhino_list_entry(listnode_inner, ktask_t, task_list);
+                    task_name = task->task_name == NULL ? "anonym" : task->task_name;
+                    print_func("%s|", task_name);
+            }
+            print_func("\r\n");
+        }
+    }
+}
+#else
+void debug_event_overview(int (*print_func)(const char *fmt, ...))
 {
     print_func("RHINO_CONFIG_KOBJ_LIST in k_config.h is closed!\r\n");
 }
@@ -284,6 +421,7 @@ void debug_queue_overview(int (*print_func)(const char *fmt, ...))
 {
     int           i;
     klist_t      *listnode;
+    klist_t      *listnode_inner;
     klist_t      *blk_list_head;
     ktask_t      *task;
     kqueue_t     *queue;
@@ -331,6 +469,17 @@ void debug_queue_overview(int (*print_func)(const char *fmt, ...))
 
         /* print */
         print_func(s_queue_overview);
+        // print all waiting task name
+        if (g_panic_occur && !is_klist_empty(blk_list_head)) {
+            print_func("AllTaskWaiting:");
+            for (listnode_inner = blk_list_head->next;
+                listnode_inner != blk_list_head; listnode_inner = listnode_inner->next){
+                    task = krhino_list_entry(listnode_inner, ktask_t, task_list);
+                    task_name = task->task_name == NULL ? "anonym" : task->task_name;
+                    print_func("%s|", task_name);
+            }
+            print_func("\r\n");
+        }
     }
 }
 #else
@@ -349,6 +498,7 @@ void debug_sem_overview(int (*print_func)(const char *fmt, ...))
     ksem_t       *sem;
     ktask_t      *task;
     klist_t      *listnode;
+    klist_t      *listnode_inner;
     klist_t      *blk_list_head;
     const name_t *task_name;
     char          s_sem_overview[] =
@@ -400,6 +550,17 @@ void debug_sem_overview(int (*print_func)(const char *fmt, ...))
 
         /* print */
         print_func(s_sem_overview);
+        // print all waiting task name
+        if (g_panic_occur && !is_klist_empty(blk_list_head)) {
+            print_func("AllTaskWaiting:");
+            for (listnode_inner = blk_list_head->next;
+                listnode_inner != blk_list_head; listnode_inner = listnode_inner->next){
+                    task = krhino_list_entry(listnode_inner, ktask_t, task_list);
+                    task_name = task->task_name == NULL ? "anonym" : task->task_name;
+                    print_func("%s|", task_name);
+            }
+            print_func("\r\n");
+        }
     }
     k_int2str(cnt, &s_sem_total[9]);
     print_func(s_sem_total);
@@ -419,6 +580,7 @@ void debug_mutex_overview(int (*print_func)(const char *fmt, ...))
     kmutex_t     *mutex;
     ktask_t      *task;
     klist_t      *listnode;
+    klist_t      *listnode_inner;
     klist_t      *blk_list_head;
     const name_t *task_name;
     char          s_mutex_overview[] =
@@ -456,25 +618,39 @@ void debug_mutex_overview(int (*print_func)(const char *fmt, ...))
         for (i = 0; i < 20; i++) {
             s_mutex_overview[11 + i] = ' ';
         }
-        for (i = 0; i <= strlen(task_name); i++) {
+        for (i = 0; i < strlen(task_name); i++) {
             s_mutex_overview[11 + i] = task_name[i];
         }
 
         /* set pending task name */
         blk_list_head = &mutex->blk_obj.blk_list;
-        if (!is_klist_empty(blk_list_head)) {
+        if (is_klist_empty(blk_list_head)) {
+            task_name = " ";
+        } else {
             task = krhino_list_entry(blk_list_head->next, ktask_t, task_list);
             task_name = task->task_name == NULL ? "anonym" : task->task_name;
-            for (i = 0; i < 20; i++) {
-                s_mutex_overview[43 + i] = ' ';
-            }
-            for (i = 0; (i < 20) && (i < strlen(task_name)); i++) {
-                s_mutex_overview[43 + i] = task_name[i];
-            }
+        }
+
+        for (i = 0; i < 20; i++) {
+            s_mutex_overview[43 + i] = ' ';
+        }
+        for (i = 0; (i < 20) && (i < strlen(task_name)); i++) {
+            s_mutex_overview[43 + i] = task_name[i];
         }
 
         /* print */
         print_func(s_mutex_overview);
+        // print all waiting task name
+        if (g_panic_occur && !is_klist_empty(blk_list_head)) {
+            print_func("AllTaskWaiting:");
+            for (listnode_inner = blk_list_head->next;
+                listnode_inner != blk_list_head; listnode_inner = listnode_inner->next){
+                    task = krhino_list_entry(listnode_inner, ktask_t, task_list);
+                    task_name = task->task_name == NULL ? "anonym" : task->task_name;
+                    print_func("%s|", task_name);
+            }
+            print_func("\r\n");
+        }
     }
 
     k_int2str(cnt, &s_mutex_total[9]);
@@ -492,6 +668,7 @@ void debug_overview(int (*print_func)(const char *fmt, ...))
 #if (RHINO_CONFIG_MM_TLF > 0)
     print_func("========== Heap Info  ==========\r\n");
     debug_mm_overview(print_func);
+    debug_mm_overview_resv(print_func);
 #endif
     print_func("========== Task Info  ==========\r\n");
     debug_task_overview(print_func);
@@ -509,6 +686,10 @@ void debug_overview(int (*print_func)(const char *fmt, ...))
 #endif
     print_func("========= Mutex Waiting =========\r\n");
     debug_mutex_overview(print_func);
+#if (RHINO_CONFIG_EVENT_FLAG > 0)
+    print_func("========== Event Waiting ==========\r\n");
+    debug_event_overview(print_func);
+#endif
 }
 
 #if (K_MM_STATISTIC > 0)

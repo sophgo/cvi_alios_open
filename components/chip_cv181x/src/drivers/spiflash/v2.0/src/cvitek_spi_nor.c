@@ -384,7 +384,6 @@ int cvi_spif_read_reg(struct spi_nor *nor, uint8_t opcode, uint8_t *buf, int len
 	uint8_t bus_width;
 	uint32_t sck_div_orig;
 	struct cvi_spif *spif = nor->priv;
-	uint8_t cmd[5] = {0};
 
 	/* always 1 bit bus width for cmd */
 	bus_width = 1;
@@ -395,11 +394,7 @@ int cvi_spif_read_reg(struct spi_nor *nor, uint8_t opcode, uint8_t *buf, int len
 	writel(0, spif->io_base + REG_SPI_DMMR);
 	writel(0x2, spif->io_base + REG_SPI_CE_CTRL);
 
-	cmd[0] = opcode;
-	if (cmd[0] ==  0x4b)
-		cvi_spi_data_out_tran(spif, cmd, 5, bus_width);
-	else
-		cvi_spi_data_out_tran(spif, &cmd[0], 1, bus_width);
+	cvi_spi_data_out_tran(spif, &opcode, 1, bus_width);
 
 	cvi_spi_data_in_tran(spif, buf, len, bus_width);
 

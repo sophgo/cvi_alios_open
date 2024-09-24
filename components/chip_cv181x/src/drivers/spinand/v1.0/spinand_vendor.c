@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Cvitek Co., Ltd. 2019-2020. All rights reserved.
+ * Copyright (C) 2017-2020 Alibaba Group Holding Limited
  */
 
 /******************************************************************************
@@ -129,10 +129,10 @@ const csi_spinand_manufacturer_t gigadevice_spinand_manufacturer = {
 static csi_error_t w25m02gv_select_target(void *spinand,uint32_t target)
 {
 	csi_spinand_t *handle = (csi_spinand_t*) spinand;
-	 spi_mem_op_t op = SPI_MEM_OP(CVI_SPI_MEM_OP_CMD(0xc2,1),
-					  			  CVI_SPI_MEM_OP_NO_ADDR,
-					              CVI_SPI_MEM_OP_NO_DUMMY,
-					              CVI_SPI_MEM_OP_DATA_OUT(1,handle->scractbuf,1));
+	 spi_mem_op_t op = SPI_MEM_OP(SPI_MEM_OP_CMD(0xc2,1),
+					  			  SPI_MEM_OP_NO_ADDR,
+					              SPI_MEM_OP_NO_DUMMY,
+					              SPI_MEM_OP_DATA_OUT(1,handle->scractbuf,1));
 
 	handle->scractbuf[0] = target;
 	return handle->spi_mem(handle,&op);

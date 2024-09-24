@@ -309,6 +309,7 @@ static hcc_unc_struc *hcc_adapt_netbuf_len_align(hcc_unc_struc *unc_buf, oal_net
     hi_u32 len = oal_netbuf_len(netbuf);
 
     if (oal_is_aligned(len, align_len)) {
+        printf("oal_is_aligned is ok len 0x%x align_len 0x%x\r\n",len,align_len);
         return unc_buf;
     }
     /* align the netbuf */

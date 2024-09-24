@@ -182,198 +182,54 @@ csi_error_t cvi_efuse_pwr_off()
     return ret;
 }
 
-csi_error_t cvi_efuse_sd_dl_config(enum SD_USB_UART_DL_MODE_E mode)
+csi_error_t cvi_efuse_disable_uart_dl()
+{
+    csi_error_t ret = CSI_OK;
+
+    ret = cvi_efuse_program_bit(0xb, 27);
+
+    return ret;
+}
+
+csi_error_t cvi_efuse_is_uart_dl_enable()
 {
     csi_error_t ret = CSI_OK;
     uint32_t data = 0;
 
     ret = cvi_efuse_read_word_from_shadow(0xb, &data);
-    if (ret != CSI_OK) {
+    if (ret != CSI_OK)  {
         printf("cvi_efuse_read_word_from_shadow failed\n");
-        return ret;
+        return CSI_ERROR;
     }
-
-    data = (data & (0x3 << EFUSE_SW_INFO_SD_DL_SHIFT)) >> EFUSE_SW_INFO_SD_DL_SHIFT;
-    switch (mode) {
-    case SD_USB_UART_DL_ENABLE:
-        switch (data) {
-        case 0x0:
-            break;
-        case 0x01:
-            ret = cvi_efuse_program_bit(0xb, 23);
-            break;
-        case 0x10:
-            ret = cvi_efuse_program_bit(0xb, 22);
-            break;
-        case 0x11:
-            break;
-        default:
-            ret = CSI_ERROR;
-            break;
-        }
-        break;
-    case SD_USB_UART_DL_FASTBOOT:
-        switch (data) {
-        case 0x0:
-            ret = cvi_efuse_program_bit(0xb, 22);
-            break;
-        case 0x01:
-            break;
-        case 0x10:
-            ret = CSI_ERROR;
-            break;
-        case 0x11:
-            ret = CSI_ERROR;
-            break;
-        default:
-            ret = CSI_ERROR;
-            break;
-        }
-        break;
-    case SD_USB_UART_DL_DISABLE:
-        switch (data) {
-        case 0x0:
-            ret = cvi_efuse_program_bit(0xb, 23);
-            break;
-        case 0x01:
-            ret = CSI_ERROR;
-            break;
-        case 0x10:
-            break;
-        case 0x11:
-            ret = CSI_ERROR;
-            break;
-        default:
-            ret = CSI_ERROR;
-            break;
-        }
-        break;
-    default:
-        break;
+    
+    if ((data & (1 << 27)) == 0) {
+        return CSI_ERROR;
     }
 
     return ret;
 }
 
-uint32_t cvi_efuse_get_sd_dl_config()
+csi_error_t cvi_efuse_set_sd_dl_button()
 {
     csi_error_t ret = CSI_OK;
     uint32_t data = 0;
 
     ret = cvi_efuse_read_word_from_shadow(0xb, &data);
-    if (ret != CSI_OK) {
+    if (ret != CSI_OK)  {
         printf("cvi_efuse_read_word_from_shadow failed\n");
-        return ret;
+        return CSI_ERROR;
     }
 
-    data = (data & (0x3 << EFUSE_SW_INFO_SD_DL_SHIFT)) >> EFUSE_SW_INFO_SD_DL_SHIFT;
-    return data;
-}
-
-uint32_t cvi_efuse_get_usb_dl_config()
-{
-    csi_error_t ret = CSI_OK;
-    uint32_t data = 0;
-
-    ret = cvi_efuse_read_word_from_shadow(0xb, &data);
-    if (ret != CSI_OK) {
-        printf("cvi_efuse_read_word_from_shadow failed\n");
-        return ret;
+    if ((data & (1 << 23)) != 0) {
+        return CSI_ERROR;
     }
 
-    data = (data & (0x3 << EFUSE_SW_INFO_USB_DL_SHIFT)) >> EFUSE_SW_INFO_USB_DL_SHIFT;
-    return data;
-}
-
-uint32_t cvi_efuse_get_uart_dl_config()
-{
-    csi_error_t ret = CSI_OK;
-    uint32_t data = 0;
-
-    ret = cvi_efuse_read_word_from_shadow(0xb, &data);
-    if (ret != CSI_OK) {
-        printf("cvi_efuse_read_word_from_shadow failed\n");
-        return ret;
-    }
-
-    data = (data & (0x3 << EFUSE_SW_INFO_UART_DL_SHIFT)) >> EFUSE_SW_INFO_UART_DL_SHIFT;
-    return data;
-}
-
-csi_error_t cvi_efuse_usb_dl_config(enum SD_USB_UART_DL_MODE_E mode)
-{
-    csi_error_t ret = CSI_OK;
-    uint32_t data = 0;
-
-    ret = cvi_efuse_read_word_from_shadow(0xb, &data);
-    if (ret != CSI_OK) {
-        printf("cvi_efuse_read_word_from_shadow failed\n");
-        return ret;
-    }
-
-    data = (data & (0x3 << EFUSE_SW_INFO_USB_DL_SHIFT)) >> EFUSE_SW_INFO_USB_DL_SHIFT;
-    switch (mode) {
-    case SD_USB_UART_DL_ENABLE:
-        switch (data) {
-        case 0x0:
-            break;
-        case 0x01:
-            ret = cvi_efuse_program_bit(0xb, 25);
-            break;
-        case 0x10:
-            ret = cvi_efuse_program_bit(0xb, 24);
-            break;
-        case 0x11:
-            break;
-        default:
-            ret = CSI_ERROR;
-            break;
-        }
-        break;
-    case SD_USB_UART_DL_FASTBOOT:
-        switch (data) {
-        case 0x0:
-            ret = cvi_efuse_program_bit(0xb, 24);
-            break;
-        case 0x01:
-            break;
-        case 0x10:
-            ret = CSI_ERROR;
-            break;
-        case 0x11:
-            ret = CSI_ERROR;
-            break;
-        default:
-            ret = CSI_ERROR;
-            break;
-        }
-        break;
-    case SD_USB_UART_DL_DISABLE:
-        switch (data) {
-        case 0x0:
-            ret = cvi_efuse_program_bit(0xb, 25);
-            break;
-        case 0x01:
-            ret = CSI_ERROR;
-            break;
-        case 0x10:
-            break;
-        case 0x11:
-            ret = CSI_ERROR;
-            break;
-        default:
-            ret = CSI_ERROR;
-            break;
-        }
-        break;
-    default:
-        break;
-    }
+    ret = cvi_efuse_program_bit(0xb, 22);
 
     return ret;
 }
 
-csi_error_t cvi_efuse_uart_dl_config(enum SD_USB_UART_DL_MODE_E mode)
+csi_error_t cvi_efuse_is_sd_dl_button()
 {
     csi_error_t ret = CSI_OK;
     uint32_t data = 0;
@@ -381,66 +237,11 @@ csi_error_t cvi_efuse_uart_dl_config(enum SD_USB_UART_DL_MODE_E mode)
     ret = cvi_efuse_read_word_from_shadow(0xb, &data);
     if (ret != CSI_OK) {
         printf("cvi_efuse_read_word_from_shadow failed\n");
-        return ret;
+        return CSI_ERROR;
     }
 
-    data = (data & (0x3 << EFUSE_SW_INFO_UART_DL_SHIFT)) >> EFUSE_SW_INFO_UART_DL_SHIFT;
-    switch (mode) {
-    case SD_USB_UART_DL_ENABLE:
-        switch (data) {
-        case 0x0:
-            break;
-        case 0x01:
-            ret = cvi_efuse_program_bit(0xb, 27);
-            break;
-        case 0x10:
-            ret = cvi_efuse_program_bit(0xb, 26);
-            break;
-        case 0x11:
-            break;
-        default:
-            ret = CSI_ERROR;
-            break;
-        }
-        break;
-    case SD_USB_UART_DL_FASTBOOT:
-        switch (data) {
-        case 0x0:
-            ret = cvi_efuse_program_bit(0xb, 26);
-            break;
-        case 0x01:
-            break;
-        case 0x10:
-            ret = CSI_ERROR;
-            break;
-        case 0x11:
-            ret = CSI_ERROR;
-            break;
-        default:
-            ret = CSI_ERROR;
-            break;
-        }
-        break;
-    case SD_USB_UART_DL_DISABLE:
-        switch (data) {
-        case 0x0:
-            ret = cvi_efuse_program_bit(0xb, 27);
-            break;
-        case 0x01:
-            ret = CSI_ERROR;
-            break;
-        case 0x10:
-            break;
-        case 0x11:
-            ret = CSI_ERROR;
-            break;
-        default:
-            ret = CSI_ERROR;
-            break;
-        }
-        break;
-    default:
-        break;
+    if ((data & (1 << 23)) != 0 || (data & (1 << 22)) == 0) {
+        return CSI_ERROR;
     }
 
     return ret;

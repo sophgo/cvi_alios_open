@@ -59,12 +59,11 @@ license: Copyright (C) Cvitek Co., Ltd. 2019-2020. All rights reserved.    # <�
 #     toolchain_prefix: csky-abiv2-elf     # <可选项> 编译器前缀
 hw_info:
   arch_name: riscv
-  cpu_name: c906fdv
+  cpu_name: c906fd
   toolchain_prefix: riscv64-unknown-elf
   vendor_name: cvitek
   ld_script: gcc_flash.ld
   flash_program: flash.elf
-  # flash_program: flash_emmc.elf
 
 ## 第四部分：编译连接信息
 # build_config:                            # <可选项> 编译配置项
@@ -95,7 +94,6 @@ build_config:
     - include/asm
     - src/drivers/pin/cvi/include
     - src/drivers/gpio/cvi/include
-    - src/drivers/gpio/dw/v1.0/
     - src/drivers/dma/cvi/include
 #   - src/drivers/timer/cvi/v1/include ? <CONFIG_KERNEL_NONE>
 #   - src/drivers/timer/cvi/v2/include ? <CONFIG_KERNEL_RHINO>
@@ -105,15 +103,17 @@ build_config:
 #   - src/drivers/uart/dw/v1.0/include ? <CONFIG_KERNEL_NONE>
 #   - src/drivers/uart/dw/v2.0/include ? <CONFIG_KERNEL_RHINO>
     - src/drivers/uart/dw/v2.0/include
+    - src/drivers/uart/virtual/include
     - src/drivers/iic/dw/include
     - src/drivers/adc/cvi/include
     - src/drivers/pwm/cvi/v1.0/include
     - src/drivers/sha/cvi/include
-    - src/drivers/net/ethernet/dw/include
-    - src/drivers/net/phy/include
+#    - src/drivers/net/ethernet/dw/include
+#    - src/drivers/net/phy/include
 
     - src/hal/dma/cvi/include
     - src/drivers/spiflash/v2.0/include
+    - src/drivers/spinand/v2.0/include
     - src/drivers/spi/dw/v2.0/include
 
     - src/hal/pin/cvi/include
@@ -150,17 +150,19 @@ source_file:
   - src/drivers/irq/plic/v1.0/irq_port.c
 #  - src/drivers/tick/csitimer/tick.c
   - src/drivers/uart/dw/v1.0/src/*.c ? <CONFIG_KERNEL_NONE>
-  - src/drivers/uart/dw/v2.0/src/*.c ? <CONFIG_KERNEL_RHINO>
+  - src/drivers/uart/dw/v2.0/src/*.c ? <CONFIG_DW_UART>
+  - src/drivers/uart/virtual/src/*.c ? <CONFIG_VIRTUAL_UART>
   - src/drivers/iic/dw/src/*.c
   - src/drivers/pin/cvi/src/*.c
   - src/drivers/gpio/cvi/src/*.c
-  - src/drivers/gpio_pin/cvi/src/*.c
   - src/drivers/adc/cvi/src/*.c
   - src/drivers/pwm/cvi/v1.0/src/*.c
   - src/drivers/wdt/cvi/src/*.c
   - src/drivers/dma/cvi/src/cvi_dma.c
   - src/drivers/dma/cvi/src/csi_dma.c
-  - src/drivers/spiflash/v2.0/src/*.c
+#  - src/drivers/spiflash/v2.0/src/*.c
+  - src/drivers/spi/dw/v2.0/src/*.c ? <CONFIG_DUALOS_NO_CROP>
+  - src/drivers/spinand/v2.0/src/*.c
   - src/drivers/spi/dw/v2.0/src/*.c
   - src/drivers/timer/cvi/v1/src/*.c ? <CONFIG_KERNEL_NONE>
   - src/drivers/timer/cvi/v2/src/*.c ? <CONFIG_KERNEL_RHINO>
@@ -168,9 +170,9 @@ source_file:
   - src/drivers/rtc/cvi/src/csi_rtc.c
   - src/drivers/rtc/cvi/src/rtc_lib.c
   - src/drivers/dma/cvi/src/sysdma_remap.c
-  - src/drivers/net/ethernet/dw/src/dw_gmac_mars.c
-  - src/drivers/net/phy/src/phy.c
-  - src/drivers/net/phy/src/cvitek.c
+#  - src/drivers/net/ethernet/dw/src/dw_gmac_mars.c
+#  - src/drivers/net/phy/src/phy.c
+#  - src/drivers/net/phy/src/cvitek.c
 #  - src/drivers/pinmux/wj/sparrow_v1.0/pinmux.c
 #  - src/drivers/timer/dw/v1.0/timer.c
   - src/hal/pin/cvi/src/*.c
@@ -179,23 +181,18 @@ source_file:
   - src/hal/dma/cvi/src/hal_dma.c
   - src/hal/timer/cvi/src/hal_timer.c
   - src/hal/rtc/cvi/src/hal_rtc.c
-  - src/hal/clk/*.c
 
   - src/drivers/i2s/dw/src/dw_i2s.c
   - src/drivers/i2s/dw/src/i2s.c
   - src/drivers/codec/cvitek/src/cv181xadc.c
   - src/drivers/codec/cvitek/src/cv181xdac.c
-  - src/drivers/codec/cvitek/src/cv181xpdm.c
   - src/drivers/codec/cvitek/src/codec.c
   - src/drivers/common/ringbuffer.c
-  - src/drivers/sdif/dw/v1.0/*.c
-  - src/drivers/sha/cvi/src/*.c
-  - src/drivers/aes/cvi/src/*.c
-  - src/drivers/efuse/wj/cvi/*.c
-  - src/drivers/rng/cvi/src/*.c
-
-  - src/drivers/usb/cvi/hw/dwc2/usb_dc_dwc2.c ? <CONFIG_SUPPORT_USB_DC>
-  - src/drivers/usb/cvi/hw/dwc2/usb_hc_dwc2.c ? <CONFIG_SUPPORT_USB_HC>
+  - src/drivers/sdif/dw/v1.0/*.c ? <CONFIG_DUALOS_NO_CROP>
+  - src/drivers/sha/cvi/src/*.c ? <CONFIG_DUALOS_NO_CROP>
+  - src/drivers/aes/cvi/src/*.c ? <CONFIG_DUALOS_NO_CROP>
+  - src/drivers/efuse/wj/cvi/*.c ? <CONFIG_DUALOS_NO_CROP>
+  - src/drivers/rng/cvi/src/*.c ? <CONFIG_DUALOS_NO_CROP>
 
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项
@@ -217,6 +214,7 @@ def_config:
 
   CONFIG_BOARD_CV181XC: 1
   CONFIG_BOARD_CV181XH: 0
+  __ALIOS__: 1
 
 ## 第六部分：安装信息
 # install:
@@ -226,8 +224,16 @@ def_config:
 install:
   - dest: "include/"
     source:
-      - "include/*"
-
+      - "include/*.h"
+  - dest: "include/drv/"
+    source:
+      - "include/drv/*.h"
+  - dest: "include/asm/"
+    source:
+      - "include/asm/*.h"
+  - dest: "include/"
+    source:
+      - "src/hal/pin/cvi/include/*.h"
 ## 第七部分：导出部分
 # export:
 #   - dest: "<SOLUTION_PATH>/generated/data" # 安装的目的路径 dest是相对路径

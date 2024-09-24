@@ -2,6 +2,11 @@
 #include <drv/adc.h>
 #include "cvi_adc.h"
 
+void csi_adc_trim(csi_adc_t *adc)
+{
+	cvi_adc_trim(adc->priv);
+}
+
 csi_error_t csi_adc_init(csi_adc_t *adc, uint32_t idx)
 {
     CSI_PARAM_CHK(adc, CSI_ERROR);

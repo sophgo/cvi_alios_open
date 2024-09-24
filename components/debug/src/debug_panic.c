@@ -9,6 +9,7 @@
 #include "aos/kernel.h"
 #include "debug/dbg.h"
 #include "aos/errno.h"
+#include <devices/console_uart.h>
 
 int backtrace_now(int (*print_func)(const char *fmt, ...));
 void debug_panic_backtrace(char *PC, int *SP, char *LR,
@@ -68,6 +69,7 @@ extern int  backtrace_callee(char *PC, int *SP, char *LR,
 volatile uint32_t g_crash_steps = 0;
 volatile uint32_t g_crash_by_NMI = 0;
 volatile uint32_t g_crash_not_reboot = 0;
+uint32_t g_panic_occur = 0;
 
 void debug_cpu_stop(void)
 {
@@ -363,6 +365,10 @@ void dump_mm_sys_error_info(int (*print_func)(const char *fmt, ...))
     void *pmm_head = g_kmm_head;
     print_func("kernel space mem layout:\r\n");
     dump_mm_all_error_block(pmm_head, print_func);
+
+    void *pmm_head_resv = g_kmm_head_resv;
+    print_func("kernel space mem layout:\r\n");
+    dump_mm_all_error_block(pmm_head_resv, print_func);
 }
 #endif /* RHINO_CONFIG_MM_DEBUG */
 
@@ -413,6 +419,9 @@ void panicHandler(void *context)
 
     stat_save  = g_sys_stat;
     g_sys_stat = RHINO_STOPPED;
+    g_panic_occur = 1;
+
+    console_flush_uart_ringbuffer();
 
     /* g_crash_steps++ before panicHandler */
     if (g_crash_steps > 1 && g_crash_steps < DEBUG_PANIC_STEP_MAX) {
@@ -442,6 +451,7 @@ void panicHandler(void *context)
 #if (RHINO_CONFIG_MM_TLF > 0)
             panic_print("========== Heap Info  ==========\r\n");
             debug_mm_overview(panic_print);
+            debug_mm_overview_resv(panic_print);
 #endif
             g_crash_steps++;
         case 4:
@@ -469,6 +479,8 @@ void panicHandler(void *context)
         case 8:
             panic_print("======== Mutex Waiting =========\r\n");
             debug_mutex_overview(panic_print);
+            panic_print("======== Event Waiting =========\r\n");
+            debug_event_overview(panic_print);
             g_crash_steps++;
         case 9:
 #if RHINO_CONFIG_MM_DEBUG
@@ -535,6 +547,7 @@ void debug_fatal_error(kstat_t err, char *file, int line)
 #if (RHINO_CONFIG_MM_TLF > 0)
     panic_print("========== Heap Info  ==========\r\n");
     debug_mm_overview(panic_print);
+    debug_mm_overview_resv(panic_print);
 #endif
 
     panic_print("========== Task Info  ==========\r\n");

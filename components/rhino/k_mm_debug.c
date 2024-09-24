@@ -9,10 +9,6 @@
 #include <debug/dbg.h>
 #include <debug/debug_infoget.h>
 #include <debug/debug_overview.h>
-
-typedef int (*KMM_PRINT)(const char *fmt, ...);
-
-KMM_PRINT print = aos_debug_printf;
 #endif
 
 #define KMM_CRITICAL_ENTER(head, cpsr)                 \
@@ -26,6 +22,10 @@ KMM_PRINT print = aos_debug_printf;
         g_sched_lock[cpu_cur_get()]--;                 \
         MM_CRITICAL_EXIT(head, cpsr);                  \
     } while(0);
+
+typedef int (*KMM_PRINT)(const char *fmt, ...);
+
+KMM_PRINT print = printf;
 
 #if (RHINO_CONFIG_MM_DEBUG > 0)
 uint8_t g_mmlk_cnt;
@@ -316,6 +316,9 @@ uint32_t dumpsys_mm_info_func(uint32_t mm_status)
 
     if (mm_status != KMM_ERROR_LOCKED) {
         KMM_CRITICAL_ENTER(g_kmm_head, flags_cpsr);
+    } else {
+        extern int printk(const char *fmt, ...);
+        print = printk;
     }
 
     print("\r\n");
@@ -355,6 +358,54 @@ uint32_t dumpsys_mm_info_func(uint32_t mm_status)
     return RHINO_SUCCESS;
 }
 
+uint32_t dumpsys_mm_info_func_resv(uint32_t mm_status)
+{
+    cpu_cpsr_t flags_cpsr = 0;
+
+    if (mm_status != KMM_ERROR_LOCKED) {
+        KMM_CRITICAL_ENTER(g_kmm_head_resv, flags_cpsr);
+    } else {
+        extern int printk(const char *fmt, ...);
+        print = printk;
+    }
+
+    print("\r\n");
+    print("------------------------------- all memory blocks --------------------------------- \r\n");
+    print("g_kmm_head_resv = %8x\r\n", (unsigned long)g_kmm_head_resv);
+    dump_kmm_map(g_kmm_head_resv);
+
+    print("\r\n");
+    print("----------------------------- all free memory blocks ------------------------------ \r\n");
+    dump_kmm_free_map(g_kmm_head_resv);
+
+    print("\r\n");
+    print("--------------------------- memory allocation statistic --------------------------- \r\n");
+    dump_kmm_statistic_info(g_kmm_head_resv);
+
+    print("\r\n");
+    print("-------------------------------[kernel] heap size overview -------------------------------- \r\n");
+    debug_mm_overview_resv(print);
+
+#if (RHINO_CONFIG_MM_BLK > 0)
+    print("\r\n");
+    print("--------------------------- mmblk allocation statistic ---------------------------- \r\n");
+    dump_kmm_mblk_info(g_kmm_head_resv);
+#endif
+
+    print("\r\n");
+    print("--------------------------- task allocation statistic ----------------------------- \r\n");
+    dump_kmm_task_info(g_kmm_head_resv);
+
+    print("\r\n");
+    print("----------------------------------------------------------------------------------- \r\n");
+
+    if (mm_status != KMM_ERROR_LOCKED) {
+        KMM_CRITICAL_EXIT(g_kmm_head_resv, flags_cpsr);
+    }
+
+    return RHINO_SUCCESS;
+}
+
 uint32_t dumpsys_mm_overview_func(uint32_t len)
 {
     cpu_cpsr_t flags_cpsr = 0;
@@ -383,7 +434,33 @@ uint32_t dumpsys_mm_overview_func(uint32_t len)
     return RHINO_SUCCESS;
 }
 
+uint32_t dumpsys_mm_overview_func_resv(uint32_t len)
+{
+    cpu_cpsr_t flags_cpsr = 0;
 
+    KMM_CRITICAL_ENTER(g_kmm_head_resv, flags_cpsr);
+
+    print("\r\n");
+    print("-------------------------------[kernel] heap size overview -------------------------------- \r\n");
+    debug_mm_overview_resv(print);
+
+#if (RHINO_CONFIG_MM_BLK > 0)
+    print("\r\n");
+    print("--------------------------- mmblk allocation statistic ---------------------------- \r\n");
+    dump_kmm_mblk_info(g_kmm_head_resv);
+#endif
+
+    print("\r\n");
+    print("--------------------------- task allocation statistic ----------------------------- \r\n");
+    dump_kmm_task_info(g_kmm_head_resv);
+
+    KMM_CRITICAL_EXIT(g_kmm_head_resv, flags_cpsr);
+
+    print("\r\n");
+    print("----------------------------------------------------------------------------------- \r\n");
+
+    return RHINO_SUCCESS;
+}
 
 void dump_kmm_chk(k_mm_head *mmhead, uint8_t care_cnt)
 {
@@ -439,6 +516,30 @@ uint32_t dumpsys_mm_leakcheck(uint32_t call_cnt, int32_t query_index)
     return RHINO_SUCCESS;
 }
 
+uint32_t dumpsys_mm_leakcheck_resv(uint32_t call_cnt, int32_t query_index)
+{
+    cpu_cpsr_t flags_cpsr = 0;
+    KMM_CRITICAL_ENTER(g_kmm_head_resv, flags_cpsr);
+
+    if (query_index < 0) {
+        query_index = g_mmlk_cnt;
+        g_mmlk_cnt = (uint8_t)call_cnt;
+    } else if (query_index > g_mmlk_cnt) {
+        printf("query_index should be less than %d\r\n", g_mmlk_cnt);
+        return -1;
+    }
+    print("-----------------All new alloced blocks:----------------\r\n");
+    print("Blk_Addr    Stat     Len  Chk      Caller    Point\r\n");
+
+    dump_kmm_chk(g_kmm_head_resv, query_index);
+
+    print("--------------New alloced blocks info ends.-------------\r\n");
+    print("\r\n");
+
+    KMM_CRITICAL_EXIT(g_kmm_head_resv, flags_cpsr);
+    return RHINO_SUCCESS;
+}
+
 void dumpsys_mm_header_check(void)
 {
     cpu_cpsr_t flags_cpsr = 0;
@@ -450,6 +551,19 @@ void dumpsys_mm_header_check(void)
     print("\r\n");
 
     KMM_CRITICAL_EXIT(g_kmm_head, flags_cpsr);
+}
+
+void dumpsys_mm_header_check_resv(void)
+{
+    cpu_cpsr_t flags_cpsr = 0;
+    KMM_CRITICAL_ENTER(g_kmm_head_resv, flags_cpsr);
+
+    print("-----------------All error blocks:----------------\r\n");
+
+    dump_kmm_chk(g_kmm_head_resv, MM_CHK);
+    print("\r\n");
+
+    KMM_CRITICAL_EXIT(g_kmm_head_resv, flags_cpsr);
 }
 
 #endif /* #if (RHINO_CONFIG_MM_TLF > 0) */

@@ -37,19 +37,8 @@ license: Apache license v2.0                        # <可选项> 源代码的�
 #     - libs                               #   -Llibs
 build_config:
   include:
-    - disk/sd_disk/include
     - media/include
     - param/include
-    - netctrl/ethernet/include
-    - netctrl/wifi/include
-    - netctrl/bt/include
-    - netctrl/gprs/include
-    - protocol/rtsp/include
-    - protocol/uvc/include
-    - protocol/uac/include
-    - protocol/av_composite/include
-    - gui/littlevGL/include
-    - ai/include
   internal_include:
   libs:
 
@@ -58,21 +47,10 @@ build_config:
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
 source_file:
-  - disk/sd_disk/src/*.c
-  - media/src/*.c
+  - media/src/media_audio.c
+  - media/src/media_video.c
   - param/src/*.c
-  - netctrl/ethernet/src/*.c ? <CONFIG_APP_ETHERNET_SUPPORT>
-  - netctrl/wifi/src/*.c ? <CONFIG_APP_WIFI_SUPPORT>
-  - netctrl/bt/src/*.c ? <CONFIG_APP_BT_SUPPORT>
-  - netctrl/gprs/src/*.c ? <CONFIG_APP_GPRS_SUPPORT>
-  - protocol/linkvisual/src/*.c
-  - protocol/rtsp/src/*.c ? <CONFIG_APP_RTSP_SUPPORT>
-  - protocol/uvc/src/*.c ? <CONFIG_APP_UVC_SUPPORT>
-  - protocol/uac/src/*.c ? <CONFIG_APP_UAC_SUPPORT>
-  - protocol/av_composite/src/*.c ? <CONFIG_APP_AV_COMP_SUPPORT>
-  - util/src/*.c
-  - gui/littlevGL/src/*.c ? <CONFIG_APP_GUI_SUPPORT>
-  - ai/src/*.c ? <CONFIG_APP_AI_SUPPORT>
+  - media/src/loadbmp.c
 
 # - ./hichannel_test/
 ## 第五部分：配置信息
@@ -80,7 +58,6 @@ def_config:                              # 组件的可配置项
 #   CONFIG_DEBUG: y
 #   CONFIG_PARAM_NOT_CHECK: y
 #   CONFIG_CLI: y
-  CONFIG_APP_ISP_BYPASS: 1
 
 ## 第六部分：安装信息
 # install:
@@ -88,7 +65,7 @@ def_config:                              # 组件的可配置项
 #     source:                              # 安装源列表
 #      - src/*.h                           # 支持通配符，相对路径
 install:
-  - dest: "include/devices"
+  - dest: "include/"
     source:
 
 ## 第七部分：导出部分

@@ -140,7 +140,7 @@ typedef struct {
   \return      Error code
 */
 csi_error_t csi_spiflash_spi_init(csi_spiflash_t *spiflash, uint32_t spi_idx, void *spi_cs_callback);
-csi_error_t csi_spiflash_get_unique_id(csi_spiflash_t *spiflash, void *buffer, uint32_t len);
+
 /**
   \brief       Initialize SPIFLASH with qspi controler  and probe flash device
   \param[in]   spiflash    SPIFLASH handle

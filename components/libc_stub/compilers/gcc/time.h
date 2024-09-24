@@ -142,7 +142,6 @@ time_t mktime(struct tm *tp);
 struct tm *gmtime(const time_t *timep);
 struct tm *gmtime_r(const time_t *timep, struct tm *result);
 struct tm *localtime (const time_t *timep);
-struct tm *localtime_r(const time_t *timep, struct tm *result);
 
 size_t strftime(  char *s, size_t max,   const char *format,
                   const struct tm *tm);

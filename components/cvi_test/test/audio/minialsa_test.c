@@ -5,13 +5,13 @@
 #include <posix/timer.h>
 #include <drv/i2s.h>
 #include <alsa/pcm.h>
-#include <unistd.h>
+//#include <aos_pcm.h>
 #include "board.h"
 #include "dirent.h"
 #include "dw_i2s.h"
 #include "fatfs_vfs.h"
 #include "platform.h"
-#include "cv181x_adc_dac.h"
+
 static int capture_running, play_running;
 static aos_pcm_t *capture_handle;
 static aos_pcm_t *playback_handle;
@@ -35,14 +35,13 @@ int capture_state = 0;
 static void audio_capture_test_entry(void *arg)
 {
 	int ret;
-	char save_name[128];
+	char save_name[128] = SD_FATFS_MOUNTPOINT"/16k2ch_1.pcm";
 	unsigned char *cap_buf;
 	aos_pcm_hw_params_t *capture_hw_params;
 	int fd;
 	cap_buf = aos_malloc(CAPTURE_SIZE);
-	snprintf(save_name, sizeof(save_name), "%s", (char *)arg);//16k2ch_1.pcm
 	fd = aos_open(save_name, O_CREAT | O_TRUNC | O_RDWR);
-	if (fd <= 0) {
+	if(fd <= 0) {
 		printf("file %s open error\n", save_name);
 	} else {
 		printf("create pcm file:%s\n", save_name);
@@ -67,9 +66,7 @@ static void audio_capture_test_entry(void *arg)
 		ret = aos_pcm_readi(capture_handle, cap_buf, PERIOD_FRAMES_SIZE);//接收交错音频数据
 		capture_cnt++;
 		capture_state = 4;
-		if (ret > 0) {
-			aos_write(fd, cap_buf, aos_pcm_frames_to_bytes(capture_handle, ret));
-		}
+		aos_write(fd, cap_buf, aos_pcm_frames_to_bytes(capture_handle, ret));
 	}
 	capture_state = 5;
 	aos_close(fd);
@@ -81,15 +78,14 @@ static void audio_capture_test_entry(void *arg)
 
 static void audio_play_test_entry(void *arg)
 {
-	char save_name[128];
+	char save_name[128] = SD_FATFS_MOUNTPOINT"/16k2ch.pcm";
 	unsigned char *cap_buf;
 	aos_pcm_hw_params_t *playback_hw_params;
 	int ret;
 	int fd;
 	int dir;
-	snprintf(save_name, sizeof(save_name), "%s", (char *)arg);//16k2ch.pcm
 	fd = aos_open(save_name, O_RDONLY);
-	if (fd <= 0) {
+	if(fd <= 0) {
 		printf("file %s open error\n", save_name);
 	} else {
 		printf("aos_open pcm file:%s\n", save_name);
@@ -108,10 +104,10 @@ static void audio_play_test_entry(void *arg)
 	aos_pcm_hw_params_set_channels(playback_handle, playback_hw_params, 2); //设置音频数据参数为2通道
 	aos_pcm_hw_params(playback_handle, playback_hw_params); //设置硬件参数到具体硬件?
 	play_state = 2;
-	while (play_running) {
+	while(play_running) {
 		play_state = 3;
 		ret = aos_read(fd, cap_buf, aos_pcm_frames_to_bytes(playback_handle, PERIOD_FRAMES_SIZE));
-		if (ret <= 0) {
+		if(ret <= 0) {
 			aos_lseek(fd, 0, SEEK_SET);
 			continue;
 		}
@@ -138,64 +134,44 @@ void show_debug_info(void)
 
 void audio_debug_capture_cmd(int32_t argc, char **argv)
 {
-	if (argc == 3) {
-		if (strcmp(argv[2], "1") == 0) {
+	if(argc == 2) {
+		if(strcmp(argv[1], "1") == 0) {
 			if(capture_running) {
-				printf("capture device is busy pleae input arecord 0 to stop.\n");
+				printf("capture device is busy.\n");
 				return;
 			}
 			capture_running = 1;
-			aos_task_new("audio_capture_test", audio_capture_test_entry, argv[1], 8192);
+			aos_task_new("audio_capture_test", audio_capture_test_entry, NULL, 4096);
 			return;
-		} else if (strcmp(argv[2], "0") == 0) {
-			printf("audio_arecord stop\n");
-			capture_running = 0;
-			return;
-		}
-	} else if (argc == 2) {
-		if (strcmp(argv[1], "0") == 0) {
-			printf("audio_arecord stop\n");
+		} else if(strcmp(argv[1], "0") == 0) {
 			capture_running = 0;
 			return;
 		}
 	}
 	printf("invalid cmd params.\n");
-	printf("usage:%s filepath 1/0\n",argv[0]);
-	printf("usage:%s 0\n",argv[0]);
+	printf("usage:%s 1/0\n",argv[0]);
 }
 
 void audio_debug_play_cmd(int32_t argc, char **argv)
 {
-	if (argc == 3) {
-		if (strcmp(argv[2], "1") == 0) {
-			if (play_running) {
-				printf("play device is busy pleae input aplay 0 to stop.\n");
+	if(argc == 2) {
+		if(strcmp(argv[1], "1") == 0) {
+			if(play_running) {
+				printf("play device is busy.\n");
 				return;
-			}
-			if (access(argv[1], F_OK) != 0) {
-				printf("audio_play stop can't find file \n");
-				return ;
 			}
 			play_running = 1;
 			PLATFORM_SpkMute(1);
-			aos_task_new("audio_play_test", audio_play_test_entry, argv[1], 8192);
+			aos_task_new("audio_play_test", audio_play_test_entry, NULL, 4096);
 			return;
-		} else if (strcmp(argv[2], "0") == 0) {
-			printf("audio_play stop\n");
-			play_running = 0;
-			return;
-		}
-	} else if (argc == 2) {
-		if (strcmp(argv[1], "0") == 0) {
-			printf("audio_play stop \n");
+		} else if(strcmp(argv[1], "0") == 0) {
 			PLATFORM_SpkMute(0);
 			play_running = 0;
 			return;
 		}
 	}
 	printf("invalid cmd params.\n");
-	printf("usage:%s filepath 1/0\n",argv[0]);
-	printf("usage:%s 0\n",argv[0]);
+	printf("usage:%s 1/0\n",argv[0]);
 }
 
 void audio_debug_show_info(int32_t argc, char **argv)
@@ -203,69 +179,6 @@ void audio_debug_show_info(int32_t argc, char **argv)
 	show_debug_info();
 }
 
-void audio_test_vol_cmd(int32_t argc, char **argv)
-{
-
-	if(argc == 4){
-		int ai_ao = atoi(argv[1]);
-		int l_r = atoi(argv[2]);
-		int val = atoi(argv[3]);
-		u32 cmd;
-		if(ai_ao){
-			if(l_r)
-				cmd = ACODEC_SET_DACR_VOL;
-			else
-				cmd = ACODEC_SET_DACL_VOL;
-		    cv182xdac_ioctl(cmd, (u64)&val);
-		}else
-		{
-			if(l_r)
-				cmd = ACODEC_SET_ADCR_VOL;
-			else
-				cmd = ACODEC_SET_ADCL_VOL;
-		    cv182xadc_ioctl(cmd, (u64)&val);
-		}
-		return;
-	}
-	else if(argc == 3)
-	{
-		int ai_ao = atoi(argv[1]);
-		int val = atoi(argv[2]);
-
-		if(ai_ao){
-		    cv182xdac_ioctl(ACODEC_SET_DACL_VOL, (u64)&val);
-			cv182xdac_ioctl(ACODEC_SET_DACR_VOL, (u64)&val);
-		}else
-		{
-		    cv182xadc_ioctl(ACODEC_SET_ADCL_VOL, (u64)&val);
-			cv182xadc_ioctl(ACODEC_SET_ADCR_VOL, (u64)&val);
-		}
-		return;
-	}else if(argc == 2)
-	{
-		int ai_ao = atoi(argv[1]);
-		u32 vol_l, vol_r;
-		if(ai_ao){
-		    cv182xdac_ioctl(ACODEC_GET_DACL_VOL, (u64)&vol_l);
-			cv182xdac_ioctl(ACODEC_GET_DACR_VOL, (u64)&vol_r);
-			printf("ao vol:l = %d, r = %d\n", vol_l, vol_r);
-		}else
-		{
-		    cv182xadc_ioctl(ACODEC_GET_ADCL_VOL, (u64)&vol_l);
-			cv182xadc_ioctl(ACODEC_GET_ADCR_VOL, (u64)&vol_r);
-			printf("ai vol:l = %d, r = %d\n", vol_l, vol_r);
-		}
-		return;
-	}else
-	{
-		printf("invalid cmd params.\n");
-		printf("usage1:%s [0{ai},1{ao}] [0[l],1[r]] [val]\n", argv[0]);
-		printf("usage2:%s [0{ai},1{ao}] [val]\n", argv[0]);
-		printf("usage3:%s [0{ai},1{ao}]\n", argv[0]);
-	}
-	return;
-}
 ALIOS_CLI_CMD_REGISTER(audio_debug_play_cmd, aplay, play audio);
 ALIOS_CLI_CMD_REGISTER(audio_debug_capture_cmd, arecord, capture audio);
 ALIOS_CLI_CMD_REGISTER(audio_debug_show_info, audio_info, show audio debug info);
-ALIOS_CLI_CMD_REGISTER(audio_test_vol_cmd, audio_vol, test audio vol info);

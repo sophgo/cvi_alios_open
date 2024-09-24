@@ -21,16 +21,22 @@
 #include "sdio_io.h"
 #include "sdio_func.h"
 //#include "csi_kernel.h"
-
+/*
 typedef __u16  __le16;
 typedef __u16  __be16;
 typedef __u32  __le32;
 typedef __u32  __be32;
-typedef __u64  __le64;
-typedef __u64  __be64;
-#define cpu_to_le16(cvi_x) ((__le16)(__u16)(cvi_x))
-#define cpu_to_le32(cvi_x) ((__le32)(__u32)(cvi_x))
-
+*/
+/*
+static  __le32 cpu_to_le32(const __u32 *p)
+{
+	return (__le32)*p;
+}
+static  __le16 cpu_to_le16(const __u16 *p)
+{
+	return (__le16)*p;
+}
+*/
 static  __u32 le32_to_cpup(const __le32 *p)
 {
 	return (__u32)*p;

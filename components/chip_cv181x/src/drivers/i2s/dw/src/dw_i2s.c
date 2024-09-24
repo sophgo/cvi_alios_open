@@ -75,7 +75,6 @@ static void i2s_dump_reg(struct i2s_tdm_regs *i2s_reg)
 
 void i2s_prepare_clk(void)
 {
-
 #define Clock_Gen_base_address      0x03002000
 #define CV1835_CLK_SDMA_AUD0_DIV	0x098
 #define CV1835_CLK_SDMA_AUD1_DIV	0x09C
@@ -92,10 +91,15 @@ void i2s_prepare_clk(void)
 #define CV1835_CLK_A0PLL_SSC_SYN_SPAN	0x58
 #define CV1835_CLK_A0PLL_SSC_SYN_STEP	0x5C
     static bool initonce = false;
+#ifdef ARCH_CV181X
+    u32 aud_div;
+    u32 apll_div = mmio_read_32(PLL_G2_base_address+CV1835_CLK_A0PLL_CSR) >> 17;
+#endif
     if (initonce)
         return;
     initonce = true;
 #if defined(CV183X)
+
     debug("%s #ifdef CV183X \n", __func__);
     *(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD0_DIV) = 0x00110009;
     *(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD1_DIV) = 0x00110009;
@@ -107,38 +111,34 @@ void i2s_prepare_clk(void)
     *(volatile u32*)(PLL_G2_base_address+CV1835_CLK_A0PLL_CSR) = 0x01108201;
     *(volatile u32*)(PLL_G2_base_address+CV1835_CLK_A0PLL_SSC_SYN_CTRL) = 0x00000001;
 
-#elif defined(__CV181X__) || (__CV180X__)
+#elif defined(ARCH_CV181X)
 
     debug("%s \n", __func__);
-	*(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD0_DIV) = 0x001b0009;
-	*(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD1_DIV) = 0x001b0009;
-	*(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD2_DIV) = 0x001b0009;
-	*(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD3_DIV) = 0x001b0009;
-	*(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_AUDSRC_DIV)    = 0x00000001;
-
-	*(volatile u32*)(PLL_G2_base_address+pll_g2_ctrl) = 0x00000000;
-	*(volatile u32*)(PLL_G2_base_address+CV1835_CLK_A0PLL_CSR) = 0x00128201;
-
-	*(volatile u32*)(PLL_G2_base_address+CV1835_CLK_A0PLL_SSC_SYN_CTRL) = 0x00000000;
-	*(volatile u32*)(PLL_G2_base_address+CV1835_CLK_A0PLL_SSC_SYN_SET) = 0x249f0000;
-	*(volatile u32*)(PLL_G2_base_address+CV1835_CLK_A0PLL_SSC_SYN_SPAN) = 0x00000000;
-	*(volatile u32*)(PLL_G2_base_address+CV1835_CLK_A0PLL_SSC_SYN_STEP) = 0x00000000;
+    apll_div = (apll_div & 0x7f);
+    aud_div = ((((apll_div << 1) + apll_div) << 16) | 0x9);
+    *(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD0_DIV) = aud_div;
+    *(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD1_DIV) = aud_div;
+    *(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD2_DIV) = aud_div;
+    *(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD3_DIV) = aud_div;
+    aud_div = (((apll_div << 1) << 16) | 0x9);
+    *(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_AUDSRC_DIV)    = aud_div;
 
 #else
+
     debug("%s #ifdef !CV183X \n", __func__);
-	*(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD0_DIV) = 0x00110009;
-	*(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD1_DIV) = 0x00110009;
-	*(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD2_DIV) = 0x00110009;
-	*(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD3_DIV) = 0x00110009;
-	*(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_AUDSRC_DIV)    = 0x00150009;
+    *(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD0_DIV) = 0x00110009;
+    *(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD1_DIV) = 0x00110009;
+    *(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD2_DIV) = 0x00110009;
+    *(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD3_DIV) = 0x00110009;
+    *(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_AUDSRC_DIV)    = 0x00150009;
 
-	*(volatile u32*)(PLL_G2_base_address+pll_g2_ctrl) = 0x00000000;
-	*(volatile u32*)(PLL_G2_base_address+CV1835_CLK_A0PLL_CSR) = 0x01108201;
+    *(volatile u32*)(PLL_G2_base_address+pll_g2_ctrl) = 0x00000000;
+    *(volatile u32*)(PLL_G2_base_address+CV1835_CLK_A0PLL_CSR) = 0x01108201;
 
-	*(volatile u32*)(PLL_G2_base_address+CV1835_CLK_A0PLL_SSC_SYN_CTRL) = 0x00000000;
-	*(volatile u32*)(PLL_G2_base_address+CV1835_CLK_A0PLL_SSC_SYN_SET) = 0x16FA5A5A;
-	*(volatile u32*)(PLL_G2_base_address+CV1835_CLK_A0PLL_SSC_SYN_SPAN) = 0x00000000;
-	*(volatile u32*)(PLL_G2_base_address+CV1835_CLK_A0PLL_SSC_SYN_STEP) = 0x00000000;
+    *(volatile u32*)(PLL_G2_base_address+CV1835_CLK_A0PLL_SSC_SYN_CTRL) = 0x00000000;
+    *(volatile u32*)(PLL_G2_base_address+CV1835_CLK_A0PLL_SSC_SYN_SET) = 0x16FA5A5A;
+    *(volatile u32*)(PLL_G2_base_address+CV1835_CLK_A0PLL_SSC_SYN_SPAN) = 0x00000000;
+    *(volatile u32*)(PLL_G2_base_address+CV1835_CLK_A0PLL_SSC_SYN_STEP) = 0x00000000;
 #endif
 }
 
@@ -146,13 +146,13 @@ struct i2s_tdm_regs *i2s_get_base(unsigned int i2s_no)
 {
     switch(i2s_no){
         case I2S0:
-            return (struct i2s_tdm_regs *)CVI_CONFIG_SYS_I2S0_BASE;
+            return (struct i2s_tdm_regs *)CONFIG_SYS_I2S0_BASE;
         case I2S1:
-            return (struct i2s_tdm_regs *)CVI_CONFIG_SYS_I2S1_BASE;
+            return (struct i2s_tdm_regs *)CONFIG_SYS_I2S1_BASE;
         case I2S2:
-            return (struct i2s_tdm_regs *)CVI_CONFIG_SYS_I2S2_BASE;
+            return (struct i2s_tdm_regs *)CONFIG_SYS_I2S2_BASE;
         case I2S3:
-            return (struct i2s_tdm_regs *)CVI_CONFIG_SYS_I2S3_BASE;
+            return (struct i2s_tdm_regs *)CONFIG_SYS_I2S3_BASE;
         default:
             printf("no such I2S device\n");
             break;
@@ -163,13 +163,13 @@ struct i2s_tdm_regs *i2s_get_base(unsigned int i2s_no)
 int i2s_get_no(unsigned int base_reg)
 {
     switch(base_reg){
-        case CVI_CONFIG_SYS_I2S0_BASE:
+        case CONFIG_SYS_I2S0_BASE:
             return I2S0;
-        case CVI_CONFIG_SYS_I2S1_BASE:
+        case CONFIG_SYS_I2S1_BASE:
             return I2S1;
-        case CVI_CONFIG_SYS_I2S2_BASE:
+        case CONFIG_SYS_I2S2_BASE:
             return I2S2;
-        case CVI_CONFIG_SYS_I2S3_BASE:
+        case CONFIG_SYS_I2S3_BASE:
             return I2S3;
         default:
             printf("no such I2S device\n");
@@ -180,7 +180,7 @@ int i2s_get_no(unsigned int base_reg)
 
 struct i2s_sys_regs *i2s_get_sys_base(void)
 {
-	return (struct i2s_sys_regs *)CVI_CONFIG_SYS_I2S_SYS_BASE;
+	return (struct i2s_sys_regs *)CONFIG_SYS_I2S_SYS_BASE;
 }
 
 
@@ -190,7 +190,7 @@ static void i2s_config_dma(struct i2s_tdm_regs *i2s_reg, bool on ,unsigned char 
 	u32 blk_cfg = 0;
 	blk_mode_setting = readl(&i2s_reg->blk_mode_setting) & ~(DMA_MODE_MASK);
 	if (on == true) {
-		//printf("%s dma mode \n", __func__);
+		printf("%s dma mode \n", __func__);
 		mmio_write_32((uintptr_t)&i2s_reg->blk_mode_setting, blk_mode_setting | HW_DMA_MODE); /*not to use FIFO */
 		mmio_write_32((uintptr_t)&i2s_reg->fifo_threshold, RX_FIFO_THRESHOLD(fifo_threshold)|TX_FIFO_THRESHOLD(fifo_threshold)|TX_FIFO_HIGH_THRESHOLD(fifo_high_threshold));
         blk_cfg = readl(&i2s_reg->blk_cfg) | AUTO_DISABLE_W_CH_EN | (0x1 << 17);
@@ -209,7 +209,7 @@ void i2s_set_clk_source(struct i2s_tdm_regs *i2s_reg, unsigned int src)
 
 	u32 tmp = 0;
 	tmp = readl(&i2s_reg->i2s_clk_ctrl0) & ~(AUD_CLK_SOURCE_MASK);
-	tmp &= ~(CVI_BCLK_OUT_FORCE_EN);
+	tmp &= ~(BCLK_OUT_FORCE_EN);
 	switch(src) {
 
 	case AUD_CLK_FROM_MCLK_IN:
@@ -225,9 +225,11 @@ void i2s_set_clk_source(struct i2s_tdm_regs *i2s_reg, unsigned int src)
 
 void i2s0_set_clk_sample_rate(struct i2s_tdm_regs *i2s_reg, unsigned int sample_rate)
 {
-#if defined(__CV181X__) || (__CV180X__)
-	//printf("%s mars, sample_rate:%d\n", __func__, sample_rate);
+#if defined(ARCH_CV181X)
+	printf("%s sample_rate:%d\n", __func__, sample_rate);
 	u32 clk_ctrl1 = 0;
+	u32 aud_div = 0;
+	u32 apll_div = mmio_read_32(PLL_G2_base_address+CV1835_CLK_A0PLL_CSR) >> 17;
 
 	clk_ctrl1 = (readl(&i2s_reg->i2s_clk_ctrl1) & 0xffff0000);
 	/* cv182x internal adc codec need dynamic MCLK frequency input */
@@ -252,14 +254,15 @@ void i2s0_set_clk_sample_rate(struct i2s_tdm_regs *i2s_reg, unsigned int sample_
 		break;
 	}
 	mmio_write_32((uintptr_t)&i2s_reg->i2s_clk_ctrl1, clk_ctrl1);
+	apll_div = (apll_div & 0x7f);
 	if(sample_rate == 48000){
-		*(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD0_DIV) = 0x1;
-		*(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD3_DIV) = 0x1;
+		aud_div = (((apll_div << 1) << 16) | 0x9);
 	}
 	else{
-		*(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD0_DIV) = 0x001b0009;
-		*(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD3_DIV) = 0x001b0009;
+		aud_div = ((((apll_div << 1) + apll_div) << 16) | 0x9);
 	}
+	*(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD0_DIV) = aud_div;
+	*(volatile u32*)(Clock_Gen_base_address+CV1835_CLK_SDMA_AUD3_DIV) = aud_div;
 #else
 	u32 clk_ctrl1 = 0;
 
@@ -321,9 +324,9 @@ void i2s_set_sample_rate(struct i2s_tdm_regs *i2s_reg, unsigned int sample_rate,
 
     frame_setting &= ~(FRAME_LENGTH_MASK | FS_ACT_LENGTH_MASK); // 4
     slot_setting &= ~(SLOT_SIZE_MASK | DATA_SIZE_MASK);
-    data_format &= ~(WORD_LENGTH_MASK | CVI_SKIP_TX_INACT_SLOT_MASK);// 4
+    data_format &= ~(WORD_LENGTH_MASK | SKIP_TX_INACT_SLOT_MASK);// 4
 
-#if defined(CVI_CONFIG_USE_AUDIO_PLL)
+#if defined(CONFIG_USE_AUDIO_PLL)
     clk_ctrl = MCLK_DIV(2); /* audio PLL is 25 or 24.576 Mhz, need to div with 2*/
     div_multiplier = 2; //_/ 1;
 #else
@@ -331,7 +334,7 @@ void i2s_set_sample_rate(struct i2s_tdm_regs *i2s_reg, unsigned int sample_rate,
 #endif
 
 
-#if defined(__CV181X__) || (__CV180X__)
+#if defined(ARCH_CV181X)
 	if ((sample_rate == 8000 || sample_rate == 16000 || sample_rate == 32000)) {
 		audio_clk = 16384000;
 	}
@@ -357,10 +360,10 @@ void i2s_set_sample_rate(struct i2s_tdm_regs *i2s_reg, unsigned int sample_rate,
 		case 8000:
 		    frame_setting |= FRAME_LENGTH(64);
 		    slot_setting |= SLOT_SIZE(32) | DATA_SIZE(32);
-		    data_format = CVI_WORD_LEN_16;
+		    data_format = WORD_LEN_16;
 
-#if defined(__CV181X__) || (__CV180X__)
-			//printf("%s mars 8k\n", __func__);
+#if defined(ARCH_CV182X)
+			printf("%s 8k\n", __func__);
 #elif defined(ARCH_CV182X)
 			clk_ctrl1 |= MCLK_DIV(6);
             mclk_div = 6;
@@ -377,16 +380,16 @@ void i2s_set_sample_rate(struct i2s_tdm_regs *i2s_reg, unsigned int sample_rate,
 		case 12000:
 		    frame_setting |= FRAME_LENGTH(64);
 		    slot_setting |= SLOT_SIZE(32) | DATA_SIZE(32);
-		    data_format = CVI_WORD_LEN_32;
+		    data_format = WORD_LEN_32;
 		    clk_ctrl |= BCLK_DIV(16 * div_multiplier);
 		    break;
 
 		case 16000:
 		    frame_setting |= FRAME_LENGTH(64);
 		    slot_setting |= SLOT_SIZE(32) | DATA_SIZE(32);
-		    data_format = CVI_WORD_LEN_16;
-#if defined(__CV181X__) || (__CV180X__)
-			//printf("%s mars 16k\n", __func__);
+		    data_format = WORD_LEN_16;
+#if defined(ARCH_CV181X)
+			printf("%s 16k\n", __func__);
 #elif defined(ARCH_CV182X)
 			clk_ctrl1 |= MCLK_DIV(3);
             mclk_div = 3;
@@ -402,16 +405,16 @@ void i2s_set_sample_rate(struct i2s_tdm_regs *i2s_reg, unsigned int sample_rate,
 		case 24000:
 		    frame_setting |= FRAME_LENGTH(64);
 		    slot_setting |= SLOT_SIZE(32) | DATA_SIZE(32);
-		    data_format = CVI_WORD_LEN_32;
+		    data_format = WORD_LEN_32;
 		    clk_ctrl |= BCLK_DIV(8 * div_multiplier);
 		    break;
 		case 32000:
 		    frame_setting |= FRAME_LENGTH(64);
 		    slot_setting |= SLOT_SIZE(32) | DATA_SIZE(32);
-		    data_format = CVI_WORD_LEN_16;
+		    data_format = WORD_LEN_16;
 
-#if defined(__CV181X__) || (__CV180X__)
-			//printf("%s mars 32k\n", __func__);
+#if defined(ARCH_CV181X)
+			printf("%s 32k\n", __func__);
 #elif defined(ARCH_CV182X)
 			clk_ctrl1 |= MCLK_DIV(3);
 			mclk_div = 3;
@@ -426,9 +429,9 @@ void i2s_set_sample_rate(struct i2s_tdm_regs *i2s_reg, unsigned int sample_rate,
 		case 48000:
 		    frame_setting |= FRAME_LENGTH(64);
 		    slot_setting |= SLOT_SIZE(32) | DATA_SIZE(32);
-		    data_format = CVI_WORD_LEN_16;
-#if defined(__CV181X__) || (__CV180X__)
-			//printf("%s mars 48k\n", __func__);
+		    data_format = WORD_LEN_16;
+#if defined(ARCH_CV181X)
+			printf("%s 48k\n", __func__);
 #elif defined(ARCH_CV182X)
 			clk_ctrl1 |= MCLK_DIV(2);
 			mclk_div = 2;
@@ -444,9 +447,9 @@ void i2s_set_sample_rate(struct i2s_tdm_regs *i2s_reg, unsigned int sample_rate,
 		case 96000:
 		    frame_setting |= FRAME_LENGTH(64);
 		    slot_setting |= SLOT_SIZE(32) | DATA_SIZE(32);
-		    data_format = CVI_WORD_LEN_32;
-#if defined(__CV181X__) || (__CV180X__)
-			printf("%s mars 96k\n", __func__);
+		    data_format = WORD_LEN_32;
+#if defined(ARCH_CV181X)
+			printf("%s 96k\n", __func__);
 #elif defined(ARCH_CV182X)
 			clk_ctrl1 |= MCLK_DIV(3);
             mclk_div = 3;
@@ -461,9 +464,9 @@ void i2s_set_sample_rate(struct i2s_tdm_regs *i2s_reg, unsigned int sample_rate,
 		case 192000:
 		    frame_setting |= FRAME_LENGTH(64);
 		    slot_setting |= SLOT_SIZE(32) | DATA_SIZE(32);
-		    data_format = CVI_WORD_LEN_32;
-#if defined(__CV181X__) || (__CV180X__)
-			printf("%s mars 192k\n", __func__);
+		    data_format = WORD_LEN_32;
+#if defined(ARCH_CV181X)
+			printf("%s 192k\n", __func__);
 #elif defined(ARCH_CV182X)
 			clk_ctrl1 |= MCLK_DIV(3);
             mclk_div = 3;
@@ -497,7 +500,7 @@ void i2s_set_ws_clock_cycle(struct i2s_tdm_regs *i2s_reg, unsigned int ws_clk, u
 		switch(ws_clk) {
 			case WSS_16_CLKCYCLE:
 				debug("%s,case WSS_16_CLKCYCLE: \n", __func__);
-#if defined(__CV181X__) || (__CV180X__)
+#if defined(ARCH_CV181X)
 				frame_setting |= FRAME_LENGTH(32) | FS_ACT_LENGTH(16);
 				frame_setting |= 0x4000;
 				slot_setting1 |= SLOT_SIZE(16) | DATA_SIZE(16);
@@ -660,7 +663,7 @@ static void i2s_rxctrl(struct i2s_tdm_regs *i2s_reg, int on)
     u32 clk_ctrl = 0;
 
     blk_mode_setting = (readl(&i2s_reg->blk_mode_setting) & ~(TXRX_MODE_MASK));
-    clk_ctrl = (readl(&i2s_reg->i2s_clk_ctrl0) & ~(CVI_BCLK_OUT_FORCE_EN));
+    clk_ctrl = (readl(&i2s_reg->i2s_clk_ctrl0) & ~(BCLK_OUT_FORCE_EN));
 
     blk_mode_setting |= RX_MODE;
     mmio_write_32((uintptr_t)&i2s_reg->blk_mode_setting, blk_mode_setting);
@@ -687,19 +690,18 @@ static void i2s_rxctrl(struct i2s_tdm_regs *i2s_reg, int on)
  *
  * @param i2s_reg	i2s regiter address
  */
-extern void udelay(uint32_t us);
 void i2s_sw_reset(struct i2s_tdm_regs *i2s_reg)
 {
     int timeout_count = 0;
     if ((readl(&i2s_reg->blk_mode_setting) & TXRX_MODE_MASK) == TX_MODE)
     {
         mmio_write_32((uintptr_t)&i2s_reg->fifo_reset, TX_FIFO_RESET_PULL_UP);
-        udelay(10);
+        i2s_usleep(10);
         mmio_write_32((uintptr_t)&i2s_reg->fifo_reset, TX_FIFO_RESET_PULL_DOWN);
 
         mmio_write_32((uintptr_t)&i2s_reg->i2s_reset, I2S_RESET_TX_PULL_UP);
 
-        udelay(10);
+        i2s_usleep(10);
         while (1) {
             if ((readl(&i2s_reg->tx_status) & RESET_TX_SCLK) >> 23) {
                 debug("TX Reset complete\n");
@@ -708,7 +710,7 @@ void i2s_sw_reset(struct i2s_tdm_regs *i2s_reg)
                 printf("TX Reset Timeout\n");
                 break;
             }
-            udelay(1000);
+            i2s_usleep(1000);
             timeout_count++;
         }
          mmio_write_32((uintptr_t)&i2s_reg->i2s_reset, I2S_RESET_TX_PULL_DOWN);
@@ -719,11 +721,11 @@ void i2s_sw_reset(struct i2s_tdm_regs *i2s_reg)
         mmio_write_32((uintptr_t)&i2s_reg->i2s_clk_ctrl0, val | AUD_ENABLE);
 
         mmio_write_32((uintptr_t)&i2s_reg->fifo_reset, RX_FIFO_RESET_PULL_UP);
-        udelay(10);
+        i2s_usleep(10);
         mmio_write_32((uintptr_t)&i2s_reg->fifo_reset, RX_FIFO_RESET_PULL_DOWN);
 
         mmio_write_32((uintptr_t)&i2s_reg->i2s_reset, I2S_RESET_RX_PULL_UP);
-        udelay(10);
+        i2s_usleep(10);
         timeout_count = 0;
         while (1) {
             u32 tmp=readl(&i2s_reg->rx_status);
@@ -734,7 +736,7 @@ void i2s_sw_reset(struct i2s_tdm_regs *i2s_reg)
                 printf("RX Reset Timeout\n");
                 break;
             }
-            udelay(1000);
+            i2s_usleep(1000);
             timeout_count++;
         }
          mmio_write_32((uintptr_t)&i2s_reg->i2s_reset, I2S_RESET_RX_PULL_DOWN);
@@ -746,7 +748,7 @@ void i2s_sw_reset(struct i2s_tdm_regs *i2s_reg)
 #if 0
 static void i2s_subsys_int(unsigned int i2s_no)
 {
-	struct i2s_sys_regs *i2s_sys_reg = (struct i2s_sys_regs *)CVI_CONFIG_SYS_I2S_SYS_BASE;
+	struct i2s_sys_regs *i2s_sys_reg = (struct i2s_sys_regs *)CONFIG_SYS_I2S_SYS_BASE;
 	u32 bclk_oen_sel = readl(&i2s_sys_reg->i2s_bclk_oen_sel);
 
 	bclk_oen_sel |= 1 << i2s_no;
@@ -880,10 +882,10 @@ void i2s_set_audio_gpio(int role)
 {
 	switch(role) {
     	case MASTER_MODE:
-    		mmio_clrsetbits_32(CVI_REG_AUDIO_GPIO_BASE, 0xf << 0, 0x1);
+    		mmio_clrsetbits_32(REG_AUDIO_GPIO_BASE, 0xf << 0, 0x1);
     		break;
     	case SLAVE_MODE:
-    		mmio_clrsetbits_32(CVI_REG_AUDIO_GPIO_BASE, 0xf << 0, 0xB);
+    		mmio_clrsetbits_32(REG_AUDIO_GPIO_BASE, 0xf << 0, 0xB);
     		break;
     	default:
     		break;
@@ -918,14 +920,14 @@ int i2s_set_fmt(struct i2s_tdm_regs *i2s_reg,
 		mmio_write_32((uintptr_t)&i2s_reg->frame_setting, tmp);
 		tmp2 |= SLOT_NUM(slot_no);
 		mmio_write_32((uintptr_t)&i2s_reg->slot_setting1, tmp2);
-		codec_fmt |= CVI_SND_SOC_DAIFMT_I2S;
+		codec_fmt |= SND_SOC_DAIFMT_I2S;
 		break;
 	case LJ_MODE:
 		tmp |=NO_FS_OFFSET | FS_IDEF_FRAME_SYNC | FS_ACT_LENGTH(((tmp & FRAME_LENGTH_MASK)+1)/2);
 		mmio_write_32((uintptr_t)&i2s_reg->frame_setting, tmp);
 		tmp2 |= SLOT_NUM(slot_no);
 		mmio_write_32((uintptr_t)&i2s_reg->slot_setting1, tmp2);
-		codec_fmt |= CVI_SND_SOC_DAIFMT_LEFT_J;
+		codec_fmt |= SND_SOC_DAIFMT_LEFT_J;
 		break;
 	case RJ_MODE:
 		tmp |=NO_FS_OFFSET | FS_IDEF_FRAME_SYNC | FS_ACT_LENGTH(((tmp & FRAME_LENGTH_MASK)+1)/2);
@@ -933,21 +935,21 @@ int i2s_set_fmt(struct i2s_tdm_regs *i2s_reg,
 		tmp2 &= ~(FB_OFFSET_MASK);
 		tmp2 |= SLOT_NUM(slot_no)|FB_OFFSET((((tmp & FS_ACT_LENGTH_MASK) >> 16)-((tmp2 & DATA_SIZE_MASK) >> 16)));
 		mmio_write_32((uintptr_t)&i2s_reg->slot_setting1, tmp2);
-		codec_fmt |= CVI_SND_SOC_DAIFMT_RIGHT_J;
+		codec_fmt |= SND_SOC_DAIFMT_RIGHT_J;
 		break;
     case PCM_A_MODE:
 		tmp |=FS_OFFSET_1_BIT | FS_IDEF_FRAME_SYNC | FS_ACT_LENGTH(1);
 		mmio_write_32((uintptr_t)&i2s_reg->frame_setting, tmp);
 		tmp2 |= SLOT_NUM(slot_no);
 		mmio_write_32((uintptr_t)&i2s_reg->slot_setting1, tmp2);
-		codec_fmt |= CVI_SND_SOC_DAIFMT_DSP_A;
+		codec_fmt |= SND_SOC_DAIFMT_DSP_A;
 		break;
     case PCM_B_MODE:
 		tmp |=NO_FS_OFFSET | FS_IDEF_FRAME_SYNC | FS_ACT_LENGTH(1);
 		mmio_write_32((uintptr_t)&i2s_reg->frame_setting, tmp);
 		tmp2 |= SLOT_NUM(slot_no);
 		mmio_write_32((uintptr_t)&i2s_reg->slot_setting1, tmp2);
-		codec_fmt |= CVI_SND_SOC_DAIFMT_DSP_B;
+		codec_fmt |= SND_SOC_DAIFMT_DSP_B;
 		break;
     case TDM_MODE:
 		tmp |=NO_FS_OFFSET | FS_IDEF_FRAME_SYNC | FS_ACT_LENGTH(1);
@@ -955,7 +957,7 @@ int i2s_set_fmt(struct i2s_tdm_regs *i2s_reg,
 		tmp2 |= SLOT_NUM(slot_no);
 		mmio_write_32((uintptr_t)&i2s_reg->slot_setting1, tmp2);
 		mmio_write_32((uintptr_t)&i2s_reg->slot_setting2, 0x0f); /* enable slot 0-3 for TDM */
-		codec_fmt |= CVI_SND_SOC_DAIFMT_PDM;
+		codec_fmt |= SND_SOC_DAIFMT_PDM;
 		break;
 	default:
 
@@ -980,7 +982,7 @@ int i2s_set_fmt(struct i2s_tdm_regs *i2s_reg,
 			mmio_write_32((uintptr_t)&i2s_reg->blk_mode_setting, tmp);
 			tmp2 |= FS_ACT_LOW;
 			mmio_write_32((uintptr_t)&i2s_reg->frame_setting, tmp2);
-			codec_fmt |= CVI_SND_SOC_DAIFMT_IB_NF;
+			codec_fmt |= SND_SOC_DAIFMT_IB_NF;
 			break;
 
 		case FMT_IB_IF:
@@ -998,7 +1000,7 @@ int i2s_set_fmt(struct i2s_tdm_regs *i2s_reg,
 			tmp2 |= FS_ACT_HIGH;
 
 			mmio_write_32((uintptr_t)&i2s_reg->frame_setting, tmp2);
-			codec_fmt |= CVI_SND_SOC_DAIFMT_IB_IF;
+			codec_fmt |= SND_SOC_DAIFMT_IB_IF;
 			break;
 
 		case FMT_NB_NF:
@@ -1016,7 +1018,7 @@ int i2s_set_fmt(struct i2s_tdm_regs *i2s_reg,
 			mmio_write_32((uintptr_t)&i2s_reg->blk_mode_setting, tmp);
 			tmp2 |= FS_ACT_LOW;
 			mmio_write_32((uintptr_t)&i2s_reg->frame_setting, tmp2);
-			codec_fmt |= CVI_SND_SOC_DAIFMT_NB_NF;
+			codec_fmt |= SND_SOC_DAIFMT_NB_NF;
 			break;
 		case FMT_NB_IF:
 			debug("Set format to NBIF\n");
@@ -1031,7 +1033,7 @@ int i2s_set_fmt(struct i2s_tdm_regs *i2s_reg,
 			mmio_write_32((uintptr_t)&i2s_reg->blk_mode_setting, tmp);
 			tmp2 |= FS_ACT_HIGH;
 			mmio_write_32((uintptr_t)&i2s_reg->frame_setting, tmp2);
-			codec_fmt |= CVI_SND_SOC_DAIFMT_NB_IF;
+			codec_fmt |= SND_SOC_DAIFMT_NB_IF;
 			break;
 		default:
 			debug("%s: Invalid clock ploarity input\n", __func__);
@@ -1050,7 +1052,7 @@ int i2s_set_fmt(struct i2s_tdm_regs *i2s_reg,
 			mmio_write_32((uintptr_t)&i2s_reg->blk_mode_setting, tmp);
 			tmp2 |= FS_ACT_HIGH;
 			mmio_write_32((uintptr_t)&i2s_reg->frame_setting, tmp2);
-			codec_fmt |= CVI_SND_SOC_DAIFMT_IB_IF;
+			codec_fmt |= SND_SOC_DAIFMT_IB_IF;
 	}
 
 	tmp=readl(&i2s_reg->blk_mode_setting) & ~(ROLE_MASK); /* clear bit 2~4 to set frame format */
@@ -1058,12 +1060,12 @@ int i2s_set_fmt(struct i2s_tdm_regs *i2s_reg,
     	case MASTER_MODE:
     		tmp |=MASTER_MODE;
 			mmio_write_32((uintptr_t)&i2s_reg->blk_mode_setting, tmp);
-    		codec_fmt |= CVI_SND_SOC_DAIFMT_CBS_CFS; /* Set codec to slave */
+    		codec_fmt |= SND_SOC_DAIFMT_CBS_CFS; /* Set codec to slave */
     		break;
     	case SLAVE_MODE:
     		tmp |= SLAVE_MODE;
 			mmio_write_32((uintptr_t)&i2s_reg->blk_mode_setting, tmp);
-    		codec_fmt |= CVI_SND_SOC_DAIFMT_CBM_CFM; /* Set codec to master*/
+    		codec_fmt |= SND_SOC_DAIFMT_CBM_CFM; /* Set codec to master*/
     		break;
     	default:
 
@@ -1077,8 +1079,8 @@ int i2s_set_fmt(struct i2s_tdm_regs *i2s_reg,
 int i2s_receive_rx_data(struct i2stx_info *pi2s_tx)
 {
 	struct i2s_tdm_regs *i2s_reg = pi2s_tx->base_address;
-	//volatile u32 fifo_depth = (readl(&i2s_reg->fifo_threshold) & RX_FIFO_THRESHOLD_MASK);
-	//printf("%s, i2s_reg base=%p, fifo_depth = %d, \n", __func__, i2s_reg, fifo_depth);
+	volatile u32 fifo_depth = (readl(&i2s_reg->fifo_threshold) & RX_FIFO_THRESHOLD_MASK);
+	printf("%s, i2s_reg base=%p, fifo_depth = %d, \n", __func__, i2s_reg, fifo_depth);
 
 	i2s_rxctrl(i2s_reg, I2S_RX_ON);
 	i2s_sw_reset(i2s_reg);
@@ -1092,9 +1094,9 @@ int i2s_transfer_tx_data(struct i2stx_info *pi2s_tx)
 {
 
     struct i2s_tdm_regs *i2s_reg = pi2s_tx->base_address;
-    //volatile u32 fifo_depth = (readl(&i2s_reg->fifo_threshold) & TX_FIFO_THRESHOLD_MASK) >> 16;
+    volatile u32 fifo_depth = (readl(&i2s_reg->fifo_threshold) & TX_FIFO_THRESHOLD_MASK) >> 16;
 
-    //printf("%s, i2s_reg base=%p, fifo_depth = %d, \n", __func__, i2s_reg, fifo_depth);
+    printf("%s, i2s_reg base=%p, fifo_depth = %d, \n", __func__, i2s_reg, fifo_depth);
 
     /* fill the tx buffer before stating the tx transmit */
 
@@ -1115,25 +1117,7 @@ void i2s_subsys_io_init(struct i2stx_info *pi2s_tx)
 	if (initonce)
 		return;
 	initonce = true;
-        i2s_sys_reg->i2s_tdm_sclk_in_sel = 0x00007614;
-        i2s_sys_reg->i2s_tdm_fs_in_sel = 0x00007614;
-        i2s_sys_reg->i2s_tdm_sdi_in_sel = 0x00007614;
-        i2s_sys_reg->i2s_tdm_sdo_out_sel = 0x00007654;
-        i2s_sys_reg->i2s_tdm_multi_sync = 0x00009009;
-        i2s_sys_reg->audio_pdm_ctrl = 0x02;
-        i2s_sys_reg->i2s_bclk_oen_sel = 0x00000404;
 
-        i2s_sys_reg->i2s_sys_clk_ctrl = 0x00000000;
-        i2s_sys_reg->i2s0_master_clk_ctrl0 = 0x00000040;
-        i2s_sys_reg->i2s0_master_clk_ctrl1 = 0x00020002;
-        i2s_sys_reg->i2s1_master_clk_ctrl0 = 0x00000040;
-        i2s_sys_reg->i2s1_master_clk_ctrl1 = 0x00020002;
-        i2s_sys_reg->i2s2_master_clk_ctrl0 = 0x00000040;
-        i2s_sys_reg->i2s2_master_clk_ctrl1 = 0x00020002;
-        i2s_sys_reg->i2s3_master_clk_ctrl0 = 0x00000040;
-        i2s_sys_reg->i2s3_master_clk_ctrl1 = 0x00020002;
-        i2s_sys_reg->i2s_sys_lrck_ctrl  = 0x00000000;
-#if 0
 #ifdef CV183X
     if(pi2s_tx->id == I2S1 || pi2s_tx->id == I2S2){
         debug("%s #ifdef CV183X I2S1/I2S2 \n", __func__);
@@ -1153,15 +1137,7 @@ void i2s_subsys_io_init(struct i2stx_info *pi2s_tx)
         i2s_sys_reg->i2s_bclk_oen_sel = 0x00000000;
     }
 #else
-    if(pi2s_tx->id == I2S1){
-		i2s_sys_reg->i2s_tdm_sclk_in_sel = 0x7614; /* BCLK from I2S1 as master, I2S2 BCLK form I2S1 */
-		i2s_sys_reg->i2s_tdm_fs_in_sel = 0x7214; /* LRCK from I2S1 as master, I2S2 LRCK from I2S1 */
-		i2s_sys_reg->i2s_tdm_sdi_in_sel = 0x7614; /*select i2s_tdm1 sdi to IO SDI_i2s1 */
-		i2s_sys_reg->i2s_tdm_sdo_out_sel = 0x7604; /* select i2s_tdm1 sdo to IO SDO_i2s1 */
-		i2s_sys_reg->i2s_tdm_multi_sync = 0x00; /*0x600 I2S2 sync with I2S1 */
-		i2s_sys_reg->i2s_bclk_oen_sel = 0x0404;
-		i2s_sys_reg->audio_pdm_ctrl = 0x02;
-	}else if(pi2s_tx->id == I2S2){
+    if(pi2s_tx->id == I2S1 || pi2s_tx->id == I2S2){
 
 		debug("%s #ifdef !CV183X I2S1/I2S2 \n", __func__);
 		i2s_sys_reg->i2s_tdm_sclk_in_sel = 0x7554; /* BCLK from I2S1 as master, I2S2 BCLK form I2S1 */
@@ -1204,7 +1180,7 @@ void i2s_subsys_io_init(struct i2stx_info *pi2s_tx)
 	}
 
 #endif
-#endif
+
 }
 
 

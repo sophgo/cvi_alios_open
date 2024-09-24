@@ -32,7 +32,7 @@ extern "C" {
 /**
  * Memory buffer align to MM_ALIGN_SIZE
  */
-#define MM_ALIGN_BIT            3
+#define MM_ALIGN_BIT            6
 #define MM_ALIGN_SIZE           (1 << MM_ALIGN_BIT)
 #define MM_ALIGN_MASK           (MM_ALIGN_SIZE - 1)
 #define MM_ALIGN_UP(a)          (((a) + MM_ALIGN_MASK) & ~MM_ALIGN_MASK)
@@ -146,7 +146,7 @@ typedef struct free_ptr_struct {
 #define ALIGN_UP_2(a) ((a % 2 == 0) ? a : (a + 1))
 
 typedef struct k_mm_list_struct {
-#if (RHINO_CONFIG_MM_DEBUG > 0)
+// #if (RHINO_CONFIG_MM_DEBUG > 0)
     uint16_t dye;
     uint8_t owner_id;
     uint8_t trace_id;
@@ -154,7 +154,7 @@ typedef struct k_mm_list_struct {
 #if (RHINO_CONFIG_MM_TRACE_LVL > 0)
     void  *trace[ALIGN_UP_2(RHINO_CONFIG_MM_TRACE_LVL)];
 #endif
-#endif
+// #endif
     struct k_mm_list_struct *prev;
     /**<
      * buffer payload size, and:
@@ -251,6 +251,12 @@ void krhino_mm_free(void *ptr);
  */
 void *krhino_mm_realloc(void *oldmem, size_t newsize);
 
+void *krhino_mm_alloc_resv(size_t size);
+
+void krhino_mm_free_resv(void *ptr);
+
+void *krhino_mm_realloc_resv(void *oldmem, size_t newsize);
+
 /**
  * Get the max free buffer size.
  *
@@ -259,6 +265,8 @@ void *krhino_mm_realloc(void *oldmem, size_t newsize);
  * @return  the max free buffer size
  */
 size_t krhino_mm_max_free_size_get(void);
+
+size_t krhino_mm_max_free_size_get_resv(void);
 
 #else
 

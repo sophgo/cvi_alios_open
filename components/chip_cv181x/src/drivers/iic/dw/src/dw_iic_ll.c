@@ -61,17 +61,17 @@ int32_t dw_iic_xfer_init(dw_iic_regs_t *iic_base, uint32_t dev_addr,
 
 int32_t dw_iic_xfer_finish(dw_iic_regs_t *iic_base)
 {
-	uint32_t timeout = 0;
+    uint16_t timeout = 0;
 	while (1) {
 		if (iic_base->IC_RAW_INTR_STAT & DW_IIC_RAW_STOP_DET) {
 			iic_base->IC_CLR_STOP_DET;
 			break;
 		} else {
-			timeout++;
+            timeout++;
 			udelay(5);
-			if (timeout > 1000000) {
+            if (timeout > 10000) {
 				log("xfer finish tiemout\n");
-				break;
+			    break;
 			}
 		}
 	}

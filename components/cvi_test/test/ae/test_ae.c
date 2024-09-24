@@ -15,8 +15,8 @@
 #include "cvi_buffer.h"
 #include "test_vi.h"
 #include "cvi_sns_ctrl.h"
-#include "cif_uapi.h"
-#include "common_vi.h"
+#include "cvi_comm_cif.h"
+#include "sensor_cfg.h"
 #include <pinctrl-mars.h>
 #include "vi_isp.h"
 

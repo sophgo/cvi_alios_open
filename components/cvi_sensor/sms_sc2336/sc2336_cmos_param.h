@@ -7,12 +7,9 @@ extern "C" {
 #endif
 #endif
 
-#ifdef ARCH_CV182X
-#include "cvi_vip_cif_uapi.h"
-#else
-#include "cif_uapi.h"
-#endif
+#include "cvi_comm_cif.h"
 #include "cvi_type.h"
+#include "cvi_sns_ctrl.h"
 #include "sc2336_cmos_ex.h"
 
 static const SC2336_MODE_S g_astSC2336_mode[SC2336_MODE_NUM] = {
@@ -97,8 +94,7 @@ struct combo_dev_attr_s sc2336_rx_attr = {
 	.mac_clk = RX_MAC_CLK_200M,
 	.mipi_attr = {
 		.raw_data_type = RAW_DATA_10BIT,
-		.lane_id = {4, 3, 2, -1, -1},
-		.pn_swap = {0, 0, 0, 0, 0},
+		.lane_id = {2, 0, 1, -1, -1},
 		.wdr_mode = CVI_MIPI_WDR_MODE_NONE,
 		.dphy = {
 			.enable = 1,
@@ -106,7 +102,7 @@ struct combo_dev_attr_s sc2336_rx_attr = {
 		}
 	},
 	.mclk = {
-		.cam = 1,
+		.cam = 0,
 		.freq = CAMPLL_FREQ_27M,
 	},
 	.devno = 0,

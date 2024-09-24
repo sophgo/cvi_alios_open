@@ -1,6 +1,5 @@
 #include "cvi_sns_ctrl.h"
 #include "cvi_comm_video.h"
-
 #include "sc1336_2L_cmos_ex.h"
 #include "drv/common.h"
 #include "sensor_i2c.h"
@@ -13,7 +12,7 @@ static void sc1336_2l_linear_720p30_init(VI_PIPE ViPipe);
 #define SC1336_2L_CHIP_ID_LO_ADDR		0x3108
 #define SC1336_2L_CHIP_ID				0xca3f
 
-const CVI_U8 sc1336_2l_i2c_addr = 0x30;        /* I2C Address of SC1336_2L */
+CVI_U8 sc1336_2l_i2c_addr = 0x30;        /* I2C Address of SC1336_2L */
 
 /*msg type  address:16-bit  data:8-bit  dev addr:7-bit*/
 const CVI_U32 sc1336_2l_addr_byte = 2;
@@ -120,6 +119,8 @@ void sc1336_2l_init(VI_PIPE ViPipe)
 		sc1336_2l_linear_720p60_init(ViPipe);
 
 	g_pastSC1336_2L[ViPipe]->bInit = CVI_TRUE;
+	/*In Aliso,repeating the init sensor does not initialize global variables,manually set 0*/
+	g_aeSc1336_MirrorFip[ViPipe] = 0;
 }
 
 void sc1336_2l_exit(VI_PIPE ViPipe)

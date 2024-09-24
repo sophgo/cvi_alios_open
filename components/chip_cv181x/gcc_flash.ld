@@ -8,9 +8,10 @@
  * @version  V1.0
  * @date     02. June 2017
  ******************************************************************************/
+INCLUDE cvi_board_memmap.ld
 MEMORY
 {
-    DRAM   : ORIGIN = 0x80040000, LENGTH = 0x3FC0000   /* DRAM 64M-256K */
+    DRAM   : ORIGIN = CVIMMAP_ALIOS_SYS_ADDR, LENGTH = CVIMMAP_ALIOS_SYS_SIZE   /* DRAM 64M-2M-256K */
 }
 
 __min_heap_size = 0x200;
@@ -132,7 +133,6 @@ SECTIONS
     __post_driver_end__ = .;
 /************** end of drivers *********/
 
-
   __erodata = .;
   __rodata_end__ = .;
  } > REGION_RODATA
@@ -148,6 +148,18 @@ SECTIONS
   *(.data)
   *(.data*)
   *(.data1)
+  . = ALIGN(((DEFINED(fw_h265) || DEFINED(fw_h265))  ? 4096 : 0x0)) ;
+
+  __h265_start_addr = . ;
+  *(.fw_h265)
+  __h265_start_end = __h265_start_addr + (DEFINED(fw_h265) ? 0x28000 : 0x0) ;
+  . = __h265_start_end ;
+
+  __h264_start_addr = . ;
+  *(.fw_h264)
+  __h264_start_end = __h264_start_addr + (DEFINED(fw_h264) ? 0x3e000 : 0x0) ;
+  . = __h264_start_end ;
+
   *(.data.*)
   *(.gnu.linkonce.d*)
   *(.data1)
@@ -172,7 +184,7 @@ SECTIONS
   __edata = .;
   __data_end__ = .;
   . = ALIGN(0x8) ;
- } > REGION_DATA 
+ } > REGION_DATA
  .gcc_except_table : ONLY_IF_RW {
   *(.gcc_except_table .gcc_except_table.*)
   __edata = .;
@@ -202,7 +214,7 @@ SECTIONS
   __bss_end__ = .;
   __end = . ;
   end = . ;
- } > REGION_BSS 
+ } > REGION_BSS
  ._user_heap : {
   . = ALIGN(0x8) ;
   __heap_start = .;

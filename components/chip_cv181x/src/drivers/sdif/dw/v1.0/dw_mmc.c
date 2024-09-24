@@ -20,6 +20,7 @@
 #include <dw_sdmmc.h>
 #include <sys_clk.h>
 #include "top_reg.h"
+#include <aos/kernel.h>
 
 /* LOG_LEVEL: 0: Err; 1: Err&Warn; 2: Err&Warn&Info; 3: Err&Warn&Info&Debug */
 #define LOG_LEVEL 0
@@ -67,7 +68,7 @@ static sdif_state_t *s_sdifState[CONFIG_SDIO_NUM];
 
 /*! @brief SDIF base pointer array */
 static SDIF_TYPE *s_sdifBase[CONFIG_SDIO_NUM];
-static sdif_type_t param[CONFIG_SDIO_NUM];
+static sdif_type_t *param[CONFIG_SDIO_NUM];
 /*! @brief SDIF IRQ name array */
 static int s_sdifIRQ[CONFIG_SDIO_NUM];
 
@@ -220,10 +221,42 @@ void sdhci_pinmux_dump(void)
 	printf("=========== SDIO PINMUX DUMP END ===========\n");
 }
 
+static int32_t sdif_get_idx(sdif_handle_t handle)
+{
+    SDIF_TYPE *base = (SDIF_TYPE *)handle;
+    uint32_t sdif;
+
+    for (sdif = 0; sdif < CONFIG_SDIO_NUM; sdif++) {
+        if (base == s_sdifBase[sdif]) {
+            break;
+        }
+    }
+
+    if (sdif >= CONFIG_SDIO_NUM) {
+        return 0;
+    }
+
+    return sdif;
+}
+
+
+uint32_t SDIF_GetInstance(SDIF_TYPE *base)
+{
+    uint8_t instance = 0U;
+
+    while ((instance < ARRAY_SIZE(s_sdifBase)) && (s_sdifBase[instance] != base)) {
+        instance++;
+    }
+
+    assert(instance < ARRAY_SIZE(s_sdifBase));
+
+    return instance;
+}
+
 static void SDIF_FinishCommand(SDIF_TYPE *base, uint32_t sdif)
 {
 	int i;
-	sdif_command_t *command = param[sdif].command;
+	sdif_command_t *command = param[sdif]->command;
 	uintptr_t BASE = (uintptr_t)base;
 
 	if (command) {
@@ -242,8 +275,8 @@ static void SDIF_FinishCommand(SDIF_TYPE *base, uint32_t sdif)
 			((command->response_type == SDIF_CARD_RESPONSE_R1) || (command->response_type == SDIF_CARD_RESPONSE_R1b) ||
 			 (command->response_type == SDIF_CARD_RESPONSE_R6) || (command->response_type == SDIF_CARD_RESPONSE_R5))) {
 			if (((command->resopnse_error_flags) & (command->response[0U])) != 0U) {
-				param[sdif].cmd_error = kStatus_SDIF_ResponseError;
-				param[sdif].data_error = kStatus_SDIF_ResponseError;
+				param[sdif]->cmd_error = kStatus_SDIF_ResponseError;
+				param[sdif]->data_error = kStatus_SDIF_ResponseError;
 			}
 		}
 	}
@@ -251,7 +284,7 @@ static void SDIF_FinishCommand(SDIF_TYPE *base, uint32_t sdif)
 
 static void SDIF_CmdIrq(SDIF_TYPE *base, uint32_t intmask, uint32_t sdif)
 {
-	if (!param[sdif].command) {
+	if (!param[sdif]->command) {
 		//printf("Got command interrupt 0x%08x even through no command operation was in progress.\n", intmask);
 		return;
 	}
@@ -259,11 +292,11 @@ static void SDIF_CmdIrq(SDIF_TYPE *base, uint32_t intmask, uint32_t sdif)
 	if (intmask & (SDIF_INT_TIMEOUT | SDIF_INT_CRC |
 		       SDIF_INT_END_BIT | SDIF_INT_INDEX)) {
 		if (intmask & SDIF_INT_TIMEOUT)
-			param[sdif].cmd_error = -ETIMEDOUT;
+			param[sdif]->cmd_error = -ETIMEDOUT;
 		else
-			param[sdif].cmd_error = -47;
-		param[sdif].intmask = intmask;
-		param[sdif].command = NULL;
+			param[sdif]->cmd_error = -47;
+		param[sdif]->intmask = intmask;
+		param[sdif]->command = NULL;
 		return;
 	}
 
@@ -280,29 +313,29 @@ static void SDIF_DataIrq(SDIF_TYPE *base, uint32_t intmask, uint32_t sdif)
 	if (intmask & SDIF_INT_DATA_AVAIL) {
 		command = SDIF_GET_CMD(mmio_read_16(BASE + SDIF_COMMAND));
 		if (command == MMC_CMD19 ||
-		    command == MMC_CMD21) {
+		    command == MMC_CMD19) {
 			//host->tuning_done = 1;
 			return;
 		}
 	}
 
 	if (intmask & SDIF_INT_DATA_TIMEOUT)
-		param[sdif].data_error = -ETIMEDOUT;
+		param[sdif]->data_error = -ETIMEDOUT;
 	else if (intmask & SDIF_INT_DATA_END_BIT)
-		param[sdif].data_error = -45;
+		param[sdif]->data_error = -45;
 	else if (intmask & SDIF_INT_DATA_CRC)
-		param[sdif].data_error = -47;
+		param[sdif]->data_error = -47;
 	else if (intmask & SDIF_INT_ADMA_ERROR)
-		param[sdif].data_error = -EIO;
+		param[sdif]->data_error = -EIO;
 
 
-	if (param[sdif].data_error) {
-		param[sdif].command = NULL;
-		param[sdif].data = NULL;
+	if (param[sdif]->data_error) {
+		param[sdif]->command = NULL;
+		param[sdif]->data = NULL;
 	} else {
 		if (intmask & SDIF_INT_DATA_END) {
-			param[sdif].command = NULL;
-			param[sdif].data = NULL;
+			param[sdif]->command = NULL;
+			param[sdif]->data = NULL;
 			return;
 		}
 
@@ -317,19 +350,10 @@ static void SDIF_DataIrq(SDIF_TYPE *base, uint32_t intmask, uint32_t sdif)
 	return;
 }
 
-static void SDIF_TransferHandleSDIOInterrupt(SDIF_TYPE *base)
-{
-    uint32_t sdif = csi_sdif_get_idx(base);
-
-    if (s_sdifState[sdif]->callback.sdif_interrupt != NULL) {
-        s_sdifState[sdif]->callback.sdif_interrupt(sdif, s_sdifState[sdif]->user_data);
-    }
-}
-
 static void SDIF_TransferHandleIRQ(unsigned int irqn, void *priv)
 {
 	SDIF_TYPE *base = priv;
-	uint32_t sdif = csi_sdif_get_idx(base);
+	uint32_t sdif = SDIF_GetInstance(base);
 	uintptr_t BASE = (uintptr_t)base;
 	int max_loop             = 16;
 	uint32_t intmask;
@@ -353,11 +377,7 @@ static void SDIF_TransferHandleIRQ(unsigned int irqn, void *priv)
 
 		if (intmask & SDIF_INT_CMD_MASK) {
 			SDIF_CmdIrq(base, intmask & SDIF_INT_CMD_MASK, sdif);
-#ifndef CONFIG_KERNEL_NONE
-			aos_event_set(&param[sdif]._gcmdEvent, 0x01, AOS_EVENT_OR);
-#else
-			param[sdif].cmd_completion = 1;
-#endif
+			param[sdif]->cmd_completion = 1;
 		}
 
 		if (intmask & SDIF_INT_DMA_END) {
@@ -370,15 +390,7 @@ static void SDIF_TransferHandleIRQ(unsigned int irqn, void *priv)
 
 		if (intmask & SDIF_INT_DATA_MASK) {
 			SDIF_DataIrq(base, intmask & SDIF_INT_DATA_MASK, sdif);
-#ifndef CONFIG_KERNEL_NONE
-			aos_event_set(&param[sdif]._gdataEvent, 0x01, AOS_EVENT_OR);
-#else
-			param[sdif].data_completion = 1;
-#endif
-		}
-
-		if (intmask & SDIF_INT_CARD_INT) {
-			SDIF_TransferHandleSDIOInterrupt(base);
+			param[sdif]->data_completion = 1;
 		}
 
 		intmask &= ~(SDIF_INT_CARD_INSERT | SDIF_INT_CARD_REMOVE |
@@ -405,21 +417,15 @@ void dw_sdio_irqhandler(csi_dev_t *dev)
     s_sdifIsr(s_sdifBase[idx], s_sdifState[idx]);
 }
 
-extern uint32_t csi_tick_get_ms(void);
 status_t SDIF_SendCommand(SDIF_TYPE *base, sdif_command_t *cmd, uint32_t timeout)
 {
 	uint32_t flags = 0x00;
 	uintptr_t BASE = (uintptr_t)base;
-	uint32_t sdif = csi_sdif_get_idx(base);
-	int end_time = 0;
-	int start_time = csi_tick_get_ms();
+	uint32_t sdif = SDIF_GetInstance(base);
 
 	while (1) {
 		if (!(mmio_read_32(BASE + SDIF_PRESENT_STATE) & SDIF_CMD_INHIBIT))
 			break;
-		end_time = csi_tick_get_ms();
-		if (end_time - start_time >= 2000)
-			return -1;
 	}
 
 	if (cmd->index == MMC_CMD0)
@@ -439,13 +445,9 @@ status_t SDIF_SendCommand(SDIF_TYPE *base, sdif_command_t *cmd, uint32_t timeout
 
 	// make sure dat line is clear if necessary
 	if (flags & SDIF_CMD_RESP_SHORT_BUSY) {
-		start_time = csi_tick_get_ms();
 		while (1) {
 			if (!(mmio_read_32(BASE + SDIF_PRESENT_STATE) & SDIF_CMD_INHIBIT_DAT))
 				break;
-			end_time = csi_tick_get_ms();
-			if (end_time - start_time >= 2000)
-				return -1;
 		}
 	}
 
@@ -470,106 +472,9 @@ status_t SDIF_SendCommand(SDIF_TYPE *base, sdif_command_t *cmd, uint32_t timeout
 	return timeout ? kStatus_Success : kStatus_Fail;
 }
 
-/*!
- * @brief enable/disable the card power.
- * once turn power on, software should wait for regulator/switch
- * ramp-up time before trying to initialize card.
- * @param base SDIF peripheral base address.
- * @param enable/disable flag.
- */
-void csi_sdif_enable_card_power(sdif_handle_t handle, bool enable)
+bool SDIF_SendCardActive(SDIF_TYPE *base, uint32_t timeout)
 {
-    return;
-    SDIF_TYPE *base = (SDIF_TYPE *)handle;
-    uintptr_t BASE = (uintptr_t)base;
-    if (enable) {
-        mmio_write_8(BASE + SDIF_PWR_CONTROL,mmio_read_8(BASE + SDIF_PWR_CONTROL) | 0x1);
-    } else {
-        mmio_write_8(BASE + SDIF_PWR_CONTROL,mmio_read_8(BASE+ SDIF_PWR_CONTROL) & ~0x1);
-    }
-}
-
-void csi_sdif_enable_interrupt(sdif_handle_t handle, uint32_t mask)
-{
-    SDIF_TYPE *base = (SDIF_TYPE *)handle;
-	uintptr_t BASE = (uintptr_t)base;
-
-	mask = mmio_read_16(BASE + SDIF_SIGNAL_ENABLE);
-	mask |= SDIF_INT_CARD_INT;
-
-	mmio_write_16(BASE + SDIF_INT_ENABLE, mask);
-	mmio_write_16(BASE + SDIF_SIGNAL_ENABLE, mask);
-}
-
-void csi_sdif_disable_interrupt(sdif_handle_t handle, uint32_t mask)
-{
-    SDIF_TYPE *base = (SDIF_TYPE *)handle;
-	uintptr_t BASE = (uintptr_t)base;
-
-	mask = mmio_read_16(BASE + SDIF_SIGNAL_ENABLE);
-	mask &= ~SDIF_INT_CARD_INT;
-
-	mmio_write_16(BASE + SDIF_INT_ENABLE, mask);
-	mmio_write_16(BASE + SDIF_SIGNAL_ENABLE, mask);
-}
-
-void csi_sdif_enable_card_detect_interrupt(sdif_handle_t handle)
-{
-    //该case废弃使用 mask无区分会打开SDIF中断,不接入
-    //csi_sdif_enable_interrupt(handle, kSDIF_CardDetect);
-}
-
-void csi_sdif_enable_sdio_interrupt(sdif_handle_t handle)
-{
-    csi_sdif_enable_interrupt(handle, kSDIF_SDIOInterrupt);
-}
-
-void csi_sdif_disable_sdio_interrupt(sdif_handle_t handle)
-{
-    csi_sdif_disable_interrupt(handle, kSDIF_SDIOInterrupt);
-}
-
-/*!
- * @brief SDIF module detect card insert status function.
- * @param base SDIF peripheral base address.
- * @param data3 indicate use data3 as card insert detect pin
- * @retval 1 card is inserted
- *         0 card is removed
- */
-uint32_t csi_sdif_detect_card_insert(sdif_handle_t handle, bool data3)
-{
-    SDIF_TYPE *base = (SDIF_TYPE *)handle;
-    uintptr_t BASE = (uintptr_t)base;
-    if (data3) {
-        return (mmio_read_32(BASE+SDIF_PRESENT_STATE) & SDIF_CARD_STABLE) == SDIF_CARD_STABLE ? 0U : 1U;
-    } else {
-        return (mmio_read_32(BASE+SDIF_PRESENT_STATE) & SDIF_CARD_INSERTED) == SDIF_CARD_INSERTED ? 1U : 0U;
-    }
-}
-
-bool csi_sdif_send_card_active(sdif_handle_t handle, uint32_t timeout)
-{
-    SDIF_TYPE *base = (SDIF_TYPE *)handle;
-    (void)base;
     return true;
-}
-
-/*!
- * @brief SDIF module enable/disable card clock.
- * @param base SDIF peripheral base address.
- * @param enable/disable flag
- */
-void csi_sdif_enable_card_clock(sdif_handle_t handle, bool enable)
-{
-    SDIF_TYPE *base = (SDIF_TYPE *)handle;
-    uintptr_t BASE = (uintptr_t)base;
-    if (enable) {
-         mmio_write_16(BASE + SDIF_CLK_CTRL,
-				mmio_read_32(BASE + SDIF_CLK_CTRL) | (0x1<<2)); // stop SD clock
-    } else {
-        mmio_write_16(BASE + SDIF_CLK_CTRL,
-				mmio_read_32(BASE + SDIF_CLK_CTRL) & ~(0x1<<2)); // stop SD clock
-    }
 }
 
 uint32_t SDIF_SetCardClock(SDIF_TYPE *base, uint32_t srcClock_Hz, uint32_t target_HZ)
@@ -588,14 +493,14 @@ uint32_t SDIF_SetCardClock(SDIF_TYPE *base, uint32_t srcClock_Hz, uint32_t targe
 				break;
 		}
 		if(divider == 0x3FF){
-			//printf("Warning: Can't set the freq to %d, divider is filled!!!\n", target_HZ);
+			sdif_printf(SDIF_DBG,"Warning: Can't set the freq to %d, divider is filled!!!\n", target_HZ);
 		}
 	}
 
 	assert(divider <= 0x3FF);
 
 	if (mmio_read_16(BASE + SDIF_HOST_CONTROL2) & 1<<15) {
-		//printf("Use SDCLK Preset Value.\n");
+		sdif_printf(SDIF_DBG, "Use SDCLK Preset Value.\n");
 	} else {
 		mmio_write_16(BASE + SDIF_CLK_CTRL,
 				mmio_read_16(BASE + SDIF_CLK_CTRL) & ~0x9); // disable INTERNAL_CLK_EN and PLL_ENABLE
@@ -613,7 +518,7 @@ uint32_t SDIF_SetCardClock(SDIF_TYPE *base, uint32_t srcClock_Hz, uint32_t targe
 		}
 
 		if (i > 150000) {
-			//printf("SD INTERNAL_CLK_EN seting FAILED!\n");
+			sdif_printf(SDIF_DBG, "SD INTERNAL_CLK_EN seting FAILED!\n");
 			assert(0);
 		}
 
@@ -628,7 +533,7 @@ uint32_t SDIF_SetCardClock(SDIF_TYPE *base, uint32_t srcClock_Hz, uint32_t targe
 		}
 	}
 
-	printf("SD PLL seting FAILED!\n");
+	sdif_printf(SDIF_DBG, "SD PLL seting FAILED!\n");
 	return -1;
 }
 
@@ -653,7 +558,7 @@ uint32_t SDIF_ChangeCardClock(SDIF_TYPE *base, uint32_t srcClock_Hz, uint32_t ta
 				break;
 		}
 		if(divider == 0x3FF){
-			//printf("Warning: Can't set the freq to %d, divider is filled!!!\n", target_HZ);
+			sdif_printf(SDIF_DBG,"Warning: Can't set the freq to %d, divider is filled!!!\n", target_HZ);
 		}
 	}
 
@@ -667,7 +572,7 @@ uint32_t SDIF_ChangeCardClock(SDIF_TYPE *base, uint32_t srcClock_Hz, uint32_t ta
 			mmio_read_16(BASE + SDIF_CLK_CTRL) & ~0x8); // disable  PLL_ENABLE
 
 	if (mmio_read_16(BASE + SDIF_HOST_CONTROL2) & 1<<15) {
-		//printf("Use SDCLK Preset Value.\n");
+		sdif_printf(SDIF_DBG, "Use SDCLK Preset Value.\n");
 		// 4 need recheck?
 		mmio_write_16(BASE + SDIF_HOST_CONTROL2,
 				mmio_read_16(BASE + SDIF_HOST_CONTROL2) & ~0x7); // clr UHS_MODE_SEL
@@ -690,7 +595,7 @@ uint32_t SDIF_ChangeCardClock(SDIF_TYPE *base, uint32_t srcClock_Hz, uint32_t ta
 		udelay(100);
 	}
 
-	printf("SD PLL seting FAILED!\n");
+	sdif_printf(SDIF_DBG, "SD PLL seting FAILED!\n");
 
 	return -1;
 }
@@ -730,15 +635,12 @@ void SDIF_Init(SDIF_TYPE *base, uint32_t sdif)
 	mmio_write_16(BASE + SDIF_INT_STATUS_EN, mmio_read_16(BASE + SDIF_INT_STATUS_EN) | 0xFFFF);
 	mmio_write_16(BASE + SDIF_ERR_INT_STATUS_EN, mmio_read_16(BASE + SDIF_ERR_INT_STATUS_EN) | 0xFFFF);
 
-	if (param[sdif].ier) {
+	if (param[sdif]->ier) {
 		if (BASE == SDIO0_BASE)
 			request_irq(36, SDIF_TransferHandleIRQ, 0, "sdio0_irq", base);
 		else if(BASE == SDIO1_BASE)
 			request_irq(38, SDIF_TransferHandleIRQ, 0, "sdio1_irq", base);
-		else if(BASE == SDIO2_BASE)
-			request_irq(34, SDIF_TransferHandleIRQ, 0, "sdio2_irq", base);
-
-		mmio_write_32(BASE + SDIF_SIGNAL_ENABLE, param[sdif].ier);
+		mmio_write_32(BASE + SDIF_SIGNAL_ENABLE, param[sdif]->ier);
 	} else {
 		mmio_write_32(BASE + SDIF_SIGNAL_ENABLE, 0);
 	}
@@ -785,55 +687,31 @@ uint32_t SDIF_PrepareData(SDIF_TYPE *base,sdif_dma_config_t *dmaConfig, sdif_tra
 	return 0;
 }
 
-#ifndef CONFIG_KERNEL_NONE
-
-static void SDIF_WaitCmdComplete(uint32_t sdif)
-{
-	unsigned int actl_flags = 0;
-	if (aos_event_get(&param[sdif]._gcmdEvent , 0x01, AOS_EVENT_OR_CLEAR,
-			&actl_flags, 200) != 0) {
-		//param[sdif].cmd_error = -110;
-    }
-}
-
-static void SDIF_WaitDataComplete(uint32_t sdif)
-{
-	unsigned int actl_flags = 0;
-	if (aos_event_get(&param[sdif]._gdataEvent , 0x01, AOS_EVENT_OR_CLEAR,
-			&actl_flags, 200) != 0) {
-		//param[sdif].data_error = -110;
-    }
-}
-
-#else
-
-static void SDIF_WaitCmdComplete(uint32_t sdif)
-{
-    while (!param[sdif].cmd_completion) {
+static void SDIF_WaitCmdComplete(uint32_t sdif){
+    while (!param[sdif]->cmd_completion) {
 		//printf("wait_cmd_complete.\n");
 		;
 	}
-	param[sdif].cmd_completion = 0;
+	param[sdif]->cmd_completion = 0;
 }
 
 static void SDIF_WaitDataComplete(uint32_t sdif)
 {
-	while (!param[sdif].data_completion) {
+	while (!param[sdif]->data_completion) {
 		//printf("wait_data_complete.\n");
 		;
 	}
-	param[sdif].data_completion = 0;
+	param[sdif]->data_completion = 0;
 }
-#endif
 
 static void SDIF_HostInitForIrq(uint32_t sdif)
 {
-	param[sdif].cmd_completion = 0;
-	param[sdif].data_completion = 0;
-	param[sdif].cmd_error = 0;
+	param[sdif]->cmd_completion = 0;
+	param[sdif]->data_completion = 0;
+	param[sdif]->cmd_error = 0;
 
-	if (param[sdif].data)
-		param[sdif].data_error = 0;
+	if (param[sdif]->data)
+		param[sdif]->data_error = 0;
 }
 
 void SDIF_HwReset(SDIF_TYPE *base)
@@ -930,38 +808,6 @@ void SDIO_PadSetting(SDIF_TYPE *base)
 		mmio_write_8(REG_SDIO1_DAT2_PIO_REG, REG_SDIO1_DAT2_PIO_VALUE);
 		mmio_write_8(REG_SDIO1_DAT3_PIO_REG, REG_SDIO1_DAT3_PIO_VALUE);
 	}
-	else if(BASE == SDIO2_BASE) {
-		//set pu/down
-		mmio_write_32(REG_SDIO2_RSTN_PAD_REG,
-			(mmio_read_32(REG_SDIO2_RSTN_PAD_REG) & REG_SDIO2_PAD_MASK) |
-			REG_SDIO2_RSTN_PAD_VALUE << REG_SDIO2_PAD_SHIFT);
-		mmio_write_32(REG_SDIO2_CLK_PAD_REG,
-			(mmio_read_32(REG_SDIO2_CLK_PAD_REG) & REG_SDIO2_PAD_MASK) |
-			REG_SDIO2_CLK_PAD_VALUE << REG_SDIO2_PAD_SHIFT);
-		mmio_write_32(REG_SDIO2_CMD_PAD_REG,
-			(mmio_read_32(REG_SDIO2_CMD_PAD_REG) & REG_SDIO2_PAD_MASK) |
-			REG_SDIO2_CMD_PAD_VALUE << REG_SDIO2_PAD_SHIFT);
-		mmio_write_32(REG_SDIO2_DAT0_PAD_REG,
-			(mmio_read_32(REG_SDIO2_DAT0_PAD_REG) & REG_SDIO2_PAD_MASK) |
-			REG_SDIO2_DAT0_PAD_VALUE << REG_SDIO2_PAD_SHIFT);
-		mmio_write_32(REG_SDIO2_DAT1_PAD_REG,
-			(mmio_read_32(REG_SDIO2_DAT1_PAD_REG) & REG_SDIO2_PAD_MASK) |
-			REG_SDIO2_DAT1_PAD_VALUE << REG_SDIO2_PAD_SHIFT);
-		mmio_write_32(REG_SDIO2_DAT2_PAD_REG,
-			(mmio_read_32(REG_SDIO2_DAT2_PAD_REG) & REG_SDIO2_PAD_MASK) |
-			REG_SDIO2_DAT2_PAD_VALUE << REG_SDIO2_PAD_SHIFT);
-		mmio_write_32(REG_SDIO2_DAT3_PAD_REG,
-			(mmio_read_32(REG_SDIO2_DAT3_PAD_REG) & REG_SDIO2_PAD_MASK) |
-			REG_SDIO2_DAT3_PAD_VALUE << REG_SDIO2_PAD_SHIFT);
-		//set pinmux
-		mmio_write_8(REG_SDIO2_RSTN_PIO_REG, REG_SDIO2_RSTN_PIO_VALUE);
-		mmio_write_8(REG_SDIO2_CLK_PIO_REG, REG_SDIO2_CLK_PIO_VALUE);
-		mmio_write_8(REG_SDIO2_CMD_PIO_REG, REG_SDIO2_CMD_PIO_VALUE);
-		mmio_write_8(REG_SDIO2_DAT0_PIO_REG, REG_SDIO2_DAT0_PIO_VALUE);
-		mmio_write_8(REG_SDIO2_DAT1_PIO_REG, REG_SDIO2_DAT1_PIO_VALUE);
-		mmio_write_8(REG_SDIO2_DAT2_PIO_REG, REG_SDIO2_DAT2_PIO_VALUE);
-		mmio_write_8(REG_SDIO2_DAT3_PIO_REG, REG_SDIO2_DAT3_PIO_VALUE);
-	}
 }
 
 void SDIF_PhyInit(SDIF_TYPE *base, uint32_t sdif)
@@ -976,12 +822,6 @@ void SDIF_PhyInit(SDIF_TYPE *base, uint32_t sdif)
 
 	SDIO_PadSetting(base);
 
-	if (BASE == SDIO2_BASE) {
-		//reg_0x200[0] = 1 for sd2
-		mmio_write_32(vendor_base,
-				mmio_read_32(vendor_base) | BIT(0));
-	}
-
 	//reg_0x200[1] = 1
 	mmio_write_32(vendor_base,
 			mmio_read_32(vendor_base) | BIT(1));
@@ -991,7 +831,7 @@ void SDIF_PhyInit(SDIF_TYPE *base, uint32_t sdif)
 		mmio_write_32(vendor_base,
 				mmio_read_32(vendor_base) | BIT(16));
 	}
-
+	//reg_0x24c[0] = 1
 	mmio_write_32(vendor_base + SDIF_PHY_CONFIG,
 			mmio_read_32(vendor_base + SDIF_PHY_CONFIG) | BIT(0));
 
@@ -999,7 +839,6 @@ void SDIF_PhyInit(SDIF_TYPE *base, uint32_t sdif)
 
 }
 
-#ifndef CONFIG_KERNEL_NONE
 static inline void *align_alloc(uint64_t align, uint32_t size, void **mem_unalign)
 {
 	void *mem;
@@ -1022,7 +861,6 @@ static inline void *align_alloc(uint64_t align, uint32_t size, void **mem_unalig
 	}
 	return mem;
 }
-#endif
 
 status_t SDIF_SendDataCmd(SDIF_TYPE *base,
                                   sdif_state_t *handle,
@@ -1037,6 +875,8 @@ status_t SDIF_SendDataCmd(SDIF_TYPE *base,
 	uintptr_t BASE = (uintptr_t)base;
 	uint32_t mode       = 0;
 	uint32_t flags      = 0;
+	void *src_align = NULL;
+	void *src_unalign = NULL;
 	dmaConfig->dma_des_buffer_len = data->block_size * data->block_count;
 
 	while(1){
@@ -1044,9 +884,6 @@ status_t SDIF_SendDataCmd(SDIF_TYPE *base,
 			break;
 	}
 
-#ifndef CONFIG_KERNEL_NONE
-	void *src_align = NULL;
-	void *src_unalign = NULL;
 	if (data->rx_date_buffer != NULL) {
 		if ((uint64_t)data->rx_date_buffer & (SDMMC_DMA_ALIGN_CACHE - 1)) {
 			src_align = align_alloc(SDMMC_DMA_ALIGN_CACHE,
@@ -1056,12 +893,6 @@ status_t SDIF_SendDataCmd(SDIF_TYPE *base,
 			dmaConfig->dma_des_buffer_start_addr = (uint32_t *)data->rx_date_buffer;
 	} else
 		dmaConfig->dma_des_buffer_start_addr = (uint32_t *)data->tx_data_buffer;
-#else
-	if (data->rx_date_buffer != NULL)
-		dmaConfig->dma_des_buffer_start_addr = (uint32_t *)data->rx_date_buffer;
-	else
-		dmaConfig->dma_des_buffer_start_addr = (uint32_t *)data->tx_data_buffer;
-#endif
 
 	SDIF_PrepareData(base, dmaConfig, transfer);
 
@@ -1100,22 +931,20 @@ status_t SDIF_SendDataCmd(SDIF_TYPE *base,
 	if (data->rx_date_buffer != NULL) {
 		soc_dcache_invalid_range((uint64_t)dmaConfig->dma_des_buffer_start_addr,
 									dmaConfig->dma_des_buffer_len);
-#ifndef CONFIG_KERNEL_NONE
 		if (src_unalign) {
 			memcpy((void *)data->rx_date_buffer, src_align, dmaConfig->dma_des_buffer_len);
 			free(src_unalign);
 			src_align = NULL;
 			src_unalign = NULL;
 		}
-#endif
 	}
 
 	if (data->block_count > 1 && mmc_op_multi(cmd->index)) {
 		data->enable_auto_command12 = false;
 	}
 
-	if (param[sdif].cmd_error || param[sdif].data_error) {
-		printf("SDIF_SendDataCmd failed.%d.%d.\n", param[sdif].cmd_error, param[sdif].data_error);
+	if (param[sdif]->cmd_error || param[sdif]->data_error) {
+		printf("SDIF_SendDataCmd failed.%d.%d.\n", param[sdif]->cmd_error, param[sdif]->data_error);
 		return kStatus_Fail;
 	}
 
@@ -1131,15 +960,10 @@ static int SDIF_SendNoDataCmd(SDIF_TYPE *base,
 	uintptr_t BASE = (uintptr_t)base;
 	sdif_command_t *cmd = transfer->command;
 	uint32_t flags      = 0;
-	int end_time = 0;
-	int start_time = csi_tick_get_ms();
 
 	while (1) {
 		if (!(mmio_read_32(BASE + SDIF_PRESENT_STATE) & SDIF_CMD_INHIBIT))
 			break;
-		end_time = csi_tick_get_ms();
-		if (end_time - start_time >= 2000)
-			return -1;
 	}
 
 	if (cmd->index == MMC_CMD0)
@@ -1158,25 +982,27 @@ static int SDIF_SendNoDataCmd(SDIF_TYPE *base,
 	}
 
 	if (flags & SDIF_CMD_RESP_SHORT_BUSY) {
-		start_time = csi_tick_get_ms();
 		while (1) {
 			if (!(mmio_read_32(BASE + SDIF_PRESENT_STATE) & SDIF_CMD_INHIBIT_DAT))
 				break;
-			end_time = csi_tick_get_ms();
-			if (end_time - start_time >= 2000)
-				return -1;
 		}
 	}
+
+	if (cmd->index == MMC_CMD19 || cmd->index == MMC_CMD21)
+		flags |= SDIF_CMD_DATA;
 
 	SDIF_HostInitForIrq(sdif);
 
 	mmio_write_32(BASE + SDIF_ARGUMENT, cmd->argument);
 	mmio_write_16(BASE + SDIF_COMMAND, SDIF_MAKE_CMD(cmd->index, flags));
 
+	if (cmd->index == MMC_CMD19 || cmd->index == MMC_CMD21)
+		return kStatus_Success;
+
 	SDIF_WaitCmdComplete(sdif);
 
-	if (param[sdif].cmd_error) {
-		//printf("command transfer failed.%d.%d. 0x%08x.\n\n", param[sdif].cmd_error, cmd->index, param[sdif].intmask);
+	if (param[sdif]->cmd_error) {
+		//printf("command transfer failed.%d.%d. 0x%08x.\n\n", param[sdif]->cmd_error, cmd->index, param[sdif]->intmask);
 		return kStatus_Fail;
 	}
 
@@ -1190,16 +1016,16 @@ status_t SDIF_TransferNonBlocking(SDIF_TYPE *base,
 {
 	assert(NULL != transfer);
 	status_t ret;
-	uint32_t sdif = csi_sdif_get_idx(base);
+	uint32_t sdif = SDIF_GetInstance(base);
 
 	if (transfer->data) {
-		param[sdif].command = transfer->command;
-		param[sdif].data = transfer->data;
+		param[sdif]->command = transfer->command;
+		param[sdif]->data = transfer->data;
 		//printf("----->have data:%d.0x%x\n", transfer->command->index, transfer->command->argument);
 		ret = SDIF_SendDataCmd(base, handle, dmaConfig, transfer, sdif);
 	} else {
-		param[sdif].command = transfer->command;
-		param[sdif].data = NULL;
+		param[sdif]->command = transfer->command;
+		param[sdif]->data = NULL;
 		//printf("----->no   data:%d.0x%x\n", transfer->command->index, transfer->command->argument);
 		ret = SDIF_SendNoDataCmd(base, handle, dmaConfig, transfer, sdif);
 	}
@@ -1229,7 +1055,7 @@ static void SDIF_TransferCreateHandle(SDIF_TYPE *base,
     handle->user_data = user_data;
 
     /* Save the handle in global variables to support the double weak mechanism. */
-    s_sdifState[csi_sdif_get_idx(base)] = handle;
+    s_sdifState[SDIF_GetInstance(base)] = handle;
 
     /* save IRQ handler */
     //s_sdifIsr = SDIF_TransferHandleIRQ;
@@ -1239,7 +1065,7 @@ static void SDIF_TransferCreateHandle(SDIF_TYPE *base,
     //SDIF_EnableGlobalInterrupt(base, true);
 #endif
 
-    //SDIF_IRQEnable(s_sdifIRQ[csi_sdif_get_idx(base)], s_sdifIRQEntry[csi_sdif_get_idx(base)]);
+    //SDIF_IRQEnable(s_sdifIRQ[SDIF_GetInstance(base)], s_sdifIRQEntry[SDIF_GetInstance(base)]);
 }
 
 void SDIF_GetCapability(SDIF_TYPE *base, sdif_capability_t *capability)
@@ -1258,7 +1084,7 @@ void SDIF_GetCapability(SDIF_TYPE *base, sdif_capability_t *capability)
 void SDIF_IRQDisable(int id, void *handle);
 void SDIF_Deinit(SDIF_TYPE *base)
 {
-    SDIF_IRQDisable(s_sdifIRQ[csi_sdif_get_idx(base)], s_sdifIRQEntry[csi_sdif_get_idx(base)]);
+    SDIF_IRQDisable(s_sdifIRQ[SDIF_GetInstance(base)], s_sdifIRQEntry[SDIF_GetInstance(base)]);
 }
 /*
 void SDIF_IRQEnable(int id, void *handle)
@@ -1305,15 +1131,7 @@ sdif_handle_t csi_sdif_get_handle(uint32_t idx)
 uint32_t csi_sdif_get_idx(sdif_handle_t handle)
 {
     SDIF_TYPE *base = (SDIF_TYPE *)handle;
-    uint8_t instance = 0U;
-
-    while ((instance < ARRAY_SIZE(s_sdifBase)) && (s_sdifBase[instance] != base)) {
-        instance++;
-    }
-
-    assert(instance < ARRAY_SIZE(s_sdifBase));
-
-    return instance;
+    return SDIF_GetInstance(base);
 }
 
 /**
@@ -1366,19 +1184,17 @@ void csi_sdif_config(sdif_handle_t handle, sdif_config_t *config)
 	uint32_t pio_irqs = SDIF_INT_DATA_AVAIL | SDIF_INT_SPACE_AVAIL;
 	uint32_t dma_irqs = SDIF_INT_DMA_END | SDIF_INT_ADMA_ERROR;
 	SDIF_TYPE *base = (SDIF_TYPE *)handle;
-	uint32_t sdif = csi_sdif_get_idx(base);
+	uint32_t sdif = SDIF_GetInstance(base);
 	uintptr_t BASE = (uintptr_t)base;
 	static bool sd0_clock_state = false;
 	static bool sd1_clock_state = false;
-	static bool sd2_clock_state = false;
+
+	if (param[sdif] == NULL)
+		param[sdif] = aos_zalloc(sizeof(sdif_type_t));
 
 	if (BASE == SDIO0_BASE) {
 		//printf("MMC_FLAG_SDCARD.\n");
 		if (sd0_clock_state == false) {
-#ifndef CONFIG_KERNEL_NONE
-			aos_event_new(&param[sdif]._gcmdEvent, 0);
-			aos_event_new(&param[sdif]._gdataEvent, 0);
-#endif
 			mmio_write_32(MMC_SDIO0_PLL_REGISTER, MMC_MAX_CLOCK_DIV_VALUE);
 			mmio_clrbits_32(CLOCK_BYPASS_SELECT_REGISTER, BIT(6));
 			sd0_clock_state = true;
@@ -1386,32 +1202,17 @@ void csi_sdif_config(sdif_handle_t handle, sdif_config_t *config)
 	} else if (BASE == SDIO1_BASE) {
 		//printf("MMC_FLAG_SDIO.\n");
 		if (sd1_clock_state == false) {
-#ifndef CONFIG_KERNEL_NONE
-			aos_event_new(&param[sdif]._gcmdEvent, 0);
-			aos_event_new(&param[sdif]._gdataEvent, 0);
-#endif
 			mmio_write_32(MMC_SDIO1_PLL_REGISTER, MMC_MAX_CLOCK_DIV_VALUE);
 			mmio_clrbits_32(CLOCK_BYPASS_SELECT_REGISTER, BIT(7));
 			sd1_clock_state = true;
 		}
-	} else if (BASE == SDIO2_BASE) {
-		//printf("MMC_FLAG_EMMC.\n");
-		if (sd2_clock_state == false) {
-#ifndef CONFIG_KERNEL_NONE
-			aos_event_new(&param[sdif]._gcmdEvent, 0);
-			aos_event_new(&param[sdif]._gdataEvent, 0);
-#endif
-			mmio_write_32(MMC_SDIO2_PLL_REGISTER, MMC_MAX_CLOCK_DIV_VALUE);
-			mmio_clrbits_32(CLOCK_BYPASS_SELECT_REGISTER, BIT(5));
-			sd2_clock_state = true;
-		}
 	}
 
-	param[sdif].ier = SDIF_INT_BUS_POWER | SDIF_INT_DATA_END_BIT |
+	param[sdif]->ier = SDIF_INT_BUS_POWER | SDIF_INT_DATA_END_BIT |
 		SDIF_INT_DATA_CRC | SDIF_INT_DATA_TIMEOUT |
 		SDIF_INT_INDEX | SDIF_INT_END_BIT | SDIF_INT_CRC |
 		SDIF_INT_TIMEOUT | SDIF_INT_DATA_END | SDIF_INT_RESPONSE;
-	param[sdif].ier = (param[sdif].ier & ~pio_irqs) | dma_irqs;
+	param[sdif]->ier = (param[sdif]->ier & ~pio_irqs) | dma_irqs;
 
 	SDIF_PhyInit(base, sdif);
 
@@ -1428,12 +1229,6 @@ void csi_sdif_get_capabilities(sdif_handle_t handle, sdif_capability_t *capabili
 {
     SDIF_TYPE *base = (SDIF_TYPE *)handle;
     SDIF_GetCapability(base, capability);
-}
-
-uint32_t csi_sdif_get_controller_status(sdif_handle_t handle)
-{
-    SDIF_TYPE *base = (SDIF_TYPE *)handle;
-    return base->STATUS;
 }
 
 /**
@@ -1573,7 +1368,7 @@ uint32_t csi_sdif_set_clock(sdif_handle_t handle, uint32_t target_hz)
 
 	SDIF_TYPE *base = (SDIF_TYPE *)handle;
 
-	idx = csi_sdif_get_idx(handle);
+	idx = sdif_get_idx(handle);
 
 	// soc_set_sdio_freq(idx, 50000000);
 

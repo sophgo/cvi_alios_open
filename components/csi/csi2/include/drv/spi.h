@@ -249,8 +249,7 @@ void csi_spi_select_slave(csi_spi_t *spi, uint32_t slave_num);
   \return      Error code
 */
 csi_error_t csi_spi_link_dma(csi_spi_t *spi, csi_dma_ch_t *tx_dma, csi_dma_ch_t *rx_dma);
-int32_t csi_spi_send_receive_dma(csi_spi_t *spi, const void *data_out, void *data_in, uint32_t size);
-int32_t csi_spi_send_dma(csi_spi_t *spi, const void *data, uint32_t size);
+
 /**
   \brief       Get the state of spi device
   \param[in]   spi      SPI handle to operate

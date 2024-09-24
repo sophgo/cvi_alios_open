@@ -51,40 +51,33 @@ build_config:
 source_file:
   - test/tpu/*.c ? <CONFIG_SUPPORT_TEST_AI>
   - test/tpu_sdk/*.cpp ? <CONFIG_SUPPORT_TEST_AI>
-  - test/vi/*.c ? <CONFIG_APP_TEST>
-  - test/vpss/*.c ? <CONFIG_APP_TEST>
-  - test/venc/*.c ? <CONFIG_APP_TEST>
-  - test/vdec/*.c ? <CONFIG_APP_TEST>
-  - test/gdc/*.c ? <CONFIG_APP_TEST>
-  - test/vo/*.c ? <CONFIG_APP_TEST>
-  - test/rgn/*.c ? <CONFIG_APP_TEST>
-  - test/dma/*.c ? <CONFIG_APP_TEST>
-  - test/spi/*.c ? <CONFIG_APP_TEST>
-  - test/sys/*.c ? <CONFIG_APP_TEST>
-  - test/audio/*.c ? <CONFIG_APP_TEST>
-  - test/flash/*.c ? <CONFIG_APP_TEST>
-  - test/partition/*.c ? <CONFIG_APP_TEST>
-  - test/security/*.c ? <CONFIG_APP_TEST>
-  - test/efuse/*.c ? <CONFIG_APP_TEST>
-  - test/media_venc/*.c ? <CONFIG_APP_TEST>
+#  - test/vi/*.c ? <CONFIG_APP_TEST>
+#  - test/vpss/*.c ? <CONFIG_APP_TEST>
+#  - test/venc/*.c ? <CONFIG_APP_TEST>
+#  - test/vdec/*.c ? <CONFIG_APP_TEST>
+#  - test/gdc/*.c ? <CONFIG_APP_TEST>
+#  - test/vo/*.c ? <CONFIG_APP_TEST>
+#  - test/rgn/*.c ? <CONFIG_APP_TEST>
+#  - test/dma/*.c ? <CONFIG_APP_TEST>
+#  - test/sys/*.c ? <CONFIG_APP_TEST>
+#  - test/audio/*.c ? <CONFIG_APP_TEST>
+#  - test/flash/*.c ? <CONFIG_APP_TEST>
+#  - test/partition/*.c ? <CONFIG_APP_TEST>
+#  - test/security/*.c ? <CONFIG_APP_TEST>
+#  - test/efuse/*.c ? <CONFIG_APP_TEST>
   - test/pwm/*.c ? <CONFIG_APP_TEST>
   - test/timer/*.c ? <CONFIG_APP_TEST>
   - test/wdt/*.c ? <CONFIG_APP_TEST>
   - test/cviai/*.c ? <CONFIG_SUPPORT_TEST_AI>
-  - test/rng/*.c ? <CONFIG_APP_TEST>
+#  - test/rng/*.c ? <CONFIG_APP_TEST>
   - test/adc/*.c ? <CONFIG_APP_TEST>
-  - test/disk_sd/*.c ? <CONFIG_SUPPORT_TEST_DISK>
+  - test/disk/*.c ? <CONFIG_SUPPORT_TEST_DISK>
   - test/gpio/*.c ? <CONFIG_APP_TEST>
   - test/i2c_tool/*.c ? <CONFIG_APP_TEST>
   - test/pinmux/*.c ? <CONFIG_APP_TEST>
-  - test/ae/*.c ? <CONFIG_APP_TEST>
-  - test/uart/*.c ? <CONFIG_APP_TEST>
-  - test/gpio_pin/*.c ? <CONFIG_APP_TEST>
-  - test/audio/g711/*.c ? <CONFIG_SUPPORT_TEST_G711>
-  - test/audio/aac/*.c ? <CONFIG_SUPPORT_TEST_AAC>
-  - test/audio/pdm/*.c ? <CONFIG_SUPPORT_TEST_PDM>
-  - test/tydb_adb/*.c ? <CONFIG_SUPPORT_TEST_TYDB_ADB>
-  - test/ramfs/*.c ? <CONFIG_SUPPORT_TEST_RAMFS>
+#  - test/ae/*.c ? <CONFIG_APP_TEST>
+  - test/ipcmsg/*.c ? <CONFIG_APP_TEST>
+  - test/datafifo/*.c ? <CONFIG_APP_TEST>
 # - ./hichannel_test/
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项
@@ -106,7 +99,7 @@ def_config:
 #     source:                              # 安装源列表
 #      - src/*.h                           # 支持通配符，相对路径
 install:
-  - dest: "include/devices"
+  - dest: "include/"
     source:
 
 ## 第七部分：导出部分

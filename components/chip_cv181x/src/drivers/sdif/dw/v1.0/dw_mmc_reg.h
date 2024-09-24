@@ -5,10 +5,6 @@
 extern "C" {
 #endif
 
-#ifndef CONFIG_KERNEL_NONE
-#include <aos/kernel.h>
-#endif
-
 #define FSL_FEATURE_SDIF_INTERNAL_DMA_MAX_BUFFER_SIZE 4096
 
 /* ----------------------------------------------------------------------------
@@ -80,10 +76,6 @@ typedef struct{
     volatile int            cmd_error;
     volatile int            data_error;
     uint32_t                intmask;
-#ifndef CONFIG_KERNEL_NONE
-    aos_event_t             _gcmdEvent;
-    aos_event_t             _gdataEvent;
-#endif
 } sdif_type_t;
 
 /* ----------------------------------------------------------------------------

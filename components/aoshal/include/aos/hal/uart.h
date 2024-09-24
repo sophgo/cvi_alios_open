@@ -116,6 +116,10 @@ int32_t hal_uart_init(uart_dev_t *uart);
  */
 int32_t hal_uart_send(uart_dev_t *uart, const void *data, uint32_t size, uint32_t timeout);
 
+int32_t hal_uart_send_irq(uart_dev_t *uart, const void *data, uint32_t size);
+
+int32_t hal_uart_flush_ringbuffer(uart_dev_t *uart);
+
 /**
  * Transmit data on a UART interface with polling
  *
@@ -189,6 +193,18 @@ int32_t hal_uart_recv_cb_reg(uart_dev_t *uart, uart_rx_cb cb);
  * @return  0 : on success,  otherwise is error
  */
 int32_t hal_uart_finalize(uart_dev_t *uart);
+
+/**
+ *  push data to uart recv ringbuffer
+ *  virtual uart use it
+*/
+int32_t hal_uart_push_data_to_ringbuffer(uart_dev_t *uart, const void *data, uint32_t size);
+
+/**
+ *  flush virtual uart share memory last segment cpu cache
+ *  virtual uart use it
+*/
+int32_t hal_uart_flush_cache(uart_dev_t *uart);
 
 /** @} */
 

@@ -490,7 +490,6 @@ int test_yolo(int argc, char **argv) {
   ret = CVI_NN_RegisterModel(model_file, &model);
   if (ret != CVI_RC_SUCCESS) {
     printf("CVI_NN_RegisterModel failed, err %d\n", ret);
-    CVI_NN_CleanupModel(model);
     return -1;
   }
   printf("CVI_NN_RegisterModel succeeded! model file:%s\n", model_file);
@@ -520,7 +519,6 @@ int test_yolo(int argc, char **argv) {
     CVI_S32 s32MilliSec = 1000;
     if (CVI_VPSS_GetChnFrame(Grp, Chn, &stFrameInfo, s32MilliSec) != CVI_SUCCESS) {
       printf("Get frame fail \n");
-      CVI_NN_CleanupModel(model);
       return -1;
     }
     printf("get frame success! pixel_format:%d width:%d height:%d\n",
@@ -559,7 +557,6 @@ int test_yolo(int argc, char **argv) {
       ret = CVI_NN_Forward(model, input_tensors, input_num, output_tensors, output_num);
       if (ret != CVI_RC_SUCCESS) {
         printf("cvimodel forward failed! ret:%d\n", ret);
-        CVI_NN_CleanupModel(model);
         return -1;
       }
     }

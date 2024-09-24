@@ -7,11 +7,7 @@ extern "C" {
 #endif
 #endif
 
-#ifdef ARCH_CV182X
-#include "cvi_vip_cif_uapi.h"
-#else
-#include "cif_uapi.h"
-#endif
+#include "cvi_comm_cif.h"
 #include "cvi_type.h"
 #include "cvi_sns_ctrl.h"
 #include "gc02m1_cmos_ex.h"
@@ -42,47 +38,6 @@ static const GC02M1_MODE_S g_astGc02m1_mode[GC02M1_MODE_NUM] = {
 		.stExp[0] = {
 			.u16Min = 1,
 			.u16Max = 1268 - 8,
-			.u16Def = 100,
-			.u16Step = 1,
-		},
-		.stAgain[0] = {
-			.u32Min = 1024,
-			.u32Max = 16 * 646,
-			.u32Def = 1024,
-			.u32Step = 1,
-		},
-		.stDgain[0] = {
-			.u32Min = 1024,
-			.u32Max = 1024,
-			.u32Def = 1024,
-			.u32Step = 1,
-		},
-	},
-	[GC02M1_MODE_800X600P30] = {
-		.name = "800X600P30",
-		.astImg[0] = {
-			.stSnsSize = {
-				.u32Width = 800,
-				.u32Height = 600,
-			},
-			.stWndRect = {
-				.s32X = 0,
-				.s32Y = 0,
-				.u32Width = 800,
-				.u32Height = 600,
-			},
-			.stMaxSize = {
-				.u32Width = 800,
-				.u32Height = 600,
-			},
-		},
-		.f32MaxFps = 30,
-		.f32MinFps = 2.34, /* u32VtsDef * 30 / 0x3FFF */
-		.u32HtsDef = 1766,
-		.u32VtsDef = 634,
-		.stExp[0] = {
-			.u16Min = 2,
-			.u16Max = 634 - 8,
 			.u16Def = 100,
 			.u16Step = 1,
 		},

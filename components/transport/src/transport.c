@@ -209,6 +209,14 @@ void *transport_get_context_data(transport_handle_t t)
     return NULL;
 }
 
+// void *transport_get_n(transport_handle_t t)
+// {
+//     if (t) {
+//         return &t->n;
+//     }
+//     return NULL;
+// }
+
 web_err_t transport_set_context_data(transport_handle_t t, void *data)
 {
     if (t) {

@@ -40,133 +40,133 @@
 #define I2S2    2
 #define I2S3    3
 
-#define CVI_CONFIG_SYS_I2S0_BASE	0x04100000
-#define CVI_CONFIG_SYS_I2S1_BASE	0x04110000
-#define CVI_CONFIG_SYS_I2S2_BASE	0x04120000
-#define CVI_CONFIG_SYS_I2S3_BASE	0x04130000
+#define CONFIG_SYS_I2S0_BASE	0x04100000
+#define CONFIG_SYS_I2S1_BASE	0x04110000
+#define CONFIG_SYS_I2S2_BASE	0x04120000
+#define CONFIG_SYS_I2S3_BASE	0x04130000
 
-#define CVI_CONFIG_SYS_I2S_SYS_BASE	0x04108000
+#define CONFIG_SYS_I2S_SYS_BASE	0x04108000
 
-#define CVI_REG_AUDIO_GPIO_BASE		0x0300A12C
-#define CVI_REG_AUDIO_SRC_BASE 		0x041D0000
-#define CVI_REG_AUDIO_MISC_BASE 	0x041D0C00
+#define REG_AUDIO_SRC_BASE 		0x041D0000
+#define REG_AUDIO_MISC_BASE 	0x041D0C00
+
+#define REG_AUDIO_GPIO_BASE		0x0300A12C
+
+//#define CONFIG_I2S_USE_DMA
+#define CONFIG_USE_AUDIO_PLL
+#define ENABLE_DEBUG
 
 #define CONFIG_SHIFT_HALF_T
 //shit 1/2 T for inv, ex master generate data at falling edge and let codec sample at rising edge//
-//#define CONFIG_I2S_USE_DMA
-#define CVI_CONFIG_USE_AUDIO_PLL
-#define ENABLE_DEBUG
 
-#define CVI_I2S_BITS_PER_LONG 32
+#define I2S_BITS_PER_LONG 32
 #define BIT(nr)			(1UL << (nr))
 #define I2S_GENMASK(h, l) \
-	(((~0UL) << (l)) & (~0UL >> (CVI_I2S_BITS_PER_LONG - 1 - (h))))
+	(((~0UL) << (l)) & (~0UL >> (I2S_BITS_PER_LONG - 1 - (h))))
 
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
-
-#define CVI_SKIP_TX_INACT_SLOT_MASK (0x1 << 5)
-#define CVI_SKIP_TX_INACT_SLOT (0x1 << 5)
-#define CVI_SKIP_RX_INACT_SLOT_MASK (0x1 << 4)
-#define CVI_SKIP_RX_INACT_SLOT (0x1 << 4)
-
-#define CVI_WORD_LEN_32         (0x2 << 1)
-#define CVI_WORD_LEN_16         (0x1 << 1)
-#define CVI_WORD_LEN_8          (0x0 << 1)
-#define CVI_BCLK_OUT_FORCE_EN	(0x1 << 6)
-//#define WORD_LENGTH_MASK    (0x3 << 1)
-
-
 enum {
 	CVI_PCM_STREAM_PLAYBACK = 0,
 	CVI_PCM_STREAM_CAPTURE,
 	CVI_PCM_STREAM_LAST = CVI_PCM_STREAM_CAPTURE,
 };
 
+#define BCLK_OUT_FORCE_EN	(0x1 << 6)
+//#define WORD_LENGTH_MASK    (0x3 << 1)
+#define WORD_LEN_8          (0x0 << 1)
+#define WORD_LEN_16         (0x1 << 1)
+#define WORD_LEN_32         (0x2 << 1)
+#define SKIP_RX_INACT_SLOT_MASK (0x1 << 4)
+#define SKIP_RX_INACT_SLOT (0x1 << 4)
+#define SKIP_TX_INACT_SLOT_MASK (0x1 << 5)
+#define SKIP_TX_INACT_SLOT (0x1 << 5)
+
+
 struct i2s_tdm_regs {
-	volatile unsigned int blk_mode_setting;		/* 0x00 */
-	volatile unsigned int frame_setting;		/* 0x04 */
-	volatile unsigned int slot_setting1;		/* 0x08 */
-	volatile unsigned int slot_setting2;	    /* 0x0c */
-	volatile unsigned int data_format;	    /* 0x10 */
-	volatile unsigned int blk_cfg;	    /* 0x14 */
-	volatile unsigned int i2s_enable;	    /* 0x18 */
-	volatile unsigned int i2s_reset;      /* 0x1C */
-	volatile unsigned int i2s_int_en;	/* 0x20 */
-	volatile unsigned int i2s_int;	/* 0x24 */
-	volatile unsigned int fifo_threshold;	        /* 0x28 */
-	volatile unsigned int i2s_lrck_master; //dummy1[1];	/* 0x2c */
-	volatile unsigned int fifo_reset;	        /* 0x30 */
-	volatile unsigned int dummy2[3];	/* 0x34 ~ 0x3C */
-	volatile unsigned int rx_status;	    /* 0x40 */
-	volatile unsigned int dummy3[1];	/* 0x44 */
-	volatile unsigned int tx_status;	    /* 0x48 */
-	volatile unsigned int dummy4[5];	/* 0x4c ~ 0x5c */
-	volatile unsigned int i2s_clk_ctrl0;		/* 0x60 */
-	volatile unsigned int i2s_clk_ctrl1;	/* 0x64 */
-	volatile unsigned int i2s_pcm_synth; /* 0x68 */
-	volatile unsigned int dummy5[5];		/* 0x70 ~ 0x7c */
-	volatile unsigned int rx_rd_port_ch0;	    /* 0x80 */
-	volatile unsigned int rx_rd_port_ch1;	    /* 0x84 */
-	volatile unsigned int dummy6[14];	    /* 0x88 ~ 0xbc */
-	volatile unsigned int tx_wr_port_ch0;	    /* 0xc0 */
-	volatile unsigned int tx_wr_port_ch1;	    /* 0xc4 */
+	volatile u32 blk_mode_setting;		/* 0x00 */
+	volatile u32 frame_setting;		/* 0x04 */
+	volatile u32 slot_setting1;		/* 0x08 */
+	volatile u32 slot_setting2;	    /* 0x0c */
+	volatile u32 data_format;	    /* 0x10 */
+	volatile u32 blk_cfg;	    /* 0x14 */
+	volatile u32 i2s_enable;	    /* 0x18 */
+	volatile u32 i2s_reset;      /* 0x1C */
+	volatile u32 i2s_int_en;	/* 0x20 */
+	volatile u32 i2s_int;	/* 0x24 */
+	volatile u32 fifo_threshold;	        /* 0x28 */
+	volatile u32 i2s_lrck_master; //dummy1[1];	/* 0x2c */
+	volatile u32 fifo_reset;	        /* 0x30 */
+	volatile u32 dummy2[3];	/* 0x34 ~ 0x3C */
+	volatile u32 rx_status;	    /* 0x40 */
+	volatile u32 dummy3[1];	/* 0x44 */
+	volatile u32 tx_status;	    /* 0x48 */
+	volatile u32 dummy4[5];	/* 0x4c ~ 0x5c */
+	volatile u32 i2s_clk_ctrl0;		/* 0x60 */
+	volatile u32 i2s_clk_ctrl1;	/* 0x64 */
+	volatile u32 i2s_pcm_synth; /* 0x68 */
+	volatile u32 dummy5[5];		/* 0x70 ~ 0x7c */
+	volatile u32 rx_rd_port_ch0;	    /* 0x80 */
+	volatile u32 rx_rd_port_ch1;	    /* 0x84 */
+	volatile u32 dummy6[14];	    /* 0x88 ~ 0xbc */
+	volatile u32 tx_wr_port_ch0;	    /* 0xc0 */
+	volatile u32 tx_wr_port_ch1;	    /* 0xc4 */
 };
 //0x04108000
 struct i2s_sys_regs {
-	volatile unsigned int i2s_tdm_sclk_in_sel; /* 0x000 */
-	volatile unsigned int i2s_tdm_fs_in_sel; /* 0x004 */
-	volatile unsigned int i2s_tdm_sdi_in_sel; /* 0x008 */
-	volatile unsigned int i2s_tdm_sdo_out_sel; /* 0x00C */
-	volatile unsigned int dummy1[4];
-	volatile unsigned int i2s_tdm_multi_sync; /* 0x020 */
-	volatile unsigned int dummy2[3];
-	volatile unsigned int i2s_bclk_oen_sel; /* 0x030 */
-	volatile unsigned int i2s_bclk_out_ctrl; /* 0x034 */
-	volatile unsigned int dummy3[2];
-	volatile unsigned int audio_pdm_ctrl; /* 0x040 */
-	volatile unsigned int dummy4[3];
-	volatile unsigned int audio_phy_bypass1; /* 0x050 */
-	volatile unsigned int audio_phy_bypass2; /* 0x054 */
-	volatile unsigned int dummy5[6];
-	volatile unsigned int i2s_sys_clk_ctrl; /* 0x070 */
-	volatile unsigned int dummy6[3];
-	volatile unsigned int i2s0_master_clk_ctrl0; /* 0x080 */
-	volatile unsigned int i2s0_master_clk_ctrl1; /* 0x084 */
-	volatile unsigned int dummy7[2];
-	volatile unsigned int i2s1_master_clk_ctrl0; /* 0x090 */
-	volatile unsigned int i2s1_master_clk_ctrl1; /* 0x094 */
-	volatile unsigned int dummy8[2];
-	volatile unsigned int i2s2_master_clk_ctrl0; /* 0x0A0 */
-	volatile unsigned int i2s2_master_clk_ctrl1; /* 0x0A4 */
-	volatile unsigned int dummy9[2];
-	volatile unsigned int i2s3_master_clk_ctrl0; /* 0x0B0 */
-	volatile unsigned int i2s3_master_clk_ctrl1; /* 0x0B4 */
-	volatile unsigned int dummy10[2];
-	volatile unsigned int i2s_sys_lrck_ctrl; /* 0x0C0 */
+	volatile u32 i2s_tdm_sclk_in_sel; /* 0x000 */
+	volatile u32 i2s_tdm_fs_in_sel; /* 0x004 */
+	volatile u32 i2s_tdm_sdi_in_sel; /* 0x008 */
+	volatile u32 i2s_tdm_sdo_out_sel; /* 0x00C */
+	volatile u32 dummy1[4];
+	volatile u32 i2s_tdm_multi_sync; /* 0x020 */
+	volatile u32 dummy2[3];
+	volatile u32 i2s_bclk_oen_sel; /* 0x030 */
+	volatile u32 i2s_bclk_out_ctrl; /* 0x034 */
+	volatile u32 dummy3[2];
+	volatile u32 audio_pdm_ctrl; /* 0x040 */
+	volatile u32 dummy4[3];
+	volatile u32 audio_phy_bypass1; /* 0x050 */
+	volatile u32 audio_phy_bypass2; /* 0x054 */
+	volatile u32 dummy5[6];
+	volatile u32 i2s_sys_clk_ctrl; /* 0x070 */
+	volatile u32 dummy6[3];
+	volatile u32 i2s0_master_clk_ctrl0; /* 0x080 */
+	volatile u32 i2s0_master_clk_ctrl1; /* 0x084 */
+	volatile u32 dummy7[2];
+	volatile u32 i2s1_master_clk_ctrl0; /* 0x090 */
+	volatile u32 i2s1_master_clk_ctrl1; /* 0x094 */
+	volatile u32 dummy8[2];
+	volatile u32 i2s2_master_clk_ctrl0; /* 0x0A0 */
+	volatile u32 i2s2_master_clk_ctrl1; /* 0x0A4 */
+	volatile u32 dummy9[2];
+	volatile u32 i2s3_master_clk_ctrl0; /* 0x0B0 */
+	volatile u32 i2s3_master_clk_ctrl1; /* 0x0B4 */
+	volatile u32 dummy10[2];
+	volatile u32 i2s_sys_lrck_ctrl; /* 0x0C0 */
 };
 
 struct reg_audio_misc_regs {
-	volatile unsigned int dummy[12];
-	volatile unsigned int reg_pdm_en; /* 0x30 */
-	volatile unsigned int reg_pdm_clk; /* 0x34 */
-	volatile unsigned int reg_pdm_i2s; /* 0x38 */
+	volatile u32 dummy[12];
+	volatile u32 reg_pdm_en; /* 0x30 */
+	volatile u32 reg_pdm_clk; /* 0x34 */
+	volatile u32 reg_pdm_i2s; /* 0x38 */
 };
 
 struct reg_audio_src_regs {
-	volatile unsigned int reg_src_en;	/* 0x00 */
-	volatile unsigned int reg_src_sel; /* 0x04 */
-	volatile unsigned int reg_src_setting; /* 0x08 */
-	volatile unsigned int reg_src_format; /* 0x0c */
-	volatile unsigned int dummy1[5];
-	volatile unsigned int reg_src_ratio; /* 0x24 */
-	volatile unsigned int reg_src_fsi_init; /* 0x28 */
-	volatile unsigned int dummy2[1];
-	volatile unsigned int reg_src_i2s_status; /* 0x30 */
-	volatile unsigned int dummy3[11];
-	volatile unsigned int reg_src_data_out; /* 0x60 */
-	volatile unsigned int reg_dma_th; /* 0x64 */
+	volatile u32 reg_src_en;	/* 0x00 */
+	volatile u32 reg_src_sel; /* 0x04 */
+	volatile u32 reg_src_setting; /* 0x08 */
+	volatile u32 reg_src_format; /* 0x0c */
+	volatile u32 dummy1[5];
+	volatile u32 reg_src_ratio; /* 0x24 */
+	volatile u32 reg_src_fsi_init; /* 0x28 */
+	volatile u32 dummy2[1];
+	volatile u32 reg_src_i2s_status; /* 0x30 */
+	volatile u32 dummy3[11];
+	volatile u32 reg_src_data_out; /* 0x60 */
+	volatile u32 reg_dma_th; /* 0x64 */
 };
 
 /* This structure stores the i2s related information */
@@ -402,17 +402,17 @@ extern int i2s_debug_cmd_register(void);
  * Describes the physical PCM data formating and clocking. Add new formats
  * to the end.
  */
-#define CVI_SND_SOC_DAIFMT_I2S			1 /* I2S mode */
-#define CVI_SND_SOC_DAIFMT_RIGHT_J		2 /* Right Justified mode */
-#define CVI_SND_SOC_DAIFMT_LEFT_J		3 /* Left Justified mode */
-#define CVI_SND_SOC_DAIFMT_DSP_A		4 /* L data MSB after FRM LRC */
-#define CVI_SND_SOC_DAIFMT_DSP_B		5 /* L data MSB during FRM LRC */
-#define CVI_SND_SOC_DAIFMT_AC97			6 /* AC97 */
-#define CVI_SND_SOC_DAIFMT_PDM			7 /* Pulse density modulation */
+#define SND_SOC_DAIFMT_I2S			1 /* I2S mode */
+#define SND_SOC_DAIFMT_RIGHT_J		2 /* Right Justified mode */
+#define SND_SOC_DAIFMT_LEFT_J		3 /* Left Justified mode */
+#define SND_SOC_DAIFMT_DSP_A		4 /* L data MSB after FRM LRC */
+#define SND_SOC_DAIFMT_DSP_B		5 /* L data MSB during FRM LRC */
+#define SND_SOC_DAIFMT_AC97			6 /* AC97 */
+#define SND_SOC_DAIFMT_PDM			7 /* Pulse density modulation */
 
 /* left and right justified also known as MSB and LSB respectively */
-#define CVI_SND_SOC_DAIFMT_MSB		CVI_SND_SOC_DAIFMT_LEFT_J
-#define CVI_SND_SOC_DAIFMT_LSB		CVI_SND_SOC_DAIFMT_RIGHT_J
+#define SND_SOC_DAIFMT_MSB		SND_SOC_DAIFMT_LEFT_J
+#define SND_SOC_DAIFMT_LSB		SND_SOC_DAIFMT_RIGHT_J
 
 /*
  * DAI hardware signal polarity.
@@ -435,20 +435,20 @@ extern int i2s_debug_cmd_register(void);
  *
  * "Negative" FSYNC polarity is the one opposite of "normal" polarity.
  */
-#define CVI_SND_SOC_DAIFMT_NB_NF		(0 << 8) /* normal bit clock + frame */
-#define CVI_SND_SOC_DAIFMT_NB_IF		(2 << 8) /* normal BCLK + inv FRM */
-#define CVI_SND_SOC_DAIFMT_IB_NF		(3 << 8) /* invert BCLK + nor FRM */
-#define CVI_SND_SOC_DAIFMT_IB_IF		(4 << 8) /* invert BCLK + FRM */
+#define SND_SOC_DAIFMT_NB_NF		(0 << 8) /* normal bit clock + frame */
+#define SND_SOC_DAIFMT_NB_IF		(2 << 8) /* normal BCLK + inv FRM */
+#define SND_SOC_DAIFMT_IB_NF		(3 << 8) /* invert BCLK + nor FRM */
+#define SND_SOC_DAIFMT_IB_IF		(4 << 8) /* invert BCLK + FRM */
 
-#define CVI_SND_SOC_DAIFMT_CBM_CFM		(1 << 12) /* codec clk & FRM master */
-#define CVI_SND_SOC_DAIFMT_CBS_CFM		(2 << 12) /* codec clk slave & FRM master */
-#define CVI_SND_SOC_DAIFMT_CBM_CFS		(3 << 12) /* codec clk master & frame slave */
-#define CVI_SND_SOC_DAIFMT_CBS_CFS		(4 << 12) /* codec clk & FRM slave */
+#define SND_SOC_DAIFMT_CBM_CFM		(1 << 12) /* codec clk & FRM master */
+#define SND_SOC_DAIFMT_CBS_CFM		(2 << 12) /* codec clk slave & FRM master */
+#define SND_SOC_DAIFMT_CBM_CFS		(3 << 12) /* codec clk master & frame slave */
+#define SND_SOC_DAIFMT_CBS_CFS		(4 << 12) /* codec clk & FRM slave */
 
-#define CVI_SND_SOC_DAIFMT_FORMAT_MASK	0x000f
-#define CVI_SND_SOC_DAIFMT_CLOCK_MASK	0x00f0
-#define CVI_SND_SOC_DAIFMT_INV_MASK		0x0f00
-#define CVI_SND_SOC_DAIFMT_MASTER_MASK	0xf000
+#define SND_SOC_DAIFMT_FORMAT_MASK	0x000f
+#define SND_SOC_DAIFMT_CLOCK_MASK	0x00f0
+#define SND_SOC_DAIFMT_INV_MASK		0x0f00
+#define SND_SOC_DAIFMT_MASTER_MASK	0xf000
 
 #endif /* __DW_I2S_H_ */
 

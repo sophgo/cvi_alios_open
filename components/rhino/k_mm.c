@@ -24,6 +24,9 @@ extern void debug_cpu_stop(void);
 extern k_mm_region_t g_mm_region[];
 extern int           g_region_num;
 
+extern k_mm_region_t g_mm_region_resv[];
+extern int           g_region_num_resv;
+
 #if RHINO_CONFIG_MM_DEBUG
 #if (RHINO_CONFIG_MM_TRACE_LVL > 0)
 
@@ -48,6 +51,7 @@ int kmm_bt_check(void)
 void kmm_error(uint32_t mm_status_locked)
 {
     dumpsys_mm_info_func(mm_status_locked);
+    dumpsys_mm_info_func_resv(mm_status_locked);
     k_err_proc(RHINO_SYS_FATAL_ERR);
 }
 #endif
@@ -61,6 +65,7 @@ void k_mm_init(void)
     for (e = 1 ; e < g_region_num ; e++) {
         krhino_add_mm_region(g_kmm_head, g_mm_region[e].start, g_mm_region[e].len);
     }
+    (void)krhino_init_mm_head(&g_kmm_head_resv, g_mm_region_resv[0].start, g_mm_region_resv[0].len);
 }
 
 /* init a region, contain 3 mmblk
@@ -199,7 +204,8 @@ kstat_t krhino_init_mm_head(k_mm_head **ppmmhead, void *addr, size_t len)
     NULL_PARA_CHK(ppmmhead);
     NULL_PARA_CHK(addr);
 
-    memset(addr, 0, len);
+    // C906L will cost about 200ms while using memset
+    // memset(addr, 0, len);
 
     /* check paramters, addr and len need algin
      *  1.  the length at least need RHINO_CONFIG_MM_TLF_BLK_SIZE  for fixed size memory block
@@ -803,6 +809,43 @@ void krhino_owner_attach(void *addr, size_t allocator)
 
     blk->owner = allocator;
 }
+
+void krhino_owner_attach_resv(void *addr, size_t allocator)
+{
+    k_mm_list_t *blk;
+
+#if 0
+    char *PC;
+    int  *SP;
+
+    __asm__ volatile("mov %0, sp\n" : "=r"(SP));
+    __asm__ volatile("mov %0, pc\n" : "=r"(PC));
+#endif
+
+    if (NULL == addr) {
+        return;
+    }
+
+#if (RHINO_CONFIG_MM_BLK > 0)
+    /* fix blk, do not support debug info */
+    if (krhino_mblk_check(g_kmm_head_resv->fix_pool, addr)) {
+        return;
+    }
+#endif
+
+    blk = MM_GET_THIS_BLK(addr);
+
+#if (RHINO_CONFIG_MM_TRACE_LVL > 0)
+    if ((g_sys_stat == RHINO_RUNNING) &&
+        (kmm_bt_check() == 0)) {
+        backtrace_now_get((void **) blk->trace, RHINO_CONFIG_MM_TRACE_LVL, 2);
+    } else {
+        memset(blk->trace, 0, sizeof(blk->trace));
+    }
+#endif
+
+    blk->owner = allocator;
+}
 #endif
 
 void *krhino_mm_alloc(size_t size)
@@ -889,6 +932,90 @@ void *krhino_mm_realloc(void *oldmem, size_t newsize)
     return tmp;
 }
 
+void *krhino_mm_alloc_resv(size_t size)
+{
+    void *tmp;
+
+#if (RHINO_CONFIG_MM_DEBUG > 0u)
+    uint32_t app_malloc = size & AOS_UNSIGNED_INT_MSB;
+    size = size & (~AOS_UNSIGNED_INT_MSB);
+#endif
+
+    if (size == 0) {
+        printf("WARNING, malloc size = 0\r\n");
+        return NULL;
+    }
+
+    tmp = k_mm_alloc(g_kmm_head_resv, size);
+    if (tmp == NULL) {
+#if (RHINO_CONFIG_MM_DEBUG > 0)
+        static int32_t dumped;
+        int32_t freesize;
+
+        freesize = g_kmm_head_resv->free_size;
+
+        printf("WARNING, malloc failed!!!! need size:%lu, but free size:%d\r\n", (unsigned long)size, freesize);
+
+        if (dumped) {
+            return tmp;
+        }
+
+        dumped = 1;
+
+        debug_cpu_stop();
+        kmm_error(KMM_ERROR_UNLOCKED);
+#endif
+    }
+
+#if (RHINO_CONFIG_USER_HOOK > 0)
+    krhino_mm_alloc_hook(tmp, size);
+#endif
+
+#if (RHINO_CONFIG_MM_DEBUG > 0u)
+    if (app_malloc == 0) {
+        krhino_owner_return_addr_resv(tmp);
+    }
+#endif
+
+    return tmp;
+}
+
+void krhino_mm_free_resv(void *ptr)
+{
+    k_mm_free(g_kmm_head_resv, ptr);
+}
+
+void *krhino_mm_realloc_resv(void *oldmem, size_t newsize)
+{
+    void *tmp;
+
+#if (RHINO_CONFIG_MM_DEBUG > 0u)
+    uint32_t app_malloc = newsize & AOS_UNSIGNED_INT_MSB;
+    newsize = newsize & (~AOS_UNSIGNED_INT_MSB);
+#endif
+
+    tmp = k_mm_realloc(g_kmm_head_resv, oldmem, newsize);
+
+#if (RHINO_CONFIG_MM_DEBUG > 0u)
+    if (app_malloc == 0) {
+        krhino_owner_return_addr_resv(tmp);
+    }
+#endif
+    if (tmp == NULL && newsize != 0) {
+#if (RHINO_CONFIG_MM_DEBUG > 0)
+        static int32_t reallocdumped;
+        printf("WARNING, realloc failed!!!! newsize : %lu\r\n", (unsigned long)newsize);
+        if (reallocdumped) {
+            return tmp;
+        }
+        reallocdumped = 1;
+        debug_cpu_stop();
+        kmm_error(KMM_ERROR_UNLOCKED);
+#endif
+    }
+    return tmp;
+}
+
 size_t krhino_mm_max_free_size_get(void)
 {
     int32_t      index;
@@ -908,6 +1035,37 @@ size_t krhino_mm_max_free_size_get(void)
     }
 
     max = g_kmm_head->freelist[31 - index];
+
+    while (max) {
+        if (max_free_block_size < MM_GET_BUF_SIZE(max)) {
+            max_free_block_size = MM_GET_BUF_SIZE(max);
+        }
+        tmp  = max->mbinfo.free_ptr.next;
+        max = tmp;
+    }
+
+    return max_free_block_size;
+}
+
+size_t krhino_mm_max_free_size_get_resv(void)
+{
+    int32_t      index;
+    k_mm_list_t *max, *tmp;
+    size_t       max_free_block_size = 0;
+
+    /* In order to avoid getting stuck after the exception, the critical zone protection is removed.
+       Currently, this interface can only be invoked in exception handling. */
+
+    //cpu_cpsr_t flags_cpsr;
+
+    //MM_CRITICAL_ENTER(g_kmm_head_resv,flags_cpsr);
+
+    index = krhino_clz32(g_kmm_head_resv->free_bitmap);
+    if (index > 31) {
+        return 0;
+    }
+
+    max = g_kmm_head_resv->freelist[31 - index];
 
     while (max) {
         if (max_free_block_size < MM_GET_BUF_SIZE(max)) {

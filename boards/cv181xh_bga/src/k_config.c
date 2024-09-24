@@ -16,7 +16,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <sys/time.h>
-#include <csi_core.h>
 
 #if (RHINO_CONFIG_HW_COUNT > 0)
 void soc_hw_timer_init(void)
@@ -26,22 +25,28 @@ void soc_hw_timer_init(void)
 
 hr_timer_t soc_hr_hw_freq_get(void)
 {
-    return 1000000;
+    return 1000000000;
 }
 
 hr_timer_t soc_hr_hw_cnt_get(void)
 {
-    return __get_MCYCLE();
+    hr_timer_t count;
+
+    asm volatile("csrr %0, mcycle" : "=r"(count));
+    return count;
 }
 
 lr_timer_t soc_lr_hw_freq_get(void)
 {
-    return 1000000;
+    return 1000000000;
 }
 
 lr_timer_t soc_lr_hw_cnt_get(void)
 {
-    return __get_MCYCLE();
+    lr_timer_t count;
+
+    asm volatile("csrr %0, mcycle" : "=r"(count));
+    return count;
 }
 #endif /* RHINO_CONFIG_HW_COUNT */
 

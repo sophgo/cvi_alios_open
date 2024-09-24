@@ -13,8 +13,6 @@ void cvi_dma_uninit(dw_dma_t *dma);
 int cvi_dma_ch_alloc(uint8_t ctrl_idx, uint8_t ch_idx);
 void cvi_dma_ch_stop(int ctrl_idx, int ch_idx);
 void cvi_dma_ch_free(int ctrl_idx, int ch_idx);
-void cvi_dma_ch_pause(int ctrl_idx, int ch_idx);
-void cvi_dma_ch_resume(int ctrl_idx, int ch_idx);
 int cvi_dma_ch_config(int ctrl_idx, int ch_idx, struct dw_dma_cfg *dw_cfg);
 void cvi_dma_ch_start(int ctrl_idx, int ch_idx, void *srcaddr, void *dstaddr, uint32_t length);
 uint32_t cvi_dma_get_inited_num();

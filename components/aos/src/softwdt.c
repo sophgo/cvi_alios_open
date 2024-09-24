@@ -23,11 +23,11 @@
 static const char *TAG = "swdt";
 
 struct softwdt_node {
-    long     index;
+    uint32_t index;
     int      left_time;
     int      max_time;
-    void     (*will)(void *args);
-    void     *args;
+    void (*will)(void *args);
+    void   *args;
     slist_t node;
 };
 
@@ -46,7 +46,7 @@ static struct softwdt_context {
 static int g_wdt_debug = 1;
 static int g_use_hw_wdt;
 
-static struct softwdt_node *softwdt_find(long index)
+static struct softwdt_node *softwdt_find(int index)
 {
     struct softwdt_node *node;
     slist_for_each_entry(&g_softwdt_ctx.head, node, struct softwdt_node, node) {
@@ -87,7 +87,7 @@ static void softwdt_task_entry(void *arg)
                     if (node->will)
                         node->will(node->args);
                     else {
-                        LOGE(TAG, "softwdt %ld crash!!!", node->index);
+                        LOGE(TAG, "softwdt %u crash!!!", node->index);
 
                         if (node->args)
                             LOGE(TAG, "softwdt info: %s", (char *)node->args);
@@ -123,9 +123,9 @@ static int aos_wdt_init(void)
     return 0;
 }
 
-long aos_wdt_index()
+uint32_t aos_wdt_index()
 {
-    long index = rand();
+    uint32_t index = rand();
 
     aos_wdt_init();
 
@@ -143,7 +143,7 @@ long aos_wdt_index()
     return index;
 }
 
-void aos_wdt_attach(long index, void (*will)(void *), void *args)
+void aos_wdt_attach(uint32_t index, void (*will)(void *), void *args)
 {
     aos_wdt_init();
 
@@ -171,7 +171,7 @@ void aos_wdt_attach(long index, void (*will)(void *), void *args)
     aos_mutex_unlock(&g_softwdt_ctx.mutex);
 }
 
-void aos_wdt_detach(long index)
+void aos_wdt_detach(uint32_t index)
 {
     aos_wdt_init();
     aos_mutex_lock(&g_softwdt_ctx.mutex, AOS_WAIT_FOREVER);
@@ -186,7 +186,7 @@ void aos_wdt_detach(long index)
     aos_mutex_unlock(&g_softwdt_ctx.mutex);
 }
 
-int aos_wdt_exists(long index)
+int aos_wdt_exists(uint32_t index)
 {
     aos_wdt_init();
     aos_mutex_lock(&g_softwdt_ctx.mutex, AOS_WAIT_FOREVER);
@@ -198,7 +198,7 @@ int aos_wdt_exists(long index)
     return node != NULL;
 }
 
-void aos_wdt_feed(long index, int max_time)
+void aos_wdt_feed(uint32_t index, int max_time)
 {
     aos_wdt_init();
     aos_mutex_lock(&g_softwdt_ctx.mutex, AOS_WAIT_FOREVER);
@@ -213,7 +213,7 @@ void aos_wdt_feed(long index, int max_time)
     aos_mutex_unlock(&g_softwdt_ctx.mutex);
 }
 
-void aos_wdt_show(long index)
+void aos_wdt_show(uint32_t index)
 {
     aos_wdt_init();
     aos_mutex_lock(&g_softwdt_ctx.mutex, AOS_WAIT_FOREVER);
@@ -221,7 +221,7 @@ void aos_wdt_show(long index)
     struct softwdt_node *node;
     slist_for_each_entry(&g_softwdt_ctx.head, node, struct softwdt_node, node) {
         if (node->index == index)
-            LOGE(TAG, "softwdt uint[%ld], left_time = %d, max_time=%d\n", node->index,
+            LOGE(TAG, "softwdt uint[%d], left_time = %d, max_time=%d\n", node->index,
                  node->left_time, node->max_time);
     }
 
@@ -235,7 +235,7 @@ void aos_wdt_showall()
 
     struct softwdt_node *node;
     slist_for_each_entry(&g_softwdt_ctx.head, node, struct softwdt_node, node) {
-        LOGE(TAG, "softwdt uint[%ld], left_time = %d, max_time=%d\n", node->index, node->left_time,
+        LOGE(TAG, "softwdt uint[%d], left_time = %d, max_time=%d\n", node->index, node->left_time,
              node->max_time);
     }
 

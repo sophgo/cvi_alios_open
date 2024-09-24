@@ -9,14 +9,10 @@
 #include <devices/driver.h>
 #include <drv/codec.h>
 
-#include <devices/drv_snd_bl606p.h>
-
-static snd_bl606p_config_t *g_audio_gain_config = NULL;
-
 #define TAG "snd"
 
-#define pcm_uninit rvm_hal_device_free
-#define mixer_uninit rvm_hal_device_free
+#define pcm_uninit device_free
+#define mixer_uninit device_free
 
 #define pcm_dev(dev) &(((aos_pcm_dev_t *)dev)->pcm)
 #define pcm_ops(dev) &(((aos_pcm_drv_t *)((((aos_pcm_dev_t *)dev)->device.drv)))->ops)
@@ -28,14 +24,10 @@ static snd_bl606p_config_t *g_audio_gain_config = NULL;
 #define DAC_GAIN_MIN     (-31)
 #define DAC_GAIN_MAX     (-5)   // FIXME: because of pangu C2 board.
 
-#define CONST_TX_OUTPUT_BUFSIZE     (17*1024)
-#define CONST_RX_INPUT_BUFSIZE      (12*1536)
-
 typedef struct {
     csi_codec_output_t *hdl;
     csi_dma_ch_t       *dma_hdl;
     aos_pcm_hw_params_t params;
-    csi_codec_output_config_t *output_config;
     int state;
 } playback_t;
 
@@ -71,21 +63,13 @@ static void playback_free(playback_t *playback)
 
         aos_free(playback->hdl);
         aos_free(playback->dma_hdl);
-        
-        aos_free(playback->output_config->buffer);
-        aos_free(playback->output_config);
-        
-        playback->state   = 0;
-        playback->state   = 0;
         playback->state   = 0;
         playback->hdl     = NULL;
         playback->dma_hdl = NULL;
-        playback->output_config->buffer = NULL;
-        playback->output_config = NULL;
     }
 }
 
-static int pcmp_lpm(rvm_dev_t *dev, int state)
+static int pcmp_lpm(aos_dev_t *dev, int state)
 {
     aos_pcm_t *pcm = pcm_dev(dev);
     playback_t *playback = (playback_t *)pcm->hdl;
@@ -99,7 +83,7 @@ static int pcmp_lpm(rvm_dev_t *dev, int state)
     return 0;
 }
 
-static int pcmp_open(rvm_dev_t *dev)
+static int pcmp_open(aos_dev_t *dev)
 {
     aos_pcm_t *pcm = pcm_dev(dev);
     playback_t *playback = aos_zalloc(sizeof(playback_t));
@@ -111,7 +95,7 @@ static int pcmp_open(rvm_dev_t *dev)
     return 0;
 }
 
-static int pcmp_close(rvm_dev_t *dev)
+static int pcmp_close(aos_dev_t *dev)
 {
     aos_pcm_t *pcm = pcm_dev(dev);
     playback_t *playback = (playback_t *)pcm->hdl;
@@ -123,13 +107,11 @@ static int pcmp_close(rvm_dev_t *dev)
     return 0;
 }
 
-volatile int g_tx_cnt;
 static void codec_event_cb(csi_codec_input_t *codec, csi_codec_event_t event, void *arg)
 {
     aos_pcm_t *pcm = (aos_pcm_t *)arg;
 
     if (event == CODEC_EVENT_PERIOD_WRITE_COMPLETE) {
-        g_tx_cnt ++;
         pcm->event.cb(pcm, PCM_EVT_WRITE, pcm->event.priv);
     } else if (event == CODEC_EVENT_PERIOD_READ_COMPLETE) {
         pcm->event.cb(pcm, PCM_EVT_READ, pcm->event.priv);
@@ -146,23 +128,14 @@ static int pcmp_param_set(aos_pcm_t *pcm, aos_pcm_hw_params_t *params)
 
     playback_free(playback);
 
+    csi_codec_output_config_t output_config;
     csi_codec_output_t *codec = aos_zalloc(sizeof(csi_codec_output_t));
     codec->ring_buf = aos_zalloc(sizeof(dev_ringbuf_t));
-    codec->sound_channel_num = 2;
 
     CHECK_RET_TAG_WITH_RET(NULL != codec, -1);
 
-#ifdef CONST_TX_OUTPUT_BUFSIZE
-    uint8_t *send = aos_malloc(CONST_TX_OUTPUT_BUFSIZE);
-#else
     uint8_t *send = aos_malloc(params->buffer_bytes);
-#endif
     if (send == NULL) {
-        goto pcmp_err0;
-    }
-
-    playback->output_config = aos_malloc(sizeof(csi_codec_output_config_t));
-    if (playback->output_config == NULL) {
         goto pcmp_err0;
     }
 
@@ -173,20 +146,15 @@ static int pcmp_param_set(aos_pcm_t *pcm, aos_pcm_hw_params_t *params)
 
     csi_codec_output_attach_callback(codec, codec_event_cb, pcm);
 
-    playback->output_config->bit_width = params->sample_bits;
-    playback->output_config->sample_rate = params->rate;
-    playback->output_config->buffer = send;
-
-#ifdef CONST_TX_OUTPUT_BUFSIZE
-    playback->output_config->buffer_size = CONST_TX_OUTPUT_BUFSIZE;
-#else
-    playback->output_config->buffer_size = params->buffer_bytes;
-#endif
-    playback->output_config->period = 2400;
+    output_config.bit_width = params->sample_bits;
+    output_config.sample_rate = params->rate;
+    output_config.buffer = send;
+    output_config.buffer_size = params->buffer_bytes;
+    output_config.period = params->period_bytes;
     //output_config.period = 2048;
-    playback->output_config->mode = CODEC_OUTPUT_SINGLE_ENDED;
-    playback->output_config->sound_channel_num = params->channels;
-    ret = csi_codec_output_config(codec, playback->output_config);
+    output_config.mode = CODEC_OUTPUT_SINGLE_ENDED;
+    output_config.sound_channel_num = params->channels;
+    ret = csi_codec_output_config(codec, &output_config);
     if (ret != 0) {
         goto pcmp_err1;
     }
@@ -195,10 +163,18 @@ static int pcmp_param_set(aos_pcm_t *pcm, aos_pcm_hw_params_t *params)
         memcpy(&mixp0.hdl, codec, sizeof(csi_codec_output_t));
     }
 
-    //snd_set_gain will init mixp0.l
-    extern int auo_analog_gain(void *context, float val);
-    auo_analog_gain(NULL, (float)mixp0.l);
-    // csi_codec_output_buffer_reset(codec);
+    // if (mixp0.l == -31 || mixp0.r == -31) {
+    //     csi_codec_output_mute(codec, 1);
+    // } else {
+    //     csi_codec_output_mute(codec, 0);
+
+    //     // csi_codec_output_analog_gain(codec, mixp0.l);
+
+    // }
+
+    // csi_codec_output_analog_gain(codec, 0xaf);
+    csi_codec_output_digital_gain(codec, 0xffd0);
+    csi_codec_output_buffer_reset(codec);
 
     csi_dma_ch_t *dma_hdl = aos_zalloc_check(sizeof(csi_dma_ch_t));
     csi_codec_output_link_dma(codec, dma_hdl);
@@ -219,27 +195,18 @@ pcmp_err0:
     return -1;
 }
 
-//#define DUMP_DATA_FEATURE
-#ifdef DUMP_DATA_FEATURE
-#define DUMP_DATA_LEN (256*1024)
-uint8_t g_csi_data[DUMP_DATA_LEN];
-int g_csi_len;
-#endif
-
+char g_dump_buffer[1024*20];
+int g_dump_len = 0;
 static int pcm_send(aos_pcm_t *pcm, void *data, int len)
 {
     playback_t *playback = (playback_t *)pcm->hdl;
+    // if (g_dump_len + len< 1024*20) {
+    //     memcpy(g_dump_buffer + g_dump_len, data, len);
+    //     g_dump_len += len;
+    // }
+
     int ret = csi_codec_output_write_async(playback->hdl, (uint8_t *)data, len);
 
-#ifdef DUMP_DATA_FEATURE
-    if (ret + g_csi_len > DUMP_DATA_LEN) {
-        // g_csi_len = -1;
-    } else {
-        memcpy(g_csi_data + g_csi_len, (uint8_t*)data, ret);
-        g_csi_len += ret;                    
-    }
-#endif
-    // printf("---------------------(%d)\r\n", ret);
     return ret;
 }
 
@@ -259,20 +226,22 @@ static int pcm_pause(aos_pcm_t *pcm, int enable)
 /* left_gain/right_gain [-31, 0] 1dB step*/
 static int snd_set_gain(aos_mixer_elem_t *elem, int l, int r)
 {
-    //l r is dB value, Convert to csi api
     if (mixp0.hdl.callback != NULL) {
-        printf(">>> snd_set_gain %d %d dB\r\n", l, r);
-        //csi_codec_output_t *p = &mixp0.hdl;
-        //csi_codec_output_analog_gain(p, output_db2idx(l));
-        extern int auo_analog_gain(void *context, float val);
-        auo_analog_gain(NULL, (float)l);
 
+        // csi_codec_output_t *p = &mixp0.hdl;
+
+        // if (l == -31 || r == -31) {
+        //     csi_codec_output_mute(p, 1);
+        // } else {
+        //     csi_codec_output_mute(p, 0);
+        //     csi_codec_output_analog_gain(p, l);
+        // }
+        mixp0.l = l;
+        mixp0.r = r;
     } else {
-        printf(">>> snd_set_gain default %d %d dB\r\n", l, r);
+        mixp0.l = l;
+        mixp0.r = r;
     }
-
-    mixp0.l = l;
-    mixp0.r = r;
 
     return 0;
 }
@@ -293,15 +262,15 @@ static sm_elem_ops_t elem_codec1_ops = {
     .volume_to_dB = snd_volume_to_dB,
 };
 
-static rvm_dev_t *pcm_init(driver_t *drv, void *config, int id)
+static aos_dev_t *pcm_init(driver_t *drv, void *config, int id)
 {
-    aos_pcm_dev_t *pcm_dev = (aos_pcm_dev_t *)rvm_hal_device_new(drv, sizeof(aos_pcm_dev_t), id);
+    aos_pcm_dev_t *pcm_dev = (aos_pcm_dev_t *)device_new(drv, sizeof(aos_pcm_dev_t), id);
     aos_pcm_drv_t *pcm_drv = (aos_pcm_drv_t *)drv;
 
     memset(&pcm_dev->pcm, 0x00, sizeof(aos_pcm_t));
     pcm_dev->pcm.ops = &(pcm_drv->ops);
 
-    return (rvm_dev_t *)(pcm_dev);
+    return (aos_dev_t *)(pcm_dev);
 }
 
 static void capture_free(capture_t *capture)
@@ -317,7 +286,7 @@ static void capture_free(capture_t *capture)
     }
 }
 
-static int pcmc_lpm(rvm_dev_t *dev, int state)
+static int pcmc_lpm(aos_dev_t *dev, int state)
 {
     aos_pcm_t *pcm = pcm_dev(dev);
     capture_t *capture = (capture_t *)pcm->hdl;
@@ -331,7 +300,7 @@ static int pcmc_lpm(rvm_dev_t *dev, int state)
     return 0;
 }
 
-static int pcmc_open(rvm_dev_t *dev)
+static int pcmc_open(aos_dev_t *dev)
 {
     aos_pcm_t *pcm = pcm_dev(dev);
     capture_t *capture = aos_zalloc(sizeof(capture_t));
@@ -343,7 +312,7 @@ static int pcmc_open(rvm_dev_t *dev)
     return 0;
 }
 
-static int pcmc_close(rvm_dev_t *dev)
+static int pcmc_close(aos_dev_t *dev)
 {
     aos_pcm_t *pcm = pcm_dev(dev);
     capture_t *capture = (capture_t *)pcm->hdl;
@@ -364,11 +333,7 @@ static int pcmc_param_set(aos_pcm_t *pcm, struct aos_pcm_hw_params *params)
 
     CHECK_RET_TAG_WITH_RET(NULL != codec, -1);
 
-#ifdef CONST_RX_INPUT_BUFSIZE
-    uint8_t *recv = aos_malloc(CONST_RX_INPUT_BUFSIZE);
-#else
     uint8_t *recv = aos_malloc(params->buffer_bytes);
-#endif
     if (recv == NULL) {
         goto pcmc_err0;
     }
@@ -382,36 +347,20 @@ static int pcmc_param_set(aos_pcm_t *pcm, struct aos_pcm_hw_params *params)
 
     /* input ch config */
     csi_codec_input_attach_callback(codec, codec_event_cb, pcm);
-    input_config.bit_width = params->sample_bits;
-    input_config.sample_rate = params->rate;
+    input_config.bit_width = 16;
+    input_config.sample_rate = 16000;
     input_config.buffer = recv;
-#ifdef CONST_RX_INPUT_BUFSIZE
-    input_config.buffer_size = CONST_RX_INPUT_BUFSIZE;
-#else
     input_config.buffer_size = params->buffer_bytes;
-#endif
-    input_config.period = params->period_bytes;
+    input_config.period = 4800;
     input_config.mode = CODEC_INPUT_DIFFERENCE;
-    input_config.sound_channel_num = params->channels;
-
-    printf("input bit_width(%d), sample_rate(%d), buffer_size(%d), period(%d), sound_channel_num(%d)\r\n", \
-            input_config.bit_width, input_config.sample_rate, input_config.buffer_size, input_config.period, input_config.sound_channel_num);
+    input_config.sound_channel_num = 3;
     ret = csi_codec_input_config(codec, &input_config);
     if (ret != 0) {
         goto pcmc_err1;
     }
 
-    if (g_audio_gain_config) {
-        /*Fixme: csi接口未实现*/
-        extern int _aui_analog_gain(int id, int32_t val);
-        for (int i = 0; i < 3; i++) {
-            _aui_analog_gain(i, g_audio_gain_config->audio_in_gain_list[i]);
-        }
-    } else {
-        //csi_codec_input_analog_gain(codec, 0x2f);
-        //csi_codec_input_digital_gain(codec, 25);
-        // csi_codec_input_digital_gain(codec, 17);
-    }
+    csi_codec_input_analog_gain(codec, 0x2f);
+    csi_codec_input_digital_gain(codec, 17);
 
     csi_dma_ch_t *dma_hdl = aos_zalloc_check(sizeof(csi_dma_ch_t));
     csi_codec_input_link_dma(codec, dma_hdl);
@@ -423,7 +372,7 @@ static int pcmc_param_set(aos_pcm_t *pcm, struct aos_pcm_hw_params *params)
     capture->dma_hdl = dma_hdl;
     memcpy(&capture->params, params, sizeof(aos_pcm_hw_params_t));
 
-    printf("csi codec input open success\r\n");
+    printf("csi codec open success\r\n");
     return 0;
 
 pcmc_err1:
@@ -478,31 +427,31 @@ static aos_pcm_drv_t aos_pcm_drv[] = {
         .ops = {
             .hw_params_set = pcmc_param_set,
             .read = pcm_recv,
-            .hw_get_remain_size = pcmc_get_remain_size,
+            //.hw_get_remain_size = pcmc_get_remain_size,
         },
     }
 };
 
 static int aos_pcm_register(void)
 {
-    rvm_driver_register(&aos_pcm_drv[0].drv, NULL, 0);
-    rvm_driver_register(&aos_pcm_drv[1].drv, NULL, 0);
-    // rvm_driver_register(&aos_pcm_drv[1].drv, NULL, 2);
-    // rvm_driver_register(&aos_pcm_drv[1].drv, NULL, 1);
+    driver_register(&aos_pcm_drv[0].drv, NULL, 0);
+    driver_register(&aos_pcm_drv[1].drv, NULL, 0);
+    // driver_register(&aos_pcm_drv[1].drv, NULL, 2);
+    // driver_register(&aos_pcm_drv[1].drv, NULL, 1);
 
     return 0;
 }
 
 static int aos_pcm_unregister(void)
 {
-    rvm_driver_unregister("pcmP0");
+    driver_unregister("pcmP0");
 
     return 0;
 }
 
-static rvm_dev_t *card_init(driver_t *drv, void *config, int id)
+static aos_dev_t *card_init(driver_t *drv, void *config, int id)
 {
-    card_dev_t *card = (card_dev_t *)rvm_hal_device_new(drv, sizeof(card_dev_t), id);
+    card_dev_t *card = (card_dev_t *)device_new(drv, sizeof(card_dev_t), id);
     snd_card_drv_t *card_drv = (snd_card_drv_t *)drv;
     aos_mixer_elem_t *elem;
 
@@ -520,29 +469,29 @@ static rvm_dev_t *card_init(driver_t *drv, void *config, int id)
     snd_elem_new(&elem, "codec0", &elem_codec1_ops);
     slist_add(&elem->next, &card_drv->mixer_head);
 
-    return (rvm_dev_t *)card;
+    return (aos_dev_t *)card;
 }
 
-static void card_uninit(rvm_dev_t *dev)
+static void card_uninit(aos_dev_t *dev)
 {
     csi_codec_uninit(&codec_a);
     aos_pcm_unregister();
-    rvm_hal_device_free(dev);
+    device_free(dev);
 }
 
-static int card_open(rvm_dev_t *dev)
+static int card_open(aos_dev_t *dev)
 {
 
     return 0;
 }
 
-static int card_close(rvm_dev_t *dev)
+static int card_close(aos_dev_t *dev)
 {
 
     return 0;
 }
 
-static int card_lpm(rvm_dev_t *dev, int state)
+static int card_lpm(aos_dev_t *dev, int state)
 {
 
     return 0;
@@ -561,15 +510,5 @@ static snd_card_drv_t snd_card_drv = {
 
 void snd_card_bl606p_register(void *config)
 {
-    if (config) {
-        if (g_audio_gain_config == NULL) {
-            g_audio_gain_config = (snd_bl606p_config_t*)malloc(sizeof(snd_bl606p_config_t));
-            *g_audio_gain_config = *((snd_bl606p_config_t*)config);
-        } else {
-            /* 再次调用注册,仅仅更新参数 */
-            *g_audio_gain_config = *((snd_bl606p_config_t*)config);
-            return;
-        }
-    }
-    rvm_driver_register(&snd_card_drv.drv, NULL, 0);
+    driver_register(&snd_card_drv.drv, NULL, 0);
 }

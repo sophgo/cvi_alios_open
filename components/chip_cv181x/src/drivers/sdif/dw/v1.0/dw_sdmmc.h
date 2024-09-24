@@ -10,7 +10,14 @@
 #include <stdbool.h>
 #include "rtos_types.h"
 
-#define CONFIG_SDIO_NUM   3
+#define SDMMC_TRACE_LEVEL 5
+
+#define CONFIG_SDIO_NUM   2
+/*For example
+ *sdmmc_trace(2, "begin card_status = %d.", host->card_status);
+ *sdmmc_assert(host);
+ *sdmmc_error("this is a dithering, card detect error!");
+ */
 
 #define MMC_CMD0			0
 #define MMC_CMD1			1
@@ -51,9 +58,18 @@ static inline int mmc_op_multi(uint32_t opcode)
 	return opcode == MMC_CMD25 || opcode == MMC_CMD18;
 }
 
-#define SDIO0_BASE			DW_SDIO1_BASE
-#define SDIO1_BASE			DW_SDIO0_BASE
-#define SDIO2_BASE			DW_SDIO2_BASE
+
+#define SD0_BASE			0x04310000
+#define SD1_BASE			0x04320000
+
+#define SDIO0_ID			0
+#define SDIO1_ID			1
+
+#define SDIO0_BASE			SD0_BASE
+#define SDIO1_BASE			SD1_BASE
+
+#define SDIO_BASE_ADDR		SD1_BASE
+
 
 #define SDIF_DMA_ADDRESS               0x00
 #define SDIF_BLOCK_SIZE                0x04
@@ -312,56 +328,8 @@ static inline int mmc_op_multi(uint32_t opcode)
 #define RTCSYS_CTRL_BASE	0x03000000
 #define RTCSYS_CTRL		(RTCSYS_CTRL_BASE + 0x248)
 
-/*SDIO 2 register and bit flag*/
-#define REG_SDIO2_PAD_MASK (0xFFFFFFF3)
-#define REG_SDIO2_PAD_SHIFT (2)
-
-#define REG_SDIO2_RSTN_PAD_REG (PINMUX_BASE + 0x914)
-#define REG_SDIO2_RSTN_PAD_VALUE (1)
-
-#define REG_SDIO2_CLK_PAD_REG (PINMUX_BASE + 0x91C)
-#define REG_SDIO2_CLK_PAD_VALUE (2)
-
-#define REG_SDIO2_CMD_PAD_REG (PINMUX_BASE + 0x928)
-#define REG_SDIO2_CMD_PAD_VALUE (1)
-
-#define REG_SDIO2_DAT0_PAD_REG (PINMUX_BASE + 0x920)
-#define REG_SDIO2_DAT0_PAD_VALUE (1)
-
-#define REG_SDIO2_DAT1_PAD_REG (PINMUX_BASE + 0x92C)
-#define REG_SDIO2_DAT1_PAD_VALUE (1)
-
-#define REG_SDIO2_DAT2_PAD_REG (PINMUX_BASE + 0x918)
-#define REG_SDIO2_DAT2_PAD_VALUE (1)
-
-#define REG_SDIO2_DAT3_PAD_REG (PINMUX_BASE + 0x924)
-#define REG_SDIO2_DAT3_PAD_VALUE (1)
-
-#define REG_SDIO2_RSTN_PIO_REG (PINMUX_BASE + 0x48)
-#define REG_SDIO2_RSTN_PIO_VALUE (0x0)
-
-#define REG_SDIO2_CLK_PIO_REG (PINMUX_BASE + 0x50)
-#define REG_SDIO2_CLK_PIO_VALUE (0x0)
-
-#define REG_SDIO2_CMD_PIO_REG (PINMUX_BASE + 0x5C)
-#define REG_SDIO2_CMD_PIO_VALUE (0x0)
-
-#define REG_SDIO2_DAT0_PIO_REG (PINMUX_BASE + 0x54)
-#define REG_SDIO2_DAT0_PIO_VALUE (0x0)
-
-#define REG_SDIO2_DAT1_PIO_REG (PINMUX_BASE + 0x60)
-#define REG_SDIO2_DAT1_PIO_VALUE (0x0)
-
-#define REG_SDIO2_DAT2_PIO_REG (PINMUX_BASE + 0x4C)
-#define REG_SDIO2_DAT2_PIO_VALUE (0x0)
-
-#define REG_SDIO2_DAT3_PIO_REG (PINMUX_BASE + 0x58)
-#define REG_SDIO2_DAT3_PIO_VALUE (0x0)
-
-
 #define MMC_SDIO0_PLL_REGISTER 0x3002070
 #define MMC_SDIO1_PLL_REGISTER 0x300207C
-#define MMC_SDIO2_PLL_REGISTER 0x3002064
 #define MMC_MAX_CLOCK_DIV_VALUE (0x40009)
 #define CLOCK_BYPASS_SELECT_REGISTER (0x3002030)
 

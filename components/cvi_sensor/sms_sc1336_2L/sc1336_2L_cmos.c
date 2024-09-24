@@ -6,7 +6,6 @@
 #include "cvi_type.h"
 #include "cvi_debug.h"
 #include "cvi_comm_sns.h"
-#include "cvi_comm_video.h"
 #include "cvi_sns_ctrl.h"
 #include "cvi_ae_comm.h"
 #include "cvi_awb_comm.h"
@@ -16,20 +15,16 @@
 
 #include "sc1336_2L_cmos_ex.h"
 #include "sc1336_2L_cmos_param.h"
-
-#ifdef ARCH_CV182X
-#include "cvi_vip_cif_uapi.h"
-#else
-#include "cif_uapi.h"
-#endif
-
-
+#include "cvi_comm_cif.h"
 
 #define DIV_0_TO_1(a)   ((0 == (a)) ? 1 : (a))
 #define DIV_0_TO_1_FLOAT(a) ((((a) < 1E-10) && ((a) > -1E-10)) ? 1 : (a))
 #define SC1336_2L_ID 500
 #define SENSOR_SC1336_2L_WIDTH 1280
 #define SENSOR_SC1336_2L_HEIGHT 720
+#define SC1336_2L_I2C_ADDR_1 0x30
+#define SC1336_2L_I2C_ADDR_2 0x32
+#define SC1336_2L_I2C_ADDR_IS_VALID(addr)	((addr) == SC1336_2L_I2C_ADDR_1 || (addr) == SC1336_2L_I2C_ADDR_2)
 /****************************************************************************
  * global variables                                                            *
  ****************************************************************************/
@@ -181,7 +176,8 @@ static CVI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSns
 		pstAeSnsDft->u32InitExposure = g_au32InitExposure[ViPipe] ? g_au32InitExposure[ViPipe] : 52000;
 		pstAeSnsDft->u32InitAESpeed = 64;
 		pstAeSnsDft->u32InitAETolerance = 5;
-		pstAeSnsDft->u32AEResponseFrame = 4;
+		pstAeSnsDft->u32AEResponseFrame = 3;
+		pstAeSnsDft->u32SnsResponseFrame = 4;
 		if (genFSWDRMode[ViPipe] == ISP_FSWDR_LONG_FRAME_MODE) {
 			pstAeSnsDft->u8AeCompensation = 64;
 			pstAeSnsDft->enAeExpMode = AE_EXP_HIGHLIGHT_PRIOR;
@@ -300,6 +296,9 @@ static CVI_S32 cmos_inttime_update(VI_PIPE ViPipe, CVI_U32 *u32IntTime)
 		pstSnsRegsInfo->astI2cData[WDR_SHS2_0_ADDR].u32Data = ((u16LexpReg & 0xF000) >> 12);
 		pstSnsRegsInfo->astI2cData[WDR_SHS2_1_ADDR].u32Data = ((u16LexpReg & 0x0FF0) >> 4);
 		pstSnsRegsInfo->astI2cData[WDR_SHS2_2_ADDR].u32Data = (u16LexpReg & 0xF) << 4;
+		pstSnsRegsInfo->astI2cData[WDR_SHS2_0_ADDR].u8DelayFrmNum = 0;
+		pstSnsRegsInfo->astI2cData[WDR_SHS2_1_ADDR].u8DelayFrmNum = 0;
+		pstSnsRegsInfo->astI2cData[WDR_SHS2_2_ADDR].u8DelayFrmNum = 0;
 	} else {
 		CVI_U32 u32TmpIntTime = u32IntTime[0];
 		CVI_U32 maxExp = 2 * pstSnsState->au32FL[0] - 8;
@@ -641,6 +640,12 @@ static CVI_S32 cmos_gains_update(VI_PIPE ViPipe, CVI_U32 *pu32Again, CVI_U32 *pu
 			pstSnsRegsInfo->astI2cData[WDR_AGAIN2_FINE_ADDR].u8DelayFrmNum = 1;
 			pstSnsRegsInfo->astI2cData[WDR_DGAIN2_ADDR].u8DelayFrmNum = 1;
 			pstSnsRegsInfo->astI2cData[WDR_DGAIN2_FINE_ADDR].u8DelayFrmNum = 1;
+
+			pstSnsRegsInfo->astI2cData[WDR_AGAIN1_ADDR0].u8DelayFrmNum = 0;
+			pstSnsRegsInfo->astI2cData[WDR_AGAIN1_ADDR1].u8DelayFrmNum = 0;
+			pstSnsRegsInfo->astI2cData[WDR_AGAIN1_FINE_ADDR].u8DelayFrmNum = 0;
+			pstSnsRegsInfo->astI2cData[WDR_DGAIN1_ADDR].u8DelayFrmNum = 0;
+			pstSnsRegsInfo->astI2cData[WDR_DGAIN1_FINE_ADDR].u8DelayFrmNum = 0;
 		} else if (u16Mode == SNS_GAIN_MODE_SHARE) {
 			/* Again. */
 			tbl_num = sizeof(AgainInfo)/sizeof(struct gain_tbl_info_s);
@@ -678,6 +683,12 @@ static CVI_S32 cmos_gains_update(VI_PIPE ViPipe, CVI_U32 *pu32Again, CVI_U32 *pu
 			pstSnsRegsInfo->astI2cData[WDR_AGAIN2_FINE_ADDR].u8DelayFrmNum = 1;
 			pstSnsRegsInfo->astI2cData[WDR_DGAIN2_ADDR].u8DelayFrmNum = 1;
 			pstSnsRegsInfo->astI2cData[WDR_DGAIN2_FINE_ADDR].u8DelayFrmNum = 1;
+
+			pstSnsRegsInfo->astI2cData[WDR_AGAIN1_ADDR0].u8DelayFrmNum = 0;
+			pstSnsRegsInfo->astI2cData[WDR_AGAIN1_ADDR1].u8DelayFrmNum = 0;
+			pstSnsRegsInfo->astI2cData[WDR_AGAIN1_FINE_ADDR].u8DelayFrmNum = 0;
+			pstSnsRegsInfo->astI2cData[WDR_DGAIN1_ADDR].u8DelayFrmNum = 0;
+			pstSnsRegsInfo->astI2cData[WDR_DGAIN1_FINE_ADDR].u8DelayFrmNum = 0;
 		}
 	}
 	return CVI_SUCCESS;
@@ -722,8 +733,6 @@ static CVI_S32 cmos_get_inttime_max(VI_PIPE ViPipe, CVI_U16 u16ManRatioEnable, C
 		au32IntTimeMin[1] = au32IntTimeMin[0] * au32Ratio[0] >> 6;
 		au32IntTimeMin[2] = au32IntTimeMin[1] * au32Ratio[1] >> 6;
 		au32IntTimeMin[3] = au32IntTimeMin[2] * au32Ratio[2] >> 6;
-		// syslog(LOG_DEBUG, "ViPipe = %d ratio = %d, (%d, %d)\n", ViPipe, au32Ratio[0],
-		// 		u32IntTimeMaxTmp, u32ShortTimeMinLimit);
 	}
 
 	return CVI_SUCCESS;
@@ -846,7 +855,7 @@ static CVI_S32 cmos_set_wdr_mode(VI_PIPE ViPipe, CVI_U8 u8Mode)
 			pstSnsState->u8ImgMode = SC1336_2L_MODE_720P60;
 		pstSnsState->enWDRMode = WDR_MODE_NONE;
 		pstSnsState->u32FLStd = g_astSC1336_2L_mode[pstSnsState->u8ImgMode].u32VtsDef;
-		// syslog(LOG_INFO, "linear mode\n");
+		syslog(LOG_INFO, "linear mode\n");
 		break;
 
 	case WDR_MODE_2To1_LINE:
@@ -856,7 +865,7 @@ static CVI_S32 cmos_set_wdr_mode(VI_PIPE ViPipe, CVI_U8 u8Mode)
 			pstSnsState->u8ImgMode = SC1336_2L_MODE_720P60_WDR;
 		pstSnsState->enWDRMode = WDR_MODE_2To1_LINE;
 		pstSnsState->u32FLStd = g_astSC1336_2L_mode[pstSnsState->u8ImgMode].u32VtsDef;
-		// syslog(LOG_INFO, "2to1 line WDR mode\n");
+		syslog(LOG_INFO, "2to1 line WDR mode\n");
 		break;
 	default:
 		CVI_TRACE_SNS(CVI_DBG_ERR, "NOT support this mode!\n");
@@ -1223,6 +1232,12 @@ static CVI_S32 cmos_init_sensor_exp_function(ISP_SENSOR_EXP_FUNC_S *pstSensorExp
  * callback structure                                                       *
  ****************************************************************************/
 
+static CVI_VOID sensor_patch_i2c_addr(CVI_S32 s32I2cAddr)
+{
+	if (SC1336_2L_I2C_ADDR_IS_VALID(s32I2cAddr))
+		sc1336_2l_i2c_addr = s32I2cAddr;
+}
+
 static CVI_S32 sc1336_set_bus_info(VI_PIPE ViPipe, ISP_SNS_COMMBUS_U unSNSBusInfo)
 {
 	g_aunSC1336_2L_BusInfo[ViPipe].s8I2cDev = unSNSBusInfo.s8I2cDev;
@@ -1363,7 +1378,7 @@ ISP_SNS_OBJ_S stSnsSC1336_2L_Obj = {
 	.pfnSetBusInfo          = sc1336_set_bus_info,
 	.pfnSetInit             = sensor_set_init,
 	.pfnPatchRxAttr		= sensor_patch_rx_attr,
-	.pfnPatchI2cAddr	= CVI_NULL,
+	.pfnPatchI2cAddr	= sensor_patch_i2c_addr,
 	.pfnGetRxAttr		= sensor_rx_attr,
 	.pfnExpSensorCb		= cmos_init_sensor_exp_function,
 	.pfnExpAeCb		= cmos_init_ae_exp_function,

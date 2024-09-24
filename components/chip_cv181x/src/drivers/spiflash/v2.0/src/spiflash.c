@@ -61,14 +61,7 @@ csi_error_t csi_spiflash_spi_init(csi_spiflash_t *spiflash, uint32_t spi_idx, vo
 		printf("scan flash failed!\n");
 		return -1;
 	}
-	return 0;
-}
-
-extern int spi_nor_read_unique_id(struct spi_nor *nor, uint8_t *id, uint32_t id_len);
-csi_error_t csi_spiflash_get_unique_id(csi_spiflash_t *spiflash, void *buffer, uint32_t len)
-{
-	struct cvi_spif *spif = spiflash->priv;
-	return spi_nor_read_unique_id(&spif->nor, (uint8_t *)buffer, len);
+	return 0;                              
 }
 
 void csi_spiflash_spi_uninit(csi_spiflash_t *spiflash)

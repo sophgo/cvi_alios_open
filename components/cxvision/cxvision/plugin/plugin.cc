@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022 Alibaba Group Holding Limited
+ * Copyright (C) 2019-2022 Alibaba Group Holding Limited
  */
 
 #include <utility>
@@ -18,8 +18,7 @@ bool PluginBase::Send(int port, const cx::BufferPtr& data) {
 
 PluginBase::~PluginBase() {}
 
-bool PluginBase::_CreateIoPorts(const std::string& manager_id,
-                                const cx::config::Graph& graph,
+bool PluginBase::_CreateIoPorts(const cx::config::Graph& graph,
                                 const cx::config::Vertex& v) {
   auto e_in_size = v.e_in.size();
   dataMatrix_.resize(e_in_size);
@@ -42,7 +41,7 @@ bool PluginBase::_CreateIoPorts(const std::string& manager_id,
   // {Replicas_ID}/graph_name/dst_node_name#dst_input_port
   for (int i : v.e_in) {
     int port = edges.at(i).port_dst;
-    std::string name = manager_id + "/" + graph.name +
+    std::string name = graph.name +
         "/" + vertices.at(edges.at(i).v_dst).node->name +
         "#" + std::to_string(port);
     auto reader = participant_->CreateReader<cx::Buffer>(name,
@@ -56,7 +55,7 @@ bool PluginBase::_CreateIoPorts(const std::string& manager_id,
   }
 
   for (int i : v.e_out) {
-    std::string name = manager_id + "/" + graph.name +
+    std::string name = graph.name +
         "/" + vertices.at(edges.at(i).v_dst).node->name +
         "#" + std::to_string(edges.at(i).port_dst);
     auto writer = participant_->CreateWriter<cx::Buffer>(name);

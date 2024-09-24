@@ -37,6 +37,8 @@ char *k_int2str(int num, char *str);
  */
 void debug_mm_overview(int (*print_func)(const char *fmt, ...));
 
+void debug_mm_overview_resv(int (*print_func)(const char *fmt, ...));
+
 /**
  * This function print the overview of tasks
  * @param[in]   print_func    function to output information, NULL for
@@ -71,6 +73,13 @@ void debug_sem_overview(int (*print_func)(const char *fmt, ...));
  * "printf"
  */
 void debug_mutex_overview(int (*print_func)(const char *fmt, ...));
+
+/**
+ * This function print the overview of event
+ * @param[in]   print_func    function to output information, NULL for
+ * "printf"
+ */
+void debug_event_overview(int (*print_func)(const char *fmt, ...));
 
 /**
  * This function print the overview of all

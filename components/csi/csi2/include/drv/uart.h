@@ -76,9 +76,11 @@ struct csi_uart {
     csi_dma_ch_t          *tx_dma;
     csi_dma_ch_t          *rx_dma;
     csi_error_t           (*send)(csi_uart_t *uart, const void *data, uint32_t size);
+    csi_error_t           (*send_irq)(csi_uart_t *uart, const void *data, uint32_t size);
     csi_error_t           (*receive)(csi_uart_t *uart, void *data, uint32_t size);
     csi_state_t           state;
     void                  *priv;
+    void                  *ringbuf_irq;
 };
 
 /**
@@ -149,6 +151,13 @@ csi_error_t csi_uart_flowctrl(csi_uart_t *uart,  csi_uart_flowctrl_t flowctrl);
 int32_t csi_uart_send(csi_uart_t *uart, const void *data, uint32_t size, uint32_t timeout);
 
 /**
+  \brief       Config the uart flow control.
+  \param[in]   uart      UART handle to operate.
+  \return      Error code.
+*/
+int32_t csi_uart_print_ringbuffer(csi_uart_t *uart);
+
+/**
   \brief       Start send data to UART transmitter, this function is non-blocking.
   \param[in]   uart     UART handle to operate.
   \param[in]   data     Pointer to buffer with data to send to UART transmitter.
@@ -156,6 +165,15 @@ int32_t csi_uart_send(csi_uart_t *uart, const void *data, uint32_t size, uint32_
   \return      Error code.
 */
 csi_error_t csi_uart_send_async(csi_uart_t *uart, const void *data, uint32_t size);
+
+/**
+  \brief       Start send data to UART transmitter, this function is non-blocking.
+  \param[in]   uart     UART handle to operate.
+  \param[in]   data     Pointer to buffer with data to send to UART transmitter.
+  \param[in]   size     Number of data to send (byte).
+  \return      Error code.
+*/
+csi_error_t csi_uart_send_async_irq(csi_uart_t *uart, const void *data, uint32_t size);
 
 /**
   \brief       Query data from UART receiver FIFO, this function is blocking.
@@ -219,6 +237,12 @@ csi_error_t csi_uart_enable_pm(csi_uart_t *uart);
   \param[in]   uart   UART handle to operate.
 */
 void csi_uart_disable_pm(csi_uart_t *uart);
+
+/**
+  \brief       virtual uart flush cpu cache
+  \param[in]   uart   UART handle to operate.
+*/
+void csi_uart_flush_cache(csi_uart_t *uart);
 
 #ifdef __cplusplus
 }

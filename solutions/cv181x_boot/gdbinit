@@ -1,5 +1,0 @@
-
-target remote 30.225.64.113:1025
-reset
-lo
-

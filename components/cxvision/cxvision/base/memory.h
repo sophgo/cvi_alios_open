@@ -1,7 +1,3 @@
-/*
- * Copyright (C) 2021-2022 Alibaba Group Holding Limited
- */
-
 #ifndef CXVISION_BASE_MEMORY_H_
 #define CXVISION_BASE_MEMORY_H_
 

@@ -1,6 +1,5 @@
 #include "cvi_sns_ctrl.h"
 #include "cvi_comm_video.h"
-#include "cvi_sns_ctrl.h"
 #include "gc2053_cmos_ex.h"
 #include "drv/common.h"
 #include "sensor_i2c.h"
@@ -73,7 +72,7 @@ void gc2053_restart(VI_PIPE ViPipe)
 
 	printf("gc2053_restart\n");
 }
-#if 0
+
 void gc2053_default_reg_init(VI_PIPE ViPipe)
 {
 	CVI_U32 i;
@@ -84,7 +83,7 @@ void gc2053_default_reg_init(VI_PIPE ViPipe)
 				g_pastGc2053[ViPipe]->astSyncInfo[0].snsCfg.astI2cData[i].u32Data);
 	}
 }
-#endif
+
 void gc2053_mirror_flip(VI_PIPE ViPipe, ISP_SNS_MIRRORFLIP_TYPE_E eSnsMirrorFlip)
 {
 	CVI_U8 value = 0;
@@ -299,8 +298,16 @@ static void gc2053_linear_1080p30_init(VI_PIPE ViPipe)
 	gc2053_write_register(ViPipe, 0x15, 0x12);
 	gc2053_write_register(ViPipe, 0xfe, 0x00);
 	gc2053_write_register(ViPipe, 0x3e, 0x91);
+#if (CONFIG_RTOS_INIT_MEDIA == 1)
+	gc2053_write_register(ViPipe, 0xfe, 0x01);
+	gc2053_write_register(ViPipe, 0x87, 0x51);
+	gc2053_write_register(ViPipe, 0xfe, 0x00);
+	delay_ms(10);
+#else
+	delay_ms(100);
+#endif
 
-	//gc2053_default_reg_init(ViPipe);
+	gc2053_default_reg_init(ViPipe);
 	printf("ViPipe:%d,===GC2053 1080P 30fps 10bit LINE Init OK!===\n", ViPipe);
 }
 

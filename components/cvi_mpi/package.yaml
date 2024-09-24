@@ -1,0 +1,93 @@
+##
+name: cvi_mpi
+version: develop
+description: Cvitek MPI library.
+type: common
+keywords:
+  - base
+license: Copyright (C) Cvitek Co., Ltd. 2019-2020. All rights reserved.
+build_config:
+  include:
+    - include/cvimath
+    - include/runtime
+    - include/bmkernel/bm1822
+    - include/bmkernel
+    - include/cvikernel/mars
+    - include/cvikernel
+    - include/
+    - include/isp/cv181x
+    - include/isp
+    - include/panel
+    - include/
+    - include/common/kapi
+    - include/chip/<CVI_SOC_NAME>/uapi/user
+    - include/chip/<CVI_SOC_NAME>/uapi
+    - include/common/uapi/user
+    - include/common/uapi
+  libs:
+    - cvi_mw_bin
+    - cvi_mw_isp_bin
+    - cvi_mw_isp_awb
+    - cvi_mw_isp_af
+    - cvi_mw_isp_ae
+    - cvi_mw_isp_algo
+    - cvi_mw_isp
+    - cvi_mw_vpss
+    - cvi_mw_vo
+    - cvi_mw_vi
+    - cvi_mw_rgn
+    - cvi_mw_ldc
+    - cvi_mw_gdc
+    - cvi_mw_venc
+    - cvi_mw_vdec
+    - cvi_mw_mipi_tx
+    - cvi_mw_audio
+    - cvi_mw_sys
+    - cvi_osdrv_ipcm
+    - cvi_osdrv_cif
+    - cvi_osdrv_vo
+    - cvi_osdrv_vcodec
+    - cvi_osdrv_rgn
+    - cvi_osdrv_ldc
+    - cvi_osdrv_vpss
+    - cvi_osdrv_vi
+    - cvi_osdrv_base
+    - cvi_osdrv_sys
+    - cvi_link
+    - cvi_msg
+  libpath:
+    - cvi_mw_bin/lib
+    - cvi_mw_isp_bin/lib
+    - cvi_mw_isp_awb/lib
+    - cvi_mw_isp_af/lib
+    - cvi_mw_isp_ae/lib
+    - cvi_mw_isp_algo/lib
+    - cvi_mw_isp/lib
+    - cvi_mw_vpss/lib
+    - cvi_mw_vo/lib
+    - cvi_mw_vi/lib
+    - cvi_mw_rgn/lib
+    - cvi_mw_ldc/lib
+    - cvi_mw_gdc/lib
+    - cvi_mw_venc/lib
+    - cvi_mw_vdec/lib
+    - cvi_mw_mipi_tx/lib
+    - cvi_mw_audio/lib
+    - cvi_mw_sys/lib
+    - cvi_osdrv_ipcm/lib
+    - cvi_osdrv_cif/lib
+    - cvi_osdrv_vo/lib
+    - cvi_osdrv_vcodec/lib
+    - cvi_osdrv_rgn/lib
+    - cvi_osdrv_ldc/lib
+    - cvi_osdrv_vpss/lib
+    - cvi_osdrv_vi/lib
+    - cvi_osdrv_base/lib
+    - cvi_osdrv_sys/lib
+    - cvi_link/lib
+    - cvi_msg/lib
+source_file:
+def_config:
+install:
+  - dest: "include/"
+    source:

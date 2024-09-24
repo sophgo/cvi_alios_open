@@ -36,8 +36,6 @@ int aos_mixer_attach(aos_mixer_t *mixer, const char *card_name)
 {
     card_dev_t *card;
 
-    aos_check_return_einval(mixer && card_name);
-
     aos_card_attach(card_name, &card);
     if (card == NULL) {
         return -1;
@@ -173,27 +171,6 @@ int aos_mixer_selem_set_playback_volume(aos_mixer_elem_t *elem, aos_mixer_selem_
     return ret;
 }
 
-int aos_mixer_selem_set_playback_db(aos_mixer_elem_t *elem, aos_mixer_selem_channel_id_t channel, int db)
-{
-    aos_check_return_einval(elem);
-
-    int ret = -1;
-
-    if(AOS_MIXER_SCHN_FRONT_LEFT == channel) {
-        ret = _aos_mixer_elem_volume(elem, db, elem->dB_r.cur);
-        if(ret == 0) {
-            elem->dB_l.cur = db;
-        }
-    } else if(AOS_MIXER_SCHN_FRONT_RIGHT == channel) {
-        ret = _aos_mixer_elem_volume(elem, elem->dB_l.cur, db);
-        if(ret == 0) {
-            elem->dB_r.cur = db;
-        }
-    }
-
-    return ret;
-}
-
 int aos_mixer_selem_set_capture_volume(aos_mixer_elem_t *elem, aos_mixer_selem_channel_id_t channel, int value)
 {
     aos_check_return_einval(elem);
@@ -211,18 +188,6 @@ int aos_mixer_selem_set_playback_volume_all(aos_mixer_elem_t *elem, int value)
     if(ret == 0) {
         elem->dB_l.cur = elem->dB_r.cur = dB;
         elem->vol_l.cur = elem->vol_r.cur = value;
-    }
-
-    return ret;
-}
-
-int aos_mixer_selem_set_playback_db_all(aos_mixer_elem_t *elem, int db)
-{
-    aos_check_return_einval(elem);
-
-    int ret = _aos_mixer_elem_volume(elem, db, db);
-    if(ret == 0) {
-        elem->dB_l.cur = elem->dB_r.cur = db;
     }
 
     return ret;

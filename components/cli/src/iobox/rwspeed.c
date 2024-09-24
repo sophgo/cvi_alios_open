@@ -4,11 +4,10 @@
 #include <errno.h>
 #include <unistd.h>
 #include <sys/stat.h>
-#include <sys/statfs.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <vfs.h>
+#include <aos/vfs.h>
 #include <sys/time.h>
 #include <stdarg.h>
 #include "aos/cli.h"

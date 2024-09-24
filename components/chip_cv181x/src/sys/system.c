@@ -22,6 +22,8 @@
 #error "Please check the current system is baremetal or not!!!"
 #endif
 
+extern void plic_init(void);
+
 extern void section_data_copy(void);
 extern void section_ram_code_copy(void);
 extern void section_bss_clear(void);
@@ -77,18 +79,16 @@ static void interrupt_init(void)
     for (int i = 0; i < 1023; i++) {
         PLIC->PLIC_PRIO[i] = 31;
     }
-    /*清中断等待寄存器*/
-    for (int i = 0; i < 32; i++) {
-        PLIC->PLIC_IP[i] = 0;
-    }
 
     /* set hart threshold 0, allow all interrupt */
     PLIC->PLIC_H0_MTH = 0;
 
-    /* Enable Machine_extern_IRQ/Machine_coretim_IRQ/Machine_Software_IRQn/ */
+    /* enable msoft interrupt ; Machine_Software_IRQn*/
     uint32_t mie = __get_MIE();
     mie |= (1 << 11 | 1 << 7 | 1 << 3);
     __set_MIE(mie);
+
+    //plic_init();
 }
 
 void SystemInit(void)

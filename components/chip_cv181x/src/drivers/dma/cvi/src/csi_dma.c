@@ -176,20 +176,6 @@ void csi_dma_ch_free(csi_dma_ch_t *dma_ch)
 	cvi_dma_ch_free(dma_ch->ctrl_id, dma_ch->ch_id);
 }
 
-void csi_dma_ch_pause(csi_dma_ch_t *dma_ch)
-{
-	CSI_PARAM_CHK_NORETVAL(dma_ch);
-
-	cvi_dma_ch_pause(dma_ch->ctrl_id, dma_ch->ch_id);
-}
-
-void csi_dma_ch_resume(csi_dma_ch_t *dma_ch)
-{
-	CSI_PARAM_CHK_NORETVAL(dma_ch);
-
-	cvi_dma_ch_resume(dma_ch->ctrl_id, dma_ch->ch_id);
-}
-
 void cvi_dma_ch_callback_default(uint8_t ch_id, void *args)
 {
 	csi_dma_ch_t *dma_ch = args;

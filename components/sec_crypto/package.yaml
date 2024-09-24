@@ -73,8 +73,6 @@ source_file:
 #   CONFIG_DEBUG: y
 #   CONFIG_PARAM_NOT_CHECK: y
 #   CONFIG_CLI: y
-def_config:
-  CONFIG_COMP_SEC_CRYPTO: 1
 
 ## 第六部分：安装信息
 # install:

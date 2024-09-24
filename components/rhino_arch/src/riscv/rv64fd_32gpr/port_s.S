@@ -15,7 +15,6 @@
 
 .global cpu_intrpt_save
 .global cpu_intrpt_restore
-.global cpu_is_irq_enable
 .global cpu_task_switch
 .global cpu_intrpt_switch
 .global cpu_first_task_start
@@ -59,11 +58,6 @@ cpu_intrpt_save:
 
 cpu_intrpt_restore:
     csrw mstatus, a0
-    ret
-
-cpu_is_irq_enable:
-    csrr a0, mstatus
-    andi a0, a0, RISCV_MSTATUS_MIE
     ret
 
 /******************************************************************************
@@ -157,6 +151,7 @@ cpu_first_task_start:
 .align 8
 Stspend_Handler:
 Mtspend_Handler:
+Stspend_Handler:
     addi     sp, sp, -(128+128)
     fsd      f31, (0  +0  )(sp)
     fsd      f30, (4  +4  )(sp)
@@ -228,30 +223,7 @@ Mtspend_Handler:
     sd      t0, (120+120)(sp)
     csrr    t0, mstatus
     sd      t0, (124+124)(sp)
-#ifdef __riscv_vector
-    addi    sp, sp, -(20+20)
-    csrr    t0, vl
-    sd      t0,  (0  +0  )(sp)
-    csrr    t0, vtype
-    sd      t0,  (4  +4  )(sp)
-    csrr    t0, vstart
-    sd      t0,  (8  +8  )(sp)
-    csrr    t0, vxsat
-    sd      t0,  (12 +12 )(sp)
-    csrr    t0, vxrm
-    sd      t0,  (16 +16 )(sp)
 
-    addi     sp, sp, -(256+256)
-    vsetvli  zero, zero, e8, m8
-    vsb.v    v0, (sp)
-    addi     sp, sp, 128
-    vsb.v    v8, (sp)
-    addi     sp, sp, 128
-    vsb.v    v16, (sp)
-    addi     sp, sp, 128
-    vsb.v    v24, (sp)
-    addi     sp, sp, -(256+256-128)
-#endif
     la      a1, g_active_task
     lwu     a1, (a1)
     sw      sp, (a1)
@@ -275,28 +247,7 @@ __task_switch_nosave:
     li      t0, VIC_TSPDR
     li      t2, 0x0    
     sw      t2, 0(t0)
-#ifdef __riscv_vector
-    vsetvli  zero, zero, e8, m8
-    vlb.v    v0, (sp)
-    addi     sp, sp, 128
-    vlb.v    v8, (sp)
-    addi     sp, sp, 128
-    vlb.v    v16, (sp)
-    addi     sp, sp, 128
-    vlb.v    v24, (sp)
-    addi     sp, sp, 128
 
-    lwu     t0, (0 +0)(sp)
-    lwu     t1, (4 +4)(sp)
-    lwu     t2, (8 +8)(sp)
-    vsetvl  zero, t0, t1
-    csrw    vstart, t2
-    lwu     t2, (12 +12)(sp)
-    csrw    vxsat, t2
-    lwu     t2, (16 +16)(sp)
-    csrw    vxrm, t2
-    addi    sp, sp, (20+20)
-#endif
     lwu     t0, (124 +124)(sp)
     csrs    mstatus, t0
 

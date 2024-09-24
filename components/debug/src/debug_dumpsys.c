@@ -210,16 +210,21 @@ static void dumpsys_cmd(char *buf, int len, int argc, char **argv)
         aos_cli_printf("dumpsys mm      : show kernel memory status.\r\n");
 #if (RHINO_CONFIG_MM_DEBUG > 0)
         aos_cli_printf("dumpsys mm_info : show kernel memory has alloced.\r\n");
+        aos_cli_printf("dumpsys mm_info_resv : show resv memory has alloced.\r\n");
 #endif
         return;
     }
 
     if (0 == strcmp(argv[1], "mm")) {
         debug_mm_overview(aos_cli_printf);
+        debug_mm_overview_resv(aos_cli_printf);
     }
 #if (RHINO_CONFIG_MM_DEBUG > 0)
     else if (0 == strcmp(argv[1], "mm_info")) {
         dumpsys_mm_info_func(0);
+    }
+    else if (0 == strcmp(argv[1], "mm_info_resv")) {
+        dumpsys_mm_info_func_resv(0);
     }
 #endif
 }
@@ -264,6 +269,7 @@ static void task_btn(char *buf, int32_t len, int32_t argc, char **argv)
 
 #if (RHINO_CONFIG_MM_DEBUG > 0)
 extern uint32_t dumpsys_mm_leakcheck(uint32_t call_cnt, int32_t query_index);
+extern uint32_t dumpsys_mm_leakcheck_resv(uint32_t call_cnt, int32_t query_index);
 static void mem_leak(char *buf, int32_t len, int32_t argc, char **argv)
 {
     static int call_cnt = 0;
@@ -283,6 +289,7 @@ static void mem_leak(char *buf, int32_t len, int32_t argc, char **argv)
     }
 
     dumpsys_mm_leakcheck(call_cnt, query_index);
+    dumpsys_mm_leakcheck_resv(call_cnt, query_index);
 }
 #endif
 

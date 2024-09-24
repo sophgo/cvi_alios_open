@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022 Alibaba Group Holding Limited
+ * Copyright (C) 2019-2022 Alibaba Group Holding Limited
  */
 
 #ifndef CXVISION_PLUGIN_PLUGIN_H_
@@ -23,10 +23,6 @@
 
 namespace cx {
 
-namespace internal {
-class GraphAgent;
-}
-
 class GraphManager;
 
 class PluginBase {
@@ -40,8 +36,7 @@ public:
   bool Send(int port, const cx::BufferPtr& data);
 
 private:
-  bool _CreateIoPorts(const std::string& manager_id,
-                      const cx::config::Graph& graph,
+  bool _CreateIoPorts(const cx::config::Graph& graph,
                       const cx::config::Vertex& v);
   void _Start();
   void _PrintStatistics(int level);
@@ -55,7 +50,6 @@ private:
   // Lock free
   std::vector<std::vector<cx::BufferPtr>> dataMatrix_;
 
-friend class internal::GraphAgent;
 friend class GraphManager;
 };
 

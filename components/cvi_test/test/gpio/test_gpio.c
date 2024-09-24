@@ -1,8 +1,6 @@
 #include <drv/gpio.h>
-#include <stdio.h>
 #include <drv/irq.h>
 #include <drv/pin.h>
-#include <unistd.h>
 #include "aos/cli.h"
 
 #define GPIO_IRQ_TEST 0
@@ -11,7 +9,7 @@
 #if GPIO_IRQ_TEST
 static void gpio_irq_test(void)
 {
-	aos_cli_printf("goto %s() \r\n", __func__);
+	aos_cli_printf("goto %s() \n", __func__);
 }
 #endif
 
@@ -81,7 +79,7 @@ void test_gpio(int32_t argc, char **argv)
 #else   // gpio irq
     csi_gpio_mode_t gpio_mode;
 
-    dir = GPIO_DIRECTION_INPUT;    
+    dir = GPIO_DIRECTION_INPUT;
     if (gpio_value == 1) {
         gpio_mode = GPIO_MODE_PULLUP;
     } else {
@@ -113,8 +111,7 @@ void test_gpio(int32_t argc, char **argv)
     }
 #endif
 
-	// csi_gpio_uninit(&gpio);
-	free(gpio.priv);
+	csi_gpio_uninit(&gpio);
 
 	aos_cli_printf("test gpio success.\r\n");
 }

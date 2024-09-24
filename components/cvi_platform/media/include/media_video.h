@@ -11,7 +11,7 @@
 #define MEDIA_CHECK_RET(actual, fmt, arg...)                                   \
 	do {																		 \
 		if ((actual) != 0) {													 \
-			MEDIABUG_PRINTF("[%d]:%s() \n" fmt, __LINE__, __func__, ## arg); \
+			MEDIABUG_PRINTF("[%d]:%s() ret:%#x \n" fmt, __LINE__, __func__, actual, ## arg); \
 			return -1;																\
 		}																		 \
 	} while (0)
@@ -25,7 +25,7 @@ int MEDIA_VIDEO_VpssDeinit(PARAM_VPSS_CFG_S * pstVpssCtx);
 int MEDIA_VIDEO_VencDeInit(PARAM_VENC_CFG_S *pstVencCfg);
 int MEDIA_VIDEO_VoDeinit(PARAM_VO_CFG_S * pstVoCtx);
 int MEDIA_VIDEO_SysInit();
-int MEDIA_VIDEO_Init();
+int MEDIA_VIDEO_Init(CVI_BOOL isRawReplayMode);
 int MEDIA_VIDEO_VencGetStream(int VencChn,VENC_STREAM_S *pstStreamFrame,unsigned int blocktimeMs);
 int MEDIA_VIDEO_VencReleaseStream(int VencChn,VENC_STREAM_S *pstStreamFrame);
 int MEDIA_VIDEO_VencRequstIDR(int VencChn);

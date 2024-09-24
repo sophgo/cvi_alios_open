@@ -7,10 +7,25 @@
 #include <drv/cvi_irq.h>
 #include <drv/tick.h>
 #include "cvi_adc.h"
+#include "mmio.h"
+#include <stdint.h>
+#include <soc.h>
+#include <csi_core.h>
+#include <csi_config.h>
 
 #define ADC_FREQ_DEFAULT 25000000
 #define DEFUALT_CVI_ADC_OPERATION_TIMEOUT    1000000U   // 1 second
 #define MAX_CHANNEL_NUM                      3U
+
+#define EFUSE_ADC_TRIM_REG 0x18
+#define TOP_ADC_TRIM_MASK 0xf0000000
+#define TOP_ADC_TRIM_OFFSET 28
+#define RTC_ADC_TRIM_MASK 0x0f000000
+#define RTC_ADC_TRIM_OFFSET 24
+#define EFUSE_BASE      0x03050000
+#define EFUSE_FTSN0     0x100
+
+#define TRIM	  0x34
 
 // static void cvi_adc_all_channel_done_irq(cvi_adc_t *adc)
 // {
@@ -31,6 +46,40 @@
 //         }
 //     }
 // }
+static inline void __iomem *get_top_domain_adc(void)
+{
+	return (void __iomem *)0x030F0000;
+}
+
+static inline void __iomem *get_rtc_domain_adc(void)
+{
+	return (void __iomem *)0x0502C000;
+}
+
+void cvi_adc_trim(cvi_adc_t *adc)
+{
+	u32 top_trim, rtc_trim;
+	u32 efuse_value;
+
+	//unsigned reg_base = GET_DEV_REG_BASE(adc);
+
+	efuse_value = mmio_read_32(EFUSE_BASE + EFUSE_FTSN0 + (EFUSE_ADC_TRIM_REG));
+	printf("0x%x\n", efuse_value);
+
+	top_trim = (efuse_value & TOP_ADC_TRIM_MASK) >> TOP_ADC_TRIM_OFFSET;
+	rtc_trim = (efuse_value & RTC_ADC_TRIM_MASK) >> RTC_ADC_TRIM_OFFSET;
+
+	printf("Setting top_trim: 0x%x, rtc_trim: 0x%x\n", top_trim,
+		 rtc_trim);
+
+	writel(top_trim, get_top_domain_adc() + TRIM);
+	writel(rtc_trim, get_rtc_domain_adc() + TRIM);
+	printf("Getting top_trim: 0x%x, rtc_trim: 0x%x\n",
+		 readl(get_top_domain_adc() + TRIM) & 0xf,
+		 readl(get_rtc_domain_adc() + TRIM) & 0xf);
+
+	pr_err("adc trim ok!\n");
+}
 
 static void cvi_adc_irqhandler(unsigned int irqn, void *args)
 {
@@ -108,10 +157,12 @@ cvi_error_t cvi_adc_init(cvi_adc_t *adc)
 	// adc->dma             = NULL;
 	adc->start           = NULL;
 	adc->stop            = NULL;
+    adc->ch_id           = 0;
 
-	if (reg_base && irqn)
+	if (reg_base)
 	{
-		pr_debug("adc init ok! reg_base: 0x%x, bank: %d, irq_num: %d\n", reg_base, GET_DEV_IDX(adc), irqn);
+		pr_err("adc init ok! reg_base: 0x%x, bank: %d, irq_num: %d\n", reg_base, GET_DEV_IDX(adc), irqn);
+        cvi_adc_sampling_time(adc, 0xf); // set smpling cycle 640ns
 		return CVI_OK;
 	}
 	else
@@ -126,8 +177,12 @@ cvi_error_t cvi_adc_init(cvi_adc_t *adc)
 void cvi_adc_uninit(cvi_adc_t *adc)
 {
     unsigned long reg_base = GET_DEV_REG_BASE(adc);
-    adc_reset_sel_channel(reg_base, ADC_CHANNEL_SEL_Msk);
+    adc_reset_sel_channel(reg_base, ((uint32_t)adc->ch_id << (ADC_CTRL_ADC_SEL_Pos + 1)));
+    adc->ch_id = 0;
+    // Avoid shutdown the channel used by linux
+#if 0
     adc_stop(reg_base);
+#endif
 }
 
 cvi_error_t cvi_adc_set_buffer(cvi_adc_t *adc, uint32_t *data, uint32_t num)
@@ -141,8 +196,6 @@ cvi_error_t cvi_adc_start(cvi_adc_t *adc)
 {
     cvi_error_t   ret = CVI_OK;
     unsigned long reg_base = GET_DEV_REG_BASE(adc);
-
-    adc_cyc_setting(reg_base);
 
     do {
         /* rx buffer not full */
@@ -234,14 +287,33 @@ cvi_error_t cvi_adc_channel_enable(cvi_adc_t *adc, uint8_t ch_id, bool is_enable
 
     unsigned reg_base = GET_DEV_REG_BASE(adc);
 
-    if (ch_id < 1 || ch_id > 3) {
+#if 0
+    #if CONFIG_BOARD_CV181XC
+    if (adc->dev.idx == 0 && ch_id != 1) {
+        pr_err("invalid ch_id\n");
+        return CVI_ERROR;
+    }
+    #endif
+#endif
+
+    // channel is used by linux
+    if ((adc_get_sel_channel(reg_base) & ((uint32_t)ch_id << (ADC_CTRL_ADC_SEL_Pos + 1)))
+        && (ch_id != adc->ch_id)) {
+        pr_err("adc chip: %d, ch: %d is used!", adc->dev.idx, ch_id);
+        // ignore rtc adc channel
+        if (adc->dev.idx != 1)
+            return CVI_ERROR;
+    }
+
+    if (ch_id < 1 || ch_id > 3 || (adc->dev.idx == 1 && ch_id > 2)) {
         pr_err("invalid ch_id\n");
         ret = CVI_ERROR;
     } else {
+        adc->ch_id = ch_id;
         if (is_enable)
-            adc_set_sel_channel(reg_base, ((uint32_t)1U << (ADC_CTRL_ADC_SEL_Pos + ch_id)));
+            adc_set_sel_channel(reg_base, ((uint32_t)ch_id << (ADC_CTRL_ADC_SEL_Pos + 1)));
         else
-            adc_reset_sel_channel(reg_base, ((uint32_t)1U << (ADC_CTRL_ADC_SEL_Pos + ch_id)));
+            adc_reset_sel_channel(reg_base, ((uint32_t)ch_id << (ADC_CTRL_ADC_SEL_Pos + 1)));
     }
 
     return ret;
@@ -297,7 +369,7 @@ int32_t cvi_adc_read(cvi_adc_t *adc)
     }
 
     if (ret == CVI_OK) {
-        ret = (int32_t)adc_get_channel1_data(reg_base);
+        ret = (int32_t)adc_get_channel_data_ch(reg_base, adc->ch_id);
     }
 
     return ret;

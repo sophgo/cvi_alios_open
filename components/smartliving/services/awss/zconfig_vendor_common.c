@@ -399,7 +399,7 @@ int delay_p2p()
         return 0;
     }
 
-    /* 4.if p2p got ssid/passwd, and recived mcast in 5s, wait for 30s, failed to to done mcast, connect directly */
+    /* 4.if p2p got ssid/passwd, and recived mcast in 5s, wait for 30s, faild to to done mcast, connect directly */
     zconfig_set_state(STATE_RCV_DONE, 1, 1);
     awss_debug("switch to p2p in case 4\n");
     return 1;

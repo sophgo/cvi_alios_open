@@ -7,6 +7,7 @@
 #include <errno.h>
 
 #include <yoc/button.h>
+#include <aos/hal/gpio.h>
 
 #include "internal.h"
 
@@ -65,12 +66,12 @@ static int gpio_irq_enable(button_t *button)
 static int gpio_pin_read(button_t *button)
 {
     uint32_t val = 0;
-    int is_pressed = 0;
+    bool is_pressed = false;
 
     hal_gpio_input_get(b_gpio_param(button)->pin_hdl, &val);
 
     if (val == b_gpio_param(button)->active_level) {
-        is_pressed = 1;
+        is_pressed = true;
     }
 
     return is_pressed;
@@ -99,17 +100,10 @@ static int gpio_pin_init(button_t *button)
 
 static int gpio_pin_deinit(button_t *button)
 {
-    gpio_dev_t *gpio = b_gpio_param(button)->pin_hdl;
-
-    if (gpio) {
-        hal_gpio_finalize(gpio);
-        aos_free(gpio);
-        b_gpio_param(button)->pin_hdl = NULL;
-    }
+    hal_gpio_finalize(b_gpio_param(button)->pin_hdl);
 
     return 0;
 }
-
 button_ops_t gpio_ops = {
     .init = gpio_pin_init,
     .deinit = gpio_pin_deinit,

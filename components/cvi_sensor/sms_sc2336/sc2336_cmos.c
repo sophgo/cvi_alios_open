@@ -12,15 +12,11 @@
 #include "cvi_ae.h"
 #include "cvi_awb.h"
 #include "cvi_isp.h"
+#include <unistd.h>
 
 #include "sc2336_cmos_ex.h"
 #include "sc2336_cmos_param.h"
-
-#ifdef ARCH_CV182X
-#include "cvi_vip_cif_uapi.h"
-#else
-#include "cif_uapi.h"
-#endif
+#include "cvi_comm_cif.h"
 
 #define DIV_0_TO_1(a)   ((0 == (a)) ? 1 : (a))
 #define DIV_0_TO_1_FLOAT(a) ((((a) < 1E-10) && ((a) > -1E-10)) ? 1 : (a))

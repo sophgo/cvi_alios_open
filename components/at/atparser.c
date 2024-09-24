@@ -129,7 +129,7 @@ static void uart_event(int id, void *priv)
     }
 }
 
-atparser_uservice_t *atparser_init(utask_t *task, const char *name, void *config)
+atparser_uservice_t *atparser_init(utask_t *task, const char *name, uart_config_t *config)
 {
     atparser_uservice_t *at;
 
@@ -158,15 +158,15 @@ atparser_uservice_t *atparser_init(utask_t *task, const char *name, void *config
         goto fail_0;
     }
 
-    // rvm_hal_uart_set_buffer_size(at->dev, 1024*2);
+    // uart_set_buffer_size(at->dev, 1024*2);
     // if (config) {
-    //     rvm_hal_uart_config(at->dev, config);
+    //     uart_config(at->dev, config);
     // }
 
     at->srv = uservice_new("atparser", atparser_process_rpc, at);
 
     if (at->srv == NULL) {
-        rvm_hal_uart_close(at->dev);
+        uart_close(at->dev);
         goto fail_0;
     }
 

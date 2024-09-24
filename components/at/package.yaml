@@ -47,7 +47,7 @@ build_config:
 source_file:
   - "atserver.c"
   - "atparser.c"
-  - "port/uart_aos.c"
+  - "port/*.c"
 
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项

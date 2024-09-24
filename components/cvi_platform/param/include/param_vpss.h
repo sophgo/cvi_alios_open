@@ -8,12 +8,17 @@
 //多级别结构 确定使用的多级数组加number作标定 (多级限定场景 串行结构 不允许存在同一级别有多个多级存在) 大结构必须精简尽量使用指针
 
 typedef struct _PARAM_VPSS_CHN_CFG_S {
+    CVI_BOOL abChnEnable;
     CVI_U8 u8Rotation;
     VPSS_CHN_ATTR_S stVpssChnAttr;
     VPSS_CROP_INFO_S  stVpssChnCropInfo;
+	VPSS_CHN_BUF_WRAP_S stVpssChnBufWrap;
+    CVI_U8 u8VpssAttachEnable;
+    CVI_U8 u8VpssAttachId;
 } PARAM_VPSS_CHN_CFG_S;
 
 typedef struct _PARAM_VPSS_GRP_CFG_S {
+    CVI_BOOL bEnable;
     VPSS_GRP VpssGrp;
     VI_DEV   s32BindVidev;  /* get Grp from vi if not set -1*/
     CVI_U8 u8ViRotation; // vi rotation

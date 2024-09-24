@@ -115,11 +115,12 @@ build_config:
     - src/hal/timer/cvi/include
     - src/hal/rtc/cvi/include
     - src/hal/adc/cvi/include
-    - src/drivers/sdif/dw/v1.0
+    # - src/drivers/sdif/dw/v1.0
 
     # - src/drivers/codec/cvitek/include
     # - src/drivers/i2s/dw/include
     # - src/drivers/efuse/wj/cvi/
+    # - src/drivers/efuse/wj/cvi/include
 
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
@@ -179,7 +180,7 @@ source_file:
   # - src/drivers/codec/cvitek/src/cv181xdac.c
   # - src/drivers/codec/cvitek/src/codec.c
   - src/drivers/common/ringbuffer.c
-  - src/drivers/sdif/dw/v1.0/*.c
+  # - src/drivers/sdif/dw/v1.0/*.c
   - src/drivers/sha/cvi/src/*.c
   # - src/drivers/aes/cvi/src/*.c
   # - src/drivers/efuse/wj/cvi/*.c

@@ -91,11 +91,6 @@ int pthread_attr_setschedparam(pthread_attr_t *attr, const struct sched_param *p
         return EINVAL;
     }
 
-    if ((param->sched_priority < aos_sched_get_priority_min(attr->schedpolicy))
-        || (param->sched_priority > aos_sched_get_priority_max(attr->schedpolicy))) {
-        return EINVAL;
-    }
-
     attr->sched_priority = param->sched_priority;
     attr->sched_slice = param->slice;
     return 0;

@@ -97,18 +97,13 @@ static int ssl_poll_read(transport_handle_t t, int timeout_ms)
         LOGE(TAG, "ssl_poll_read, select ret:%d, timeout", ret);
         return -1;
     }
-    // FIXME:
-    // if (ret > 0 && FD_ISSET(ssl->tls->sockfd, &errset)) {
-    //     int sock_errno = 0;
-    //     uint32_t optlen = sizeof(sock_errno);
-    //     ret = getsockopt(ssl->tls->sockfd, SOL_SOCKET, SO_ERROR, &sock_errno, &optlen);
-    //     if (ret == 0) {
-    //         LOGE(TAG, "ssl_poll_read select error %d, fd = %d", sock_errno, ssl->tls->sockfd);
-    //     } else {
-    //         LOGE(TAG, "ssl_poll_read getsockopt error.");
-    //     }
-    //     ret = -1;
-    // }
+    if (ret > 0 && FD_ISSET(ssl->tls->sockfd, &errset)) {
+        int sock_errno = 0;
+        uint32_t optlen = sizeof(sock_errno);
+        getsockopt(ssl->tls->sockfd, SOL_SOCKET, SO_ERROR, &sock_errno, &optlen);
+        LOGE(TAG, "ssl_poll_read select error %d, fd = %d", sock_errno, ssl->tls->sockfd);
+        ret = -1;
+    }
     return ret;
 }
 
@@ -161,7 +156,7 @@ static int ssl_read(transport_handle_t t, char *buffer, int len, int timeout_ms)
     int poll, ret;
     transport_ssl_t *ssl = transport_get_context_data(t);
 
-    // LOGD(TAG, "ssl read...");
+    LOGD(TAG, "ssl read...");
     if ((poll = transport_poll_read(t, timeout_ms)) <= 0) {
         LOGD(TAG, "poll read ret:%d", poll);
         return poll;

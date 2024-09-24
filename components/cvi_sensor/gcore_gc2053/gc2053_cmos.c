@@ -12,14 +12,11 @@
 #include "cvi_ae.h"
 #include "cvi_awb.h"
 #include "cvi_isp.h"
+#include <unistd.h>
 
 #include "gc2053_cmos_ex.h"
 #include "gc2053_cmos_param.h"
-#ifdef ARCH_CV182X
-#include "cvi_vip_cif_uapi.h"
-#else
-#include "cif_uapi.h"
-#endif
+#include "cvi_comm_cif.h"
 
 #define DIV_0_TO_1(a)   ((0 == (a)) ? 1 : (a))
 #define DIV_0_TO_1_FLOAT(a) ((((a) < 1E-10) && ((a) > -1E-10)) ? 1 : (a))
@@ -48,7 +45,7 @@ ISP_SNS_MIRRORFLIP_TYPE_E g_aeGc2053_MirrorFip[VI_MAX_PIPE_NUM] = {0};
 
 CVI_U16 g_au16Gc2053_GainMode[VI_MAX_PIPE_NUM] = {0};
 CVI_U16 g_au16Gc2053_L2SMode[VI_MAX_PIPE_NUM] = {0};
-
+CVI_U16 flag_num = 0;
 /****************************************************************************
  * local variables and functions                                                           *
  ****************************************************************************/
@@ -68,6 +65,8 @@ static CVI_S32 cmos_get_wdr_size(VI_PIPE ViPipe, ISP_SNS_ISP_INFO_S *pstIspCfg);
 #define GC2053_AGAIN_L_ADDR			0xb3
 #define GC2053_COL_AGAIN_H_ADDR			0xb8
 #define GC2053_COL_AGAIN_L_ADDR			0xb9
+#define GC2053_DGAIN_H_ADDR			0xb1
+#define GC2053_DGAIN_L_ADDR			0xb2
 #define GC2053_VTS_H_ADDR			0x41	//(frame length)
 #define GC2053_VTS_L_ADDR			0x42
 
@@ -303,6 +302,8 @@ static CVI_S32 cmos_gains_update(VI_PIPE ViPipe, CVI_U32 *pu32Again, CVI_U32 *pu
 	CVI_U32 u32Again;
 	CVI_U32 u32Dgain;
 	int i, total;
+	CVI_U32 temperature_value;
+	CVI_U32 temperature_value0, temperature_value1, temperature_value2, temperature_value3;
 
 	total = sizeof(gain_table) / sizeof(CVI_U32);
 	UNUSED(total);
@@ -316,13 +317,30 @@ static CVI_S32 cmos_gains_update(VI_PIPE ViPipe, CVI_U32 *pu32Again, CVI_U32 *pu
 	CMOS_CHECK_POINTER(pu32Again);
 	CMOS_CHECK_POINTER(pu32Dgain);
 	pstSnsRegsInfo = &pstSnsState->astSyncInfo[0].snsCfg;
+	gc2053_write_register(ViPipe, 0xfe, 0x04);
+	temperature_value0 = gc2053_read_register(ViPipe, 0x0c);
+	temperature_value1 = gc2053_read_register(ViPipe, 0x0d);
+	temperature_value2 = gc2053_read_register(ViPipe, 0x0e);
+	temperature_value3 = gc2053_read_register(ViPipe, 0x0f);
+	gc2053_write_register(ViPipe, 0xfe, 0x00);
+	temperature_value=(temperature_value0+temperature_value1+temperature_value2+temperature_value3) >> 2;
 
 	u32Again = pu32Again[0];
+	if(temperature_value >= 0x78)
+	{
+		u32Again = u32Again - 1;
+		if(u32Again > 12)
+			u32Again = 12;  //最低模拟增益档位
+	}
+		flag_num++;
+		pstSnsRegsInfo->astI2cData[LINEAR_AGAIN_H].u32Data = regValTable[u32Again][0];
+		pstSnsRegsInfo->astI2cData[LINEAR_AGAIN_L].u32Data = regValTable[u32Again][1];
+		pstSnsRegsInfo->astI2cData[LINEAR_COL_AGAIN_H].u32Data = regValTable[u32Again][2];
+		pstSnsRegsInfo->astI2cData[LINEAR_COL_AGAIN_L].u32Data = regValTable[u32Again][3];
 
-	pstSnsRegsInfo->astI2cData[LINEAR_AGAIN_H].u32Data = regValTable[u32Again][0];
-	pstSnsRegsInfo->astI2cData[LINEAR_AGAIN_L].u32Data = regValTable[u32Again][1];
-	pstSnsRegsInfo->astI2cData[LINEAR_COL_AGAIN_H].u32Data = regValTable[u32Again][2];
-	pstSnsRegsInfo->astI2cData[LINEAR_COL_AGAIN_L].u32Data = regValTable[u32Again][3];
+		if(flag_num >= 35)
+			flag_num = 0;
+
 	return CVI_SUCCESS;
 }
 

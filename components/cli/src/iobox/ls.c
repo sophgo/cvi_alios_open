@@ -207,7 +207,7 @@ static int ls_do(int argc, char **argv, int flags)
             }
 
             while ((entry = readdir(pdir))) {
-                char fpath[FPATH_SIZE + 1];
+                char fpath[FPATH_SIZE];
                 int len;
 
                 memset(fpath, 0, sizeof(fpath));
@@ -225,7 +225,7 @@ static int ls_do(int argc, char **argv, int flags)
                 if (dir[len] == '/') {
                     snprintf(fpath, FPATH_SIZE, "%s%s", dir, entry->d_name);
                 } else {
-                    snprintf(fpath, FPATH_SIZE + 1, "%s/%s", dir, entry->d_name);
+                    snprintf(fpath, FPATH_SIZE, "%s/%s", dir, entry->d_name);
                 }
 #endif
 

@@ -7,11 +7,7 @@ extern "C" {
 #endif
 #endif
 
-#ifdef ARCH_CV182X
-#include "cvi_vip_cif_uapi.h"
-#else
-#include "cif_uapi.h"
-#endif
+#include "cvi_comm_cif.h"
 #include "cvi_type.h"
 #include "cvi_sns_ctrl.h"
 #include "gc4653_cmos_ex.h"
@@ -197,26 +193,16 @@ struct combo_dev_attr_s gc4653_rx_attr = {
 	.mac_clk = RX_MAC_CLK_200M,
 	.mipi_attr = {
 		.raw_data_type = RAW_DATA_10BIT,
-#if defined(__CV180X__)
-		.lane_id = {3, 4, 2, -1, -1},
-		.pn_swap = {1, 1, 1, 0, 0},
-#else
 		.lane_id = {3, 2, 4, -1, -1},
 		.pn_swap = {0, 0, 0, 0, 0},
-#endif
 		.wdr_mode = CVI_MIPI_WDR_MODE_NONE,
 	},
 	.mclk = {
-#if defined(__CV180X__)
-		.cam = 0,
-#else
 		.cam = 1,
-#endif
 		.freq = CAMPLL_FREQ_27M,
 	},
 	.devno = 0,
 };
-
 #ifdef __cplusplus
 #if __cplusplus
 }

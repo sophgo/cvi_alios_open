@@ -10,7 +10,7 @@
 #include "cv181x_adc_dac.h"
 
 static struct cv182xdac g_dac;
-static struct cv182xdac *dac = &g_dac;
+static struct cv182xdac *dac;
 
 static int cv182xdac_hw_params(struct cv182xdac *dac, u32 chan_nr, u32 rate)
 {
@@ -19,6 +19,9 @@ static int cv182xdac_hw_params(struct cv182xdac *dac, u32 chan_nr, u32 rate)
 	u32 tick = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_AFE0) & ~AUDIO_PHY_REG_TXDAC_INIT_DLY_CNT_MASK;
 	u32 ana2 = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_ANA2);
 
+	//avoid pop when just set/clear mute/unmute bit
+	ana2 |= 0x0F0F;
+	dac_write_reg(dac->dac_base, AUDIO_PHY_TXDAC_ANA2, ana2);
 
 	switch (chan_nr) {
 	case 1:
@@ -120,33 +123,35 @@ static void cv182xdac_shutdown()
 	cv182xdac_off(dac);
 }
 
-int cv182xdac_ioctl(u32 cmd, u64 parg)
+int cv182xdac_ioctl(u32 cmd, struct cvi_vol_ctrl vol, u32 val)
 {
 
 	u32 temp;
-	u32 val = 0;
-
-	if(parg == 0)
-		return -1;
-	if(dac->dac_base == NULL)
-		dac->dac_base = (volatile u32 *)(0x0300A000);
-	debug("%s, received cmd=%u, arg=%llx\n", __func__, cmd, parg);
+	dac = &g_dac;
+	dac->dac_base = (volatile u32 *)(0x0300A000);
 	switch (cmd) {
 	case ACODEC_SOFT_RESET_CTRL:
 		cv182x_reset_dac();
 		break;
 
 	case ACODEC_SET_OUTPUT_VOL:
-	    val = *((u32 *)parg);
 		debug("dac: ACODEC_SET_OUTPUT_VOL with val=%d\n", val);
-
-		if ((val < 0) | (val > 32))
+		if (vol.vol_ctrl_mute == 1) {
+			temp = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_ANA2);
+			temp |= AUDIO_PHY_REG_DA_DEML_TXDAC_OW_EN_ON | AUDIO_PHY_REG_DA_DEMR_TXDAC_OW_EN_ON;
+			dac_write_reg(dac->dac_base, AUDIO_PHY_TXDAC_ANA2, temp);
+		}else if ((val < 0) | (val > 32))
 			printf("Only support range 0 [mute] ~ 32 [maximum]\n");
 		else {
 			temp = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_AFE1)
 					& ~(AUDIO_PHY_REG_TXDAC_GAIN_UB_0_MASK | AUDIO_PHY_REG_TXDAC_GAIN_UB_1_MASK);
 			temp |= DAC_VOL_L(val) | DAC_VOL_R(val);
 			dac_write_reg(dac->dac_base, AUDIO_PHY_TXDAC_AFE1, temp);
+
+			temp = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_ANA2);
+			temp &= AUDIO_PHY_REG_DA_DEML_TXDAC_OW_EN_OFF;
+			temp &= AUDIO_PHY_REG_DA_DEMR_TXDAC_OW_EN_OFF;
+			dac_write_reg(dac->dac_base, AUDIO_PHY_TXDAC_ANA2, temp);
 		}
 		break;
 
@@ -155,8 +160,8 @@ int cv182xdac_ioctl(u32 cmd, u64 parg)
 		temp = ((dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_AFE1)
 				& AUDIO_PHY_REG_TXDAC_GAIN_UB_0_MASK) + 1) / CV182x_DAC_VOL_STEP;
 		debug("dac: return val=%d\n", temp);
-
-		*((u32 *)parg) = temp;
+		//_/ if (copy_to_user(argp, &temp, sizeof(temp)))
+			//_/ printf("dac, failed to return output vol\n");
 		break;
 
 	case ACODEC_SET_I2S1_FS:
@@ -165,18 +170,16 @@ int cv182xdac_ioctl(u32 cmd, u64 parg)
 
 	case ACODEC_SET_DACL_VOL:
 		debug("dac: ACODEC_SET_DACL_VOL\n");
-		val = *((u32 *)parg);
-		if (val == 0) {
+
+		if (vol.vol_ctrl_mute == 1) {
 			temp = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_ANA2);
 			temp |= AUDIO_PHY_REG_DA_DEML_TXDAC_OW_EN_ON;
 			dac_write_reg(dac->dac_base, AUDIO_PHY_TXDAC_ANA2, temp);
-			temp = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_AFE1) & ~AUDIO_PHY_REG_TXDAC_GAIN_UB_0_MASK;
-			dac_write_reg(dac->dac_base, AUDIO_PHY_TXDAC_AFE1, temp);
-		} else if ((val < 0) | (val > 32))
+		} else if ((vol.vol_ctrl < 0) | (vol.vol_ctrl > 32))
 			printf("dac-L: Only support range 0 [mute] ~ 32 [maximum]\n");
 		else {
 			temp = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_AFE1) & ~AUDIO_PHY_REG_TXDAC_GAIN_UB_0_MASK;
-			temp |= DAC_VOL_L(val);
+			temp |= DAC_VOL_L(vol.vol_ctrl);
 			dac_write_reg(dac->dac_base, AUDIO_PHY_TXDAC_AFE1, temp);
 
 			temp = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_ANA2);
@@ -187,18 +190,16 @@ int cv182xdac_ioctl(u32 cmd, u64 parg)
 
 	case ACODEC_SET_DACR_VOL:
 		debug("dac: ACODEC_SET_DACR_VOL\n");
-		val = *((u32 *)parg);
-		if (val == 0) {
+
+		if (vol.vol_ctrl_mute == 1) {
 			temp = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_ANA2);
 			temp |= AUDIO_PHY_REG_DA_DEMR_TXDAC_OW_EN_ON;
 			dac_write_reg(dac->dac_base, AUDIO_PHY_TXDAC_ANA2, temp);
-			temp = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_AFE1) & ~AUDIO_PHY_REG_TXDAC_GAIN_UB_1_MASK;
-			dac_write_reg(dac->dac_base, AUDIO_PHY_TXDAC_AFE1, temp);
-		} else if ((val < 0) | (val > 32))
+		} else if ((vol.vol_ctrl < 0) | (vol.vol_ctrl > 32))
 			printf("dac-R: Only support range 0 [mute] ~ 32 [maximum]\n");
 		else {
 			temp = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_AFE1) & ~AUDIO_PHY_REG_TXDAC_GAIN_UB_1_MASK;
-			temp |= DAC_VOL_R(val);
+			temp |= DAC_VOL_R(vol.vol_ctrl);
 			dac_write_reg(dac->dac_base, AUDIO_PHY_TXDAC_AFE1, temp);
 
 			temp = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_ANA2);
@@ -208,8 +209,7 @@ int cv182xdac_ioctl(u32 cmd, u64 parg)
 		break;
 
 	case ACODEC_SET_DACL_MUTE:
-		val = *((u32 *)parg);
-		debug("dac: ACODEC_SET_DACL_MUTE, val=%d\n", *val);
+		debug("dac: ACODEC_SET_DACL_MUTE, val=%d\n", val);
 		temp = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_ANA2);
 		if (val == 0)
 			temp &= AUDIO_PHY_REG_DA_DEML_TXDAC_OW_EN_OFF;
@@ -219,8 +219,7 @@ int cv182xdac_ioctl(u32 cmd, u64 parg)
 		dac_write_reg(dac->dac_base, AUDIO_PHY_TXDAC_ANA2, temp);
 		break;
 	case ACODEC_SET_DACR_MUTE:
-		val = *((u32 *)parg);
-		debug("dac: ACODEC_SET_DACR_MUTE, val=%d\n", *val);
+		debug("dac: ACODEC_SET_DACR_MUTE, val=%d\n", val);
 		temp = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_ANA2);
 		if (val == 0)
 			temp &= AUDIO_PHY_REG_DA_DEMR_TXDAC_OW_EN_OFF;
@@ -231,19 +230,37 @@ int cv182xdac_ioctl(u32 cmd, u64 parg)
 
 	case ACODEC_GET_DACL_VOL:
 		debug("dac: ACODEC_GET_DACL_VOL\n");
-		temp = ((dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_AFE1)
+		temp = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_ANA2);
+		if (temp & AUDIO_PHY_REG_DA_DEML_TXDAC_OW_EN_MASK) {
+			vol.vol_ctrl = 0;
+			vol.vol_ctrl_mute = 1;
+		} else {
+			temp = ((dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_AFE1)
 			& AUDIO_PHY_REG_TXDAC_GAIN_UB_0_MASK) + 1) / CV182x_DAC_VOL_STEP;
-		*((u32 *)parg) = temp;
+			vol.vol_ctrl = temp;
+			vol.vol_ctrl_mute = 0;
+		}
+		//_/ if (copy_to_user(argp, &vol, sizeof(vol)))
+			//_/ printf("failed to return DACL vol\n");
 		break;
 	case ACODEC_GET_DACR_VOL:
-		temp = (((dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_AFE1)
+		temp = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_ANA2);
+		debug("dac: ACODEC_GET_DACR_VOL, txdac_ana2=0x%x\n", temp);
+		if (temp & AUDIO_PHY_REG_DA_DEMR_TXDAC_OW_EN_MASK) {
+			vol.vol_ctrl = 0;
+			vol.vol_ctrl_mute = 1;
+		} else {
+			temp = (((dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_AFE1)
 			& AUDIO_PHY_REG_TXDAC_GAIN_UB_1_MASK) >> 16) + 1) / CV182x_DAC_VOL_STEP;
-		*((u32 *)parg) = temp;
+			vol.vol_ctrl = temp;
+			vol.vol_ctrl_mute = 0;
+		}
+		//_/ if (copy_to_user(argp, &vol, sizeof(vol)))
+			//_/ printf("failed to return DACR vol\n");
 		break;
 
 	case ACODEC_SET_PD_DACL:
-		val = *((u32 *)parg);
-		debug("dac: ACODEC_SET_PD_DACL, val=%d\n", *val);
+		debug("dac: ACODEC_SET_PD_DACL, val=%d\n", val);
 		if (val == 0) {
 			temp = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_CTRL0);
 			temp &= AUDIO_PHY_REG_TXDAC_EN_ON | AUDIO_PHY_REG_I2S_RX_EN_ON;
@@ -255,8 +272,7 @@ int cv182xdac_ioctl(u32 cmd, u64 parg)
 		}
 		break;
 	case ACODEC_SET_PD_DACR:
-		val = *((u32 *)parg);
-		debug("dac: ACODEC_SET_PD_DACR, val=%d\n", *val);
+		debug("dac: ACODEC_SET_PD_DACR, val=%d\n", val);
 		if (val == 0) {
 			temp = dac_read_reg(dac->dac_base, AUDIO_PHY_TXDAC_CTRL0);
 			temp &= AUDIO_PHY_REG_TXDAC_EN_ON | AUDIO_PHY_REG_I2S_RX_EN_ON;
@@ -317,6 +333,7 @@ int cv182xdac_init(u32 rate, u32 chan_nr)
 {
 
     debug("%s start rate = %d, chan_nr = %d\n", __func__, rate, chan_nr);
+    dac = &g_dac;
     dac->dac_base = (volatile u32 *)(0x0300A000);
     cv182xdac_shutdown();
     cv182xdac_hw_params(dac, chan_nr, rate);

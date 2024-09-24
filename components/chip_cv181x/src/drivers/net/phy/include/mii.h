@@ -1,138 +1,143 @@
 /*
-* Copyright (C) Cvitek Co., Ltd. 2019-2020. All rights reserved.
-*/
+ * linux/mii.h: definitions for MII-compatible transceivers
+ * Originally drivers/net/sunhme.h.
+ *
+ * Copyright (C) 1996, 1999, 2001 David S. Miller (davem@redhat.com)
+ */
 
-#ifndef __MII_H__
-#define __MII_H__
-
-/* Basic mode control register. */
-#define CVI_BMCR_RESV		    (0x003f)	
-#define CVI_BMCR_SPEED1000		(0x0040)
-#define CVI_BMCR_CTST		    (0x0080)	
-#define CVI_BMCR_FULLDPLX		(0x0100)	
-#define CVI_BMCR_ANRESTART		(0x0200)	
-#define CVI_BMCR_ISOLATE		(0x0400)	
-#define CVI_BMCR_PDOWN		    (0x0800)	
-#define CVI_BMCR_ANENABLE		(0x1000)	
-#define CVI_BMCR_SPEED100		(0x2000)	
-#define CVI_BMCR_LOOPBACK		(0x4000)	
-#define CVI_BMCR_RESET		    (0x8000)	
-
-/* Basic mode status register. */
-#define CVI_BMSR_ERCAP		    (0x0001)	
-#define CVI_BMSR_JCD		    (0x0002)	
-#define CVI_BMSR_LSTATUS		(0x0004)	
-#define CVI_BMSR_ANEGCAPABLE	(0x0008)	
-#define CVI_BMSR_RFAULT		    (0x0010)	
-#define CVI_BMSR_ANEGCOMPLETE	(0x0020)	
-#define CVI_BMSR_RESV		    (0x00c0)	
-#define CVI_BMSR_ESTATEN		(0x0100)	
-#define CVI_BMSR_100HALF2		(0x0200)	
-#define CVI_BMSR_100FULL2		(0x0400)	
-#define CVI_BMSR_10HALF		    (0x0800)	
-#define CVI_BMSR_10FULL		    (0x1000)	
-#define CVI_BMSR_100HALF		(0x2000)	
-#define CVI_BMSR_100FULL		(0x4000)	
-#define CVI_BMSR_100BASE4		(0x8000)
-
-/* Advertisement control register. */	
-#define CVI_ADVERTISE_CSMA		      (0x0001)
-#define CVI_ADVERTISE_SLCT		      (0x001f)	
-#define CVI_ADVERTISE_10HALF	      (0x0020)	
-#define CVI_ADVERTISE_1000XFULL 	  (0x0020)	
-#define CVI_ADVERTISE_10FULL	      (0x0040)	
-#define CVI_ADVERTISE_1000XHALF       (0x0040)	
-#define CVI_ADVERTISE_100HALF	      (0x0080)	
-#define CVI_ADVERTISE_1000XPAUSE	  (0x0080)	
-#define CVI_ADVERTISE_100FULL	      (0x0100)	
-#define CVI_ADVERTISE_1000XPSE_ASYM   (0x0100)	
-#define CVI_ADVERTISE_100BASE4	      (0x0200)	
-#define CVI_ADVERTISE_PAUSE_CAP	      (0x0400)	
-#define CVI_ADVERTISE_PAUSE_ASYM	  (0x0800)	
-#define CVI_ADVERTISE_RESV		      (0x1000)	
-#define CVI_ADVERTISE_RFAULT	      (0x2000)	
-#define CVI_ADVERTISE_LPACK		      (0x4000)
-#define CVI_ADVERTISE_NPAGE		      (0x8000)
+#ifndef __LINUX_MII_H__
+#define __LINUX_MII_H__
 
 /* Generic MII registers. */
 
-#define CVI_MII_BMCR	        (0x00)	
-#define CVI_MII_BMSR	        (0x01)	
-#define CVI_MII_PHYSID1	        (0x02)	
-#define CVI_MII_PHYSID2	        (0x03)	
-#define CVI_MII_ADVERTISE	    (0x04)	
-#define CVI_MII_LPA		        (0x05)	
-#define CVI_MII_EXPANSION	    (0x06)	
-#define CVI_MII_CTRL1000	    (0x09)	
-#define CVI_MII_STAT1000	    (0x0a)	
-#define CVI_MII_ESTATUS	        (0x0f)	
-#define CVI_MII_DCOUNTER	    (0x12)	
-#define CVI_MII_FCSCOUNTER	    (0x13)	
-#define CVI_MII_NWAYTEST	    (0x14)	
-#define CVI_MII_RERRCOUNTER     (0x15)	
-#define CVI_MII_SREVISION	    (0x16)	
-#define CVI_MII_RESV1	        (0x17)	
-#define CVI_MII_LBRERROR	    (0x18)	
-#define CVI_MII_PHYADDR	        (0x19)	
-#define CVI_MII_RESV2	        (0x1a)	
-#define CVI_MII_TPISTATUS	    (0x1b)	
-#define CVI_MII_NCONFIG	        (0x1c)	
+#define MII_BMCR	    0x00	/* Basic mode control register */
+#define MII_BMSR	    0x01	/* Basic mode status register  */
+#define MII_PHYSID1	    0x02	/* PHYS ID 1		       */
+#define MII_PHYSID2	    0x03	/* PHYS ID 2		       */
+#define MII_ADVERTISE	    0x04	/* Advertisement control reg   */
+#define MII_LPA		    0x05	/* Link partner ability reg    */
+#define MII_EXPANSION	    0x06	/* Expansion register	       */
+#define MII_CTRL1000	    0x09	/* 1000BASE-T control	       */
+#define MII_STAT1000	    0x0a	/* 1000BASE-T status	       */
+#define MII_ESTATUS	    0x0f	/* Extended Status */
+#define MII_DCOUNTER	    0x12	/* Disconnect counter	       */
+#define MII_FCSCOUNTER	    0x13	/* False carrier counter       */
+#define MII_NWAYTEST	    0x14	/* N-way auto-neg test reg     */
+#define MII_RERRCOUNTER     0x15	/* Receive error counter       */
+#define MII_SREVISION	    0x16	/* Silicon revision	       */
+#define MII_RESV1	    0x17	/* Reserved...		       */
+#define MII_LBRERROR	    0x18	/* Lpback, rx, bypass error    */
+#define MII_PHYADDR	    0x19	/* PHY address		       */
+#define MII_RESV2	    0x1a	/* Reserved...		       */
+#define MII_TPISTATUS	    0x1b	/* TPI status for 10mbps       */
+#define MII_NCONFIG	    0x1c	/* Network interface config    */
 
-#define CVI_ADVERTISE_FULL (CVI_ADVERTISE_100FULL | CVI_ADVERTISE_10FULL | \
-			CVI_ADVERTISE_CSMA)
-#define CVI_ADVERTISE_ALL (CVI_ADVERTISE_10HALF | CVI_ADVERTISE_10FULL | \
-		       CVI_ADVERTISE_100HALF | CVI_ADVERTISE_100FULL)
+/* Basic mode control register. */
+#define BMCR_RESV		0x003f	/* Unused...		       */
+#define BMCR_SPEED1000		0x0040	/* MSB of Speed (1000)	       */
+#define BMCR_CTST		0x0080	/* Collision test	       */
+#define BMCR_FULLDPLX		0x0100	/* Full duplex		       */
+#define BMCR_ANRESTART		0x0200	/* Auto negotiation restart    */
+#define BMCR_ISOLATE		0x0400	/* Disconnect DP83840 from MII */
+#define BMCR_PDOWN		0x0800	/* Powerdown the DP83840       */
+#define BMCR_ANENABLE		0x1000	/* Enable auto negotiation     */
+#define BMCR_SPEED100		0x2000	/* Select 100Mbps	       */
+#define BMCR_LOOPBACK		0x4000	/* TXD loopback bits	       */
+#define BMCR_RESET		0x8000	/* Reset the DP83840	       */
 
-/* Expansion register for auto-negotiation. */
-#define CVI_EXPANSION_NWAY		      (0x0001)	
-#define CVI_EXPANSION_LCWP		      (0x0002)	
-#define CVI_EXPANSION_ENABLENPAGE	  (0x0004)	
-#define CVI_EXPANSION_NPCAPABLE	      (0x0008)	
-#define CVI_EXPANSION_MFAULTS	      (0x0010)		
-#define CVI_ESTATUS_1000_THALF	      (0x1000)	
-#define CVI_ESTATUS_1000_TFULL	      (0x2000)	
-#define CVI_ESTATUS_1000_XHALF	      (0x4000)
-#define CVI_ESTATUS_1000_XFULL	      (0x8000)
-#define CVI_EXPANSION_RESV		      (0xffe0)	
+/* Basic mode status register. */
+#define BMSR_ERCAP		0x0001	/* Ext-reg capability	       */
+#define BMSR_JCD		0x0002	/* Jabber detected	       */
+#define BMSR_LSTATUS		0x0004	/* Link status		       */
+#define BMSR_ANEGCAPABLE	0x0008	/* Able to do auto-negotiation */
+#define BMSR_RFAULT		0x0010	/* Remote fault detected       */
+#define BMSR_ANEGCOMPLETE	0x0020	/* Auto-negotiation complete   */
+#define BMSR_RESV		0x00c0	/* Unused...		       */
+#define BMSR_ESTATEN		0x0100	/* Extended Status in R15 */
+#define BMSR_100HALF2		0x0200	/* Can do 100BASE-T2 HDX */
+#define BMSR_100FULL2		0x0400	/* Can do 100BASE-T2 FDX */
+#define BMSR_10HALF		0x0800	/* Can do 10mbps, half-duplex  */
+#define BMSR_10FULL		0x1000	/* Can do 10mbps, full-duplex  */
+#define BMSR_100HALF		0x2000	/* Can do 100mbps, half-duplex */
+#define BMSR_100FULL		0x4000	/* Can do 100mbps, full-duplex */
+#define BMSR_100BASE4		0x8000	/* Can do 100mbps, 4k packets  */
+
+/* Advertisement control register. */
+#define ADVERTISE_SLCT		0x001f	/* Selector bits	       */
+#define ADVERTISE_CSMA		0x0001	/* Only selector supported     */
+#define ADVERTISE_10HALF	0x0020	/* Try for 10mbps half-duplex  */
+#define ADVERTISE_1000XFULL	0x0020	/* Try for 1000BASE-X full-duplex */
+#define ADVERTISE_10FULL	0x0040	/* Try for 10mbps full-duplex  */
+#define ADVERTISE_1000XHALF	0x0040	/* Try for 1000BASE-X half-duplex */
+#define ADVERTISE_100HALF	0x0080	/* Try for 100mbps half-duplex */
+#define ADVERTISE_1000XPAUSE	0x0080	/* Try for 1000BASE-X pause    */
+#define ADVERTISE_100FULL	0x0100	/* Try for 100mbps full-duplex */
+#define ADVERTISE_1000XPSE_ASYM 0x0100	/* Try for 1000BASE-X asym pause */
+#define ADVERTISE_100BASE4	0x0200	/* Try for 100mbps 4k packets  */
+#define ADVERTISE_PAUSE_CAP	0x0400	/* Try for pause	       */
+#define ADVERTISE_PAUSE_ASYM	0x0800	/* Try for asymetric pause     */
+#define ADVERTISE_RESV		0x1000	/* Unused...		       */
+#define ADVERTISE_RFAULT	0x2000	/* Say we can detect faults    */
+#define ADVERTISE_LPACK		0x4000	/* Ack link partners response  */
+#define ADVERTISE_NPAGE		0x8000	/* Next page bit	       */
+
+#define ADVERTISE_FULL (ADVERTISE_100FULL | ADVERTISE_10FULL | \
+			ADVERTISE_CSMA)
+#define ADVERTISE_ALL (ADVERTISE_10HALF | ADVERTISE_10FULL | \
+		       ADVERTISE_100HALF | ADVERTISE_100FULL)
 
 /* Link partner ability register. */
-#define CVI_LPA_SLCT		         (0x001f)	
-#define CVI_LPA_10HALF		         (0x0020)	
-#define CVI_LPA_1000XFULL		     (0x0020)	
-#define CVI_LPA_10FULL		         (0x0040)	
-#define CVI_LPA_1000XHALF		     (0x0040)	
-#define CVI_LPA_100HALF		         (0x0080)	
-#define CVI_LPA_1000XPAUSE		     (0x0080)	
-#define CVI_LPA_100FULL		         (0x0100)	
-#define CVI_LPA_1000XPAUSE_ASYM	     (0x0100)	
-#define CVI_LPA_100BASE4		     (0x0200)	
-#define CVI_LPA_PAUSE_CAP		     (0x0400)	
-#define CVI_LPA_PAUSE_ASYM		     (0x0800)	
-#define CVI_LPA_RESV		         (0x1000)	
-#define CVI_LPA_RFAULT		         (0x2000)	
-#define CVI_LPA_LPACK		         (0x4000)	
-#define CVI_LPA_NPAGE		         (0x8000)	
+#define LPA_SLCT		0x001f	/* Same as advertise selector  */
+#define LPA_10HALF		0x0020	/* Can do 10mbps half-duplex   */
+#define LPA_1000XFULL		0x0020	/* Can do 1000BASE-X full-duplex */
+#define LPA_10FULL		0x0040	/* Can do 10mbps full-duplex   */
+#define LPA_1000XHALF		0x0040	/* Can do 1000BASE-X half-duplex */
+#define LPA_100HALF		0x0080	/* Can do 100mbps half-duplex  */
+#define LPA_1000XPAUSE		0x0080	/* Can do 1000BASE-X pause     */
+#define LPA_100FULL		0x0100	/* Can do 100mbps full-duplex  */
+#define LPA_1000XPAUSE_ASYM	0x0100	/* Can do 1000BASE-X pause asym*/
+#define LPA_100BASE4		0x0200	/* Can do 100mbps 4k packets   */
+#define LPA_PAUSE_CAP		0x0400	/* Can pause		       */
+#define LPA_PAUSE_ASYM		0x0800	/* Can pause asymetrically     */
+#define LPA_RESV		0x1000	/* Unused...		       */
+#define LPA_RFAULT		0x2000	/* Link partner faulted        */
+#define LPA_LPACK		0x4000	/* Link partner acked us       */
+#define LPA_NPAGE		0x8000	/* Next page bit	       */
 
-#define CVI_LPA_DUPLEX		(CVI_LPA_10FULL | CVI_LPA_100FULL)
-#define CVI_LPA_100			(CVI_LPA_100FULL | CVI_LPA_100HALF | CVI_LPA_100BASE4)
+#define LPA_DUPLEX		(LPA_10FULL | LPA_100FULL)
+#define LPA_100			(LPA_100FULL | LPA_100HALF | LPA_100BASE4)
+
+/* Expansion register for auto-negotiation. */
+#define EXPANSION_NWAY		0x0001	/* Can do N-way auto-nego      */
+#define EXPANSION_LCWP		0x0002	/* Got new RX page code word   */
+#define EXPANSION_ENABLENPAGE	0x0004	/* This enables npage words    */
+#define EXPANSION_NPCAPABLE	0x0008	/* Link partner supports npage */
+#define EXPANSION_MFAULTS	0x0010	/* Multiple faults detected    */
+#define EXPANSION_RESV		0xffe0	/* Unused...		       */
+
+#define ESTATUS_1000_XFULL	0x8000	/* Can do 1000BX Full */
+#define ESTATUS_1000_XHALF	0x4000	/* Can do 1000BX Half */
+#define ESTATUS_1000_TFULL	0x2000	/* Can do 1000BT Full */
+#define ESTATUS_1000_THALF	0x1000	/* Can do 1000BT Half */
+
 /* N-way test register. */
-#define CVI_NWAYTEST_RESV1		(0x00ff)	
-#define CVI_NWAYTEST_LOOPBACK	(0x0100)	
-#define CVI_NWAYTEST_RESV2		(0xfe00)	
+#define NWAYTEST_RESV1		0x00ff	/* Unused...		       */
+#define NWAYTEST_LOOPBACK	0x0100	/* Enable loopback for N-way   */
+#define NWAYTEST_RESV2		0xfe00	/* Unused...		       */
 
 /* 1000BASE-T Control register */
-#define CVI_ADVERTISE_1000FULL	0x0200	
-#define CVI_ADVERTISE_1000HALF	0x0100	
+#define ADVERTISE_1000FULL	0x0200	/* Advertise 1000BASE-T full duplex */
+#define ADVERTISE_1000HALF	0x0100	/* Advertise 1000BASE-T half duplex */
 
 /* 1000BASE-T Status register */
-#define CVI_LPA_1000LOCALRXOK	0x2000	
-#define CVI_LPA_1000REMRXOK		0x1000	
-#define CVI_LPA_1000FULL		0x0800	
-#define CVI_LPA_1000HALF		0x0400	
+#define LPA_1000LOCALRXOK	0x2000	/* Link partner local receiver status */
+#define LPA_1000REMRXOK		0x1000	/* Link partner remote receiver status */
+#define LPA_1000FULL		0x0800	/* Link partner 1000BASE-T full duplex */
+#define LPA_1000HALF		0x0400	/* Link partner 1000BASE-T half duplex */
 
 /* Flow control flags */
-#define CVI_FLOW_CTRL_TX		0x01
-#define CVI_FLOW_CTRL_RX		0x02
+#define FLOW_CTRL_TX		0x01
+#define FLOW_CTRL_RX		0x02
 
 /**
  * mii_nway_result
@@ -152,16 +157,16 @@ static inline unsigned int mii_nway_result (unsigned int negotiated)
 {
 	unsigned int ret;
 
-	if (negotiated & CVI_LPA_100FULL)
-		ret = CVI_LPA_100FULL;
-	else if (negotiated & CVI_LPA_100BASE4)
-		ret = CVI_LPA_100BASE4;
-	else if (negotiated & CVI_LPA_100HALF)
-		ret = CVI_LPA_100HALF;
-	else if (negotiated & CVI_LPA_10FULL)
-		ret = CVI_LPA_10FULL;
+	if (negotiated & LPA_100FULL)
+		ret = LPA_100FULL;
+	else if (negotiated & LPA_100BASE4)
+		ret = LPA_100BASE4;
+	else if (negotiated & LPA_100HALF)
+		ret = LPA_100HALF;
+	else if (negotiated & LPA_10FULL)
+		ret = LPA_10FULL;
 	else
-		ret = CVI_LPA_10HALF;
+		ret = LPA_10HALF;
 
 	return ret;
 }
@@ -180,7 +185,7 @@ static inline unsigned int mii_duplex (unsigned int duplex_lock,
 {
 	if (duplex_lock)
 		return 1;
-	if (mii_nway_result(negotiated) & CVI_LPA_DUPLEX)
+	if (mii_nway_result(negotiated) & LPA_DUPLEX)
 		return 1;
 	return 0;
 }

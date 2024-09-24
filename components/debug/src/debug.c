@@ -25,6 +25,7 @@ void aos_debug_mm_overview(int32_t (*print_func)(const char *fmt, ...))
     BT_PRINT bt_printf = print_func ?  print_func : printf;
 
     debug_mm_overview(bt_printf);
+    debug_mm_overview_resv(bt_printf);
 }
 
 void aos_debug_task_overview(int32_t (*print_func)(const char *fmt, ...))

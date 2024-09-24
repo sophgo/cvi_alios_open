@@ -166,7 +166,7 @@ static int32_t m88e1xxx_parse_status(eth_phy_dev_t *dev)
         int i = 0;
 
         while (!(mii_reg & M88E1XXX_PHYSTAT_SPDDONE)) {
-            if (i > CVI_PHY_ANEG_TIMEOUT) {
+            if (i > PHY_ANEG_TIMEOUT) {
                 printf("time out\n");
                 dev->link_state = ETH_LINK_DOWN;
                 return ERR_ETHPHY(DRV_ERROR_TIMEOUT);
@@ -326,7 +326,7 @@ int32_t m88e1111_update_link(eth_phy_handle_t handle)
 eth_phy_dev_t M88E1111_device = {
     .phy_id = 0x01410cc0,
     .mask = 0xffffff0,
-    .features = CVI_PHY_GBIT_FEATURES,
+    .features = PHY_GBIT_FEATURES,
     .config = &m88e1111_config,
     .start = &m88e1111_start,
     .stop = &m88e1111_stop,

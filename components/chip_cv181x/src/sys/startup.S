@@ -43,9 +43,6 @@ __Vectors:
     .long    0x594B5343 /* CSKY ASCII */
     .long    0x594B5343 /* CSKY ASCII */
     .align   2
-    .rept    9
-    .long    0
-    .endr
     .long    Reset_Handler
 _start:
     .type   Reset_Handler, %function
@@ -94,23 +91,11 @@ Reset_Handler:
     or	    a0, a0,a1
     csrw    mtvec, a0
 
-#ifdef CONFIG_KERNEL_NONE
-    la      sp, g_top_mainstack
-#else
     la      sp, g_top_irqstack
-#endif
 
 #ifndef __NO_SYSTEM_INIT
     la   a0, SystemInit
     jalr a0
-#endif
-
-#ifdef CONFIG_KERNEL_NONE
-    /* Enable interrupt */
-    li    t0, 1 << 3
-    csrr  t1, mstatus
-    or    t1, t1, t0
-    csrw  mstatus, t1
 #endif
 
     la   a0, pre_main
@@ -130,11 +115,3 @@ __exit:
 g_base_irqstack:
     .space CONFIG_ARCH_INTERRUPTSTACK
 g_top_irqstack:
-#ifdef CONFIG_KERNEL_NONE
-    .align  3
-    .global g_base_mainstack
-    .global g_top_mainstack
-g_base_mainstack:
-    .space CONFIG_ARCH_MAINSTACK
-g_top_mainstack:
-#endif

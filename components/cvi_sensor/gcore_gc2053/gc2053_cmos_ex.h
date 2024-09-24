@@ -7,11 +7,7 @@ extern "C" {
 #endif
 #endif
 
-#ifdef ARCH_CV182X
-#include "cvi_vip_cif_uapi.h"
-#else
-#include "cif_uapi.h"
-#endif
+#include "cvi_comm_cif.h"
 #include "cvi_type.h"
 #include "cvi_sns_ctrl.h"
 
@@ -31,6 +27,8 @@ enum gc2053_linear_regs_e {
 	LINEAR_AGAIN_L, //b3
 	LINEAR_COL_AGAIN_H, //b8
 	LINEAR_COL_AGAIN_L, //b9
+	LINEAR_DGAIN_H, //b1
+	LINEAR_DGAIN_L, //b2
 	LINEAR_VTS_H, //0x41  (frame length)
 	LINEAR_VTS_L,//0x42
 	LINEAR_REGS_NUM

@@ -103,18 +103,20 @@ static void dw_clk_enable(struct dw_dma *dw)
 
 static void dw_clk_disable(struct dw_dma *dw)
 {
+
 	size_t irq_state;
 
 	irq_state = csi_irq_save();
 	dw->clk_enable_count--;
 	if(!dw->clk_enable_count){
-		hal_dma_off(dw);
-		hal_dma_dwc_clk_set(0);
+		//hal_dma_off(dw);
+		//hal_dma_dwc_clk_set(0);
 	}else if(dw->clk_enable_count < 0){
 		dma_err("[BUG] dma clk_enable_count < 0\r\n");
 		dma_err("[BUG] dma clk_enable_count=%d\r\n", dw->clk_enable_count);
 		dw->clk_enable_count = 0;
 	}
+
 	csi_irq_restore(irq_state);
 }
 
@@ -133,7 +135,7 @@ static void release_descriptor(struct dw_dma * dw, dlist_t *list)
 		csi_irq_restore(irq_state);
 		return;
 	}
-	cvi_list_splice_init(list, &tmp_list);
+	list_splice_init(list, &tmp_list);
 	csi_irq_restore(irq_state);
 
 	dlist_for_each_entry_safe(&tmp_list, plist, node, struct dw_desc, list){
@@ -255,7 +257,7 @@ void dwc_complete_all(dw_dma_channel_t *dwc)
 	dlist_init(&dlist);
 	irq_state = csi_irq_save();
 	if(!dlist_empty(&dwc->active_list))
-		cvi_list_splice_init(&dwc->active_list, &dlist);
+		list_splice_init(&dwc->active_list, &dlist);
 	csi_irq_restore(irq_state);
 
 	dwc_do_first_queue(dwc);
@@ -719,30 +721,6 @@ void cvi_dma_ch_stop(int ctrl_idx, int ch_idx)
 
 	release_descriptor(dma, &dwc->queue_list);
 	release_descriptor(dma, &dwc->active_list);
-}
-
-void cvi_dma_ch_pause(int ctrl_idx, int ch_idx)
-{
-	uint32_t irq_flags;
-	dw_dma_t *dma = dma_array[ctrl_idx];
-	struct dw_dma_channel *dwc = &dma->chans[ch_idx];
-
-	irq_flags = csi_irq_save();
-	hal_dma_ch_pause(dma, dwc->ch_mask);
-
-	csi_irq_restore(irq_flags);
-}
-
-void cvi_dma_ch_resume(int ctrl_idx, int ch_idx)
-{
-	uint32_t irq_flags;
-	dw_dma_t *dma = dma_array[ctrl_idx];
-	struct dw_dma_channel *dwc = &dma->chans[ch_idx];
-
-	irq_flags = csi_irq_save();
-	hal_dma_ch_resume(dma, dwc->ch_mask);
-	
-	csi_irq_restore(irq_flags);
 }
 
 void cvi_dma_ch_free(int ctrl_idx, int ch_idx)

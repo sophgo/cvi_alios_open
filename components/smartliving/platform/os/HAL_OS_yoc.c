@@ -507,7 +507,7 @@ void *HAL_SemaphoreCreate(void)
         return NULL;
     }
 
-    return sem;
+    return sem.hdl;
 }
 
 void HAL_SemaphoreDestroy(void *sem)

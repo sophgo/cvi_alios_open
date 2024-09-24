@@ -1,9 +1,8 @@
-#include <unistd.h>
-
 #include "cvi_sns_ctrl.h"
 #include "cvi_comm_video.h"
 #include "drv/common.h"
 #include "sensor_i2c.h"
+#include <unistd.h>
 #include "sc2336_cmos_ex.h"
 
 static void sc2336_linear_1080p30_init(VI_PIPE ViPipe);
@@ -11,7 +10,7 @@ static void sc2336_linear_1080p30_init(VI_PIPE ViPipe);
 const CVI_U8 sc2336_i2c_addr = 0x30;        /* I2C Address of SC2336 */
 const CVI_U32 sc2336_addr_byte = 2;
 const CVI_U32 sc2336_data_byte = 1;
-//static int g_fd[VI_MAX_PIPE_NUM] = {[0 ... (VI_MAX_PIPE_NUM - 1)] = -1};
+// static int g_fd[VI_MAX_PIPE_NUM] = {[0 ... (VI_MAX_PIPE_NUM - 1)] = -1};
 
 int sc2336_i2c_init(VI_PIPE ViPipe)
 {
@@ -29,7 +28,7 @@ int sc2336_i2c_exit(VI_PIPE ViPipe)
 
 int sc2336_read_register(VI_PIPE ViPipe, int addr)
 {
-	CVI_U8 i2c_id = (CVI_U8)g_aunSC2336_BusInfo[ViPipe].s8I2cDev;
+CVI_U8 i2c_id = (CVI_U8)g_aunSC2336_BusInfo[ViPipe].s8I2cDev;
 
 	return sensor_i2c_read(i2c_id, sc2336_i2c_addr, (CVI_U32)addr, sc2336_addr_byte, sc2336_data_byte);
 }
@@ -39,12 +38,12 @@ int sc2336_write_register(VI_PIPE ViPipe, int addr, int data)
 	CVI_U8 i2c_id = (CVI_U8)g_aunSC2336_BusInfo[ViPipe].s8I2cDev;
 
 	return sensor_i2c_write(i2c_id, sc2336_i2c_addr, (CVI_U32)addr, sc2336_addr_byte,
-		(CVI_U32)data, sc2336_data_byte);
+				(CVI_U32)data, sc2336_data_byte);
 }
 
 static void delay_ms(int ms)
 {
-	udelay(ms * 1000);
+	usleep(ms * 1000);
 }
 
 void sc2336_prog(VI_PIPE ViPipe, int *rom)
@@ -181,8 +180,16 @@ static void sc2336_linear_1080p30_init(VI_PIPE ViPipe)
 	sc2336_write_register(ViPipe, 0x0100, 0x00);
 	sc2336_write_register(ViPipe, 0x36e9, 0x80);
 	sc2336_write_register(ViPipe, 0x37f9, 0x80);
-	sc2336_write_register(ViPipe, 0x301f, 0x01);
+	sc2336_write_register(ViPipe, 0x300a, 0x24);
+	sc2336_write_register(ViPipe, 0x301f, 0xa9);
+	sc2336_write_register(ViPipe, 0x3032, 0xa0);
 	sc2336_write_register(ViPipe, 0x3106, 0x05);
+	sc2336_write_register(ViPipe, 0x320c, 0x08);
+	sc2336_write_register(ViPipe, 0x320d, 0x4a);
+	sc2336_write_register(ViPipe, 0x320e, 0x04);
+	sc2336_write_register(ViPipe, 0x320f, 0x6b);
+	sc2336_write_register(ViPipe, 0x322e, 0x04);
+	sc2336_write_register(ViPipe, 0x322f, 0x67);
 	sc2336_write_register(ViPipe, 0x3248, 0x04);
 	sc2336_write_register(ViPipe, 0x3249, 0x0b);
 	sc2336_write_register(ViPipe, 0x3253, 0x08);
@@ -216,8 +223,8 @@ static void sc2336_linear_1080p30_init(VI_PIPE ViPipe)
 	sc2336_write_register(ViPipe, 0x33b1, 0x80);
 	sc2336_write_register(ViPipe, 0x33b2, 0x68);
 	sc2336_write_register(ViPipe, 0x33b3, 0x42);
-	sc2336_write_register(ViPipe, 0x33f9, 0x70);
-	sc2336_write_register(ViPipe, 0x33fb, 0xd0);
+	sc2336_write_register(ViPipe, 0x33f9, 0x78);
+	sc2336_write_register(ViPipe, 0x33fb, 0xd8);
 	sc2336_write_register(ViPipe, 0x33fc, 0x0f);
 	sc2336_write_register(ViPipe, 0x33fd, 0x1f);
 	sc2336_write_register(ViPipe, 0x349f, 0x03);
@@ -226,9 +233,9 @@ static void sc2336_linear_1080p30_init(VI_PIPE ViPipe)
 	sc2336_write_register(ViPipe, 0x34a8, 0x42);
 	sc2336_write_register(ViPipe, 0x34a9, 0x06);
 	sc2336_write_register(ViPipe, 0x34aa, 0x01);
-	sc2336_write_register(ViPipe, 0x34ab, 0x23);
+	sc2336_write_register(ViPipe, 0x34ab, 0x28);
 	sc2336_write_register(ViPipe, 0x34ac, 0x01);
-	sc2336_write_register(ViPipe, 0x34ad, 0x84);
+	sc2336_write_register(ViPipe, 0x34ad, 0x90);
 	sc2336_write_register(ViPipe, 0x3630, 0xf4);
 	sc2336_write_register(ViPipe, 0x3633, 0x22);
 	sc2336_write_register(ViPipe, 0x3639, 0xf4);
@@ -239,9 +246,9 @@ static void sc2336_linear_1080p30_init(VI_PIPE ViPipe)
 	sc2336_write_register(ViPipe, 0x3676, 0xed);
 	sc2336_write_register(ViPipe, 0x367c, 0x09);
 	sc2336_write_register(ViPipe, 0x367d, 0x0f);
-	sc2336_write_register(ViPipe, 0x3690, 0x33);
-	sc2336_write_register(ViPipe, 0x3691, 0x33);
-	sc2336_write_register(ViPipe, 0x3692, 0x43);
+	sc2336_write_register(ViPipe, 0x3690, 0x22);
+	sc2336_write_register(ViPipe, 0x3691, 0x22);
+	sc2336_write_register(ViPipe, 0x3692, 0x22);
 	sc2336_write_register(ViPipe, 0x3698, 0x89);
 	sc2336_write_register(ViPipe, 0x3699, 0x96);
 	sc2336_write_register(ViPipe, 0x369a, 0xd0);
@@ -252,10 +259,18 @@ static void sc2336_linear_1080p30_init(VI_PIPE ViPipe)
 	sc2336_write_register(ViPipe, 0x36a3, 0x0f);
 	sc2336_write_register(ViPipe, 0x36a4, 0x1f);
 	sc2336_write_register(ViPipe, 0x36d0, 0x01);
+	sc2336_write_register(ViPipe, 0x36ea, 0x08);
+	sc2336_write_register(ViPipe, 0x36eb, 0x0c);
+	sc2336_write_register(ViPipe, 0x36ec, 0x1c);
+	sc2336_write_register(ViPipe, 0x36ed, 0x28);
 	sc2336_write_register(ViPipe, 0x3722, 0xe1);
 	sc2336_write_register(ViPipe, 0x3724, 0x41);
 	sc2336_write_register(ViPipe, 0x3725, 0xc1);
 	sc2336_write_register(ViPipe, 0x3728, 0x20);
+	sc2336_write_register(ViPipe, 0x37fa, 0x08);
+	sc2336_write_register(ViPipe, 0x37fb, 0x32);
+	sc2336_write_register(ViPipe, 0x37fc, 0x11);
+	sc2336_write_register(ViPipe, 0x37fd, 0x37);
 	sc2336_write_register(ViPipe, 0x3900, 0x0d);
 	sc2336_write_register(ViPipe, 0x3905, 0x98);
 	sc2336_write_register(ViPipe, 0x391b, 0x81);
@@ -268,12 +283,21 @@ static void sc2336_linear_1080p30_init(VI_PIPE ViPipe)
 	sc2336_write_register(ViPipe, 0x3943, 0xc6);
 	sc2336_write_register(ViPipe, 0x3952, 0x02);
 	sc2336_write_register(ViPipe, 0x3953, 0x0f);
-	sc2336_write_register(ViPipe, 0x3e01, 0x45);
-	sc2336_write_register(ViPipe, 0x3e02, 0xf0);
+	sc2336_write_register(ViPipe, 0x3e01, 0x46);
+	sc2336_write_register(ViPipe, 0x3e02, 0x50);
 	sc2336_write_register(ViPipe, 0x3e08, 0x1f);
 	sc2336_write_register(ViPipe, 0x3e1b, 0x14);
 	sc2336_write_register(ViPipe, 0x440e, 0x02);
 	sc2336_write_register(ViPipe, 0x4509, 0x38);
+	sc2336_write_register(ViPipe, 0x4819, 0x05);
+	sc2336_write_register(ViPipe, 0x481b, 0x03);
+	sc2336_write_register(ViPipe, 0x481d, 0x0a);
+	sc2336_write_register(ViPipe, 0x481f, 0x02);
+	sc2336_write_register(ViPipe, 0x4821, 0x08);
+	sc2336_write_register(ViPipe, 0x4823, 0x03);
+	sc2336_write_register(ViPipe, 0x4825, 0x02);
+	sc2336_write_register(ViPipe, 0x4827, 0x03);
+	sc2336_write_register(ViPipe, 0x4829, 0x04);
 	sc2336_write_register(ViPipe, 0x5799, 0x06);
 	sc2336_write_register(ViPipe, 0x5ae0, 0xfe);
 	sc2336_write_register(ViPipe, 0x5ae1, 0x40);
@@ -303,11 +327,11 @@ static void sc2336_linear_1080p30_init(VI_PIPE ViPipe)
 	sc2336_write_register(ViPipe, 0x5afd, 0x3c);
 	sc2336_write_register(ViPipe, 0x5afe, 0x30);
 	sc2336_write_register(ViPipe, 0x5aff, 0x28);
-	sc2336_write_register(ViPipe, 0x36e9, 0x20);
-	sc2336_write_register(ViPipe, 0x37f9, 0x27);
+	sc2336_write_register(ViPipe, 0x36e9, 0x44);
+	sc2336_write_register(ViPipe, 0x37f9, 0x44);
 	sc2336_write_register(ViPipe, 0x0100, 0x01);
 
-	sc2336_default_reg_init(ViPipe);
+	// sc2336_default_reg_init(ViPipe);
 
 	sc2336_write_register(ViPipe, 0x0100, 0x01);
 

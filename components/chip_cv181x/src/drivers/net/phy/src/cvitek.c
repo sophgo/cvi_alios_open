@@ -314,18 +314,18 @@ static int32_t cv181x_parse_status(eth_phy_dev_t *dev)
     uint16_t mii_reg;
     int32_t ret;
 
-    ret = eth_phy_read(priv, phy_addr, CVI_MII_BMSR, &mii_reg);
+    ret = eth_phy_read(priv, phy_addr, MII_BMSR, &mii_reg);
 
 	if (ret != 0) {
         return ret;
     }
 
-	if (mii_reg & (CVI_BMSR_100FULL | CVI_BMSR_100HALF))
+	if (mii_reg & (BMSR_100FULL | BMSR_100HALF))
         priv->link_info.speed = CSI_ETH_SPEED_100M;
 	else
         priv->link_info.speed = CSI_ETH_SPEED_10M;
 
-	if (mii_reg & (CVI_BMSR_10FULL | CVI_BMSR_100FULL))
+	if (mii_reg & (BMSR_10FULL | BMSR_100FULL))
         priv->link_info.duplex = CSI_ETH_DUPLEX_FULL;
 	else
         priv->link_info.duplex = CSI_ETH_DUPLEX_HALF;
@@ -383,7 +383,7 @@ eth_phy_dev_t cv181x_device = {
 	.name = "CVITEK,CV181X",
     .phy_id = 0x00435649,
     .mask = 0xffffffff,
-    .features = CVI_PHY_BASIC_FEATURES,
+    .features = PHY_BASIC_FEATURES,
     .config = &cv181x_config,
     .start = &cv181x_start,
     .stop = &cv181x_stop,

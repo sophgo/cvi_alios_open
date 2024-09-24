@@ -231,7 +231,7 @@ int pthread_detach(pthread_t thread)
 
     ptcb = __pthread_get_tcb(thread);
     if (ptcb == NULL) {
-        return ESRCH;
+        return EINVAL;
     }
 
     if (ptcb->attr.detachstate == PTHREAD_CREATE_DETACHED) {
@@ -262,7 +262,7 @@ int pthread_timedjoin_np(pthread_t thread, void **retval, const struct timespec 
     }
     ptcb = __pthread_get_tcb(thread);
     if (ptcb == NULL) {
-        return ESRCH;
+        return EINVAL;
     }
 
     if (ptcb == pthread_self()) {

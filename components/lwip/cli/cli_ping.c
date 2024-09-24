@@ -14,7 +14,7 @@
 
 extern int ping(int type, char *remote_ip);
 
-static void cmd_ping_func(char *wbuf, int wbuf_len, int argc, char **argv)
+static void cmd_ping_func(int argc, char **argv)
 {
     int ping_type = 0;
     char *host_ip;
@@ -35,15 +35,6 @@ static void cmd_ping_func(char *wbuf, int wbuf_len, int argc, char **argv)
     ping(ping_type, host_ip);
 }
 
-void cli_reg_cmd_ping(void)
-{
-    static const struct cli_command cmd_info = {
-        "ping",
-        "ping command.",
-        cmd_ping_func
-    };
-
-    aos_cli_register_command(&cmd_info);
-}
+ALIOS_CLI_CMD_REGISTER(cmd_ping_func, ping, ping commanda);
 
 #endif

@@ -95,7 +95,7 @@ CSI 2.0 的对接需要CSI 2.0 测试的支持。测试套件存在于csi_test�
 ## 测试套件编译
 
 建议新建solution工程，专门供CSI TEST对接测试使用，此工程亦可方便以后在云上实验室进行1520验证  
-1. 在`solution`目录中以`helloworld`工程为模版，创建新的工程，例如`<chip_name>_csi_test`, 
+1. 在`solution`目录中以`normboot`工程为模版，创建新的工程，例如`<chip_name>_csi_test`, 
 2. 在新建的工程`solution/<chip_name>_csi_test`的源代码中，修改`app/app_main.c`, 在其中的#include `csi_test.h`, 在main 保留最基本的 `boarb_yoc_init()`,然后直接调用测试程序入口 `test_entry()`, 例如：
 
 ```

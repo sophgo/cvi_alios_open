@@ -130,6 +130,11 @@ static uint32_t free_func(void)
     printf("memory usage: %10d%10d%10d%10d\r\n\r\n",
            total, used, mfree, peak);
 
+    aos_get_mminfo_resv(&total, &used, &mfree, &peak);
+    printf("resv               total      used      free      peak \r\n");
+    printf("memory usage: %10d%10d%10d%10d\r\n\r\n",
+           total, used, mfree, peak);
+
     return 0;
 }
 

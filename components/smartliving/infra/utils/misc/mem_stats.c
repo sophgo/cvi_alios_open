@@ -328,7 +328,7 @@ void _count_free_internal(void *ptr, OS_malloc_record *os_malloc_pos)
 
     pos = (module_mem_t *)(os_malloc_pos->mem_table);
     if (!pos) {
-        utils_err("find mem_table failed");
+        utils_err("find mem_table faild");
         return;
     }
 

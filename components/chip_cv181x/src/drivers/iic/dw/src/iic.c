@@ -1111,12 +1111,12 @@ int32_t csi_iic_mem_receive(csi_iic_t *iic, uint32_t devaddr, uint16_t memaddr, 
     CSI_PARAM_CHK(iic, CSI_ERROR);
     CSI_PARAM_CHK(data, CSI_ERROR);
     csi_error_t ret = CSI_OK;
+    int32_t active = 0;
     uint32_t timecount;
-    int recv_count = size;
+    uint32_t recv_count = size;
     uint8_t *recv_data = (uint8_t *)data;
     uint8_t memaddr_len;
     uint8_t iic_idx = HANDLE_DEV_IDX(iic);
-    //int start = 0;
     dw_iic_regs_t *iic_base = (dw_iic_regs_t *)HANDLE_REG_BASE(iic);
 
     if (!data || !size) {
@@ -1135,20 +1135,28 @@ int32_t csi_iic_mem_receive(csi_iic_t *iic, uint32_t devaddr, uint16_t memaddr, 
         ret = CSI_ERROR;
         goto RECV_ERROR;
     }
+
     timecount = timeout + csi_tick_get_ms();
-    for (int i = 0 ; i < recv_count; i ++) {
-        if(i != (recv_count -1)) {
-            dw_iic_transmit_data(iic_base, DW_IIC_DATA_CMD);
-        } else {
-            dw_iic_transmit_data(iic_base, DW_IIC_DATA_CMD | DW_IIC_DATA_STOP);
-        }
-    }
+
     while (recv_count > 0) {
+        if (!active) {
+            /*
+            * Avoid writing to ic_cmd_data multiple times
+            * in case this loop spins too quickly and the
+            * ic_status RFNE bit isn't set after the first
+            * write. Subsequent writes to ic_cmd_data can
+            * trigger spurious i2c transfer.
+            */
+            dw_iic_transmit_data(iic_base, DW_IIC_DATA_CMD | DW_IIC_DATA_STOP);
+            active = 1;
+        }
+
         //if (iic_base->IC_RAW_INTR_STAT & DW_IIC_RAW_RX_FULL) {
         if (iic_base->IC_STATUS & DW_IIC_RXFIFO_NOT_EMPTY_STATE) {
         //if (dw_iic_get_receive_fifo_num(iic_base)) {
             *recv_data++ = dw_iic_receive_data(iic_base);
-            --recv_count;
+            recv_count--;
+            active = 0;
         } else if (csi_tick_get_ms() >= timecount) {
             log("Timed out read ic_cmd_data\n");
             ret = CSI_TIMEOUT;

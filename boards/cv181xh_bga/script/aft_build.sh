@@ -70,7 +70,6 @@ fi
 
 [ -f "${MK_BOARD_PATH}/bootimgs/boot" ] && cp -arf ${MK_BOARD_PATH}/bootimgs/boot ${MK_GENERATED_PATH}/data/
 [ -f "${MK_BOARD_PATH}/bootimgs/boot0" ] && cp -arf ${MK_BOARD_PATH}/bootimgs/boot0 ${MK_GENERATED_PATH}/data/
-
 [ -f yoc.bin ] && cp -arf yoc.bin ${MK_GENERATED_PATH}/data/prim
 cp -arf ${MK_BOARD_PATH}/configs/config.yaml ${MK_GENERATED_PATH}/data/
 ${PRODUCT} image ${MK_GENERATED_PATH}/images.zip -i ${MK_GENERATED_PATH}/data -l -p
@@ -93,7 +92,3 @@ if [ ! -f gdbinit ]; then
 fi
 
 cp -arf $MK_BOARD_PATH/script/mkflash.sh $BASE_PWD
-
-[ -f "${MK_BOARD_PATH}/bootimgs/fip_fsbl.bin" ] && cp -arf ${MK_BOARD_PATH}/bootimgs/fip_fsbl.bin ${MK_GENERATED_PATH}/data/
-[ -f "${MK_BOARD_PATH}/configs/partition_alios_spinor.xml" ] && cp -arf ${MK_BOARD_PATH}/configs/partition_alios_spinor.xml ${MK_GENERATED_PATH}/data/
-[ -f yoc.bin ] && cp -arf yoc.bin ${MK_GENERATED_PATH}/data/

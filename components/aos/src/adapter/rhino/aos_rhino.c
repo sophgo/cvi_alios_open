@@ -190,9 +190,6 @@ int aos_task_new(const char *name, void (*fn)(void *), void *arg,
 
     aos_check_return_einval(name && fn && (stack_size >= AOS_MIN_STACK_SIZE));
 
-#if defined(CSK_CPU_STACK_EXTRAL)
-    stack_size += CSK_CPU_STACK_EXTRAL;
-#endif
     ret = (int)krhino_task_dyn_create(&task_handle, name, arg, AOS_DEFAULT_APP_PRI, 0,
                                       stack_size / sizeof(cpu_stack_t), fn, 1u);
 
@@ -207,9 +204,6 @@ int aos_task_new_ext(aos_task_t *task, const char *name, void (*fn)(void *), voi
     aos_check_return_einval(task && fn && (stack_size >= AOS_MIN_STACK_SIZE) &&
                             (prio >= 0 && prio < RHINO_CONFIG_PRI_MAX));
 
-#if defined(CSK_CPU_STACK_EXTRAL)
-    stack_size += CSK_CPU_STACK_EXTRAL;
-#endif
     ret = (int)krhino_task_dyn_create((ktask_t **)(task), name, arg, prio, 0,
                                       stack_size / sizeof(cpu_stack_t), fn, 1u);
 
@@ -237,7 +231,7 @@ int aos_task_new_ext(aos_task_t *task, const char *name, void (*fn)(void *), voi
 void aos_task_wdt_attach(void (*will)(void *), void *args)
 {
 #ifdef CONFIG_SOFTWDT
-    aos_wdt_attach((long)krhino_cur_task_get(), will, args);
+    aos_wdt_attach((uint32_t)krhino_cur_task_get(), will, args);
 #else
     (void)will;
     (void)args;
@@ -247,7 +241,7 @@ void aos_task_wdt_attach(void (*will)(void *), void *args)
 void aos_task_wdt_detach()
 {
 #ifdef CONFIG_SOFTWDT
-    long index = (long)krhino_cur_task_get();
+    uint32_t index = (uint32_t)krhino_cur_task_get();
 
     aos_wdt_feed(index, 0);
     aos_wdt_detach(index);
@@ -259,10 +253,10 @@ void aos_task_wdt_feed(int time)
 #ifdef CONFIG_SOFTWDT
     ktask_t *task = krhino_cur_task_get();
 
-    if (!aos_wdt_exists((long)task))
-        aos_wdt_attach((long)task, NULL, (void*)task->task_name);
+    if (!aos_wdt_exists((uint32_t)task))
+        aos_wdt_attach((uint32_t)task, NULL, (void*)task->task_name);
 
-    aos_wdt_feed((long)task, time);
+    aos_wdt_feed((uint32_t)task, time);
 #endif
 }
 
@@ -1190,11 +1184,25 @@ int aos_get_mminfo(int32_t *total, int32_t *used, int32_t *mfree, int32_t *peak)
     return 0;
 }
 
+int aos_get_mminfo_resv(int32_t *total, int32_t *used, int32_t *mfree, int32_t *peak)
+{
+    aos_check_return_einval(total && used && mfree && peak);
+
+    *total = g_kmm_head_resv->used_size + g_kmm_head_resv->free_size;
+    *used = g_kmm_head_resv->used_size;
+    *mfree = g_kmm_head_resv->free_size;
+    *peak = g_kmm_head_resv->maxused_size;
+
+    return 0;
+}
+
 int aos_mm_dump(void)
 {
 #if defined(CONFIG_DEBUG) && defined(CONFIG_DEBUG_MM)
     extern uint32_t dumpsys_mm_info_func(uint32_t mm_status);
     dumpsys_mm_info_func(0);
+    extern uint32_t dumpsys_mm_info_func_resv(uint32_t mm_status);
+    dumpsys_mm_info_func_resv(0);
 #endif
 
     return 0;
@@ -1219,7 +1227,7 @@ static int aos_task_list(void *task_array, uint32_t array_items)
 
 #ifdef CONFIG_BACKTRACE
     uint32_t task_free;
-    CPSR_ALLOC();
+    size_t irq_flags;
 #endif
 #ifdef CONFIG_STACK_GUARD
     int      stack_flags;
@@ -1246,7 +1254,7 @@ static int aos_task_list(void *task_array, uint32_t array_items)
     }
 
 #ifdef CONFIG_BACKTRACE
-    RHINO_CPU_INTRPT_DISABLE();
+    irq_flags = cpu_intrpt_save();
 
 #ifdef CONFIG_STACK_GUARD
     extern int stack_guard_save(void);
@@ -1267,7 +1275,7 @@ static int aos_task_list(void *task_array, uint32_t array_items)
     stack_guard_restore(stack_flags);
 #endif
 
-    RHINO_CPU_INTRPT_ENABLE();
+    cpu_intrpt_restore(irq_flags);
 
 #endif /* CONFIG_BACKTRACE */
 #endif /* RHINO_CONFIG_SYSTEM_STATS */
@@ -1285,7 +1293,7 @@ static uint32_t aos_task_get_stack_space(void *task_handle)
     kstat_t ret = krhino_task_stack_min_free(task_handle, &stack_free);
 
     if (ret == RHINO_SUCCESS) {
-        return (uint32_t)(sizeof(cpu_stack_t) * stack_free);
+        return (uint32_t)(4 * stack_free);
     } else {
         return 0;
     }
@@ -1345,7 +1353,7 @@ void aos_task_show_info(void)
         else if (task_array[i]->task_state == K_DELETED)   printf("deleted");
         else                                               printf("%-7d", task_array[i]->task_state);
 
-        uint32_t strack_size = task_array[i]->stack_size * sizeof(cpu_stack_t);
+        uint32_t strack_size = task_array[i]->stack_size * 4;
         uint32_t min_free = aos_task_get_stack_space(task_array[i]);
 #if (RHINO_CONFIG_SYS_STATS > 0)
         printf(" %p   %8d %8d   %2d%% %8"PRId64" %8.1f\n",
@@ -1430,19 +1438,9 @@ void aos_kernel_resume(int32_t ticks)
     core_sched();
 }
 
-int aos_irq_context(void)
+int32_t aos_irq_context(void)
 {
-    return g_intrpt_nested_level[cpu_cur_get()] > 0u;
-}
-
-int aos_is_sched_disable(void)
-{
-    return g_sched_lock[cpu_cur_get()] > 0u;
-}
-
-int aos_is_irq_disable(void)
-{
-    return !cpu_is_irq_enable();
+    return g_intrpt_nested_level[cpu_cur_get()] > 0u || g_sched_lock[cpu_cur_get()] > 0u;
 }
 
 void *aos_zalloc(size_t size)
@@ -1550,6 +1548,108 @@ void aos_free(void *mem)
     krhino_mm_free(mem);
 }
 
+#if 1
+
+void *aos_ion_zalloc(size_t size)
+{
+    void *tmp = NULL;
+
+    if (size == 0) {
+        return NULL;
+    }
+
+#if (RHINO_CONFIG_MM_DEBUG > 0u)
+    tmp = krhino_mm_alloc_resv(size | AOS_UNSIGNED_INT_MSB);
+    krhino_owner_return_addr_resv(tmp);
+#else
+    tmp = krhino_mm_alloc_resv(size);
+#endif
+
+    if (tmp) {
+        memset(tmp, 0, size);
+    }
+
+    return tmp;
+}
+
+void *aos_ion_malloc(size_t size)
+{
+    void *tmp = NULL;
+
+    if (size == 0) {
+        return NULL;
+    }
+
+#if (RHINO_CONFIG_MM_DEBUG > 0u)
+    tmp = krhino_mm_alloc_resv(size | AOS_UNSIGNED_INT_MSB);
+    krhino_owner_return_addr_resv(tmp);
+#else
+    tmp = krhino_mm_alloc_resv(size);
+#endif
+
+    return tmp;
+}
+
+void *aos_ion_calloc(size_t nitems, size_t size)
+{
+    void *tmp = NULL;
+    size_t len = (size_t)nitems*size;
+
+    if (len == 0) {
+        return NULL;
+    }
+
+#if (RHINO_CONFIG_MM_DEBUG > 0u)
+    tmp = krhino_mm_alloc_resv(len | AOS_UNSIGNED_INT_MSB);
+    krhino_owner_return_addr_resv(tmp);
+#else
+    tmp = krhino_mm_alloc_resv(len);
+#endif
+
+    if (tmp) {
+        memset(tmp, 0, len);
+    }
+
+    return tmp;
+}
+
+void *aos_ion_realloc(void *mem, size_t size)
+{
+    void *tmp = NULL;
+
+#if (RHINO_CONFIG_MM_DEBUG > 0u)
+    tmp = krhino_mm_realloc_resv(mem, size | AOS_UNSIGNED_INT_MSB);
+    krhino_owner_return_addr_resv(tmp);
+#else
+    tmp = krhino_mm_realloc_resv(mem, size);
+#endif
+
+    return tmp;
+}
+
+void *aos_ion_zalloc_check(size_t size)
+{
+    void *ptr = aos_ion_malloc(size);
+
+    aos_check_mem(ptr);
+    if (ptr) {
+        memset(ptr, 0, size);
+    }
+
+    return ptr;
+}
+
+void aos_ion_free(void *mem)
+{
+    if (mem == NULL) {
+        return;
+    }
+
+    krhino_mm_free_resv(mem);
+}
+
+#endif
+
 void aos_calendar_time_set(uint64_t now_ms)
 {
     start_time_ms = now_ms - krhino_sys_time_get();
@@ -1594,54 +1694,6 @@ void aos_freep(char **ptr)
     if (ptr && (*ptr)) {
         aos_free(*ptr);
         *ptr = NULL;
-    }
-}
-
-void *aos_malloc_align(size_t alignment, size_t size)
-{
-    void *ptr;
-    void *align_ptr;
-    size_t align_size = sizeof(void*);
-
-    if (alignment > align_size) {
-        for (;;) {
-            align_size = align_size << 1;
-            if (align_size >= alignment)
-                break;
-        }
-    }
-    alignment = align_size;
-
-    /* get total aligned size */
-    align_size = size + (alignment << 1);
-    /* allocate memory block from heap */
-#if (RHINO_CONFIG_MM_DEBUG > 0u)
-    ptr = aos_malloc(align_size | AOS_UNSIGNED_INT_MSB);
-    aos_alloc_trace(ptr, (size_t)__builtin_return_address(0));
-#else
-    ptr = aos_malloc(align_size);
-#endif
-    if (ptr != NULL) {
-        /* the allocated memory block is aligned */
-        if (((unsigned long)ptr & (alignment - 1)) == 0) {
-            align_ptr = (void *)((unsigned long)ptr + alignment);
-        } else {
-            align_ptr = (void *)(((unsigned long)ptr + (alignment - 1)) & ~(alignment - 1));
-        }
-
-        /* set the pointer before alignment pointer to the real pointer */
-        *((unsigned long *)((unsigned long)align_ptr - sizeof(void *))) = (unsigned long)ptr;
-        ptr = align_ptr;
-    }
-
-    return ptr;
-}
-
-void aos_free_align(void *ptr)
-{
-    if (ptr) {
-        void *real_ptr = (void *)*(unsigned long *)((unsigned long)ptr - sizeof(void *));
-        aos_free(real_ptr);
     }
 }
 

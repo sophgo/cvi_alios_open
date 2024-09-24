@@ -6,7 +6,6 @@ enum SessionCmd {
     BEGIN = 0;
     END   = 1;
     TIMEOUT = 2;
-    WWV   = 3;
 }
 
 message SessionMsg {

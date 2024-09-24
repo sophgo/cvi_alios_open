@@ -7,14 +7,9 @@ extern "C" {
 #endif
 #endif
 
-#ifdef ARCH_CV182X
-#include "cvi_vip_cif_uapi.h"
-#else
-#include "cif_uapi.h"
-#endif
+#include "cvi_comm_cif.h"
 #include "cvi_type.h"
 #include "cvi_sns_ctrl.h"
-
 
 #ifndef UNUSED
 #define UNUSED(x) ((void)(x))
@@ -94,10 +89,11 @@ typedef struct _SC1336_2L_MODE_S {
  ****************************************************************************/
 
 extern ISP_SNS_STATE_S *g_pastSC1336_2L[VI_MAX_PIPE_NUM];
+extern ISP_SNS_MIRRORFLIP_TYPE_E g_aeSc1336_MirrorFip[VI_MAX_PIPE_NUM];
 extern ISP_SNS_COMMBUS_U g_aunSC1336_2L_BusInfo[];
 extern CVI_U16 g_au16SC1336_2L_GainMode[];
 extern CVI_U16 g_au16SC1336_2L_L2SMode[];
-extern const CVI_U8 sc1336_2l_i2c_addr;
+extern CVI_U8 sc1336_2l_i2c_addr;
 extern const CVI_U32 sc1336_2l_addr_byte;
 extern const CVI_U32 sc1336_2l_data_byte;
 extern void sc1336_2l_init(VI_PIPE ViPipe);

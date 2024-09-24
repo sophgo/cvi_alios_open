@@ -18,6 +18,9 @@
     #define TOSTR
 #endif
 
+#define SYS_DOMAIN_START    0x1000000
+#define DDR_DOMAIN_ADDR     0x80000000
+#define SYS_DOMAIN_END      0xFFFFFFFF
 
 static void version_cmd(char *buf, int32_t len, int32_t argc, char **argv);
 static void uptime_cmd(char *buf, int32_t len, int32_t argc, char **argv);
@@ -26,6 +29,7 @@ static void msleep_cmd(char *buf, int32_t len, int32_t argc, char **argv);
 
 static void devname_cmd(char *buf, int32_t len, int32_t argc, char **argv);
 static void pmem_cmd(char *buf, int32_t len, int32_t argc, char **argv);
+static void pmem_cmd_offcheck(char *buf, int32_t len, int32_t argc, char **argv);
 static void mmem_cmd(char *buf, int32_t len, int32_t argc, char **argv);
 static void func_cmd(char *buf, int32_t len, int32_t argc, char **argv);
 static void debug_panic_runto_cli(char *buf, int32_t len, int32_t argc, char **argv);
@@ -37,11 +41,24 @@ static const struct cli_command built_ins[] = {
     { "time", "system time", uptime_cmd },
     { "msleep", "sleep miliseconds", msleep_cmd },
     { "p", "print memory", pmem_cmd },
+    { "p_offcheck", "print memory off check", pmem_cmd_offcheck },
     { "m", "modify memory", mmem_cmd },
     { "f", "run a function", func_cmd },
     { "devname", "print device name", devname_cmd },
     { "err2cli", "set exec runto cli", debug_panic_runto_cli },
 };
+
+/*
+*/
+static int _addr_is_valid(uintptr_t addr)
+{
+    if (addr < SYS_DOMAIN_START || addr > SYS_DOMAIN_END)
+        return 0;
+    if ((addr < DDR_DOMAIN_ADDR) && (addr % 4 != 0))
+        return 0;
+
+    return 1;
+}
 
 static void debug_cmd(char *buf, int32_t len, int32_t argc, char **argv)
 {
@@ -91,7 +108,7 @@ static void devname_cmd(char *buf, int32_t len, int32_t argc, char **argv)
 uintptr_t __attribute__((weak)) _system_ram_start = 0;
 uintptr_t __attribute__((weak)) _system_ram_len   = 0;
 
-static void pmem_cmd(char *buf, int32_t len, int32_t argc, char **argv)
+static void _pmem_cmd(char *buf, int32_t len, int32_t argc, char **argv, int checkaddr)
 {
     int32_t i;
     int32_t nunits = 16;
@@ -124,6 +141,14 @@ static void pmem_cmd(char *buf, int32_t len, int32_t argc, char **argv)
                        "nunits: number of units to display (default is 16)\r\n"
                        "width : width of unit, 1/2/4 (default is 4)\r\n");
             return;
+    }
+
+    if (checkaddr && !_addr_is_valid(addr)) {
+        aos_cli_printf("p <addr> <nunits> <width>\r\n"
+                    "addr  : address to display\r\n"
+                    "nunits: number of units to display (default is 16)\r\n"
+                    "width : width of unit, 1/2/4 (default is 4)\r\n");
+        return;
     }
 
     switch (width) {
@@ -164,6 +189,16 @@ static void pmem_cmd(char *buf, int32_t len, int32_t argc, char **argv)
             }
             break;
     }
+}
+
+static void pmem_cmd(char *buf, int32_t len, int32_t argc, char **argv)
+{
+    _pmem_cmd(buf, len, argc, argv, 1);
+}
+
+static void pmem_cmd_offcheck(char *buf, int32_t len, int32_t argc, char **argv)
+{
+    _pmem_cmd(buf, len, argc, argv, 0);
 }
 
 static void mmem_cmd(char *buf, int32_t len, int32_t argc, char **argv)

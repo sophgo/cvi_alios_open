@@ -1,6 +1,5 @@
 #include "cvi_sns_ctrl.h"
 #include "cvi_comm_video.h"
-#include "cvi_sns_ctrl.h"
 #include "drv/common.h"
 #include "sensor_i2c.h"
 #include <unistd.h>
@@ -29,7 +28,6 @@
 
 extern CVI_U16 g_au16Gc02m1_Slave_UseHwSync[VI_MAX_PIPE_NUM];
 static void gc02m1_slave_linear_1200p30_init(VI_PIPE ViPipe);
-static void gc02m1_slave_linear_600p30_init(VI_PIPE ViPipe);
 
 CVI_U8 gc02m1_slave_i2c_addr = 0x37;
 const CVI_U32 gc02m1_slave_addr_byte = 1;
@@ -140,22 +138,10 @@ int gc02m1_slave_probe(VI_PIPE ViPipe)
 
 void gc02m1_slave_init(VI_PIPE ViPipe)
 {
-	CVI_U8		u8ImgMode = g_pastGc02m1_Slave[ViPipe]->u8ImgMode;
-	WDR_MODE_E	enWDRMode =	g_pastGc02m1_Slave[ViPipe]->enWDRMode;
 	gc02m1_slave_i2c_init(ViPipe);
 
-	if (enWDRMode == WDR_MODE_2To1_LINE) {
-		CVI_TRACE_SNS(CVI_DBG_ERR, "not surpport this WDR_MODE_E!\n");
-	} else {
-		if (u8ImgMode == GC02M1_SLAVE_MODE_1600X1200P30)
-			gc02m1_slave_linear_1200p30_init(ViPipe);
-		else if(u8ImgMode == GC02M1_SLAVE_MODE_800X600P30)
-			gc02m1_slave_linear_600p30_init(ViPipe);
-		else {
-			CVI_TRACE_SNS(CVI_DBG_ERR, "not surpport this ImgMode[%d]!\n",u8ImgMode);
-			return ;
-		}
-	}
+	gc02m1_slave_linear_1200p30_init(ViPipe);
+
 	g_pastGc02m1_Slave[ViPipe]->bInit = CVI_TRUE;
 }
 
@@ -398,241 +384,4 @@ static void gc02m1_slave_linear_1200p30_init(VI_PIPE ViPipe)
 	gc02m1_slave_default_reg_init(ViPipe);
 
 	printf("ViPipe:%d,===GC02M1_SLAVE 1200P 30fps 10bit LINEAR Init OK!===\n", ViPipe);
-}
-
-
-static void gc02m1_slave_linear_600p30_init(VI_PIPE ViPipe)
-{
-	/*system*/
-	gc02m1_slave_write_register(ViPipe, 0xfc, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0xf4, 0x41);
-	gc02m1_slave_write_register(ViPipe, 0xf5, 0xc0);
-	gc02m1_slave_write_register(ViPipe, 0xf6, 0x44);
-	gc02m1_slave_write_register(ViPipe, 0xf8, 0x32);	//set 27M MCLK
-	gc02m1_slave_write_register(ViPipe, 0xf9, 0x82);
-	gc02m1_slave_write_register(ViPipe, 0xfa, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0xfd, 0xc0);
-	gc02m1_slave_write_register(ViPipe, 0xfc, 0x81);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x03);
-	gc02m1_slave_write_register(ViPipe, 0x01, 0x0b);
-	gc02m1_slave_write_register(ViPipe, 0xf7, 0x11);
-	gc02m1_slave_write_register(ViPipe, 0xfc, 0x80);
-	gc02m1_slave_write_register(ViPipe, 0xfc, 0x80);
-	gc02m1_slave_write_register(ViPipe, 0xfc, 0x80);
-	gc02m1_slave_write_register(ViPipe, 0xfc, 0x8e);
-	/*CIS CTL*/
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0x87, 0x09);
-	gc02m1_slave_write_register(ViPipe, 0xee, 0x72);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0x8c, 0x90);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0x90, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0x03, 0x02);
-	gc02m1_slave_write_register(ViPipe, 0x04, 0x40);
-	gc02m1_slave_write_register(ViPipe, 0x41, 0x02);
-	gc02m1_slave_write_register(ViPipe, 0x42, 0x7a);
-	gc02m1_slave_write_register(ViPipe, 0x05, 0x04);
-	gc02m1_slave_write_register(ViPipe, 0x06, 0x48);
-	gc02m1_slave_write_register(ViPipe, 0x07, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0x08, 0x18);
-	gc02m1_slave_write_register(ViPipe, 0x9d, 0x18);
-	gc02m1_slave_write_register(ViPipe, 0x09, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0x0a, 0x02);
-	gc02m1_slave_write_register(ViPipe, 0x0d, 0x04);
-	gc02m1_slave_write_register(ViPipe, 0x0e, 0xbc);
-	gc02m1_slave_write_register(ViPipe, 0x17, 0x80);
-	gc02m1_slave_write_register(ViPipe, 0x19, 0x04);
-	gc02m1_slave_write_register(ViPipe, 0x24, 0x41);
-	gc02m1_slave_write_register(ViPipe, 0x56, 0x20);
-	gc02m1_slave_write_register(ViPipe, 0x5b, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0x5e, 0x01);
-	/*ana log Register width*/
-	gc02m1_slave_write_register(ViPipe, 0x21, 0x1e);
-	gc02m1_slave_write_register(ViPipe, 0x29, 0x20);
-	gc02m1_slave_write_register(ViPipe, 0x44, 0x10);
-	gc02m1_slave_write_register(ViPipe, 0x4b, 0x08);
-	gc02m1_slave_write_register(ViPipe, 0x55, 0x0d);
-	gc02m1_slave_write_register(ViPipe, 0xcc, 0x01);
-	/*ana log mode*/
-	gc02m1_slave_write_register(ViPipe, 0x1a, 0x14);
-	gc02m1_slave_write_register(ViPipe, 0x1f, 0x19);
-	gc02m1_slave_write_register(ViPipe, 0x27, 0x30);
-	gc02m1_slave_write_register(ViPipe, 0x2b, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0x33, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0x53, 0x90);
-	gc02m1_slave_write_register(ViPipe, 0xe6, 0x50);
-	/*ana log voltage*/
-	gc02m1_slave_write_register(ViPipe, 0x39, 0x07);
-	gc02m1_slave_write_register(ViPipe, 0x43, 0x04);
-	gc02m1_slave_write_register(ViPipe, 0x46, 0x2a);
-	gc02m1_slave_write_register(ViPipe, 0x7c, 0xa0);
-	gc02m1_slave_write_register(ViPipe, 0xd0, 0xbe);
-	gc02m1_slave_write_register(ViPipe, 0xd1, 0x60);
-	gc02m1_slave_write_register(ViPipe, 0xd2, 0x40);
-	gc02m1_slave_write_register(ViPipe, 0xd3, 0xf3);
-	gc02m1_slave_write_register(ViPipe, 0xde, 0x1d);
-	/*ana log current*/
-	gc02m1_slave_write_register(ViPipe, 0xcd, 0x05);
-	gc02m1_slave_write_register(ViPipe, 0xce, 0x6f);
-	/*CIS CTL RESET*/
-	gc02m1_slave_write_register(ViPipe, 0xfc, 0x88);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x10);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xfc, 0x8e);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xfc, 0x88);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x10);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xfc, 0x8e);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x04);
-	gc02m1_slave_write_register(ViPipe, 0xe0, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x00);
-	/*ISP */
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0x53, 0x44);
-	gc02m1_slave_write_register(ViPipe, 0x87, 0x53);
-	gc02m1_slave_write_register(ViPipe, 0x89, 0x03);
-	/*Gai n*/
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xb0, 0x74);
-	gc02m1_slave_write_register(ViPipe, 0xb1, 0x04);
-	gc02m1_slave_write_register(ViPipe, 0xb2, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xb6, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x04);
-	gc02m1_slave_write_register(ViPipe, 0xd8, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x40);  //1x
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x60);  //1.5x
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0xc0);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x2a);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x80);  //2x
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x40);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0xa0);  //2.5x
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x90);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x19);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0xc0);  //3x
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0xD0);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x2F);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0xe0);  //3.5x
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x90);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x39);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x00);  //4x
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x20);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x04);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x20);  //4.5x
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0xe0);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x0f);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x40);  //5x
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0xe0);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x1a);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x60);  //5.5x
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x20);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x25);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x80);  //6x
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0xa0);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x2c);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0xa0);  //6.5x
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0xe0);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x32);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0xc0);  //7x
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x20);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x38);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0xe0);  //7.5x
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x60);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x3c);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x00);  //8x
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x02);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0xa0);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x40);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x80);  //10x
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x02);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x18);
-	gc02m1_slave_write_register(ViPipe, 0xc0, 0x5c);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0x9f, 0x10);
-	/*BLK */
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0x26, 0x20);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0x40, 0x22);
-	gc02m1_slave_write_register(ViPipe, 0x46, 0x7f);
-	gc02m1_slave_write_register(ViPipe, 0x49, 0x0f);
-	gc02m1_slave_write_register(ViPipe, 0x4a, 0xf0);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x04);
-	gc02m1_slave_write_register(ViPipe, 0x14, 0x80);
-	gc02m1_slave_write_register(ViPipe, 0x15, 0x80);
-	gc02m1_slave_write_register(ViPipe, 0x16, 0x80);
-	gc02m1_slave_write_register(ViPipe, 0x17, 0x80);
-	/*ant i_blooming*/
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0x41, 0x20);
-	gc02m1_slave_write_register(ViPipe, 0x4c, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0x4d, 0x0c);
-	gc02m1_slave_write_register(ViPipe, 0x44, 0x08);
-	gc02m1_slave_write_register(ViPipe, 0x48, 0x03);
-	/*Win dow 800X600*/
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0x90, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0x91, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0x92, 0x04);
-	gc02m1_slave_write_register(ViPipe, 0x93, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0x94, 0x03);
-	gc02m1_slave_write_register(ViPipe, 0x95, 0x02);
-	gc02m1_slave_write_register(ViPipe, 0x96, 0x58);
-	gc02m1_slave_write_register(ViPipe, 0x97, 0x03);
-	gc02m1_slave_write_register(ViPipe, 0x98, 0x20);
-	/*mipi*/
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x03);
-	gc02m1_slave_write_register(ViPipe, 0x01, 0x23);
-	gc02m1_slave_write_register(ViPipe, 0x03, 0xce);
-	gc02m1_slave_write_register(ViPipe, 0x04, 0x48);
-	gc02m1_slave_write_register(ViPipe, 0x15, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0x21, 0x10);
-	gc02m1_slave_write_register(ViPipe, 0x22, 0x05);
-	gc02m1_slave_write_register(ViPipe, 0x23, 0x20);
-	gc02m1_slave_write_register(ViPipe, 0x25, 0x20);
-	gc02m1_slave_write_register(ViPipe, 0x26, 0x08);
-	gc02m1_slave_write_register(ViPipe, 0x29, 0x06);
-	gc02m1_slave_write_register(ViPipe, 0x2a, 0x0a);
-	gc02m1_slave_write_register(ViPipe, 0x2b, 0x08);
-	/*out */
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x01);
-	gc02m1_slave_write_register(ViPipe, 0x8c, 0x10);
-	gc02m1_slave_write_register(ViPipe, 0xfe, 0x00);
-	gc02m1_slave_write_register(ViPipe, 0x3e, 0x90);
-
-	if (g_au16Gc02m1_Slave_UseHwSync[ViPipe]) {
-		/*frame sync slave*/
-		gc02m1_slave_write_register(ViPipe, 0xfe, 0x00);
-		gc02m1_slave_write_register(ViPipe, 0x7f, 0x29);
-		gc02m1_slave_write_register(ViPipe, 0x82, 0x08);
-		gc02m1_slave_write_register(ViPipe, 0x83, 0x0f);
-		gc02m1_slave_write_register(ViPipe, 0x88, 0x00);
-		gc02m1_slave_write_register(ViPipe, 0x89, 0x04);
-		gc02m1_slave_write_register(ViPipe, 0x8a, 0x00);
-		gc02m1_slave_write_register(ViPipe, 0x8b, 0x12);
-		gc02m1_slave_write_register(ViPipe, 0x85, 0x51);
-	}
-	gc02m1_slave_default_reg_init(ViPipe);
-	printf("ViPipe:%d,===GC02M1_SLAVE 600P 30fps 10bit LINEAR Init OK!===\n", ViPipe);
 }

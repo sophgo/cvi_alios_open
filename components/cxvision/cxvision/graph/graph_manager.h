@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2021-2022 Alibaba Group Holding Limited
+ * Copyright (C) 2019-2022 Alibaba Group Holding Limited
  */
 
 #ifndef CXVISION_GRAPH_MANAGER_H_
 #define CXVISION_GRAPH_MANAGER_H_
 
 #include <map>
-#include <memory>
 #include <string>
 
 #include "cxvision/plugin/plugin.h"
@@ -31,7 +30,6 @@ class GraphManager final {
 
   std::string json_;
   std::map<std::string, std::vector<VertexInfo>> graphs_;
-  std::map<std::string, std::shared_ptr<void>> agents_;
 };
 
 }  // namespace cx

@@ -14,179 +14,152 @@
 #define NULL 0
 #endif
 
-/*----------------------------------------------------------------------------
-*Description: warning for side-effects on the following two macros since the arguments
-* are evaluated twice changing this to inline functions is problematic
-* because of type incompatibilities
-*/
+/* ============ MIN, MAX ============ */
+
+// warning for side-effects on the following two macros since the arguments
+// are evaluated twice changing this to inline functions is problematic
+// because of type incompatibilities
 #define MIN(_x, _y) ((_x) < (_y) ? (_x) : (_y))
 #define MAX(_x, _y) ((_x) > (_y) ? (_x) : (_y))
 
+/* ============ BIT_n ============ */
 
-/*----------------------------------------------------------------------------
-* using postfix "U" to be compatible with uitn32
-* ("UL" is not needed and gives lint warning)
-*/
-#define BIT_0 (0x00000001U)
-#define BIT_1 (0x00000002U)
-#define MASK_1_BIT (BIT_1 - 1)
+// using postfix "U" to be compatible with uitn32
+// ("UL" is not needed and gives lint warning)
+#define BIT_0 0x00000001U
+#define BIT_1 0x00000002U
+#define BIT_2 0x00000004U
+#define BIT_3 0x00000008U
+#define BIT_4 0x00000010U
+#define BIT_5 0x00000020U
+#define BIT_6 0x00000040U
+#define BIT_7 0x00000080U
+#define BIT_8 0x00000100U
+#define BIT_9 0x00000200U
+#define BIT_10 0x00000400U
+#define BIT_11 0x00000800U
+#define BIT_12 0x00001000U
+#define BIT_13 0x00002000U
+#define BIT_14 0x00004000U
+#define BIT_15 0x00008000U
+#define BIT_16 0x00010000U
+#define BIT_17 0x00020000U
+#define BIT_18 0x00040000U
+#define BIT_19 0x00080000U
+#define BIT_20 0x00100000U
+#define BIT_21 0x00200000U
+#define BIT_22 0x00400000U
+#define BIT_23 0x00800000U
+#define BIT_24 0x01000000U
+#define BIT_25 0x02000000U
+#define BIT_26 0x04000000U
+#define BIT_27 0x08000000U
+#define BIT_28 0x10000000U
+#define BIT_29 0x20000000U
+#define BIT_30 0x40000000U
+#define BIT_31 0x80000000U
 
-#define BIT_2 (0x00000004U)
-#define MASK_2_BITS (BIT_2 - 1)
-
-#define BIT_3 (0x00000008U)
-#define MASK_3_BITS (BIT_3 - 1)
-
-#define BIT_4 (0x00000010U)
-#define MASK_4_BITS (BIT_4 - 1)
-
-#define BIT_5 (0x00000020U)
-#define MASK_5_BITS (BIT_5 - 1)
-
-#define BIT_6 (0x00000040U)
-#define MASK_6_BITS (BIT_6 - 1)
-
-#define BIT_7 (0x00000080U)
-#define MASK_7_BITS (BIT_7 - 1)
-
-#define BIT_8 (0x00000100U)
-#define MASK_8_BITS (BIT_8 - 1)
-
-#define BIT_9 (0x00000200U)
-#define MASK_9_BITS (BIT_9 - 1)
-
-#define BIT_10 (0x00000400U)
-#define MASK_10_BITS (BIT_10 - 1)
-
-#define BIT_11 (0x00000800U)
-#define MASK_11_BITS (BIT_11 - 1)
-
-#define BIT_12 (0x00001000U)
-#define MASK_12_BITS (BIT_12 - 1)
-
-#define BIT_13 (0x00002000U)
-#define MASK_13_BITS (BIT_13 - 1)
-
-#define BIT_14 (0x00004000U)
-#define MASK_14_BITS (BIT_14 - 1)
-
-#define BIT_15 (0x00008000U)
-#define MASK_15_BITS (BIT_15 - 1)
-
-#define BIT_16 (0x00010000U)
-#define MASK_16_BITS (BIT_16 - 1)
-
-#define BIT_17 (0x00020000U)
-#define MASK_17_BITS (BIT_17 - 1)
-
-#define BIT_18 (0x00040000U)
-#define MASK_18_BITS (BIT_18 - 1)
-
-#define BIT_19 (0x00080000U)
-#define MASK_19_BITS (BIT_19 - 1)
-
-#define BIT_20 (0x00100000U)
-#define MASK_20_BITS (BIT_20 - 1)
-
-#define BIT_21 (0x00200000U)
-#define MASK_21_BITS (BIT_21 - 1)
-
-#define BIT_22 (0x00400000U)
-#define MASK_22_BITS (BIT_22 - 1)
-
-#define BIT_23 (0x00800000U)
-#define MASK_23_BITS (BIT_23 - 1)
-
-#define BIT_24 (0x01000000U)
-#define MASK_24_BITS (BIT_24 - 1)
-
-#define BIT_25 (0x02000000U)
-#define MASK_25_BITS (BIT_25 - 1)
-
-#define BIT_26 (0x04000000U)
-#define MASK_26_BITS (BIT_26 - 1)
-#define BIT_27 (0x08000000U)
-#define MASK_27_BITS (BIT_27 - 1)
-#define BIT_28 (0x10000000U)
-#define MASK_28_BITS (BIT_28 - 1)
-#define BIT_29 (0x20000000U)
-#define MASK_29_BITS (BIT_29 - 1)
-#define BIT_30 (0x40000000U)
-#define MASK_30_BITS (BIT_30 - 1)
-#define BIT_31 (0x80000000U)
-#define MASK_31_BITS (BIT_31 - 1)
 /* ============ MASK_n_BITS ============ */
 
+#define MASK_1_BIT (BIT_1 - 1)
+#define MASK_2_BITS (BIT_2 - 1)
+#define MASK_3_BITS (BIT_3 - 1)
+#define MASK_4_BITS (BIT_4 - 1)
+#define MASK_5_BITS (BIT_5 - 1)
+#define MASK_6_BITS (BIT_6 - 1)
+#define MASK_7_BITS (BIT_7 - 1)
+#define MASK_8_BITS (BIT_8 - 1)
+#define MASK_9_BITS (BIT_9 - 1)
+#define MASK_10_BITS (BIT_10 - 1)
+#define MASK_11_BITS (BIT_11 - 1)
+#define MASK_12_BITS (BIT_12 - 1)
+#define MASK_13_BITS (BIT_13 - 1)
+#define MASK_14_BITS (BIT_14 - 1)
+#define MASK_15_BITS (BIT_15 - 1)
+#define MASK_16_BITS (BIT_16 - 1)
+#define MASK_17_BITS (BIT_17 - 1)
+#define MASK_18_BITS (BIT_18 - 1)
+#define MASK_19_BITS (BIT_19 - 1)
+#define MASK_20_BITS (BIT_20 - 1)
+#define MASK_21_BITS (BIT_21 - 1)
+#define MASK_22_BITS (BIT_22 - 1)
+#define MASK_23_BITS (BIT_23 - 1)
+#define MASK_24_BITS (BIT_24 - 1)
+#define MASK_25_BITS (BIT_25 - 1)
+#define MASK_26_BITS (BIT_26 - 1)
+#define MASK_27_BITS (BIT_27 - 1)
+#define MASK_28_BITS (BIT_28 - 1)
+#define MASK_29_BITS (BIT_29 - 1)
+#define MASK_30_BITS (BIT_30 - 1)
+#define MASK_31_BITS (BIT_31 - 1)
 
 #define IDENTIFIER_NOT_USED(_v) (void)_v
 
 #define __IOM volatile
 
-typedef  uint32_t cvi_uint32_type
-
 typedef struct {
-        __IOM cvi_uint32_type TRNG_INPUT_0;   //00
-        __IOM cvi_uint32_type TRNG_INPUT_1;   //04
-        __IOM cvi_uint32_type TRNG_INPUT_2;   //08
-        __IOM cvi_uint32_type TRNG_INPUT_3;   //0c
-        __IOM cvi_uint32_type TRNG_STATUS;    //10
-        __IOM cvi_uint32_type TRNG_CONTROL;   //14
-        __IOM cvi_uint32_type TRNG_CONFIG;    //18
-        __IOM cvi_uint32_type TRNG_ALARMCNT;  //1c
-        __IOM cvi_uint32_type TRNG_FROENABLE; //20
-        __IOM cvi_uint32_type TRNG_FRODETUNE; //24
-        __IOM cvi_uint32_type TRNG_ALARMMASK; //28
-        __IOM cvi_uint32_type TRNG_ALARMSTOP; //2c
-        __IOM cvi_uint32_type TRNG_RAW_L;     //30
-        __IOM cvi_uint32_type TRNG_RAW_H;     //34
-        __IOM cvi_uint32_type TRNG_SPB_TESTS; //38
-        __IOM cvi_uint32_type TRNG_COUNT;     //3c
-        __IOM cvi_uint32_type TRNG_PS_AI_0;   //40
-        __IOM cvi_uint32_type TRNG_PS_AI_1;   //44
-        __IOM cvi_uint32_type TRNG_PS_AI_2;   //48
-        __IOM cvi_uint32_type TRNG_PS_AI_3;   //4c
-        __IOM cvi_uint32_type TRNG_PS_AI_4;   //50
-        __IOM cvi_uint32_type TRNG_PS_AI_5;   //54
-        __IOM cvi_uint32_type TRNG_PS_AI_6;   //58
-        __IOM cvi_uint32_type TRNG_PS_AI_7;   //5c
-        __IOM cvi_uint32_type TRNG_PS_AI_8;   //60
-        __IOM cvi_uint32_type TRNG_PS_AI_9;   //64
-        __IOM cvi_uint32_type TRNG_PS_AI_10;  //68
-        __IOM cvi_uint32_type TRNG_PS_AI_11;  //6c
-        __IOM cvi_uint32_type TRNG_TEST;      //70
-        __IOM cvi_uint32_type TRNG_BLOCKCNT;  //74
-        __IOM cvi_uint32_type TRNG_OPTIONS;   //78
-        __IOM cvi_uint32_type TRNG_EIP_REV;   //7c
+        __IOM uint32_t TRNG_INPUT_0;   //00
+        __IOM uint32_t TRNG_INPUT_1;   //04
+        __IOM uint32_t TRNG_INPUT_2;   //08
+        __IOM uint32_t TRNG_INPUT_3;   //0c
+        __IOM uint32_t TRNG_STATUS;    //10
+        __IOM uint32_t TRNG_CONTROL;   //14
+        __IOM uint32_t TRNG_CONFIG;    //18
+        __IOM uint32_t TRNG_ALARMCNT;  //1c
+        __IOM uint32_t TRNG_FROENABLE; //20
+        __IOM uint32_t TRNG_FRODETUNE; //24
+        __IOM uint32_t TRNG_ALARMMASK; //28
+        __IOM uint32_t TRNG_ALARMSTOP; //2c
+        __IOM uint32_t TRNG_RAW_L;     //30
+        __IOM uint32_t TRNG_RAW_H;     //34
+        __IOM uint32_t TRNG_SPB_TESTS; //38
+        __IOM uint32_t TRNG_COUNT;     //3c
+        __IOM uint32_t TRNG_PS_AI_0;   //40
+        __IOM uint32_t TRNG_PS_AI_1;   //44
+        __IOM uint32_t TRNG_PS_AI_2;   //48
+        __IOM uint32_t TRNG_PS_AI_3;   //4c
+        __IOM uint32_t TRNG_PS_AI_4;   //50
+        __IOM uint32_t TRNG_PS_AI_5;   //54
+        __IOM uint32_t TRNG_PS_AI_6;   //58
+        __IOM uint32_t TRNG_PS_AI_7;   //5c
+        __IOM uint32_t TRNG_PS_AI_8;   //60
+        __IOM uint32_t TRNG_PS_AI_9;   //64
+        __IOM uint32_t TRNG_PS_AI_10;  //68
+        __IOM uint32_t TRNG_PS_AI_11;  //6c
+        __IOM uint32_t TRNG_TEST;      //70
+        __IOM uint32_t TRNG_BLOCKCNT;  //74
+        __IOM uint32_t TRNG_OPTIONS;   //78
+        __IOM uint32_t TRNG_EIP_REV;   //7c
 } eip150_trng_reg_t;
 
 typedef struct {
-        __IOM cvi_uint32_type PKA_APTR;      //00
-        __IOM cvi_uint32_type PKA_BPTR;      //04
-        __IOM cvi_uint32_type PKA_CPTR;      //08
-        __IOM cvi_uint32_type PKA_DPTR;      //0c
-        __IOM cvi_uint32_type PKA_ALENGTH;   //10
-        __IOM cvi_uint32_type PKA_BLENGTH;   //14
-        __IOM cvi_uint32_type PKA_SHIFT;     //18
-        __IOM cvi_uint32_type PKA_FUNCTION;  //1c
-        __IOM cvi_uint32_type PKA_COMPARE;   //20
-        __IOM cvi_uint32_type PKA_MSW;       //24
-        __IOM cvi_uint32_type PKA_DIVMSW;    //28
-        __IOM cvi_uint32_type RESERVED0[1];  //2c
-        __IOM cvi_uint32_type PKA_ISTA_CTRL; //30
-        //__IOM cvi_uint32_type PKA_SEQFUNC;  //34
-        //__IOM cvi_uint32_type PKA_SCAPCTRL; //30
-        //__IOM cvi_uint32_type PKA_SEQFUNC;  //34
-        __IOM cvi_uint32_type RESERVED1[35];
-        __IOM cvi_uint32_type PKA_STATUS;     //c0
-        __IOM cvi_uint32_type PKCP_PRIO_CTRL; //c4
-        __IOM cvi_uint32_type PKA_SEQ_CTRL;   //c8
-        __IOM cvi_uint32_type RESERVED2[1];
-        __IOM cvi_uint32_type PKA_FW_OPTIONS; //d0
-        __IOM cvi_uint32_type RESERVED3[7];
-        __IOM cvi_uint32_type PKA_OPTIONS2; //f0
-        __IOM cvi_uint32_type PKA_OPTIONS;  //f4
-        __IOM cvi_uint32_type PKA_SW_REV;   //f8
-        __IOM cvi_uint32_type PKA_REVISION; //fc
+        __IOM uint32_t PKA_APTR;      //00
+        __IOM uint32_t PKA_BPTR;      //04
+        __IOM uint32_t PKA_CPTR;      //08
+        __IOM uint32_t PKA_DPTR;      //0c
+        __IOM uint32_t PKA_ALENGTH;   //10
+        __IOM uint32_t PKA_BLENGTH;   //14
+        __IOM uint32_t PKA_SHIFT;     //18
+        __IOM uint32_t PKA_FUNCTION;  //1c
+        __IOM uint32_t PKA_COMPARE;   //20
+        __IOM uint32_t PKA_MSW;       //24
+        __IOM uint32_t PKA_DIVMSW;    //28
+        __IOM uint32_t RESERVED0[1];  //2c
+        __IOM uint32_t PKA_ISTA_CTRL; //30
+        //__IOM uint32_t PKA_SEQFUNC;  //34
+        //__IOM uint32_t PKA_SCAPCTRL; //30
+        //__IOM uint32_t PKA_SEQFUNC;  //34
+        __IOM uint32_t RESERVED1[35];
+        __IOM uint32_t PKA_STATUS;     //c0
+        __IOM uint32_t PKCP_PRIO_CTRL; //c4
+        __IOM uint32_t PKA_SEQ_CTRL;   //c8
+        __IOM uint32_t RESERVED2[1];
+        __IOM uint32_t PKA_FW_OPTIONS; //d0
+        __IOM uint32_t RESERVED3[7];
+        __IOM uint32_t PKA_OPTIONS2; //f0
+        __IOM uint32_t PKA_OPTIONS;  //f4
+        __IOM uint32_t PKA_SW_REV;   //f8
+        __IOM uint32_t PKA_REVISION; //fc
 } eip150_pka_reg_t;
 
 #define PKA_APTR (0x00)
@@ -212,145 +185,145 @@ typedef struct {
 #define PKA_REVISION (0xfc)
 
 typedef struct {
-        __IOM cvi_uint32_type AIC_POL_CTRL;     //00
-        __IOM cvi_uint32_type AIC_TYPE_CTRL;    //04
-        __IOM cvi_uint32_type AIC_ENABLE_CTRL;  //08
-        __IOM cvi_uint32_type AIC_RAW_STAT;     //0c
-        __IOM cvi_uint32_type AIC_ENABLED_STAT; //10
-        __IOM cvi_uint32_type AIC_ENABLE_CLR;   //14
-        __IOM cvi_uint32_type AIC_OPTIONS;      //18
-        __IOM cvi_uint32_type AIC_VERSION;      //1c
+        __IOM uint32_t AIC_POL_CTRL;     //00
+        __IOM uint32_t AIC_TYPE_CTRL;    //04
+        __IOM uint32_t AIC_ENABLE_CTRL;  //08
+        __IOM uint32_t AIC_RAW_STAT;     //0c
+        __IOM uint32_t AIC_ENABLED_STAT; //10
+        __IOM uint32_t AIC_ENABLE_CLR;   //14
+        __IOM uint32_t AIC_OPTIONS;      //18
+        __IOM uint32_t AIC_VERSION;      //1c
 } eip150_aic_reg_t;
 
 typedef struct {
-        __IOM cvi_uint32_type DMAC_CH0_CTRL0;       //0x000
-        __IOM cvi_uint32_type DMAC_CH0_CTRL1;       //0x004
-        __IOM cvi_uint32_type DMAC_CH0_SRCADDR;     //0x008
-        __IOM cvi_uint32_type DMAC_CH0_SRCADDR_HI;  //0x00C
-        __IOM cvi_uint32_type DMAC_CH0_DESTADDR;    //0x010
-        __IOM cvi_uint32_type DMAC_CH0_DESTADDR_HI; //0x014
-        __IOM cvi_uint32_type RESERVED0[2];
-        __IOM cvi_uint32_type DMAC_CH0_DMALENGTH; //0x020
-        __IOM cvi_uint32_type DMAC_STATUS;        //0x024
-        __IOM cvi_uint32_type DMAC_SWRES;         //0x028
-        __IOM cvi_uint32_type RESERVED1[5];
-        __IOM cvi_uint32_type DMAC_CH1_CTRL0;       //0x040
-        __IOM cvi_uint32_type DMAC_CH1_CTRL1;       //0x044
-        __IOM cvi_uint32_type DMAC_CH1_SRCADDR;     //0x048
-        __IOM cvi_uint32_type DMAC_CH1_SRCADDR_HI;  //0x04C
-        __IOM cvi_uint32_type DMAC_CH1_DESTADDR;    //0x050
-        __IOM cvi_uint32_type DMAC_CH1_DESTADDR_HI; //0x054
-        __IOM cvi_uint32_type RESERVED2[2];
-        __IOM cvi_uint32_type DMAC_CH1_DMALENGTH; //0x060
-        __IOM cvi_uint32_type DMAC_ICR;           //0x064 //DMAC_ISR RO
-        __IOM cvi_uint32_type DMAC_IMR;           //0x068
-        __IOM cvi_uint32_type RESERVED3[14];
-        __IOM cvi_uint32_type DMAC_ITR; //0x0A4 //DMAC_IRSR RO
-        __IOM cvi_uint32_type DMAC_IER; //0x0A8
-        __IOM cvi_uint32_type RESERVED4[14];
-        __IOM cvi_uint32_type DMAC_MST_RUNPARAMS; //0x0E4
-        __IOM cvi_uint32_type DMAC_PERSR;         //0x0E8
-        __IOM cvi_uint32_type RESERVED5[14];
-        __IOM cvi_uint32_type DMAC_IMS; //0x124
-        __IOM cvi_uint32_type DMAC_IMC; //0x128
-        __IOM cvi_uint32_type RESERVED6[36];
-        __IOM cvi_uint32_type DMAC_OPTIONS2; //0x1BC
-        __IOM cvi_uint32_type RESERVED7[14];
-        __IOM cvi_uint32_type DMAC_OPTIONS; //0x1F8
-        __IOM cvi_uint32_type DMAC_VERSION; //0x1FC
+        __IOM uint32_t DMAC_CH0_CTRL0;       //0x000
+        __IOM uint32_t DMAC_CH0_CTRL1;       //0x004
+        __IOM uint32_t DMAC_CH0_SRCADDR;     //0x008
+        __IOM uint32_t DMAC_CH0_SRCADDR_HI;  //0x00C
+        __IOM uint32_t DMAC_CH0_DESTADDR;    //0x010
+        __IOM uint32_t DMAC_CH0_DESTADDR_HI; //0x014
+        __IOM uint32_t RESERVED0[2];
+        __IOM uint32_t DMAC_CH0_DMALENGTH; //0x020
+        __IOM uint32_t DMAC_STATUS;        //0x024
+        __IOM uint32_t DMAC_SWRES;         //0x028
+        __IOM uint32_t RESERVED1[5];
+        __IOM uint32_t DMAC_CH1_CTRL0;       //0x040
+        __IOM uint32_t DMAC_CH1_CTRL1;       //0x044
+        __IOM uint32_t DMAC_CH1_SRCADDR;     //0x048
+        __IOM uint32_t DMAC_CH1_SRCADDR_HI;  //0x04C
+        __IOM uint32_t DMAC_CH1_DESTADDR;    //0x050
+        __IOM uint32_t DMAC_CH1_DESTADDR_HI; //0x054
+        __IOM uint32_t RESERVED2[2];
+        __IOM uint32_t DMAC_CH1_DMALENGTH; //0x060
+        __IOM uint32_t DMAC_ICR;           //0x064 //DMAC_ISR RO
+        __IOM uint32_t DMAC_IMR;           //0x068
+        __IOM uint32_t RESERVED3[14];
+        __IOM uint32_t DMAC_ITR; //0x0A4 //DMAC_IRSR RO
+        __IOM uint32_t DMAC_IER; //0x0A8
+        __IOM uint32_t RESERVED4[14];
+        __IOM uint32_t DMAC_MST_RUNPARAMS; //0x0E4
+        __IOM uint32_t DMAC_PERSR;         //0x0E8
+        __IOM uint32_t RESERVED5[14];
+        __IOM uint32_t DMAC_IMS; //0x124
+        __IOM uint32_t DMAC_IMC; //0x128
+        __IOM uint32_t RESERVED6[36];
+        __IOM uint32_t DMAC_OPTIONS2; //0x1BC
+        __IOM uint32_t RESERVED7[14];
+        __IOM uint32_t DMAC_OPTIONS; //0x1F8
+        __IOM uint32_t DMAC_VERSION; //0x1FC
 
-        __IOM cvi_uint32_type RESERVED8[64];
-        __IOM cvi_uint32_type AIC_POL_CTRL;    //0x300
-        __IOM cvi_uint32_type AIC_TYPE_CTRL;   //0x304
-        __IOM cvi_uint32_type AIC_ENABLE_CTRL; //0x308
-        __IOM cvi_uint32_type AIC_ENABLE_SET;  //0x30C AIC_RAW_STAT
-        __IOM cvi_uint32_type AIC_ACK;         //0x310 //AIC_ENABLED_STAT RO
-        __IOM cvi_uint32_type AIC_ENABLE_CLR;  //0x314
-        __IOM cvi_uint32_type AIC_OPTIONS;     //0x318
-        __IOM cvi_uint32_type AIC_VERSION;     //0x31C
+        __IOM uint32_t RESERVED8[64];
+        __IOM uint32_t AIC_POL_CTRL;    //0x300
+        __IOM uint32_t AIC_TYPE_CTRL;   //0x304
+        __IOM uint32_t AIC_ENABLE_CTRL; //0x308
+        __IOM uint32_t AIC_ENABLE_SET;  //0x30C AIC_RAW_STAT
+        __IOM uint32_t AIC_ACK;         //0x310 //AIC_ENABLED_STAT RO
+        __IOM uint32_t AIC_ENABLE_CLR;  //0x314
+        __IOM uint32_t AIC_OPTIONS;     //0x318
+        __IOM uint32_t AIC_VERSION;     //0x31C
 
-        __IOM cvi_uint32_type RESERVED11[56];
+        __IOM uint32_t RESERVED11[56];
 
-        __IOM cvi_uint32_type KEY_STORE_WRITE_AREA;   //0x400
-        __IOM cvi_uint32_type KEY_STORE_WRITTEN_AREA; //0x404
-        __IOM cvi_uint32_type KEY_STORE_SIZE;         //0x408
-        __IOM cvi_uint32_type KEY_STORE_READ_AREA;    //0x40C
+        __IOM uint32_t KEY_STORE_WRITE_AREA;   //0x400
+        __IOM uint32_t KEY_STORE_WRITTEN_AREA; //0x404
+        __IOM uint32_t KEY_STORE_SIZE;         //0x408
+        __IOM uint32_t KEY_STORE_READ_AREA;    //0x40C
 
-        __IOM cvi_uint32_type RESERVED12[60];
-        __IOM cvi_uint32_type CRYPTO_KEY2[4]; //0x500
-        __IOM cvi_uint32_type CRYPTO_KEY3[4]; //0x510
-        __IOM cvi_uint32_type RESERVED14[8];
-        __IOM cvi_uint32_type CRYPTO_IV_IN_0;     //0x540	//CRYPTO_IV_OUT_0 RO
-        __IOM cvi_uint32_type CRYPTO_IV_IN_1;     //0x544  //CRYPTO_IV_OUT_1 RO
-        __IOM cvi_uint32_type CRYPTO_IV_IN_2;     //0x548  //CRYPTO_IV_OUT_2 RO
-        __IOM cvi_uint32_type CRYPTO_IV_IN_3;     //0x54C  //RYPTO_IV_OUT_3 	RO
-        __IOM cvi_uint32_type CRYPTO_CTRL;        //0x550
-        __IOM cvi_uint32_type CRYPTO_C_LENGTH_0;  //0x554
-        __IOM cvi_uint32_type CRYPTO_C_LENGTH_1;  //0x558
-        __IOM cvi_uint32_type CRYPTO_AUTH_LENGTH; //0x55C
-        __IOM cvi_uint32_type CRYPTO_DATA_IN_0;   //0x560  //CRYPTO_DATA_OUT_0	RO
-        __IOM cvi_uint32_type CRYPTO_DATA_IN_1;   //0x564  //CRYPTO_DATA_OUT_1	RO
-        __IOM cvi_uint32_type CRYPTO_DATA_IN_2;   //0x568  //CRYPTO_DATA_OUT_2 RO
-        __IOM cvi_uint32_type CRYPTO_DATA_IN_3;   //0x56C  //CRYPTO_DATA_OUT_3	RO
-        __IOM cvi_uint32_type CRYPTO_TAG_OUT_0;   //0x570
-        __IOM cvi_uint32_type CRYPTO_TAG_OUT_1;   //0x574
-        __IOM cvi_uint32_type CRYPTO_TAG_OUT_2;   //0x578
-        __IOM cvi_uint32_type CRYPTO_TAG_OUT_3;   //0x57C
-        __IOM cvi_uint32_type CRYPTO_BLK_CNT_0;   //0x580
-        __IOM cvi_uint32_type CRYPTO_BLK_CNT_1;   //0x584
-        __IOM cvi_uint32_type RESERVED15[30];
+        __IOM uint32_t RESERVED12[60];
+        __IOM uint32_t CRYPTO_KEY2[4]; //0x500
+        __IOM uint32_t CRYPTO_KEY3[4]; //0x510
+        __IOM uint32_t RESERVED14[8];
+        __IOM uint32_t CRYPTO_IV_IN_0;     //0x540	//CRYPTO_IV_OUT_0 RO
+        __IOM uint32_t CRYPTO_IV_IN_1;     //0x544  //CRYPTO_IV_OUT_1 RO
+        __IOM uint32_t CRYPTO_IV_IN_2;     //0x548  //CRYPTO_IV_OUT_2 RO
+        __IOM uint32_t CRYPTO_IV_IN_3;     //0x54C  //RYPTO_IV_OUT_3 	RO
+        __IOM uint32_t CRYPTO_CTRL;        //0x550
+        __IOM uint32_t CRYPTO_C_LENGTH_0;  //0x554
+        __IOM uint32_t CRYPTO_C_LENGTH_1;  //0x558
+        __IOM uint32_t CRYPTO_AUTH_LENGTH; //0x55C
+        __IOM uint32_t CRYPTO_DATA_IN_0;   //0x560  //CRYPTO_DATA_OUT_0	RO
+        __IOM uint32_t CRYPTO_DATA_IN_1;   //0x564  //CRYPTO_DATA_OUT_1	RO
+        __IOM uint32_t CRYPTO_DATA_IN_2;   //0x568  //CRYPTO_DATA_OUT_2 RO
+        __IOM uint32_t CRYPTO_DATA_IN_3;   //0x56C  //CRYPTO_DATA_OUT_3	RO
+        __IOM uint32_t CRYPTO_TAG_OUT_0;   //0x570
+        __IOM uint32_t CRYPTO_TAG_OUT_1;   //0x574
+        __IOM uint32_t CRYPTO_TAG_OUT_2;   //0x578
+        __IOM uint32_t CRYPTO_TAG_OUT_3;   //0x57C
+        __IOM uint32_t CRYPTO_BLK_CNT_0;   //0x580
+        __IOM uint32_t CRYPTO_BLK_CNT_1;   //0x584
+        __IOM uint32_t RESERVED15[30];
 
-        __IOM cvi_uint32_type HASH_DATA_IN_0; //0x600
-        __IOM cvi_uint32_type HASH_DATA_IN_1; //0x604
-        __IOM cvi_uint32_type HASH_DATA_IN_2; //0x608
-        __IOM cvi_uint32_type HASH_DATA_IN_3; //0x60C
-        __IOM cvi_uint32_type HASH_DATA_IN_4; //0x610
+        __IOM uint32_t HASH_DATA_IN_0; //0x600
+        __IOM uint32_t HASH_DATA_IN_1; //0x604
+        __IOM uint32_t HASH_DATA_IN_2; //0x608
+        __IOM uint32_t HASH_DATA_IN_3; //0x60C
+        __IOM uint32_t HASH_DATA_IN_4; //0x610
 
-        __IOM cvi_uint32_type HASH_DATA_IN_5;  //0x614
-        __IOM cvi_uint32_type HASH_DATA_IN_6;  //0x618
-        __IOM cvi_uint32_type HASH_DATA_IN_7;  //0x61C
-        __IOM cvi_uint32_type HASH_DATA_IN_8;  //0x620
-        __IOM cvi_uint32_type HASH_DATA_IN_9;  //0x624
-        __IOM cvi_uint32_type HASH_DATA_IN_10; //0x628
-        __IOM cvi_uint32_type HASH_DATA_IN_11; //
-        __IOM cvi_uint32_type HASH_DATA_IN_12; //
-        __IOM cvi_uint32_type HASH_DATA_IN_13; //
-        __IOM cvi_uint32_type HASH_DATA_IN_14; //
-        __IOM cvi_uint32_type HASH_DATA_IN_15; //0x63c
-        __IOM cvi_uint32_type RESERVED16[(35 - 15)];
-        __IOM cvi_uint32_type HASH_DIGEST_INOUT_A; //690
-        __IOM cvi_uint32_type HASH_DIGEST_INOUT_B;
-        __IOM cvi_uint32_type HASH_DIGEST_INOUT_C;
-        __IOM cvi_uint32_type HASH_DIGEST_INOUT_D;
-        __IOM cvi_uint32_type HASH_DIGEST_INOUT_E;
-        __IOM cvi_uint32_type HASH_DIGEST_INOUT_F;
-        __IOM cvi_uint32_type HASH_DIGEST_INOUT_G;
-        __IOM cvi_uint32_type HASH_DIGEST_INOUT_H;
-        __IOM cvi_uint32_type HASH_DIGEST_INOUT_I;
-        __IOM cvi_uint32_type HASH_DIGEST_INOUT_J;
-        __IOM cvi_uint32_type HASH_DIGEST_INOUT_K;
-        __IOM cvi_uint32_type HASH_DIGEST_INOUT_L;
-        __IOM cvi_uint32_type HASH_DIGEST_INOUT_M;
-        __IOM cvi_uint32_type HASH_DIGEST_INOUT_N;
-        __IOM cvi_uint32_type HASH_DIGEST_INOUT_O;
-        __IOM cvi_uint32_type HASH_DIGEST_INOUT_P;
-        __IOM cvi_uint32_type HASH_DIGEST_INOUT_SHA3;
-        __IOM cvi_uint32_type RESERVED_D[3];
-        __IOM cvi_uint32_type HASH_IO_BUF_CTRL; //HASH_IO_BUF_STAT 0x6E0
-        __IOM cvi_uint32_type HASH_MODE_IN;
-        __IOM cvi_uint32_type HASH_LENGTH_IN_L;
-        __IOM cvi_uint32_type HASH_LENGTH_IN_H;
-        __IOM cvi_uint32_type RESERVED17[(0x780 - 0x6EC - 4) / 4];
-        __IOM cvi_uint32_type CTRL_ALG_SEL;   //0x780
-        __IOM cvi_uint32_type CTRL_PROT_EN;   //0x784
-        __IOM cvi_uint32_type CTRL_ERROR_CLR; //0x788
-        __IOM cvi_uint32_type RESERVED18[1];
-        __IOM cvi_uint32_type CTRL_ERROR_STAT; //0x790
-        __IOM cvi_uint32_type RESERVED19[11];
-        __IOM cvi_uint32_type CTRL_SW_RESET; //0x7C0
-        __IOM cvi_uint32_type RESERVED20[13];
-        __IOM cvi_uint32_type CTRL_OPTION;  //0x7F8
-        __IOM cvi_uint32_type CTRL_VERSION; //0x7FC
+        __IOM uint32_t HASH_DATA_IN_5;  //0x614
+        __IOM uint32_t HASH_DATA_IN_6;  //0x618
+        __IOM uint32_t HASH_DATA_IN_7;  //0x61C
+        __IOM uint32_t HASH_DATA_IN_8;  //0x620
+        __IOM uint32_t HASH_DATA_IN_9;  //0x624
+        __IOM uint32_t HASH_DATA_IN_10; //0x628
+        __IOM uint32_t HASH_DATA_IN_11; //
+        __IOM uint32_t HASH_DATA_IN_12; //
+        __IOM uint32_t HASH_DATA_IN_13; //
+        __IOM uint32_t HASH_DATA_IN_14; //
+        __IOM uint32_t HASH_DATA_IN_15; //0x63c
+        __IOM uint32_t RESERVED16[(35 - 15)];
+        __IOM uint32_t HASH_DIGEST_INOUT_A; //690
+        __IOM uint32_t HASH_DIGEST_INOUT_B;
+        __IOM uint32_t HASH_DIGEST_INOUT_C;
+        __IOM uint32_t HASH_DIGEST_INOUT_D;
+        __IOM uint32_t HASH_DIGEST_INOUT_E;
+        __IOM uint32_t HASH_DIGEST_INOUT_F;
+        __IOM uint32_t HASH_DIGEST_INOUT_G;
+        __IOM uint32_t HASH_DIGEST_INOUT_H;
+        __IOM uint32_t HASH_DIGEST_INOUT_I;
+        __IOM uint32_t HASH_DIGEST_INOUT_J;
+        __IOM uint32_t HASH_DIGEST_INOUT_K;
+        __IOM uint32_t HASH_DIGEST_INOUT_L;
+        __IOM uint32_t HASH_DIGEST_INOUT_M;
+        __IOM uint32_t HASH_DIGEST_INOUT_N;
+        __IOM uint32_t HASH_DIGEST_INOUT_O;
+        __IOM uint32_t HASH_DIGEST_INOUT_P;
+        __IOM uint32_t HASH_DIGEST_INOUT_SHA3;
+        __IOM uint32_t RESERVED_D[3];
+        __IOM uint32_t HASH_IO_BUF_CTRL; //HASH_IO_BUF_STAT 0x6E0
+        __IOM uint32_t HASH_MODE_IN;
+        __IOM uint32_t HASH_LENGTH_IN_L;
+        __IOM uint32_t HASH_LENGTH_IN_H;
+        __IOM uint32_t RESERVED17[(0x780 - 0x6EC - 4) / 4];
+        __IOM uint32_t CTRL_ALG_SEL;   //0x780
+        __IOM uint32_t CTRL_PROT_EN;   //0x784
+        __IOM uint32_t CTRL_ERROR_CLR; //0x788
+        __IOM uint32_t RESERVED18[1];
+        __IOM uint32_t CTRL_ERROR_STAT; //0x790
+        __IOM uint32_t RESERVED19[11];
+        __IOM uint32_t CTRL_SW_RESET; //0x7C0
+        __IOM uint32_t RESERVED20[13];
+        __IOM uint32_t CTRL_OPTION;  //0x7F8
+        __IOM uint32_t CTRL_VERSION; //0x7FC
 
 } eip120si_reg_tt;
 

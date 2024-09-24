@@ -65,9 +65,9 @@ static struct dma_remap_item remap_table[] = {
 	{CVI_UART2_RX, 0},	//13
 	{CVI_I2S3_TX, 2},	//13
 	{CVI_I2S0_RX, 3},	//13
-	{CVI_SPI2_RX, 4},
-	{CVI_SPI2_TX, 5},
-	{CVI_I2S1_RX, 6}
+	{CVI_SPI3_RX, 4},
+	{CVI_SPI3_TX, 5},
+	{CVI_SPI_NAND, 7}
 
 };
 

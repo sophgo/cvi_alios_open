@@ -11,7 +11,6 @@
 #include "aos_port/common.h"
 #include "ulog/ulog.h"
 #else
-#include <aos/kernel.h>
 #include <aos/list.h>
 #endif
 

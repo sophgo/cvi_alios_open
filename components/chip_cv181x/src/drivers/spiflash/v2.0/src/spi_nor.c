@@ -70,26 +70,6 @@ const struct flash_info spi_flash_ids[] = {
 
 	{ "ZB25VQ128A", INFO(0x5E4018, 0x0, 64 * 1024, 256,
 			RD_FULL | WR_FULL | SECT_4K) },
-	{ "S25FL128L", INFO(0x016018, 0x0, 64 * 1024, 256,
-		RD_FULL | WR_QPP | SECT_4K | _10_DUMMY_CYCLE) },
-	{ "S25FL256L", INFO(0x016019, 0x0, 64 * 1024, 512,
-		RD_FULL | WR_QPP | SECT_4K | NOR_4B_OPCODES |
-			_10_DUMMY_CYCLE) },
-	{ "XT25F64F", INFO(0x0B4017, 0x0, 64 * 1024, 128,
-		RD_FULL | WR_QPP | SECT_4K) },
-	{ "XT25F128F", INFO(0x0B4018, 0x0, 64 * 1024, 256,
-		RD_FULL | WR_QPP | SECT_4K) },
-	{ "FM25Q64", INFO(0xF83217, 0x0, 64 * 1024, 128,
-		RD_FULL | WR_QPP | SECT_4K) },
-	{ "BY25Q128AS", INFO(0x684018, 0x0, 64 * 1024, 256,
-		RD_FULL | WR_QPP | SECT_4K) },
-	{ "BY25Q256FS", INFO(0x684919, 0x0, 64 * 1024, 512,
-		RD_FULL | WR_QPP | SECT_4K | NOR_4B_OPCODES) },
-	{ "PY25Q128HA", INFO(0x852018, 0x0, 64 * 1024, 256,
-		RD_FULL | WR_QPP | SECT_4K) },
-	{ "P25Q64SH", INFO(0x856017, 0x0, 64 * 1024, 128,
-		RD_FULL | WR_QPP | SECT_4K) },
-
 	{},     /* Empty entry to terminate the list */
 
 };
@@ -103,7 +83,7 @@ const struct flash_info *spi_nor_read_id(struct spi_nor *nor)
 	int32_t 				ret;
 
 	memset(id, 0x0, SPI_NOR_MAX_ID_LEN);
-	tmp = nor->read_reg(nor, CVI_SPINOR_OP_RDID, id, SPI_NOR_MAX_ID_LEN);
+	tmp = nor->read_reg(nor, SPINOR_OP_RDID, id, SPI_NOR_MAX_ID_LEN);
 	if (tmp < 0) {
 		printf("error %d reading JEDEC ID\n", tmp);
 		return NULL;
@@ -123,12 +103,8 @@ const struct flash_info *spi_nor_read_id(struct spi_nor *nor)
 			offset += ret;
 		}
 	}
-
-
 #ifndef CONFIG_KERNEL_NONE
-#ifdef CONFIG_DEBUG
 	printf("spinor: ID = %s\n", buff);
-#endif
 #endif
 
 	info = spi_flash_ids;
@@ -142,38 +118,6 @@ const struct flash_info *spi_nor_read_id(struct spi_nor *nor)
 	return NULL;
 }
 
-int spi_nor_read_unique_id(struct spi_nor *nor, uint8_t *id, uint32_t id_len)
-{
-	int                     tmp, offset = 0;
-	int8_t                  buff[16 * 3];
-	int32_t 				ret;
-
-	memset(id, 0x0, id_len);
-	tmp = nor->read_reg(nor, 0x4b, id, id_len);
-	if (tmp < 0) {
-		printf("error %d reading unique ID\n", tmp);
-		return -1;
-	}
-
-	for (tmp = 0; tmp < id_len; tmp++) {
-
-		if (tmp != 0 && id[tmp] == id[0])
-			break;
-
-		if (id[tmp] != 0xff && id[tmp] != 0) {
-			ret = sprintf((char *)(buff + offset), "%x ", id[tmp]);
-			if (ret < 0) {
-				printf("[%s] sprintf failed, please check!\n", __func__);
-				return -1;
-			}
-			offset += ret;
-		}
-	}
-
-	printf("spinor: unique ID = %s\n", buff);
-	return 0;
-}
-
 
 void print_message(struct spi_nor *nor)
 {
@@ -182,7 +126,6 @@ void print_message(struct spi_nor *nor)
 	spi_tran_conf_t   *read_op = &nor->read_op;
 	spi_tran_conf_t   *write_op = &nor->write_op;
 
-#ifdef CONFIG_DEBUG
 	printf("\tnor flash:%s\n", info->name);
 	printf("\tID:");
 	for (i = 0; i < info->id_len; i++)
@@ -202,7 +145,6 @@ void print_message(struct spi_nor *nor)
 	printf("\tprogram opcode: 0x%x\n", write_op->cmd.opcode);
 	printf("\tprogram addr buswidth: 0x%x\n", write_op->addr.buswidth);
 	printf("\tprogram data buswidth: 0x%x\n", write_op->data.buswidth);
-#endif
 
 }
 
@@ -231,28 +173,28 @@ void match_read_op(struct spi_nor *nor, uint32_t flags)
 	read->cmd.buswidth = 1;
 	read->addr.buswidth = 1;
 	read->data.buswidth = 1;
-	read->cmd.opcode = CVI_SPINOR_OP_READ;
+	read->cmd.opcode = SPINOR_OP_READ;
 
 	/* maybe need to diff */
 	if (info->flags & RD_DUALIO) {
 		read->dummy.clks = 8;
 		read->addr.buswidth = 1;
 		read->data.buswidth = 2;
-		read->cmd.opcode = CVI_SPINOR_OP_READ_1_1_2;
+		read->cmd.opcode = SPINOR_OP_READ_1_1_2;
 	}
 
 	if (info->flags & RD_QUAD) {
 		read->dummy.clks = 8;
 		read->addr.buswidth = 1;
 		read->data.buswidth = 4;
-		read->cmd.opcode = CVI_SPINOR_OP_READ_1_1_4;
+		read->cmd.opcode = SPINOR_OP_READ_1_1_4;
 	}
 
 	if (info->flags & RD_QUADIO) {
 		read->dummy.clks = 6;
 		read->addr.buswidth = 4;
 		read->data.buswidth = 4;
-		read->cmd.opcode = CVI_SPINOR_OP_READ_1_4_4;
+		read->cmd.opcode = SPINOR_OP_READ_1_4_4;
 		if (info->flags & _10_DUMMY_CYCLE)
 			read->dummy.clks = 10;
 		else
@@ -271,24 +213,24 @@ void match_write_op(struct spi_nor *nor, uint32_t flags)
 	write->cmd.buswidth = 1;
 	write->addr.buswidth = 1;
 	write->data.buswidth = 1;
-	write->cmd.opcode = CVI_SPINOR_OP_READ;
+	write->cmd.opcode = SPINOR_OP_READ;
 
 	if (info->flags & WR_QPP) {
 		write->addr.buswidth = 1;
 		write->data.buswidth = 4;
-		write->cmd.opcode = CVI_SPINOR_OP_PP_1_1_4;
+		write->cmd.opcode = SPINOR_OP_PP_1_1_4;
 	}
 }
 
 static uint8_t spi_nor_convert_3to4_read(uint8_t opcode)
 {
 	static const uint8_t spi_nor_3to4_read[][2] = {
-		{ CVI_SPINOR_OP_READ,       CVI_SPINOR_OP_READ_4B },
-		{ CVI_SPINOR_OP_READ_FAST,  CVI_SPINOR_OP_READ_FAST_4B },
-		{ CVI_SPINOR_OP_READ_1_1_2, CVI_SPINOR_OP_READ_1_1_2_4B },
-		{ CVI_SPINOR_OP_READ_1_2_2, CVI_SPINOR_OP_READ_1_2_2_4B },
-		{ CVI_SPINOR_OP_READ_1_1_4, CVI_SPINOR_OP_READ_1_1_4_4B },
-		{ CVI_SPINOR_OP_READ_1_4_4, CVI_SPINOR_OP_READ_1_4_4_4B },
+		{ SPINOR_OP_READ,       SPINOR_OP_READ_4B },
+		{ SPINOR_OP_READ_FAST,  SPINOR_OP_READ_FAST_4B },
+		{ SPINOR_OP_READ_1_1_2, SPINOR_OP_READ_1_1_2_4B },
+		{ SPINOR_OP_READ_1_2_2, SPINOR_OP_READ_1_2_2_4B },
+		{ SPINOR_OP_READ_1_1_4, SPINOR_OP_READ_1_1_4_4B },
+		{ SPINOR_OP_READ_1_4_4, SPINOR_OP_READ_1_4_4_4B },
 	};
 
 	return spi_nor_convert_opcode(opcode, spi_nor_3to4_read, 6);
@@ -297,9 +239,9 @@ static uint8_t spi_nor_convert_3to4_read(uint8_t opcode)
 static inline uint8_t spi_nor_convert_3to4_program(uint8_t opcode)
 {
 	static const uint8_t spi_nor_3to4_program[][2] = {
-		{ CVI_SPINOR_OP_PP,         CVI_SPINOR_OP_PP_4B },
-		{ CVI_SPINOR_OP_PP_1_1_4,   CVI_SPINOR_OP_PP_1_1_4_4B },
-		{ CVI_SPINOR_OP_PP_1_4_4,   CVI_SPINOR_OP_PP_1_4_4_4B },
+		{ SPINOR_OP_PP,         SPINOR_OP_PP_4B },
+		{ SPINOR_OP_PP_1_1_4,   SPINOR_OP_PP_1_1_4_4B },
+		{ SPINOR_OP_PP_1_4_4,   SPINOR_OP_PP_1_4_4_4B },
 	};
 
 	return spi_nor_convert_opcode(opcode, spi_nor_3to4_program, 3);
@@ -308,9 +250,9 @@ static inline uint8_t spi_nor_convert_3to4_program(uint8_t opcode)
 static inline uint8_t spi_nor_convert_3to4_erase(uint8_t opcode)
 {
 	static const uint8_t spi_nor_3to4_erase[][2] = {
-		{ CVI_SPINOR_OP_BE_4K,      CVI_SPINOR_OP_BE_4K_4B },
-		{ CVI_SPINOR_OP_BE_32K,     CVI_SPINOR_OP_BE_32K_4B },
-		{ CVI_SPINOR_OP_SE,         CVI_SPINOR_OP_SE_4B },
+		{ SPINOR_OP_BE_4K,      SPINOR_OP_BE_4K_4B },
+		{ SPINOR_OP_BE_32K,     SPINOR_OP_BE_32K_4B },
+		{ SPINOR_OP_SE,         SPINOR_OP_SE_4B },
 	};
 
 	return spi_nor_convert_opcode(opcode, spi_nor_3to4_erase, 3);
@@ -319,7 +261,7 @@ static inline uint8_t spi_nor_convert_3to4_erase(uint8_t opcode)
 /*  common operation for spi nor flash */
 int write_enable(struct spi_nor *nor)
 {
-	return nor->write_reg(nor, CVI_SPINOR_OP_WREN, NULL, 0);
+	return nor->write_reg(nor, SPINOR_OP_WREN, NULL, 0);
 }
 
 static inline int set_4byte(struct spi_nor *nor,
@@ -329,20 +271,20 @@ static inline int set_4byte(struct spi_nor *nor,
 	uint8_t cmd;
 
 	write_enable(nor);
-	cmd = enable ? CVI_SPINOR_OP_EN4B : CVI_SPINOR_OP_EX4B;
+	cmd = enable ? SPINOR_OP_EN4B : SPINOR_OP_EX4B;
 	status = nor->write_reg(nor, cmd, NULL, 0);
 	return status;
 }
 
 static inline int write_disable(struct spi_nor *nor)
 {
-	return nor->write_reg(nor, CVI_SPINOR_OP_WRDI, NULL, 0);
+	return nor->write_reg(nor, SPINOR_OP_WRDI, NULL, 0);
 }
 
 static int read_sr(struct spi_nor *nor, uint8_t *val)
 {
 	int ret = 0;
-	ret = nor->read_reg(nor, CVI_SPINOR_OP_RDSR, val, 1);
+	ret = nor->read_reg(nor, SPINOR_OP_RDSR, val, 1);
 	if (ret < 0) {
 		printf("error %d reading CR\n", ret);
 		return ret;
@@ -355,7 +297,7 @@ static int read_sr2(struct spi_nor *nor, uint8_t *val)
 {
 	int ret = 0;
 
-	ret = nor->read_reg(nor, CVI_SPINOR_OP_RDCR, val, 1);
+	ret = nor->read_reg(nor, SPINOR_OP_RDCR, val, 1);
 	if (ret < 0) {
 		printf("error %d reading SR\n", (int) ret);
 		return ret;
@@ -375,7 +317,7 @@ static int spi_nor_ready(struct spi_nor *nor)
 	if (ret < 0)
 		return ret;
 
-	return !(sr & CVI_SR_WIP);
+	return !(sr & SR_WIP);
 }
 #if 1
 static int spi_nor_wait_till_ready_with_timeout(struct spi_nor *nor, enum write_type op,
@@ -435,7 +377,7 @@ static int write_sr2(struct spi_nor *nor, uint8_t sr)
 {
 	ssize_t ret;
 	write_enable(nor);
-	ret = nor->write_reg(nor, CVI_SPINOR_OP_WRSR2, &sr, 1);
+	ret = nor->write_reg(nor, SPINOR_OP_WRSR2, &sr, 1);
 	if (ret < 0) {
 		return -1;
 	}
@@ -452,7 +394,7 @@ static int write_sr(struct spi_nor *nor, uint8_t sr)
 
 	write_enable(nor);
 
-	ret = nor->write_reg(nor, CVI_SPINOR_OP_WRSR, &sr, 1);
+	ret = nor->write_reg(nor, SPINOR_OP_WRSR, &sr, 1);
 	if (ret < 0)
 		return -1;
 
@@ -544,9 +486,6 @@ static int set_quad_mode(struct spi_nor *nor)
 		case SNOR_MFR_XTX:
 		case SNOR_MFR_FM:
 		case SNOR_MFR_SPANSION:
-		case SNOR_MFR_PY:
-		case SNOR_MFR_FUDAN:
-		case SNOR_MFR_BOYA:
 			return quad_enable_SR2_bit1(nor);
 
 		default:
@@ -559,7 +498,7 @@ static int set_quad_mode(struct spi_nor *nor)
 
 static uint32_t erase_chip(struct spi_nor *nor)
 {
-	return nor->write_reg(nor, CVI_SPINOR_OP_CHIP_ERASE, NULL, 0);
+	return nor->write_reg(nor, SPINOR_OP_CHIP_ERASE, NULL, 0);
 }
 
 static int spi_nor_erase_sector(struct spi_nor *nor, uint8_t opcode, uint32_t addr)
@@ -591,9 +530,9 @@ struct erase_op {
 /* - Block erase time 400ms typical */
 /* - Chip erase time: 60 Seconds typical */
 const struct erase_op erase_op[4] = {
-	{CVI_SPINOR_OP_SE, 0x10000, 400, "block erase"},
-	{CVI_SPINOR_OP_BE_32K, 0x8000, 200, "half block erase"},
-	{CVI_SPINOR_OP_BE_4K, 0x1000, 80, "sector erase"},
+	{SPINOR_OP_SE, 0x10000, 400, "block erase"},
+	{SPINOR_OP_BE_32K, 0x8000, 200, "half block erase"},
+	{SPINOR_OP_BE_4K, 0x1000, 80, "sector erase"},
 	{0}
 };
 
@@ -760,10 +699,10 @@ int spi_nor_rescan(struct spi_nor *nor)
 		set_quad_mode(nor);
 
 #ifndef USE_4K_ERASE_SECTION
-	nor->erase_opcode = CVI_SPINOR_OP_SE;
+	nor->erase_opcode = SPINOR_OP_SE;
 	nor->erase_size = info->sector_size;
 #else
-	nor->erase_opcode = CVI_SPINOR_OP_BE_4K;
+	nor->erase_opcode = SPINOR_OP_BE_4K;
 	nor->erase_size = _4K;
 #endif
 

@@ -17,8 +17,8 @@
 #include "http_utils.h"
 #include "http_parser.h"
 #include "http_auth.h"
-#include "http_client.h"
 #include "transport/transport_tcp.h"
+#include "transport/tperrors.h"
 #include "ulog/ulog.h"
 #include "aos/debug.h"
 
@@ -39,7 +39,7 @@ static const char *TAG = "HTTP_CLIENT";
 #define ERR_HTTP_FETCH_HEADER       (ERR_HTTP_BASE + 4)     /*!< Error read HTTP header from server */
 #define ERR_HTTP_INVALID_TRANSPORT  (ERR_HTTP_BASE + 5)     /*!< There are no transport support for the input scheme */
 #define ERR_HTTP_CONNECTING         (ERR_HTTP_BASE + 6)     /*!< HTTP connection hasn't been established yet */
-#define ERR_HTTP_EAGAIN             EAGAIN//(ERR_HTTP_BASE + 7)     /*!< Mapping of errno EAGAIN to http_errors_t */
+#define ERR_HTTP_EAGAIN             EAGAIN//(ERR_HTTP_BASE + 7)     /*!< Mapping of errno EAGAIN to web_err_t */
 
 /**
  * HTTP Buffer
@@ -130,7 +130,7 @@ struct http_client {
 
 typedef struct http_client http_client_t;
 
-static http_errors_t _clear_connection_info(http_client_handle_t client);
+static web_err_t _clear_connection_info(http_client_handle_t client);
 /**
  * Default settings
  */
@@ -160,11 +160,11 @@ static const char *HTTP_METHOD_MAPPING[] = {
     "OPTIONS"
 };
 
-static http_errors_t http_client_request_send(http_client_handle_t client, int write_len);
-static http_errors_t http_client_connect(http_client_handle_t client);
-static http_errors_t http_client_send_post_data(http_client_handle_t client);
+static web_err_t http_client_request_send(http_client_handle_t client, int write_len);
+static web_err_t http_client_connect(http_client_handle_t client);
+static web_err_t http_client_send_post_data(http_client_handle_t client);
 
-static http_errors_t http_dispatch_event(http_client_t *client, http_client_event_id_t event_id, void *data, int len)
+static web_err_t http_dispatch_event(http_client_t *client, http_client_event_id_t event_id, void *data, int len)
 {
     http_client_event_t *event = &client->event;
 
@@ -175,7 +175,7 @@ static http_errors_t http_dispatch_event(http_client_t *client, http_client_even
         event->data_len = len;
         return client->event_handler(event);
     }
-    return HTTP_CLI_OK;
+    return WEB_OK;
 }
 
 static int http_on_message_begin(http_parser *parser)
@@ -276,42 +276,42 @@ static int http_on_chunk_complete(http_parser *parser)
     return 0;
 }
 
-http_errors_t http_client_set_header(http_client_handle_t client, const char *key, const char *value)
+web_err_t http_client_set_header(http_client_handle_t client, const char *key, const char *value)
 {
     return http_header_set(client->request->headers, key, value);
 }
 
-http_errors_t http_client_get_header(http_client_handle_t client, const char *key, char **value)
+web_err_t http_client_get_header(http_client_handle_t client, const char *key, char **value)
 {
     return http_header_get(client->request->headers, key, value);
 }
 
-http_errors_t http_client_delete_header(http_client_handle_t client, const char *key)
+web_err_t http_client_delete_header(http_client_handle_t client, const char *key)
 {
     return http_header_delete(client->request->headers, key);
 }
 
-http_errors_t http_client_get_username(http_client_handle_t client, char **value)
+web_err_t http_client_get_username(http_client_handle_t client, char **value)
 {
     if (client == NULL || value == NULL) {
         LOGE(TAG, "client or value must not be NULL");
-        return HTTP_CLI_ERR_INVALID_ARG;
+        return WEB_ERR_INVALID_ARG;
     }
     *value = client->connection_info.username;
-    return HTTP_CLI_OK;
+    return WEB_OK;
 }
 
-http_errors_t http_client_get_password(http_client_handle_t client, char **value)
+web_err_t http_client_get_password(http_client_handle_t client, char **value)
 {
     if (client == NULL || value == NULL) {
         LOGE(TAG, "client or value must not be NULL");
-        return HTTP_CLI_ERR_INVALID_ARG;
+        return WEB_ERR_INVALID_ARG;
     }
     *value = client->connection_info.password;
-    return HTTP_CLI_OK;
+    return WEB_OK;
 }
 
-static http_errors_t _set_config(http_client_handle_t client, const http_client_config_t *config)
+static web_err_t _set_config(http_client_handle_t client, const http_client_config_t *config)
 {
     client->connection_info.method = config->method;
     client->connection_info.port = config->port;
@@ -338,7 +338,7 @@ static http_errors_t _set_config(http_client_handle_t client, const http_client_
     }
 
     HTTP_MEM_CHECK(TAG, client->connection_info.path, {
-        return HTTP_CLI_ERR_NO_MEM;
+        return WEB_ERR_NO_MEM;
     });
 
     if (config->host) {
@@ -346,7 +346,7 @@ static http_errors_t _set_config(http_client_handle_t client, const http_client_
 
         HTTP_MEM_CHECK(TAG, client->connection_info.host, {
             _clear_connection_info(client);
-            return HTTP_CLI_ERR_NO_MEM;
+            return WEB_ERR_NO_MEM;
         });
     }
 
@@ -354,7 +354,7 @@ static http_errors_t _set_config(http_client_handle_t client, const http_client_
         client->connection_info.query = strdup(config->query);
         HTTP_MEM_CHECK(TAG, client->connection_info.query, {
             _clear_connection_info(client);
-            return HTTP_CLI_ERR_NO_MEM;
+            return WEB_ERR_NO_MEM;
         });
     }
 
@@ -362,7 +362,7 @@ static http_errors_t _set_config(http_client_handle_t client, const http_client_
         client->connection_info.username = strdup(config->username);
         HTTP_MEM_CHECK(TAG, client->connection_info.username, {
             _clear_connection_info(client);
-            return HTTP_CLI_ERR_NO_MEM;
+            return WEB_ERR_NO_MEM;
         });
     }
 
@@ -370,7 +370,7 @@ static http_errors_t _set_config(http_client_handle_t client, const http_client_
         client->connection_info.password = strdup(config->password);
         HTTP_MEM_CHECK(TAG, client->connection_info.password, {
             _clear_connection_info(client);
-            return HTTP_CLI_ERR_NO_MEM;
+            return WEB_ERR_NO_MEM;
         });
     }
 
@@ -392,10 +392,10 @@ static http_errors_t _set_config(http_client_handle_t client, const http_client_
         client->is_async = true;
     }
 
-    return HTTP_CLI_OK;
+    return WEB_OK;
 }
 
-static http_errors_t _clear_connection_info(http_client_handle_t client)
+static web_err_t _clear_connection_info(http_client_handle_t client)
 {
     free(client->connection_info.path);
     free(client->connection_info.host);
@@ -408,13 +408,13 @@ static http_errors_t _clear_connection_info(http_client_handle_t client)
     free(client->connection_info.scheme);
     free(client->connection_info.url);
     memset(&client->connection_info, 0, sizeof(connection_info_t));
-    return HTTP_CLI_OK;
+    return WEB_OK;
 }
 
-static http_errors_t _clear_auth_data(http_client_handle_t client)
+static web_err_t _clear_auth_data(http_client_handle_t client)
 {
     if (client->auth_data == NULL) {
-        return HTTP_CLI_FAIL;
+        return WEB_FAIL;
     }
 
     free(client->auth_data->method);
@@ -424,10 +424,10 @@ static http_errors_t _clear_auth_data(http_client_handle_t client)
     free(client->auth_data->nonce);
     free(client->auth_data->opaque);
     memset(client->auth_data, 0, sizeof(http_auth_data_t));
-    return HTTP_CLI_OK;
+    return WEB_OK;
 }
 
-static http_errors_t http_client_prepare(http_client_handle_t client)
+static web_err_t http_client_prepare(http_client_handle_t client)
 {
     client->process_again = 0;
     client->response->data_process = 0;
@@ -452,7 +452,7 @@ static http_errors_t http_client_prepare(http_client_handle_t client)
             free(auth_response);
         }
     }
-    return HTTP_CLI_OK;
+    return WEB_OK;
 }
 
 http_client_handle_t http_client_init(const http_client_config_t *config)
@@ -518,7 +518,7 @@ http_client_handle_t http_client_init(const http_client_config_t *config)
     }
 #endif
 
-    if (_set_config(client, config) != HTTP_CLI_OK) {
+    if (_set_config(client, config) != WEB_OK) {
         LOGE(TAG, "Error set configurations");
         goto error;
     }
@@ -534,8 +534,8 @@ http_client_handle_t http_client_init(const http_client_config_t *config)
 
     if (config->host != NULL && config->path != NULL) {
         _success = (
-            (http_client_set_header(client, "User-Agent", DEFAULT_HTTP_USER_AGENT) == HTTP_CLI_OK) &&
-            (http_client_set_header(client, "Host", client->connection_info.host) == HTTP_CLI_OK)
+            (http_client_set_header(client, "User-Agent", DEFAULT_HTTP_USER_AGENT) == WEB_OK) &&
+            (http_client_set_header(client, "Host", client->connection_info.host) == WEB_OK)
         );
 
         if (!_success) {
@@ -544,9 +544,9 @@ http_client_handle_t http_client_init(const http_client_config_t *config)
         }
     } else if (config->url != NULL) {
         _success = (
-                    (http_client_set_url(client, config->url) == HTTP_CLI_OK) &&
-                    (http_client_set_header(client, "User-Agent", DEFAULT_HTTP_USER_AGENT) == HTTP_CLI_OK) &&
-                    (http_client_set_header(client, "Host", client->connection_info.host) == HTTP_CLI_OK)
+                    (http_client_set_url(client, config->url) == WEB_OK) &&
+                    (http_client_set_header(client, "User-Agent", DEFAULT_HTTP_USER_AGENT) == WEB_OK) &&
+                    (http_client_set_header(client, "Host", client->connection_info.host) == WEB_OK)
                 );
 
         if (!_success) {
@@ -577,10 +577,10 @@ error:
     return NULL;
 }
 
-http_errors_t http_client_cleanup(http_client_handle_t client)
+web_err_t http_client_cleanup(http_client_handle_t client)
 {
     if (client == NULL) {
-        return HTTP_CLI_FAIL;
+        return WEB_FAIL;
     }
     http_client_close(client);
     transport_list_destroy(client->transport_list);
@@ -602,7 +602,7 @@ http_errors_t http_client_cleanup(http_client_handle_t client)
     free(client->location);
     free(client->auth_header);
     free(client);
-    return HTTP_CLI_OK;
+    return WEB_OK;
 }
 
 http_errors_t http_client_set_redirection(http_client_handle_t client)
@@ -617,7 +617,7 @@ http_errors_t http_client_set_redirection(http_client_handle_t client)
     return http_client_set_url(client, client->location);
 }
 
-static http_errors_t http_check_response(http_client_handle_t client)
+static web_err_t http_check_response(http_client_handle_t client)
 {
     char *auth_header = NULL;
 
@@ -668,10 +668,10 @@ static http_errors_t http_check_response(http_client_handle_t client)
                 LOGW(TAG, "This request requires authentication, but does not provide header information for that");
             }
     }
-    return HTTP_CLI_OK;
+    return WEB_OK;
 }
 
-http_errors_t http_client_set_url(http_client_handle_t client, const char *url)
+web_err_t http_client_set_url(http_client_handle_t client, const char *url)
 {
     char *old_host = NULL;
     char *old_path = NULL;
@@ -680,7 +680,7 @@ http_errors_t http_client_set_url(http_client_handle_t client, const char *url)
 
     if (client == NULL || url == NULL) {
         LOGE(TAG, "client or url must not NULL");
-        return HTTP_CLI_ERR_INVALID_ARG;
+        return WEB_ERR_INVALID_ARG;
     }
 
     http_parser_url_init(&purl);
@@ -689,7 +689,7 @@ http_errors_t http_client_set_url(http_client_handle_t client, const char *url)
 
     if (parser_status != 0) {
         LOGE(TAG, "Error parse url %s", url);
-        return HTTP_CLI_ERR_INVALID_ARG;
+        return WEB_ERR_INVALID_ARG;
     }
     if (client->connection_info.host) {
         old_host = strdup(client->connection_info.host);
@@ -703,16 +703,16 @@ http_errors_t http_client_set_url(http_client_handle_t client, const char *url)
         http_utils_assign_string(&client->connection_info.host, url + purl.field_data[UF_HOST].off, purl.field_data[UF_HOST].len);
         HTTP_MEM_CHECK(TAG, client->connection_info.host, {
             if (old_host) free(old_host);
-            return HTTP_CLI_ERR_NO_MEM;
+            return WEB_ERR_NO_MEM;
         });
     }
     // Close the connection if host was changed
     if (old_host && client->connection_info.host
             && strcasecmp(old_host, (const void *)client->connection_info.host) != 0) {
         LOGD(TAG, "New host assign = %s", client->connection_info.host);
-        if (http_client_set_header(client, "Host", client->connection_info.host) != HTTP_CLI_OK) {
+        if (http_client_set_header(client, "Host", client->connection_info.host) != WEB_OK) {
             free(old_host);
-            return HTTP_CLI_ERR_NO_MEM;
+            return WEB_ERR_NO_MEM;
         }
         http_client_close(client);
     }
@@ -724,7 +724,7 @@ http_errors_t http_client_set_url(http_client_handle_t client, const char *url)
 
     if (purl.field_data[UF_SCHEMA].len) {
         http_utils_assign_string(&client->connection_info.scheme, url + purl.field_data[UF_SCHEMA].off, purl.field_data[UF_SCHEMA].len);
-        HTTP_MEM_CHECK(TAG, client->connection_info.scheme, return HTTP_CLI_ERR_NO_MEM);
+        HTTP_MEM_CHECK(TAG, client->connection_info.scheme, return WEB_ERR_NO_MEM);
 
         if (strcasecmp(client->connection_info.scheme, "http") == 0) {
             client->connection_info.port = DEFAULT_HTTP_PORT;
@@ -751,13 +751,13 @@ http_errors_t http_client_set_url(http_client_handle_t client, const char *url)
                 *password = 0;
                 password ++;
                 http_utils_assign_string(&client->connection_info.password, password, 0);
-                HTTP_MEM_CHECK(TAG, client->connection_info.password, return HTTP_CLI_ERR_NO_MEM);
+                HTTP_MEM_CHECK(TAG, client->connection_info.password, return WEB_ERR_NO_MEM);
             }
             http_utils_assign_string(&client->connection_info.username, username, 0);
-            HTTP_MEM_CHECK(TAG, client->connection_info.username, return HTTP_CLI_ERR_NO_MEM);
+            HTTP_MEM_CHECK(TAG, client->connection_info.username, return WEB_ERR_NO_MEM);
             free(user_info);
         } else {
-            return HTTP_CLI_ERR_NO_MEM;
+            return WEB_ERR_NO_MEM;
         }
     } else if (is_absolute_url) {
         // Only reset authentication info if the passed URL is full
@@ -779,7 +779,7 @@ http_errors_t http_client_set_url(http_client_handle_t client, const char *url)
     LOGD(TAG, "###path:%s", client->connection_info.path);
     HTTP_MEM_CHECK(TAG, client->connection_info.path, {
         if (old_path) free(old_path);
-        return HTTP_CLI_ERR_NO_MEM;
+        return WEB_ERR_NO_MEM;
     });
 
     // Close the connection if path was changed
@@ -795,25 +795,25 @@ http_errors_t http_client_set_url(http_client_handle_t client, const char *url)
 
     if (purl.field_data[UF_QUERY].len) {
         http_utils_assign_string(&client->connection_info.query, url + purl.field_data[UF_QUERY].off, purl.field_data[UF_QUERY].len);
-        HTTP_MEM_CHECK(TAG, client->connection_info.query, return HTTP_CLI_ERR_NO_MEM);
+        HTTP_MEM_CHECK(TAG, client->connection_info.query, return WEB_ERR_NO_MEM);
     } else if (client->connection_info.query) {
         free(client->connection_info.query);
         client->connection_info.query = NULL;
     }
 
-    return HTTP_CLI_OK;
+    return WEB_OK;
 }
 
-http_errors_t http_client_set_method(http_client_handle_t client, http_client_method_t method)
+web_err_t http_client_set_method(http_client_handle_t client, http_client_method_t method)
 {
     client->connection_info.method = method;
-    return HTTP_CLI_OK;
+    return WEB_OK;
 }
 
 static int http_client_get_data(http_client_handle_t client)
 {
     if (client->state < HTTP_STATE_RES_COMPLETE_HEADER) {
-        return HTTP_CLI_FAIL;
+        return WEB_FAIL;
     }
 
     if (client->connection_info.method == HTTP_METHOD_HEAD) {
@@ -851,7 +851,7 @@ int http_client_read(http_client_handle_t client, char *buffer, int len)
 {
     http_buffer_t *res_buffer = client->response->buffer;
 
-    int rlen = HTTP_CLI_FAIL, ridx = 0;
+    int rlen = WEB_FAIL, ridx = 0;
     if (res_buffer->raw_len) {
         int remain_len = client->response->buffer->raw_len;
         if (remain_len > len) {
@@ -911,9 +911,9 @@ int http_client_read(http_client_handle_t client, char *buffer, int len)
     return ridx;
 }
 
-http_errors_t http_client_perform(http_client_handle_t client)
+web_err_t http_client_perform(http_client_handle_t client)
 {
-    http_errors_t err;
+    web_err_t err;
     do {
         LOGD(TAG, "client->state: %d, client->process_again: %d", client->state, client->process_again);
         if (client->process_again) {
@@ -925,7 +925,7 @@ http_errors_t http_client_perform(http_client_handle_t client)
            then the http_client_perform() API will return WEB_ERR_HTTP_EAGAIN error. The user may call
            http_client_perform API again, and for this reason, we maintain the states */
             case HTTP_STATE_INIT:
-                if ((err = http_client_connect(client)) != HTTP_CLI_OK) {
+                if ((err = http_client_connect(client)) != WEB_OK) {
                     if (client->is_async && err == ERR_HTTP_CONNECTING) {
                         return ERR_HTTP_EAGAIN;
                     }
@@ -934,7 +934,7 @@ http_errors_t http_client_perform(http_client_handle_t client)
                 LOGD(TAG, "HTTP_STATE_INIT");
                 /* falls through */
             case HTTP_STATE_CONNECTED:
-                if ((err = http_client_request_send(client, client->post_len)) != HTTP_CLI_OK) {
+                if ((err = http_client_request_send(client, client->post_len)) != WEB_OK) {
                     if (client->is_async && errno == EAGAIN) {
                         return ERR_HTTP_EAGAIN;
                     }
@@ -943,7 +943,7 @@ http_errors_t http_client_perform(http_client_handle_t client)
                 LOGD(TAG, "HTTP_STATE_CONNECTED");
                 /* falls through */
             case HTTP_STATE_REQ_COMPLETE_HEADER:
-                if ((err = http_client_send_post_data(client)) != HTTP_CLI_OK) {
+                if ((err = http_client_send_post_data(client)) != WEB_OK) {
                     if (client->is_async && errno == EAGAIN) {
                         return ERR_HTTP_EAGAIN;
                     }
@@ -961,7 +961,7 @@ http_errors_t http_client_perform(http_client_handle_t client)
                 LOGD(TAG, "HTTP_STATE_REQ_COMPLETE_DATA");
                 /* falls through */
             case HTTP_STATE_RES_COMPLETE_HEADER:
-                if ((err = http_check_response(client)) != HTTP_CLI_OK) {
+                if ((err = http_check_response(client)) != WEB_OK) {
                     LOGE(TAG, "Error response");
                     return err;
                 }
@@ -1000,13 +1000,13 @@ http_errors_t http_client_perform(http_client_handle_t client)
                 break;
         }
     } while (client->process_again);
-    return HTTP_CLI_OK;
+    return WEB_OK;
 }
 
 int http_client_fetch_headers(http_client_handle_t client)
 {
     if (client->state < HTTP_STATE_REQ_COMPLETE_HEADER) {
-        return HTTP_CLI_FAIL;
+        return WEB_FAIL;
     }
 
     client->state = HTTP_STATE_REQ_COMPLETE_DATA;
@@ -1016,7 +1016,7 @@ int http_client_fetch_headers(http_client_handle_t client)
     while (client->state < HTTP_STATE_RES_COMPLETE_HEADER) {
         buffer->len = transport_read(client->transport, buffer->data, client->buffer_size, client->timeout_ms);
         if (buffer->len <= 0) {
-            return HTTP_CLI_FAIL;
+            return WEB_FAIL;
         }
         http_parser_execute(client->parser, client->parser_settings, buffer->data, buffer->len);
     }
@@ -1028,16 +1028,16 @@ int http_client_fetch_headers(http_client_handle_t client)
     return client->response->content_length;
 }
 
-static http_errors_t http_client_connect(http_client_handle_t client)
+static web_err_t http_client_connect(http_client_handle_t client)
 {
-    http_errors_t err;
+    web_err_t err;
 
     if (client->state == HTTP_STATE_UNINIT) {
         LOGE(TAG, "Client has not been initialized");
-        return HTTP_CLI_ERR_INVALID_STATE;
+        return WEB_ERR_INVALID_STATE;
     }
 
-    if ((err = http_client_prepare(client)) != HTTP_CLI_OK) {
+    if ((err = http_client_prepare(client)) != WEB_OK) {
         LOGE(TAG, "Failed to initialize request data");
         http_client_close(client);
         return err;
@@ -1066,7 +1066,7 @@ static http_errors_t http_client_connect(http_client_handle_t client)
                 LOGE(TAG, "Connection failed");
                 if (strcasecmp(client->connection_info.scheme, "http") == 0) {
                     LOGE(TAG, "Asynchronous mode doesn't work for HTTP based connection");
-                    return HTTP_CLI_ERR_INVALID_ARG;
+                    return WEB_ERR_INVALID_ARG;
                 }
                 return ERR_HTTP_CONNECT;
             } else if (ret == ASYNC_TRANS_CONNECTING) {
@@ -1077,7 +1077,7 @@ static http_errors_t http_client_connect(http_client_handle_t client)
         client->state = HTTP_STATE_CONNECTED;
         http_dispatch_event(client, HTTP_EVENT_ON_CONNECTED, NULL, 0);
     }
-    return HTTP_CLI_OK;
+    return WEB_OK;
 }
 
 static int http_client_prepare_first_line(http_client_handle_t client, int write_len)
@@ -1118,7 +1118,7 @@ static int http_client_prepare_first_line(http_client_handle_t client, int write
     return first_line_len;
 }
 
-static http_errors_t http_client_request_send(http_client_handle_t client, int write_len)
+static web_err_t http_client_request_send(http_client_handle_t client, int write_len)
 {
     int first_line_len = 0;
     if (!client->first_line_prepared) {
@@ -1177,14 +1177,14 @@ static http_errors_t http_client_request_send(http_client_handle_t client, int w
     client->data_write_left = client->post_len;
     http_dispatch_event(client, HTTP_EVENT_HEADER_SENT, NULL, 0);
     client->state = HTTP_STATE_REQ_COMPLETE_HEADER;
-    return HTTP_CLI_OK;
+    return WEB_OK;
 }
 
-static http_errors_t http_client_send_post_data(http_client_handle_t client)
+static web_err_t http_client_send_post_data(http_client_handle_t client)
 {
     if (client->state != HTTP_STATE_REQ_COMPLETE_HEADER) {
         LOGE(TAG, "Invalid state");
-        return HTTP_CLI_ERR_INVALID_STATE;
+        return WEB_ERR_INVALID_STATE;
     }
     if (!(client->post_data && client->post_len)) {
         goto success;
@@ -1205,26 +1205,26 @@ static http_errors_t http_client_send_post_data(http_client_handle_t client)
 
 success:
     client->state = HTTP_STATE_REQ_COMPLETE_DATA;
-    return HTTP_CLI_OK;
+    return WEB_OK;
 }
 
-http_errors_t http_client_open(http_client_handle_t client, int write_len)
+web_err_t http_client_open(http_client_handle_t client, int write_len)
 {
     client->post_len = write_len;
-    http_errors_t err;
-    if ((err = http_client_connect(client)) != HTTP_CLI_OK) {
+    web_err_t err;
+    if ((err = http_client_connect(client)) != WEB_OK) {
         return err;
     }
-    if ((err = http_client_request_send(client, write_len)) != HTTP_CLI_OK) {
+    if ((err = http_client_request_send(client, write_len)) != WEB_OK) {
         return err;
     }
-    return HTTP_CLI_OK;
+    return WEB_OK;
 }
 
 int http_client_write(http_client_handle_t client, const char *buffer, int len)
 {
     if (client->state < HTTP_STATE_REQ_COMPLETE_HEADER) {
-        return HTTP_CLI_FAIL;
+        return WEB_FAIL;
     }
 
     int wlen = 0, widx = 0;
@@ -1241,25 +1241,25 @@ int http_client_write(http_client_handle_t client, const char *buffer, int len)
     return widx;
 }
 
-http_errors_t http_client_close(http_client_handle_t client)
+web_err_t http_client_close(http_client_handle_t client)
 {
     if (client->state >= HTTP_STATE_INIT) {
         http_dispatch_event(client, HTTP_EVENT_DISCONNECTED, NULL, 0);
         client->state = HTTP_STATE_INIT;
         return transport_close(client->transport);
     }
-    return HTTP_CLI_OK;
+    return WEB_OK;
 }
 
-http_errors_t http_client_set_post_field(http_client_handle_t client, const char *data, int len)
+web_err_t http_client_set_post_field(http_client_handle_t client, const char *data, int len)
 {
-    http_errors_t err = HTTP_CLI_OK;
+    web_err_t err = WEB_OK;
     client->post_data = (char *)data;
     client->post_len = len;
     LOGD(TAG, "set post file length = %d", len);
     if (client->post_data) {
         char *value = NULL;
-        if ((err = http_client_get_header(client, "Content-Type", &value)) != HTTP_CLI_OK) {
+        if ((err = http_client_get_header(client, "Content-Type", &value)) != WEB_OK) {
             return err;
         }
         if (value == NULL) {

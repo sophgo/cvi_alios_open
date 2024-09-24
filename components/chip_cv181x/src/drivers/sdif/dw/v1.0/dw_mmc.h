@@ -39,6 +39,7 @@
 #include <dw_mmc_reg.h>
 #include <dw_sdmmc.h>
 #include <mmio.h>
+#include "aos/cli.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,9 +53,23 @@ extern "C" {
  * Definitions.
  *****************************************************************************/
 
+enum sdif_msg_prio {
+	SDIF_ERR 	= 0x0001,
+	SDIF_WARN	= 0x0002,
+	SDIF_INFO	= 0x0004,
+	SDIF_DBG 	= 0x0008,
+	SDIF_VB2 	= 0x0010,
+	SDIF_ISP_IRQ = 0x0020,
+};
+
 #ifndef BIT
 #define BIT(nr)      (UINT64_C(1) << (nr))
 #endif
+#define sdif_printf(level, fmt, arg...) \
+		do { \
+			if (level <= SDIF_ISP_IRQ) \
+				aos_cli_printf("[%s():%d] " fmt, __FUNCTION__, __LINE__, ## arg); \
+		} while (0)
 
 #define SDMMC_DMA_ALIGN_CACHE 64
 
@@ -110,6 +125,26 @@ extern "C" {
 
 /*! @brief SDIF internal DMA descriptor address and the data buffer address align */
 #define SDIF_INTERNAL_DMA_ADDR_ALIGN (4U)
+
+/*! @brief SDIF status */
+enum _sdif_status {
+    kStatus_SDIF_DescriptorBufferLenError = MAKE_STATUS(kStatusGroup_SDIF, 0U), /*!< Set DMA descriptor failed */
+    kStatus_SDIF_InvalidArgument = MAKE_STATUS(kStatusGroup_SDIF, 1U),          /*!< invalid argument status */
+    kStatus_SDIF_SyncCmdTimeout = MAKE_STATUS(kStatusGroup_SDIF, 2U), /*!< sync command to CIU timeout status */
+    kStatus_SDIF_SendCmdFail = MAKE_STATUS(kStatusGroup_SDIF, 3U),    /*!< send command to card fail */
+    kStatus_SDIF_SendCmdErrorBufferFull =
+        MAKE_STATUS(kStatusGroup_SDIF, 4U), /*!< send command to card fail, due to command buffer full
+                                     user need to resend this command */
+    kStatus_SDIF_DMATransferFailWithFBE =
+        MAKE_STATUS(kStatusGroup_SDIF, 5U), /*!< DMA transfer data fail with fatal bus error ,
+                                     to do with this error :issue a hard reset/controller reset*/
+    kStatus_SDIF_DMATransferDescriptorUnavailable =
+        MAKE_STATUS(kStatusGroup_SDIF, 6U),                             /*!< DMA descriptor unavailable */
+    kStatus_SDIF_DataTransferFail = MAKE_STATUS(kStatusGroup_SDIF, 6U), /*!< transfer data fail */
+    kStatus_SDIF_ResponseError = MAKE_STATUS(kStatusGroup_SDIF, 7U),    /*!< response error */
+    kStatus_SDIF_DMAAddrNotAlign = MAKE_STATUS(kStatusGroup_SDIF, 8U),  /*!< DMA address not align */
+};
+
 
 
 /*! @brief define the reset type */
@@ -255,8 +290,41 @@ typedef struct _sdif_dma_descriptor {
  * @param base SDIF peripheral base address.
  * @param timeout value
  */
-// bool SDIF_SendCardActive(SDIF_TYPE *base, uint32_t timeout);
+bool SDIF_SendCardActive(SDIF_TYPE *base, uint32_t timeout);
 void sdhci_pinmux_dumpregs();
+/*!
+ * @brief SDIF module detect card insert status function.
+ * @param base SDIF peripheral base address.
+ * @param data3 indicate use data3 as card insert detect pin
+ * @retval 1 card is inserted
+ *         0 card is removed
+ */
+static inline uint32_t SDIF_DetectCardInsert(SDIF_TYPE *base, bool data3)
+{
+     uintptr_t BASE = (uintptr_t)base;
+    if (data3) {
+        return (mmio_read_32(BASE+SDIF_PRESENT_STATE) & SDIF_CARD_STABLE) == SDIF_CARD_STABLE ? 0U : 1U;
+    } else {
+        return (mmio_read_32(BASE+SDIF_PRESENT_STATE) & SDIF_CARD_INSERTED) == SDIF_CARD_INSERTED ? 1U : 0U;
+    }
+}
+
+/*!
+ * @brief SDIF module enable/disable card clock.
+ * @param base SDIF peripheral base address.
+ * @param enable/disable flag
+ */
+static inline void SDIF_EnableCardClock(SDIF_TYPE *base, bool enable)
+{
+    uintptr_t BASE = (uintptr_t)base;
+    if (enable) {
+         mmio_write_16(BASE + SDIF_CLK_CTRL,
+				mmio_read_32(BASE + SDIF_CLK_CTRL) | (0x1<<2)); // stop SD clock
+    } else {
+        mmio_write_16(BASE + SDIF_CLK_CTRL,
+				mmio_read_32(BASE + SDIF_CLK_CTRL) & ~(0x1<<2)); // stop SD clock
+    }
+}
 
 /*!
  * @brief SDIF module enable/disable module disable the card clock
@@ -294,6 +362,24 @@ uint32_t SDIF_SetCardClock(SDIF_TYPE *base, uint32_t srcClock_Hz, uint32_t targe
 //bool SDIF_Reset(SDIF_TYPE *base, uint32_t mask, uint32_t timeout);
 
 /*!
+ * @brief enable/disable the card power.
+ * once turn power on, software should wait for regulator/switch
+ * ramp-up time before trying to initialize card.
+ * @param base SDIF peripheral base address.
+ * @param enable/disable flag.
+ */
+static inline void SDIF_EnableCardPower(SDIF_TYPE *base, bool enable)
+{
+    return;
+    uintptr_t BASE = (uintptr_t)base;
+    if (enable) {
+        mmio_write_8(BASE + SDIF_PWR_CONTROL,mmio_read_8(BASE + SDIF_PWR_CONTROL) | 0x1);
+    } else {
+        mmio_write_8(BASE + SDIF_PWR_CONTROL,mmio_read_8(BASE+ SDIF_PWR_CONTROL) & ~0x1);
+    }
+}
+
+/*!
  * @brief get the card write protect status
  * @param base SDIF peripheral base address.
  */
@@ -315,6 +401,14 @@ static inline void SDIF_AssertHardwareReset(SDIF_TYPE *base)
 }
 
 /*!
+ * @brief Get the instance.
+ *
+ * @param base SDIF peripheral base address.
+ * @return Instance number.
+ */
+ uint32_t SDIF_GetInstance(SDIF_TYPE *base);
+
+/*!
  * @brief send command to the card
  * @param base SDIF peripheral base address.
  * @param command configuration collection
@@ -332,12 +426,34 @@ static inline void SDIF_EnableGlobalInterrupt(SDIF_TYPE *base, bool enable)
 {
     return;
     uintptr_t BASE = (uintptr_t)base;
-    //printf("SDIF_EnableGlobalInterrupt BASE:%x \n",BASE);
+    sdif_printf(SDIF_DBG,"SDIF_EnableGlobalInterrupt BASE:%x \n",BASE);
     if (enable) {
         mmio_write_16(BASE + SDIF_INT_STATUS_EN, mmio_read_16(BASE + SDIF_INT_STATUS_EN) | 0xFF);
     } else {
         mmio_write_16(BASE + SDIF_INT_STATUS_EN, mmio_read_16(BASE + SDIF_INT_STATUS_EN) & ~0xFF);
     }
+}
+
+/*!
+ * @brief SDIF enable interrupt
+ * @param base SDIF peripheral base address.
+ * @param interrupt mask
+ */
+static inline void SDIF_EnableInterrupt(SDIF_TYPE *base, uint32_t mask)
+{
+    return;
+    base->INTMASK |= mask;
+}
+
+/*!
+ * @brief SDIF disable interrupt
+ * @param base SDIF peripheral base address.
+ * @param interrupt mask
+ */
+static inline void SDIF_DisableInterrupt(SDIF_TYPE *base, uint32_t mask)
+{
+    return;
+    base->INTMASK &= ~mask;
 }
 
 /*!
@@ -527,10 +643,10 @@ status_t SDIF_TransferBlocking(SDIF_TYPE *base, sdif_dma_config_t *dmaConfig, sd
  * @brief SDIF return the controller status
  * @param base SDIF peripheral base address.
  */
-// static inline uint32_t SDIF_GetControllerStatus(SDIF_TYPE *base)
-// {
-//     return base->STATUS;
-// }
+static inline uint32_t SDIF_GetControllerStatus(SDIF_TYPE *base)
+{
+    return base->STATUS;
+}
 
 /*!
  * @brief SDIF send command  complete signal disable to CE-ATA card

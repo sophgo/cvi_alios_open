@@ -807,15 +807,14 @@ static inline void arch_usleep(unsigned long useconds)
 	usleep(useconds);
 }
 
-extern void udelay(uint32_t us);
+
 /* while cv182x codecs transfer CIC between 64 and 128, need to reset codec first */
 static inline void cv182x_reset_dac(void)
 {
     volatile u32 *reset_reg = (volatile u32*)(0x03003008);
 
     reset_write_reg((reset_read_reg(reset_reg) & CV182X_DAC_RESET), reset_reg);
-    //arch_usleep(1000*10);
-    udelay(1000);
+    arch_usleep(1000*10);
     reset_write_reg((reset_read_reg(reset_reg) | ~CV182X_DAC_RESET), reset_reg);
 }
 
@@ -824,19 +823,17 @@ static inline void cv182x_reset_adc(void)
     u32 *reset_reg = (u32*)(0x03003008);
 
     reset_write_reg((reset_read_reg(reset_reg) & CV182X_ADC_RESET), reset_reg);
-    //arch_usleep(1000*10);
-    udelay(1000);
-    //这里10MS
+    arch_usleep(1000*10);
     reset_write_reg((reset_read_reg(reset_reg) | ~CV182X_ADC_RESET), reset_reg);
 }
 
 
 
 int cv182xdac_init(u32 rate, u32 chan_nr);
-int cv182xdac_ioctl(u32 cmd, u64 parg);
+int cv182xdac_ioctl(u32 cmd, struct cvi_vol_ctrl vol, u32 val);
 
 int cv182xadc_init(u32 rate);
-int cv182xadc_ioctl(u32 cmd,  u64 parg);
+int cv182xadc_ioctl(u32 cmd, struct cvi_vol_ctrl vol, u32 val);
 
 
 int  cv183xdac_init(u32 rate);

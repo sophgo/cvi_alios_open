@@ -144,7 +144,6 @@ static void _http_cleanup(http_client_handle_t client)
     LOGD(TAG, "httpc cleanup...");
     if (client) {
         http_client_cleanup(client);
-        client = NULL;
     }
 }
 
@@ -152,25 +151,17 @@ static int http_read(netio_t *io, uint8_t *buffer, int length, int timeoutms)
 {
 #define RANGE_BUF_SIZE 56
     int read_len;
-    int reinit_cnt;
     long long time1ms;
-    httpc_priv_t *priv = (httpc_priv_t *)io->priv;
+    httpc_priv_t *priv = (httpc_priv_t *)io->private;
     http_client_handle_t client = priv->http_client;
 
-    reinit_cnt = 0;
     if (client == NULL) {
-        int ret;
+        int ret = 0;
         int statuscode;
-        char *range;
-        char *cbuffer;
+        char *range = NULL;
+        char *buffer = NULL;
         http_errors_t err;
-        http_client_config_t config;
-
-client_reinit:
-        ret = 0;
-        range = NULL;
-        cbuffer = NULL;
-        memset(&config, 0, sizeof(http_client_config_t));
+        http_client_config_t config = {0};
 
         config.method = HTTP_METHOD_GET;
         config.url = priv->path;
@@ -186,8 +177,8 @@ client_reinit:
         }
         LOGD(TAG, "http client init ok.[%s]", config.url);
         LOGD(TAG, "http read connecting........");
-        cbuffer = aos_zalloc(BUFFER_SIZE + 1);
-        if (!cbuffer) {
+        buffer = aos_zalloc(BUFFER_SIZE + 1);
+        if (!buffer) {
             LOGE(TAG, "http open nomem.");
             ret = -ENOMEM;
             goto exit;
@@ -198,8 +189,8 @@ client_reinit:
             ret = -ENOMEM;
             goto exit;
         }
-        snprintf(range, RANGE_BUF_SIZE, "bytes=%lu-", (unsigned long)io->offset);
-        LOGD(TAG, "request range: %s", range);
+        snprintf(range, RANGE_BUF_SIZE, "bytes=%zu-", io->offset);
+        LOGD(TAG, "range:%s", range);
         err = http_client_set_header(client, "Range", range);
         if (err != HTTP_CLI_OK) {
             LOGE(TAG, "set header Range e");
@@ -219,19 +210,13 @@ client_reinit:
             goto exit;
         }
 
-        err = _http_connect(client, cbuffer, BUFFER_SIZE);
+        err = _http_connect(client, buffer, BUFFER_SIZE);
         if (err != HTTP_CLI_OK) {
             LOGE(TAG, "Client connect e");
             ret = -1;
             goto exit;
         }
         statuscode = http_client_get_status_code(client);
-        if (statuscode == 200) {
-            LOGW(TAG, "read finish maybe.");
-            ret = 0;
-            io->size = http_client_get_content_length(client);
-            goto exit;
-        }
         if (statuscode != 206) {
             LOGE(TAG, "not 206 Partial Content");
             ret = -1;
@@ -242,11 +227,10 @@ client_reinit:
         LOGD(TAG, "range_len: %d", io->size);
         priv->http_client = client;
 exit:
-        if (cbuffer) aos_free(cbuffer);
+        if (buffer) aos_free(buffer);
         if (range) aos_free(range);
         if (ret != 0) {
             _http_cleanup(client);
-            priv->http_client = NULL;
             return ret;
         }
     }
@@ -264,11 +248,6 @@ exit:
         int data_read = http_client_read(client, (char *)buffer + read_len, length - read_len);
         if (data_read < 0) {
             LOGW(TAG, "http client read error:%d, errno:%d", data_read, errno);
-            if (errno == ENOTCONN && reinit_cnt++ < 1) {
-                LOGD(TAG, "goto http client reinit..");
-                _http_cleanup(client);
-                goto client_reinit;
-            }
             return data_read;
         } else if (data_read == 0) {
             LOGD(TAG, "http client read 0 size");
@@ -285,7 +264,7 @@ static int http_open(netio_t *io, const char *path)
     const char *cert;
 
     LOGD(TAG, "http open:%s", path);
-    cert = (const char *)io->cls->priv;
+    cert = (const char *)io->cls->private;
 
     io->size = 0;
     io->offset = 0;
@@ -299,7 +278,7 @@ static int http_open(netio_t *io, const char *path)
     priv->http_client = NULL;
     priv->path = path;
     priv->cert = cert;
-    io->priv = priv;
+    io->private = priv;
 #if 0 // just for test, mem leak...
     char *tempbuffer = (char *)aos_malloc(400);
     if (tempbuffer == NULL) {
@@ -326,7 +305,7 @@ static int http_seek(netio_t *io, size_t offset, int whence)
 
 static int http_close(netio_t *io)
 {
-    httpc_priv_t *priv = (httpc_priv_t *)io->priv;
+    httpc_priv_t *priv = (httpc_priv_t *)io->private;
     http_client_handle_t client = priv->http_client;
     _http_cleanup(client);
     aos_free(priv);
@@ -343,7 +322,7 @@ netio_cls_t httpc_cls = {
 
 int netio_register_httpc(const char *cert)
 {
-    httpc_cls.priv = (void *)cert;
+    httpc_cls.private = (void *)cert;
     return netio_register(&httpc_cls);
 }
 #endif

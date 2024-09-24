@@ -78,7 +78,7 @@ static ssize_t tls_read(tls_t *tls, char *data, size_t datalen, uint32_t timeout
 {
     int ret;
 
-    // LOGD(TAG, "tls read...");
+    LOGD(TAG, "tls read...");
     mbedtls_ssl_conf_read_timeout(&(tls->conf), timeout_ms);
 
     while (1) {

@@ -7,7 +7,7 @@
 
 #include <aos/errno.h>
 #include <aos/kernel.h>
-
+#include <drv/tick.h>
 int clock_getres(clockid_t clock_id, struct timespec *res)
 {
     /* At now, only support CLOCK_REALTIME/CLOCK_MONOTONIC clock. */
@@ -32,9 +32,9 @@ int clock_gettime(clockid_t clock_id, struct timespec *tp)
     }
 
     if (clock_id == CLOCK_MONOTONIC) {
-        time_ms = aos_now_ms();
-        tp->tv_sec = time_ms / 1000;
-        tp->tv_nsec = (time_ms % 1000) * 1000000;
+        uint64_t time_us = csi_tick_get_us();
+        tp->tv_sec = time_us / 1000000;
+        tp->tv_nsec = (time_us % 1000000) * 1000;
     } else if (clock_id == CLOCK_REALTIME) {
         time_ms = aos_calendar_time_get();
         tp->tv_sec = time_ms / 1000;

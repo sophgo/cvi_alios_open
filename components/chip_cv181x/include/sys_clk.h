@@ -271,6 +271,28 @@ void soc_soft_reset_single(clk_soft_reset_t ip);
 */
 void soc_clock_gate_single(clk_clock_gate_t ip, uint32_t state);
 
+
+uint32_t soc_get_pll_freq(void);
+uint32_t soc_get_cur_cpu_freq(void);
+uint32_t soc_get_coretim_freq(void);
+uint32_t soc_get_coretim_us_freq(void);
+uint32_t soc_get_ahb_freq(uint32_t idx);
+uint32_t soc_get_apb_freq(uint32_t idx);
+uint32_t soc_get_cpu_freq(uint32_t idx);
+uint32_t soc_get_sys_freq(uint32_t idx);
+uint32_t soc_get_audio_clk(uint32_t idx);
+
+uint32_t soc_get_uart_freq(uint32_t idx);
+uint32_t soc_get_iic_freq(uint32_t idx);
+uint32_t soc_get_spi_freq(uint32_t idx);
+uint32_t soc_get_qspi_freq(uint32_t idx);
+uint32_t soc_get_adc_freq(uint32_t idx);
+uint32_t soc_get_pwm_freq(uint32_t idx);
+uint32_t soc_get_wdt_freq(uint32_t idx);
+uint32_t soc_get_i2s_freq(uint32_t idx);
+uint32_t soc_get_rtc_freq(uint32_t idx);
+uint32_t soc_get_timer_freq(uint32_t idx);
+
 #ifdef __cplusplus
 }
 #endif

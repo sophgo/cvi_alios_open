@@ -7,6 +7,9 @@
 
 #include <drv/common.h>
 #include "aos/cli.h"
+#include "cvi_efuse.h"
+
+csi_error_t cvi_efuse_read_word_from_shadow(uint32_t addr, uint32_t *data);
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,8 +82,7 @@ extern "C" {
 #define ADC_CYC_SET_ADC_CYC_CLK_DIV_15	                   (14U<< ADC_CYC_SET_ADC_CYC_CLK_DIV_Pos)
 #define ADC_CYC_SET_ADC_CYC_CLK_DIV_16	                   (15U<< ADC_CYC_SET_ADC_CYC_CLK_DIV_Pos)
 
-#define ADC_CYC_SET_ADC_CYC_SAMPLE_Pos                  (8U)
-#define ADC_CYC_SET_ADC_CYC_SAMPLE_Msk                  (0xF << ADC_CYC_SET_ADC_CYC_SAMPLE_Pos)
+#define ADC_CYC_SET_ADC_CYC_SAMPLE_Pos                  (12U)
 
 /* INT_EN REG */
 #define ADC_EN_ALL_CHANNEL_DONE_Pos                 (0U)
@@ -116,6 +118,7 @@ struct cvi_adc_regs_t {
     uint32_t INTR_CLR;
     uint32_t INTR_STA;
     uint32_t INTR_RAW;
+	uint32_t TRIM;
 };
 
 static struct cvi_adc_regs_t cv182x_adc_reg = {
@@ -129,6 +132,7 @@ static struct cvi_adc_regs_t cv182x_adc_reg = {
     .INTR_CLR = 0x24,
     .INTR_STA = 0x28,
     .INTR_RAW = 0x2c,
+	.TRIM = 0x34,
 };
 
 static struct cvi_adc_regs_t *cvi_adc_reg = &cv182x_adc_reg;
@@ -146,13 +150,7 @@ static struct cvi_adc_regs_t *cvi_adc_reg = &cv182x_adc_reg;
 #define ADC_INTR_CLR(reg_base)     *((__IOM uint32_t *)(reg_base + cvi_adc_reg->INTR_CLR))
 #define ADC_INTR_STA(reg_base)     *((__IM uint32_t *)(reg_base + cvi_adc_reg->INTR_STA))
 #define ADC_INTR_RAW(reg_base)     *((__IM uint32_t *)(reg_base + cvi_adc_reg->INTR_RAW))
-
-static inline void adc_cyc_setting(unsigned long reg_base)
-{
-    pr_debug("write reg %08p value %#x\n", &ADC_CYC_SET(reg_base), ADC_CYC_SET(reg_base) | ADC_CYC_SET_ADC_CYC_CLK_DIV_16);
-    ADC_CYC_SET(reg_base) &= ~ADC_CYC_SET_ADC_CYC_CLK_DIV_16;
-    ADC_CYC_SET(reg_base) |= ADC_CYC_SET_ADC_CYC_CLK_DIV_16;//set saradc clock cycle=840ns
-}
+#define ADC_TRIM(reg_base)     (*((__IM uint32_t *)((reg_base) + (cvi_adc_reg->TRIM))))
 
 static inline void adc_start(unsigned long reg_base)
 {
@@ -215,7 +213,7 @@ static inline uint32_t adc_get_clk_div(unsigned long reg_base)
 
 static inline void adc_set_sample_cycle(unsigned long reg_base, uint32_t value)
 {
-    ADC_CYC_SET(reg_base) &= ~ADC_CYC_SET_ADC_CYC_SAMPLE_Msk;
+    ADC_CYC_SET(reg_base) &= ~(value << ADC_CYC_SET_ADC_CYC_SAMPLE_Pos);
     ADC_CYC_SET(reg_base) |= (value << ADC_CYC_SET_ADC_CYC_SAMPLE_Pos);
 }
 

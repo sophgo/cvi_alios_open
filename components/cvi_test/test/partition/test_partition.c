@@ -6,7 +6,7 @@
 #include "aos/cli.h"
 #include "vfs.h"
 #include "yoc/partition.h"
-#include "yoc/partition_device.h"
+#include "yoc/partition_flash.h"
 
 static int cli_update_norflash_by_name(int argc, char** argv) {
     int ret = 0;
@@ -59,7 +59,7 @@ static int cli_update_norflash_by_name(int argc, char** argv) {
     ret = partition_erase(partitionFd, 0x0,
                           partitionInfo->length / partitionInfo->sector_size);
     if (ret != 0) {
-        printf("partition_erase block %lu failed.\n",
+        printf("partition_erase block %d failed.\n",
                partitionInfo->length / partitionInfo->sector_size);
         goto UPDATE_ERR3;
     }
@@ -79,7 +79,7 @@ static int cli_update_norflash_by_name(int argc, char** argv) {
         }
         tmpOffset += writeLen;
     }
-    printf("write 0x%lx to 0x%lx , total 0x%lx\n", partitionInfo->start_addr,
+    printf("write 0x%x to 0x%lx , total 0x%lx\n", partitionInfo->start_addr,
            tmpOffset, tmpOffset);
     printf("update %s to partition [%s] success.\n", fileName, argv[1]);
 
@@ -100,7 +100,7 @@ static int cli_update_partition_flash(int argc, char** argv) {
     char writeBuf[4096] = {0};
     int writeLen = 0;
     int readFd = 0;
-    partition_device_ops_t* partitionFd = NULL;
+    void* partitionFd = NULL;
     struct aos_stat fileStat = {0};
 
     if (argc != 3) {
@@ -135,10 +135,7 @@ static int cli_update_partition_flash(int argc, char** argv) {
     }
     printf("aos_openn open %s success!\n", fileName);
 
-    storage_info_t storage_info;
-    storage_info.id = 0;
-    storage_info.type = MEM_DEVICE_TYPE_SPI_NOR_FLASH;
-    partitionFd = partition_device_find(&storage_info);
+    partitionFd = partition_flash_open(0);
     if (partitionFd == NULL) {
         printf("partition_open %s failed!\n", argv[1]);
         aos_close(readFd);
@@ -149,10 +146,11 @@ static int cli_update_partition_flash(int argc, char** argv) {
     unsigned long tmpOffset = strtol(argv[1], NULL, 16);
     printf("offset = 0x%lx\n", tmpOffset);
 
-    ret = partition_device_erase(partitionFd, tmpOffset, writeLen);
+    ret = partition_flash_erase(partitionFd, tmpOffset, writeLen);
     if (ret != 0) {
         printf("partition_flash_erase start Addr 0x%lx leng 0x%x failed.\n",
                tmpOffset, writeLen);
+        partition_flash_close(partitionFd);
         aos_close(readFd);
         return -1;
     }
@@ -165,9 +163,10 @@ static int cli_update_partition_flash(int argc, char** argv) {
             printf("read end. And write success.\n");
             break;
         }
-        ret = partition_device_write(partitionFd, tmpOffset, writeBuf, writeLen);
+        ret = partition_flash_write(partitionFd, tmpOffset, writeBuf, writeLen);
         if (ret < 0) {
             printf("partition_write error!ret = %d.\n", ret);
+            partition_flash_close(partitionFd);
             aos_close(readFd);
             return -1;
         }
@@ -176,6 +175,7 @@ static int cli_update_partition_flash(int argc, char** argv) {
     printf("write %s to 0x%lx , total 0x%lx\n", argv[1], tmpOffset, tmpOffset);
     printf("update %s success.\n", fileName);
 
+    partition_flash_close(partitionFd);
     aos_close(readFd);
     return ret;
 }
@@ -232,7 +232,7 @@ static int cli_read_partition(int argc, char** argv) {
         tmpOffset += sizeof(readBuf);
         printf("read : %d %% \n" , (int)(((float)tmpOffset / (float)(partitionInfo->length))*100));
         if (tmpOffset >= partitionInfo->length) {
-            printf("[%d]read end.offset = %ld , leng = %ld\n", __LINE__,
+            printf("[%d]read end.offset = %ld , leng = %d\n", __LINE__,
                    tmpOffset, partitionInfo->length);
             ret = 0;
             break;

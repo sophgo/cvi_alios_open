@@ -1,7 +1,7 @@
 
 ## 第一部分： 基础信息
 name: cxvision                                      # <必选项> 包名称 （符合C语言变量命名规则），长度少于等于64字节
-version: develop                                    # <必选项> 组件版本号
+version: v1.0.0                                    # <必选项> 组件版本号
 description: ChiXiao Vision Platform                # <必选项> 建议至少20字以上
 type: common                                        # <必选项> 组件类型，为：solution, chip, board, common, sdk
 
@@ -41,10 +41,9 @@ build_config:
   cflag: '-Wno-nonnull-compare'
   include:
     - .
-  # libs:
-  #   - cxvision_v2.0
-  # libpath:
-  #   - libs/<cpu>
+  define:
+    __YOC__: 1
+
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
 source_file:
@@ -59,14 +58,15 @@ source_file:
 #   CONFIG_DEBUG: y
 #   CONFIG_PARAM_NOT_CHECK: y
 #   CONFIG_CLI: y
-def_config:
-    __YOC__: 1
 
 ## 第六部分：安装信息
 # install:
 #   - dest: include/                       # 安装的目的路径 dest是相当路径，通常是相对于YoC SDK 安装目录
 #     source:                              # 安装源列表
 #      - src/*.h                           # 支持通配符，相对路径
+install:
+  - dest:
+    source:
 
 ## 第七部分：导出部分
 # export:

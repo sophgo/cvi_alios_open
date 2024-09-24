@@ -150,7 +150,7 @@ static int32_t rtl8201_loopback(eth_phy_handle_t handle)
 eth_phy_dev_t RTL8201F_device = {
     .phy_id = 0x001cc816,
     .mask = 0xffffff0,
-    .features = CVI_PHY_BASIC_FEATURES,
+    .features = PHY_BASIC_FEATURES,
     .config = &rtl8201_config_init,
     .start = &rtl8201_start,    
     .loopback = &rtl8201_loopback,

@@ -244,10 +244,7 @@ CVI_VOID *APP_OSDTimeStamp_Task(CVI_VOID *args)
     }
     while (pstAppOsd ->s32Enable) {
         CVI_RGN_GetDisplayAttr(pstAppOsd->s32Handle, &pstAppOsd->stChn, &stChnAttr);
-        if (stChnAttr.unChnAttr.stOverlayChn.stInvertColor.bInvColEn)
-            CVI_RGN_Invert_Color(pstAppOsd->s32Handle, &pstAppOsd->stChn, pu32Color);
-        else
-            memset(pu32Color, 0xffff, sizeof(CVI_U32) * s32StrLen);
+        memset(pu32Color, 0xffff, sizeof(CVI_U32) * s32StrLen);
         APP_OSD_GetTimeStr(NULL, szStr, OSD_LEN_MAXSIZE);
         stBitmap.u32Width = pstAppOsd->Pos.u32Width;
         stBitmap.u32Height = pstAppOsd->Pos.u32Height;
@@ -398,13 +395,8 @@ CVI_S32 APP_OSD_Create(APP_OSD_S *pstAppOsd)
     stChnAttr.bShow = CVI_TRUE;
     stChnAttr.enType = OVERLAY_RGN;
     stChnAttr.unChnAttr.stOverlayChn.u32Layer = 0;
-    stChnAttr.unChnAttr.stOverlayChn.stInvertColor.stInvColArea.u32Width = OSD_LIB_FONT_W;
-    stChnAttr.unChnAttr.stOverlayChn.stInvertColor.stInvColArea.u32Height = OSD_LIB_FONT_H;
-    stChnAttr.unChnAttr.stOverlayChn.stInvertColor.u32LumThresh = 128;
-    stChnAttr.unChnAttr.stOverlayChn.stInvertColor.enChgMod = MORETHAN_LUM_THRESH;
     stChnAttr.unChnAttr.stOverlayChn.stPoint.s32X = Pos.s32X;
     stChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y = Pos.s32Y;
-    stChnAttr.unChnAttr.stOverlayChn.stInvertColor.bInvColEn = CVI_FALSE;
     s32Ret = CVI_RGN_AttachToChn(pstAppOsd->s32Handle, &pstAppOsd->stChn, &stChnAttr);
     if (s32Ret != CVI_SUCCESS) {
         printf("CVI_RGN_AttachToChn failed with %#x!\n", s32Ret);
@@ -455,10 +447,7 @@ CVI_S32 APP_OSD_SetString(APP_OSD_S *pstAppOsd, CVI_S32 s32Handle, CVI_CHAR *Str
         goto EXIT;
     }
     CVI_RGN_GetDisplayAttr(pstTempAppOsd->s32Handle, &pstTempAppOsd->stChn, &stChnAttr);
-    if (stChnAttr.unChnAttr.stOverlayChn.stInvertColor.bInvColEn)
-        CVI_RGN_Invert_Color(pstTempAppOsd->s32Handle, &pstTempAppOsd->stChn, pu32Color);
-    else
-        memset(pu32Color, 0xffff, sizeof(CVI_U32) * strlen(String));
+    memset(pu32Color, 0xffff, sizeof(CVI_U32) * strlen(String));
     stBitmap.u32Width = OSD_LIB_FONT_W * (strlen(String) - MediaOsd_GetNonASCNum(String, strlen(String)));
     stBitmap.u32Height = OSD_LIB_FONT_H;
     stBitmap.pData = malloc(2 * stBitmap.u32Width * stBitmap.u32Height);

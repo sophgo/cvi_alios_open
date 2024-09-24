@@ -19,13 +19,12 @@
 #include <dw_uart_ll.h>
 #include <drv/tick.h>
 #include <aos/kernel.h>
-#include <mmio.h>
 
 #include "board.h"
 
-#define UART_SCLK 170000000/* 170MHz */
+#define UART_SCLK 25000000/* 25MHz */
 
-#define TX_RINGBUFFER_SIZE 4096
+#define TX_RINGBUFFER_SIZE 8192
 
 #define UART_TIMEOUT    0x10000000U
 #define UART_MAX_FIFO   0x10U
@@ -33,6 +32,9 @@
 extern uint16_t uart_tx_hs_num[];
 extern uint16_t uart_rx_hs_num[];
 extern const csi_pinmap_t uart_pinmap[];
+
+uint16_t uart_ringbuffer_write_err_times = 0;
+uint16_t uart_irqbuffer_write_err_times = 0;
 
 static void rx_pin_uart_to_gpio(uint8_t dev_idx, pin_name_t *rx_pin);
 static void tx_pin_uart_to_gpio(uint8_t dev_idx, pin_name_t *tx_pin);
@@ -107,12 +109,13 @@ static void dw_uart_intr_recv_data(csi_uart_t *uart)
     }
 }
 
+#if 0
 static void uart_intr_send_data(csi_uart_t *uart)
 {
     uint32_t i = 0U, ret = 0;
     dw_uart_regs_t *uart_base = (dw_uart_regs_t *)HANDLE_REG_BASE(uart);
     uint8_t temp_buf[UART_MAX_FIFO] = {0};
-    struct ringbuf *tx_ringbuf = (struct ringbuf *)uart->priv;
+    struct ringbuf *tx_ringbuf = (struct ringbuf *)uart->ringbuf_irq;
 
     ret = ringbuffer_read(&tx_ringbuf->tx_ringbuffer, (uint8_t *)temp_buf, UART_MAX_FIFO);
     if (ret > 0) {
@@ -124,14 +127,28 @@ static void uart_intr_send_data(csi_uart_t *uart)
             uart->tx_data++;
         }
     } else if (ret == 0) {
-        dw_uart_disable_trans_irq(uart_base);
-        uart->state.writeable = 1U;
+        tx_ringbuf = (struct ringbuf *)uart->priv;
+        ret = ringbuffer_read(&tx_ringbuf->tx_ringbuffer, (uint8_t *)temp_buf, UART_MAX_FIFO);
+        if (ret > 0) {
+            uart->tx_data = temp_buf;
+            uart->tx_size = ret;
 
-        if (uart->callback) {
-            uart->callback(uart, UART_EVENT_SEND_COMPLETE, uart->arg);
+            for (i = 0U; i < uart->tx_size; i++) {
+                dw_uart_putchar(uart_base, *uart->tx_data);
+                uart->tx_data++;
+            }
+        } else if (ret == 0) {
+            dw_uart_disable_trans_irq(uart_base);
+            uart->state.writeable = 1U;
+
+            if (uart->callback) {
+                uart->callback(uart, UART_EVENT_SEND_COMPLETE, uart->arg);
+            }
         }
+
     }
 }
+#endif
 
 static void uart_intr_line_error(csi_uart_t *uart)
 {
@@ -175,7 +192,7 @@ void dw_uart_irq_handler(unsigned int irqn, void *arg)
             break;
 
         case DW_UART_IIR_IID_THR_EMPTY:         /* interrupt source:sendter holding register empty */
-            uart_intr_send_data(uart);
+            // uart_intr_send_data(uart);
             break;
 
         case DW_UART_IIR_IID_RECV_DATA_AVAIL:   /* interrupt source:receiver data available or receiver fifo trigger level reached */
@@ -188,6 +205,16 @@ void dw_uart_irq_handler(unsigned int irqn, void *arg)
     }
 }
 
+uint64_t readl(uint64_t addr)
+{
+    return *(volatile uint64_t*)addr;
+}
+
+void writel(uint64_t value, uint64_t addr)
+{
+    *(volatile uint64_t*)addr = value;
+}
+
 csi_error_t csi_uart_init(csi_uart_t *uart, uint32_t idx)
 {
     CSI_PARAM_CHK(uart, CSI_ERROR);
@@ -195,13 +222,14 @@ csi_error_t csi_uart_init(csi_uart_t *uart, uint32_t idx)
     csi_error_t ret = CSI_OK;
     dw_uart_regs_t *uart_base;
     struct ringbuf *tx_ringbuf;
+    struct ringbuf *tx_ringbuf_irq;
 
     ret = target_get(DEV_DW_UART_TAG, idx, &uart->dev);
 
     if (idx == CONSOLE_UART_IDX) {
-        mmio_write_32(SOFT_RSTN_ADDR, mmio_read_32(SOFT_RSTN_ADDR) & ~UART0_RSTN_OFFSET);
+        writel(readl(SOFT_RSTN_ADDR) & ~UART0_RSTN_OFFSET, SOFT_RSTN_ADDR);
         udelay(10);
-        mmio_write_32(SOFT_RSTN_ADDR, mmio_read_32(SOFT_RSTN_ADDR) | UART0_RSTN_OFFSET);
+        writel(readl(SOFT_RSTN_ADDR) | UART0_RSTN_OFFSET, SOFT_RSTN_ADDR);
         udelay(10);
     }
 
@@ -221,6 +249,18 @@ csi_error_t csi_uart_init(csi_uart_t *uart, uint32_t idx)
         ringbuffer_create(&tx_ringbuf->tx_ringbuffer, tx_ringbuf->tx_buf, TX_RINGBUFFER_SIZE);
 
         uart->priv = tx_ringbuf;
+
+        tx_ringbuf_irq = (struct ringbuf *)malloc(sizeof(struct ringbuf));
+        if (tx_ringbuf_irq == NULL) {
+            return -1;
+        }
+        tx_ringbuf_irq->tx_buf = (char *)malloc(TX_RINGBUFFER_SIZE);
+        if (tx_ringbuf_irq->tx_buf == NULL) {
+            return -1;
+        }
+        ringbuffer_create(&tx_ringbuf_irq->tx_ringbuffer, tx_ringbuf_irq->tx_buf, TX_RINGBUFFER_SIZE);
+        uart->ringbuf_irq = tx_ringbuf_irq;
+
         uart->rx_size = 0U;
         uart->tx_size = 0U;
         uart->rx_data = NULL;
@@ -229,6 +269,7 @@ csi_error_t csi_uart_init(csi_uart_t *uart, uint32_t idx)
         uart->rx_dma  = NULL;
         dw_uart_disable_trans_irq(uart_base);
         dw_uart_disable_recv_irq(uart_base);
+
     }
 
     return ret;
@@ -245,6 +286,12 @@ void csi_uart_uninit(csi_uart_t *uart)
     free(tx_ringbuf->tx_buf);
     ringbuffer_destroy(&tx_ringbuf->tx_ringbuffer);
     free(uart->priv);
+
+    tx_ringbuf = (struct ringbuf *)uart->ringbuf_irq;
+
+    free(tx_ringbuf->tx_buf);
+    ringbuffer_destroy(&tx_ringbuf->tx_ringbuffer);
+    free(uart->ringbuf_irq);
 
     uart->priv = NULL;
     uart->rx_size = 0U;
@@ -551,22 +598,63 @@ int32_t csi_uart_send(csi_uart_t *uart, const void *data, uint32_t size, uint32_
     return trans_num;
 }
 
+int32_t csi_uart_print_ringbuffer(csi_uart_t *uart)
+{
+    struct ringbuf *tx_ringbuf;
+    uint8_t ch;
+
+    tx_ringbuf = (struct ringbuf *)uart->ringbuf_irq;
+    while (ringbuffer_read(&tx_ringbuf->tx_ringbuffer, (uint8_t *)&ch, 1)) {
+        csi_uart_putc(uart, ch);
+    }
+
+    tx_ringbuf = (struct ringbuf *)uart->priv;
+    while (ringbuffer_read(&tx_ringbuf->tx_ringbuffer, (uint8_t *)&ch, 1)) {
+        csi_uart_putc(uart, ch);
+    }
+    return 0;
+}
+
 csi_error_t dw_uart_send_intr(csi_uart_t *uart, const void *data, uint32_t size)
 {
-    dw_uart_regs_t *uart_base = (dw_uart_regs_t *)HANDLE_REG_BASE(uart);
+    // dw_uart_regs_t *uart_base = (dw_uart_regs_t *)HANDLE_REG_BASE(uart);
     int32_t ret = 0;
     struct ringbuf *tx_ringbuf = (struct ringbuf *)uart->priv;
 
     if (size > TX_RINGBUFFER_SIZE) {
+        uart_ringbuffer_write_err_times++;
         return CSI_ERROR;
     }
 
     ret = ringbuffer_write(&tx_ringbuf->tx_ringbuffer, (uint8_t*)data, size);
     if (ret < size) {
+        uart_ringbuffer_write_err_times++;
         return CSI_ERROR;
     }
 
-    dw_uart_enable_trans_irq(uart_base);
+    // dw_uart_enable_trans_irq(uart_base);
+
+    return CSI_OK;
+}
+
+csi_error_t dw_uart_send_intr_irq(csi_uart_t *uart, const void *data, uint32_t size)
+{
+    // dw_uart_regs_t *uart_base = (dw_uart_regs_t *)HANDLE_REG_BASE(uart);
+    int32_t ret = 0;
+    struct ringbuf *tx_ringbuf = (struct ringbuf *)uart->ringbuf_irq;
+
+    if (size > TX_RINGBUFFER_SIZE) {
+        uart_irqbuffer_write_err_times++;
+        return CSI_ERROR;
+    }
+
+    ret = ringbuffer_write(&tx_ringbuf->tx_ringbuffer, (uint8_t*)data, size);
+    if (ret < size) {
+        uart_irqbuffer_write_err_times++;
+        return CSI_ERROR;
+    }
+
+    // dw_uart_enable_trans_irq(uart_base);
 
     return CSI_OK;
 }
@@ -588,6 +676,23 @@ csi_error_t csi_uart_send_async(csi_uart_t *uart, const void *data, uint32_t siz
     return ret;
 }
 
+csi_error_t csi_uart_send_async_irq(csi_uart_t *uart, const void *data, uint32_t size)
+{
+    CSI_PARAM_CHK(uart, CSI_ERROR);
+    CSI_PARAM_CHK(data, CSI_ERROR);
+    CSI_PARAM_CHK(uart->callback, CSI_ERROR);
+    CSI_PARAM_CHK(uart->send_irq, CSI_ERROR);
+
+    csi_error_t ret;
+    ret = uart->send_irq(uart, data, size);
+
+    if (ret == CSI_OK) {
+        uart->state.writeable = 0U;
+    }
+
+    return ret;
+}
+
 csi_error_t csi_uart_attach_callback(csi_uart_t *uart, void  *callback, void *arg)
 {
     CSI_PARAM_CHK(uart, CSI_ERROR);
@@ -598,6 +703,7 @@ csi_error_t csi_uart_attach_callback(csi_uart_t *uart, void  *callback, void *ar
     uart->callback = callback;
     uart->arg = arg;
     uart->send = dw_uart_send_intr;
+    uart->send_irq = dw_uart_send_intr_irq;
     uart->receive = dw_uart_receive_intr;
 
     request_irq((uint32_t)(uart->dev.irq_num), &dw_uart_irq_handler, 0x1, "uart int", uart);
@@ -939,3 +1045,7 @@ void csi_uart_disable_pm(csi_uart_t *uart)
 }
 #endif
 
+void csi_uart_flush_cache(csi_uart_t *uart)
+{
+
+}

@@ -25,7 +25,6 @@
 #include <semaphore.h>
 #include <pthread.h>
 #include <aos/cli.h>
-#include "debug/dbg.h"
 
 #define TAG "i2s"
 //#define AUDIO_USING_NONCACHE_MEM 1
@@ -56,16 +55,6 @@ csi_dma_ch_config_t i2s0_dma_config = {
     .group_len = (INIT_FIFO_THRESHOLD+1)*4,
     .handshake = 3,
 };
-
-csi_dma_ch_config_t i2s1_dma_config = {
-    .src_inc = DMA_ADDR_CONSTANT,
-    .dst_inc = DMA_ADDR_INC,
-    .src_tw = DMA_DATA_WIDTH_32_BITS,
-    .dst_tw = DMA_DATA_WIDTH_16_BITS,
-    .trans_dir = DMA_PERH2MEM,
-    .group_len = (INIT_FIFO_THRESHOLD+1)*4,
-    .handshake = 6,
-};
 typedef struct _csi_i2s_status_tag{
 	aos_mutex_t mutex;
 	aos_event_t evt;
@@ -83,26 +72,8 @@ static bool i2s3_start_dma = false;
 	#define audio_dcache_clean_invalid_range(...)
 #endif
 
-//for underrun
-static uint64_t *pZero = NULL;
-static uint8_t *pAlignZero = NULL;
-static uint32_t xrun = 0;
-static uint32_t res_data = 0;
 
 
-static uint8_t *get_buffer_alig_64(uint32_t len, uint64_t *first_addr)
-{
-	uint8_t  *addr;
-	uint64_t tmp;
-
-	tmp = (uintptr_t)aos_zalloc(len + (1 << 6) - 1);
-	if(!tmp){
-		return NULL;
-	}
-	first_addr = (uint64_t *)tmp;
-	addr = (uint8_t *)((tmp+ (1 << 6) - 1) & ~((1 << 6) - 1));
-	return addr;
-}
 /*
  * set_default_sound_i2s_values for i2s parameters
  *
@@ -163,36 +134,6 @@ int set_default_sound_i2s0_rx_values(unsigned int i2s_no, u32 rate, u8 channels)
     g_i2srx_pri.bclk_div = 0x01; /* 1 means bypass*/
     g_i2srx_pri.fifo_threshold = INIT_FIFO_THRESHOLD;
     g_i2srx_pri.fifo_high_threshold = INIT_FIFO_HIGH_THRESHOLD;
-
-    return 0;
-}
-
-int set_default_sound_i2s1_rx_values(unsigned int i2s_no, u32 rate, u8 channels)
-{
-    debug("%s\n", __func__);
-    g_i2s1rx_pri.mclk_out_en = 0;
-    g_i2s1rx_pri.clk_src = AUD_CLK_FROM_PLL;
-    g_i2s1rx_pri.channels = 2;
-    g_i2s1rx_pri.id = i2s_no;
-    g_i2s1rx_pri.base_address = i2s_get_base(i2s_no);
-    g_i2s1rx_pri.sys_base_address = i2s_get_sys_base();
-
-    g_i2s1rx_pri.mclk_out_en = 1;
-    g_i2s1rx_pri.role = SLAVE_MODE;
-    //adc only support 2ch.
-    g_i2s1rx_pri.channels = channels;
-    g_i2s1rx_pri.slot_no = channels;
-    g_i2s1rx_pri.inv = FMT_IB_NF; // FMT_IB_NF;
-
-    g_i2s1rx_pri.aud_mode = I2S_MODE;
-    g_i2s1rx_pri.mclk_div = 1; /* 1 means bypass*/
-
-    g_i2s1rx_pri.samplingrate = rate;
-    g_i2s1rx_pri.bitspersample = 16; /* bit resolution */
-    g_i2s1rx_pri.sync_div = WSS_16_CLKCYCLE; /* WS clock cycle (L+R). 0x40: 64 bit, 0x30: 48 bit, 0x20: 32 bit*/
-    g_i2s1rx_pri.bclk_div = 0x01; /* 1 means bypass*/
-    g_i2s1rx_pri.fifo_threshold = INIT_FIFO_THRESHOLD;
-    g_i2s1rx_pri.fifo_high_threshold = INIT_FIFO_HIGH_THRESHOLD;
 
     return 0;
 }
@@ -400,6 +341,7 @@ I2S_CODE_IN_RAM int i2s_check_fifo_status(csi_i2s_t *i2s)
 	return 0;//write_size;
 }
 
+
 I2S_CODE_IN_RAM void dw_i2s_dma_event_cb(csi_dma_ch_t *dma, csi_dma_event_t event, void *arg)
 {
     CSI_PARAM_CHK_NORETVAL(dma);
@@ -429,47 +371,21 @@ I2S_CODE_IN_RAM void dw_i2s_dma_event_cb(csi_dma_ch_t *dma, csi_dma_event_t even
         if ((i2s->tx_dma != NULL) && (i2s->tx_dma->ch_id == dma->ch_id)) {
             /* to do tx action */
             uint32_t read_len = i2s->tx_period;
-            void * src = NULL;
 
-            if(i2s->tx_buf->data_len < 2 * i2s->tx_period)
-            {
+            if (i2s->tx_buf->data_len <= i2s->tx_period) {
+
                 if (i2s->callback) {
                     //printf("i2s%d,audio playing underrun...\n", i2s_get_no(i2s->dev.reg_base));
                     i2s->callback(i2s, I2S_EVENT_TX_BUFFER_EMPTY, i2s->arg);
                 }
-                if(!xrun && (i2s->tx_buf->data_len > i2s->tx_period)) {
-                    src = (void *)(i2s->tx_buf->buffer + (i2s->tx_buf->read + i2s->tx_period) % i2s->tx_buf->size);
-                    read_len = i2s->tx_buf->data_len - i2s->tx_period;
-                    res_data = i2s->tx_buf->data_len;
-                    xrun++;
-                } else {
-                    if(res_data == i2s->tx_buf->data_len)
-                    {
-                        xrun++;
-                        if(xrun > (i2s->tx_buf->size / i2s->tx_period))
-                        {
-                            ringbuffer_reset(i2s->tx_buf);
-                            //aos_debug_printf("play underrun reset buffer\r\n");
-                            i2s3_start_dma = false;
-                            xrun = 0;
-                            res_data = 0;
-                            return;
-                        }
-                    } else {
-                        xrun = 1;
-                        res_data = i2s->tx_buf->data_len;
-                    }
-                    src = (void *)pAlignZero;
-                    //aos_debug_printf("src:%x, len:%d, xrun:%d, data_len:%d\r\n", src, read_len, xrun, i2s->tx_buf->data_len);
-                }
             } else {
+
                 i2s->tx_buf->read = (i2s->tx_buf->read + read_len) % i2s->tx_buf->size;
                 i2s->tx_buf->data_len -= read_len;
-                src = (void *)(i2s->tx_buf->buffer + i2s->tx_buf->read);
-                xrun = 0;
             }
             audio_dcache_clean_invalid_range((unsigned long)(i2s->tx_buf->buffer), i2s->tx_buf->size);
-            csi_dma_ch_start(i2s->tx_dma, src, (void *) & (pi2s_tx->base_address->tx_wr_port_ch0), read_len);
+            csi_dma_ch_start(i2s->tx_dma, i2s->tx_buf->buffer + i2s->tx_buf->read, (void *) & (pi2s_tx->base_address->tx_wr_port_ch0), i2s->tx_period);
+
             if (i2s->callback) {
                 i2s->callback(i2s, I2S_EVENT_SEND_COMPLETE, i2s->arg);
                 aos_event_set(&p_status->evt, PCM_EVT_WRITE, AOS_EVENT_OR);
@@ -487,7 +403,6 @@ I2S_CODE_IN_RAM void dw_i2s_dma_event_cb(csi_dma_ch_t *dma, csi_dma_event_t even
                 //i2s->rx_buf->data_len = i2s->rx_buf->data_len % i2s->rx_buf->size;
                 if (i2s->callback && i2s->rx_buf->data_len != 0) {
                     i2s->callback(i2s, I2S_EVENT_RECEIVE_COMPLETE, i2s->arg);
-                    //printf("i2s%d,audio capture...\n", i2s_get_no(i2s->dev.reg_base));
                     if(p_status) {
                         p_status->wake_cnt++;
                         aos_event_set(&p_status->evt, PCM_EVT_READ, AOS_EVENT_OR);
@@ -495,7 +410,9 @@ I2S_CODE_IN_RAM void dw_i2s_dma_event_cb(csi_dma_ch_t *dma, csi_dma_event_t even
                 }
             }
             audio_dcache_clean_invalid_range((unsigned long)(i2s->rx_buf->buffer), i2s->rx_buf->size);
-           	csi_dma_ch_start(i2s->rx_dma, (void *) & (pi2s_tx->base_address->rx_rd_port_ch0), i2s->rx_buf->buffer + i2s->rx_buf->write, i2s->rx_period);
+            if((&(pi2s_tx->base_address->rx_rd_port_ch0) == NULL) || (i2s->rx_buf->buffer + i2s->rx_buf->write == NULL))
+                printf("Error I2S set Zero addr to DMA:%p,%p\n", &(pi2s_tx->base_address->rx_rd_port_ch0), i2s->rx_buf->buffer + i2s->rx_buf->write);
+            csi_dma_ch_start(i2s->rx_dma, (void *) & (pi2s_tx->base_address->rx_rd_port_ch0), i2s->rx_buf->buffer + i2s->rx_buf->write, i2s->rx_period);
         }
     }
 }
@@ -518,8 +435,6 @@ csi_error_t csi_i2s_init(csi_i2s_t *i2s, uint32_t idx)
 		//	ret = i2s_init(&g_i2srx_pri);
 			break;
 		case I2S1:
-            i2s->dev.reg_base = (unsigned long)i2s_get_base(I2S1);
-            set_default_sound_i2s1_rx_values(I2S1, 16000, 2);
 			break;
 		case I2S2:
 			break;
@@ -728,8 +643,8 @@ csi_error_t csi_i2s_format(csi_i2s_t *i2s, csi_i2s_format_t *format)
 		}
 
     }
-    //printf("csi_i2s_format samplingrate:%d id:%d i2s_no:%d\n",
-    //    pi2s_tx->samplingrate,pi2s_tx->id,i2s_no);
+    //printf("csi_i2s_format samplingrate:%d id:%d\n",
+    //    pi2s_tx->samplingrate,pi2s_tx->id);
 
     ret = i2s_init(pi2s_tx);
     if(i2s_no == I2S0 || i2s_no == I2S3) {
@@ -860,32 +775,15 @@ csi_error_t csi_i2s_rx_link_dma(csi_i2s_t *i2s, csi_dma_ch_t *rx_dma)
 
     if (rx_dma != NULL) {
         rx_dma->parent = i2s;
-        switch(i2s->dev.idx){
-            case 0:
-                ret = csi_dma_ch_alloc(rx_dma, 3, 0);
-                if (ret == CSI_OK) {
-                    ret = csi_dma_ch_config(rx_dma, &i2s0_dma_config);
-                    csi_dma_ch_attach_callback(rx_dma, dw_i2s_dma_event_cb, NULL);
-                    i2s->rx_dma = rx_dma;
-                } else {
-                    printf("%s csi_dma_ch_alloc error \n", __func__);
-                    rx_dma->parent = NULL;
-                    ret = CSI_ERROR;
-                }
-                break;
-            case 1:
-                ret = csi_dma_ch_alloc(rx_dma, 6, 0);
-                if (ret == CSI_OK) {
-                    ret = csi_dma_ch_config(rx_dma, &i2s1_dma_config);
-                    csi_dma_ch_attach_callback(rx_dma, dw_i2s_dma_event_cb, NULL);
-                    i2s->rx_dma = rx_dma;
-                     //printf("%s csi_dma_ch_alloc success \n", __func__);
-                } else {
-                    printf("%s csi_dma_ch_alloc error \n", __func__);
-                    rx_dma->parent = NULL;
-                    ret = CSI_ERROR;
-                }
-                break;
+        ret = csi_dma_ch_alloc(rx_dma, 3, 0);
+        if (ret == CSI_OK) {
+            ret = csi_dma_ch_config(rx_dma, &i2s0_dma_config);
+            csi_dma_ch_attach_callback(rx_dma, dw_i2s_dma_event_cb, NULL);
+            i2s->rx_dma = rx_dma;
+        } else {
+            printf("%s csi_dma_ch_alloc error \n", __func__);
+            rx_dma->parent = NULL;
+            ret = CSI_ERROR;
         }
     } else {
         if (i2s->rx_dma) {
@@ -1000,7 +898,6 @@ csi_error_t csi_i2s_tx_set_period(csi_i2s_t *i2s, uint32_t period)
 {
     CSI_PARAM_CHK(i2s, CSI_ERROR);
     csi_error_t ret = CSI_OK;
-    printf("%s ch->period = %d \n", __func__, period);
 
     if (period == 0U) {
         ret = CSI_ERROR;
@@ -1113,6 +1010,7 @@ csi_error_t csi_i2s_tx_buffer_reset(csi_i2s_t *i2s)
   \param[in]   timeout  is the number of queries, not time
   \return      The size of data receive successfully
 */
+#define DMA_BASE_ADDR (0x4330000)
 int32_t csi_i2s_receive(csi_i2s_t *i2s, void *data, uint32_t size)
 {
     CSI_PARAM_CHK(i2s, CSI_ERROR);
@@ -1124,7 +1022,7 @@ int32_t csi_i2s_receive(csi_i2s_t *i2s, void *data, uint32_t size)
 	unsigned int actl_flags = 0;
     int32_t avail_size = 0;
 	csi_i2s_status_t *p_status = (csi_i2s_status_t *)i2s->priv;
-
+    struct i2stx_info *pi2s_tx = i2s_get_i2stx_info(i2s);
     if (i2s->rx_dma == NULL) {
         received_size = i2s_receive_polling(i2s, read_data, size);
         if (received_size == (int32_t)size) {
@@ -1138,6 +1036,14 @@ int32_t csi_i2s_receive(csi_i2s_t *i2s, void *data, uint32_t size)
         while (1) {
             avail_size = ringbuffer_len(i2s->rx_buf);
             read_size += (int32_t)ringbuffer_out(i2s->rx_buf, (void *)(read_data + (uint32_t)read_size), (size - (uint32_t)read_size));
+            if (!i2s0_start_dma) {
+                printf("%s avail_size = %d , i2s->rx_buf->buffer addr = %p , i2s->rx_buf->write = %d, i2s->rx_period = %d\n",
+					__func__, avail_size, i2s->rx_buf->buffer, i2s->rx_buf->write, i2s->rx_period);
+                audio_dcache_clean_invalid_range((unsigned long)(i2s->rx_buf->buffer), i2s->rx_buf->size);
+                csi_dma_ch_start(i2s->rx_dma, (void *) &(pi2s_tx->base_address->rx_rd_port_ch0), i2s->rx_buf->buffer + i2s->rx_buf->write, i2s->rx_period);
+                i2s0_start_dma = true;
+            }
+
             if ((size - (uint32_t)read_size) <= 0U) {
                 break;
             }
@@ -1148,7 +1054,21 @@ int32_t csi_i2s_receive(csi_i2s_t *i2s, void *data, uint32_t size)
 						LOGW(TAG,"pcm read PCM_EVT_XRUN\r\n");
 					}
 				}else {
-					LOGE(TAG,"aos_event_get error ret:%d  avail_size:%d, read_size:%d\r\n",ret, avail_size, read_size);
+					LOGE(TAG,"aos_event_get error ret:%d \r\n",ret);
+                    if(mmio_read_32((uintptr_t)(DMA_BASE_ADDR + i2s->rx_dma->ch_id * 0x100 + 0x100)) == 0){ // check DMA SAR addr
+                        printf("i2s rev check: SAR:0x%x\n", mmio_read_32((uintptr_t)(DMA_BASE_ADDR + i2s->rx_dma->ch_id * 0x100 + 0x100)));
+                        printf("i2s rev check: DAR:0x%x\n", mmio_read_32((uintptr_t)(DMA_BASE_ADDR + i2s->rx_dma->ch_id * 0x100 + 0x108)));
+                        printf("i2s rev check: STATUS:0x%x\n", mmio_read_32((uintptr_t)(DMA_BASE_ADDR + i2s->rx_dma->ch_id * 0x100 + 0x130)));
+                        printf("i2s rev check: INT:0x%x\n", mmio_read_32((uintptr_t)(DMA_BASE_ADDR + i2s->rx_dma->ch_id * 0x100 + 0x188)));
+                        printf("i2s rev check: CFG:0x%x\n", mmio_read_32((uintptr_t)(DMA_BASE_ADDR + 0x10)));
+                        printf("i2s rev check: CH_EN:0x%x\n", mmio_read_32((uintptr_t)(DMA_BASE_ADDR + 0x18)));
+                        printf("i2s rev check: COMM STATUS:0x%x\n", mmio_read_32((uintptr_t)(DMA_BASE_ADDR + 0x30)));
+                        printf("i2s rev check: COMM INT STATUS:0x%x\n", mmio_read_32((uintptr_t)(DMA_BASE_ADDR + 0x50)));
+                        csi_dma_ch_stop(i2s->rx_dma);
+                        i2s0_start_dma = false;
+                        LOGE(TAG, "reset DMA as work run\r\n");
+                    }
+
 				}
 			}
         }
@@ -1205,7 +1125,6 @@ int32_t csi_i2s_send(csi_i2s_t *i2s, const void *data, uint32_t size)
     csi_i2s_status_t *p_status = (csi_i2s_status_t *)i2s->priv;
     struct i2stx_info *pi2s_tx = i2s_get_i2stx_info(i2s);
     uint8_t *send_data = (void *)data;
-
     if (i2s->tx_dma == NULL) {
 
         sent_size = i2s_send_polling(i2s, send_data, size);
@@ -1261,50 +1180,14 @@ int32_t csi_i2s_send(csi_i2s_t *i2s, const void *data, uint32_t size)
 */
 uint32_t csi_i2s_receive_async(csi_i2s_t *i2s, void *data, uint32_t size)
 {
-    CSI_PARAM_CHK(i2s, CSI_ERROR);
-    CSI_PARAM_CHK(data, CSI_ERROR);
-    int32_t received_size = 0;
-    uint8_t *read_data = (void *)data;
-    int32_t read_size = 0;
-    int ret = 0;
-    unsigned int actl_flags = 0;
-    int32_t avail_size = 0;
-    csi_i2s_status_t *p_status = (csi_i2s_status_t *)i2s->priv;
+    CSI_PARAM_CHK(i2s, 0U);
+    CSI_PARAM_CHK(data, 0U);
+    uint32_t read_len;
 
-    if (i2s->rx_dma == NULL) {
-        received_size = i2s_receive_polling(i2s, read_data, size);
-        if (received_size == (int32_t)size) {
-            read_size = (int32_t)size;
-        } else {
-            read_size = CSI_ERROR;
-        }
-
-    } else {
-        aos_mutex_lock(&p_status->mutex, AOS_WAIT_FOREVER);
-        while (1) {
-            avail_size = ringbuffer_len(i2s->rx_buf);
-            if (avail_size < i2s->rx_period) {
-                return 0;
-            }
-            read_size += (int32_t)ringbuffer_out(i2s->rx_buf, (void *)(read_data + (uint32_t)read_size), (size - (uint32_t)read_size));
-            if ((size - (uint32_t)read_size) <= 0U) {
-                break;
-            }
-            if(p_status) {
-                ret = aos_event_get(&p_status->evt, PCM_EVT_READ | PCM_EVT_XRUN, AOS_EVENT_OR_CLEAR, &actl_flags, 10*1000);
-                if(ret == RHINO_SUCCESS) {
-                    if ((actl_flags | PCM_EVT_XRUN) == PCM_EVT_XRUN) {
-                        LOGW(TAG,"pcm read PCM_EVT_XRUN\r\n");
-                    }
-                }else {
-                    LOGE(TAG,"aos_event_get error ret:%d  avail_size:%d, read_size:%d\r\n",ret, avail_size, read_size);
-                }
-            }
-        }
-        aos_mutex_unlock(&p_status->mutex);
-    }
-
-    return read_size;
+    uint32_t result = csi_irq_save();
+    read_len = ringbuffer_out(i2s->rx_buf, (void *)data, size);
+    csi_irq_restore(result);
+    return read_len;
 }
 
 /**
@@ -1312,14 +1195,12 @@ uint32_t csi_i2s_receive_async(csi_i2s_t *i2s, void *data, uint32_t size)
   \param[in]   i2s  operate handle.
   \return      error code
 */
-extern void csi_dma_ch_pause(csi_dma_ch_t *dma_ch);
 csi_error_t csi_i2s_send_pause(csi_i2s_t *i2s)
 {
     CSI_PARAM_CHK(i2s, CSI_ERROR);
     csi_error_t ret = CSI_OK;
-    //csi_dma_ch_stop(i2s->tx_dma);
-    //i2s->state.writeable = 0U;
-    csi_dma_ch_pause(i2s->tx_dma);
+    csi_dma_ch_stop(i2s->tx_dma);
+    i2s->state.writeable = 0U;
     return ret;
 }
 
@@ -1328,13 +1209,11 @@ csi_error_t csi_i2s_send_pause(csi_i2s_t *i2s)
   \param[in]   i2s  operate handle.
   \return      error code
 */
-extern void csi_dma_ch_resume(csi_dma_ch_t *dma_ch);
 csi_error_t csi_i2s_send_resume(csi_i2s_t *i2s)
 {
     CSI_PARAM_CHK(i2s, CSI_ERROR);
     csi_error_t ret = CSI_OK;
-    //i2s->state.writeable = 1U;
-    csi_dma_ch_resume(i2s->tx_dma);
+    i2s->state.writeable = 1U;
     return ret;
 }
 
@@ -1352,7 +1231,7 @@ csi_error_t csi_i2s_send_start(csi_i2s_t *i2s)
 
     i2s_transfer_tx_data(pi2s_tx);
     memset(i2s->tx_buf->buffer, 0, i2s->tx_buf->size);
-    pAlignZero = get_buffer_alig_64(i2s->tx_period, pZero);
+
     i2s->state.writeable = 1U;
 
     return ret;
@@ -1367,29 +1246,9 @@ csi_error_t csi_i2s_receive_start(csi_i2s_t *i2s)
 {
     CSI_PARAM_CHK(i2s, CSI_ERROR);
     csi_error_t ret = CSI_OK;
-    int i2s_no = i2s_get_no(i2s->dev.reg_base);
     struct i2stx_info *pi2s_tx = i2s_get_i2stx_info(i2s);
-	switch(i2s_no) {
-		case I2S0:
-			i2s0_start_dma = true;
-			break;
-		case I2S1:
-			i2s1_start_dma = true;
-			break;
-		case I2S2:
-			i2s2_start_dma = true;
-			break;
-		case I2S3:
-			i2s3_start_dma = true;
-			break;
-		default:
-			break;
-	}
     i2s_receive_rx_data(pi2s_tx);
-    audio_dcache_clean_invalid_range((unsigned long)(i2s->rx_buf->buffer), i2s->rx_buf->size);
-    csi_dma_ch_start(i2s->rx_dma, (void *) &(pi2s_tx->base_address->rx_rd_port_ch0), i2s->rx_buf->buffer, i2s->rx_period);
-	ringbuffer_reset(i2s->rx_buf);
-	memset(i2s->rx_buf->buffer, 0, i2s->rx_buf->size);
+    memset(i2s->rx_buf->buffer, 0, i2s->rx_buf->size);
     i2s->state.readable = 1U;
     return ret;
 }
@@ -1424,11 +1283,7 @@ void csi_i2s_send_stop(csi_i2s_t *i2s)
     ringbuffer_reset(i2s->tx_buf);
     memset(i2s->tx_buf->buffer, 0, i2s->tx_buf->size);
     i2s_stop(i2s);
-    if(pZero){
-        free(pZero);
-        pZero = NULL;
-        pAlignZero = NULL;
-    }
+
     i2s->state.writeable = 0U;
 }
 
@@ -1462,7 +1317,6 @@ void csi_i2s_receive_stop(csi_i2s_t *i2s)
 	ringbuffer_reset(i2s->rx_buf);
 	memset(i2s->rx_buf->buffer, 0, i2s->rx_buf->size);
 	i2s_stop(i2s);
-    i2s->rx_buf->write = 0;
     i2s->state.readable = 0U;
 }
 

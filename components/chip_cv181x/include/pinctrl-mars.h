@@ -8,7 +8,12 @@
 #ifndef __PINCTRL_MARS_H__
 #define __PINCTRL_MARS_H__
 
+#if __CV180X__
+#include "phobos_reg_fmux_gpio.h"
+#endif
+#if __CV181X__
 #include "mars_reg_fmux_gpio.h"
+#endif
 #include "soc.h"
 #include <top_reg.h>
 #include <mmio.h>

@@ -11,13 +11,6 @@
 
 #include <soc.h>
 #include <drv/wdt.h>
-#include <drv/porting.h>
-
-boot_reason_t soc_get_boot_reason(void)
-{
-    // FIXME:
-    return BOOTREASON_SOFT;
-}
 
 __attribute__((weak)) void reboot_pre_hook(void)
 {

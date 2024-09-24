@@ -38,7 +38,6 @@ extern "C" {
 #define AOS_KSCHED_FIFO          0u
 #define AOS_KSCHED_RR            1u
 #define AOS_KSCHED_CFS           2u
-#define AOS_KSCHED_OTHER         3u /* no meanings, just for compile ok sometimes */
 
 /**
  * @addtogroup aos_kernel_task
@@ -82,11 +81,7 @@ typedef unsigned int aos_task_key_t;
 typedef int32_t aos_status_t; /**< AOS返回值状态类型 */
 
 #define MS2TICK(ms) krhino_ms_to_ticks(ms)
-int aos_irq_context(void);
-
-int aos_is_sched_disable(void);
-
-int aos_is_irq_disable(void);
+int32_t aos_irq_context(void);
 
 /**
  * Reboot AliOS.
@@ -817,6 +812,18 @@ void *aos_zalloc_check(size_t size);
 void *aos_calloc(size_t size, size_t num);
 void *aos_calloc_check(size_t size, size_t num);
 
+void *aos_ion_zalloc(size_t size);
+
+void *aos_ion_malloc(size_t size);
+
+void *aos_ion_calloc(size_t nitems, size_t size);
+
+void *aos_ion_realloc(void *mem, size_t size);
+
+void *aos_ion_zalloc_check(size_t size);
+
+void aos_ion_free(void *mem);
+
 /**
  * Trace alloced mems.
  *
@@ -838,25 +845,6 @@ void aos_free(void *mem);
  * @param[in]  *ptr  address point of the mem.
  */
 void aos_freep(char **ptr);
-
-/**
- * This function allocates a memory block, which address is aligned to the
- * specified alignment size.
- *
- * @param  alignment is the alignment size.
- * @param  size is the allocated memory block size.
- * @return The memory block address was returned successfully, otherwise it was
- *         returned empty NULL.
- */
-void *aos_malloc_align(size_t alignment, size_t size);
-
-/**
- * This function release the memory block, which is allocated by
- * aos_malloc_align function and address is aligned.
- *
- * @param ptr is the memory block pointer.
- */
-void aos_free_align(void *ptr);
 
 /**
  * Get current time in nano seconds.
@@ -944,6 +932,8 @@ void aos_sys_tick_handler(void);
  * @return  execution status code.
  */
 int aos_get_mminfo(int32_t *total, int32_t *used, int32_t *mfree, int32_t *peak);
+
+int aos_get_mminfo_resv(int32_t *total, int32_t *used, int32_t *mfree, int32_t *peak);
 
 /**
  * Dump aos memory .

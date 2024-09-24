@@ -35,9 +35,7 @@ extern "C" {
 #define oal_malloc aos_malloc
 #define oal_free aos_free
 #endif
-#ifndef BIT
-#define BIT(nr)      (UINT64_C(1) << (nr))
-#endif
+/* $)A:j6(Re */
 
 #define GPIO_REG_WRITEL(addr, val)            *((volatile unsigned int *)addr) = val;
 
@@ -497,8 +495,8 @@ hi_s32 oal_sdio_detectcard_to_core(struct sdio_func *func, hi_s32 sdio_dev_num)
     if(func->card == NULL) {
         return HI_FAILURE;
     }
-    // func->card->host.base  = (sdif_handle_t)SDIO_BASE_ADDR;
-    func->card->host.base  = csi_sdif_get_handle(0);
+    func->card->host.base  = (sdif_handle_t)SDIO_BASE_ADDR;
+
     ret = SDIO_Init(func->card);
     if (ret != kStatus_Success) {
         printf("[error]func %s line %d ret %d !!!\n", __func__,__LINE__, ret);

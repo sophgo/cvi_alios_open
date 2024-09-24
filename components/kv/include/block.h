@@ -13,19 +13,14 @@
 extern "C" {
 #endif
 
-#if CONFIG_KV_GET_ERASE_FLAG_AUTO
-#define BLOCK_RESERVE_SPACE sizeof(uint32_t)
-#else
-#define BLOCK_RESERVE_SPACE 0
-#endif
-extern uint32_t g_kv_erase_flag;
-#define NODE_VAILD(n) ((n)->erase_flag != g_kv_erase_flag)
+#define ERASE_FLAG 0
 
 enum {
     NODE_ALL = 0,
     NODE_EXISTS = 1,
 };
 
+#define NODE_VAILD(n) ((n)->erase_flag != ERASE_FLAG)
 struct kvblock {
     int          id;
     uint8_t      *mem;

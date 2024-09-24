@@ -4,14 +4,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>
-#include <sys/stat.h>
 
 #include "k_api.h"
 #include "pthread.h"
 #include "mqueue.h"
 #include "ulog/ulog.h"
-#include "aos/kernel.h"
 
 #define TAG "mqueue_test"
 
@@ -45,16 +42,18 @@ static void *demo_task1(void *arg)
     int   len    = 0;
 
     while (1) {
+        LOGI(TAG, "mqueue send message %d\n", count);
+
         if (count < TOTAL_MSG_NUM) {
             len = strlen(test_msg[count]);
             ret = mq_send(mqueue, test_msg[count], len, 0);
-            if (ret != 0) {
-                LOGE(TAG, "mq send failed %d\n", ret);
+            if (ret != len) {
                 succeed_flag = 0;
             }
         }
 
-        aos_msleep(1000);
+        krhino_task_sleep(RHINO_CONFIG_TICKS_PER_SECOND);
+
         if (count == TOTAL_MSG_NUM) {
             pthread_exit(status);
         }
@@ -73,18 +72,18 @@ static void *demo_task2(void *arg)
     int   len    = 0;
 
     while (1) {
+        LOGI(TAG, "mqueue receive message %d\n", count);
+
         if (count < TOTAL_MSG_NUM) {
             len = strlen(test_msg[count]);
-            ret = mq_receive(mqueue, recv_buf, sizeof(recv_buf), NULL);
+            ret = mq_receive(mqueue, recv_buf, len, NULL);
             if ((ret != len) || (strncmp(recv_buf, test_msg[count], len) != 0)) {
-                LOGE(TAG, "mq recv failed %d\n", ret);
                 succeed_flag = 0;
-            } else {
-                LOGI(TAG, "mq recv msg: %s", recv_buf);
             }
         }
 
-        aos_msleep(1000);
+        krhino_task_sleep(RHINO_CONFIG_TICKS_PER_SECOND);
+
         if (count == TOTAL_MSG_NUM) {
             pthread_exit(status);
         }
@@ -106,13 +105,15 @@ static void *demo_task3(void *arg)
         if (count < 3) {
             len = strlen(test_msg[count]);
             ret = mq_send(mqueue, test_msg[count], len, 0);
-            if (ret != 0) {
+            if (ret != len) {
                 succeed_flag = 0;
-                LOGE(TAG, "mq send failed %d\n", ret);
             }
+
+            LOGI(TAG, "mqueue send message %d\n", count);
         }
 
-        aos_msleep(1000);
+        krhino_task_sleep(RHINO_CONFIG_TICKS_PER_SECOND);
+
         if (count == TOTAL_MSG_NUM) {
             pthread_exit(status);
         }
@@ -125,34 +126,39 @@ static void *demo_task3(void *arg)
 
 static void *demo_task4(void *arg)
 {
-    int   count = 0;
-    int   ret   = 0;
-    int   len   = 0;
+    int   count  = 0;
+    void *status = NULL;
+    int   ret    = 0;
+    int   len    = 0;
+
     struct timespec ts;
 
+    ts.tv_sec = 2;
+    ts.tv_nsec = 0;
+
     while (1) {
-        ts.tv_sec = 2;
-        ts.tv_nsec = 0;
+        LOGI(TAG, "mqueue receive message %d\n", count);
+
         if (count < TOTAL_MSG_NUM) {
             len = strlen(test_msg[count]);
-            ret = mq_timedreceive(mqueue, recv_buf, sizeof(recv_buf), NULL, &ts);
-            if (count < 3) {
-                if ((ret != len)||(strncmp(recv_buf, test_msg[count], len) != 0)) {
-                    succeed_flag = 0;
-                    LOGE(TAG, "mq recv failed %d\n", ret);
-                } else {
-                    LOGI(TAG, "mq recv msg: %s", recv_buf);
-                }
-            } else {
-                if (ret != -1) {
-                    succeed_flag = 0;
-                    LOGE(TAG, "mq recv failed %d\n", ret);
-                }
-                break;
+            ret = mq_timedreceive(mqueue, recv_buf, len, NULL, &ts);
+
+
+            if ((count < 3)&&((ret != len)||(strncmp(recv_buf, test_msg[count], len) != 0))) {
+                succeed_flag = 0;
+            }
+
+            if ((count >= 3)&&((ret == len)||(strncmp(recv_buf, test_msg[count], len) == 0))) {
+                succeed_flag = 0;
             }
         }
 
-        aos_msleep(1000);
+        krhino_task_sleep(RHINO_CONFIG_TICKS_PER_SECOND);
+
+        if (count == TOTAL_MSG_NUM) {
+            pthread_exit(status);
+        }
+
         count++;
     }
 
@@ -162,37 +168,41 @@ static void *demo_task4(void *arg)
 static void *demo_task5(void *arg)
 {
     int   count  = 0;
+    void *status = NULL;
     int   ret    = 0;
     int   len    = 0;
-    struct timespec ts;
-    mqd_t mq;
 
-    mq = mq_open("/mqueue", O_RDWR);
-    if (mq == -1) {
-        succeed_flag = 0;
-    }
+    struct timespec ts;
+
+    ts.tv_sec = 2;
+    ts.tv_nsec = 0;
 
     while (1) {
-        ts.tv_sec = 2;
-        ts.tv_nsec = 0;
-        if (count < TOTAL_MSG_NUM) {
-            len = strlen(test_msg[count]);
-            ret = mq_timedreceive(mq, recv_buf, sizeof(recv_buf), NULL, &ts);
+        if (count == 0) {
+            len = strlen(test_msg[0]);
+            ret = mq_timedreceive(mqueue, recv_buf, len, NULL, &ts);
+
             if ((ret == len)||(strncmp(recv_buf, test_msg[count], len) == 0)) {
-                LOGI(TAG, "mq recv msg: %s", recv_buf);
-            } else {
                 succeed_flag = 0;
-                LOGI(TAG, "mq recv fail: %d", ret);
             }
+
+            ret = mq_timedreceive(mqueue, recv_buf, len, NULL, &ts);
+
+            if ((ret != len)||(strncmp(recv_buf, test_msg[count], len) != 0)) {
+                succeed_flag = 0;
+            }
+
+            LOGI(TAG, "mqueue receive message %d\n", count);
         }
 
-        aos_msleep(1000);
+        krhino_task_sleep(RHINO_CONFIG_TICKS_PER_SECOND);
+
         if (count == TOTAL_MSG_NUM) {
-            break;
+            pthread_exit(status);
         }
+
         count++;
     }
-    mq_unlink("/mqueue");
 
     return NULL;
 }
@@ -203,24 +213,26 @@ static void *demo_task6(void *arg)
     void *status = NULL;
     int   ret    = 0;
     int   len    = 0;
-    struct timespec ts;
 
     while (1) {
-        ts.tv_sec = 2;
-        ts.tv_nsec = 0;
-        if (count < TOTAL_MSG_NUM) {
-            len = strlen(test_msg[count]);
-            ret = mq_timedsend(mqueue, test_msg[count], len, 0, &ts);
-            if (ret != 0) {
+        if (count == 0) {
+            krhino_task_sleep(3 * RHINO_CONFIG_TICKS_PER_SECOND);
+
+            len = strlen(test_msg[0]);
+            ret = mq_send(mqueue, test_msg[0], len, 0);
+            if (ret != len) {
                 succeed_flag = 0;
-                LOGE(TAG, "mq send failed %d\n", ret);
             }
+
+            LOGI(TAG, "mqueue send message %d\n", count);
         }
 
-        aos_msleep(1000);
+        krhino_task_sleep(RHINO_CONFIG_TICKS_PER_SECOND);
+
         if (count == TOTAL_MSG_NUM) {
             pthread_exit(status);
         }
+
         count++;
     }
 
@@ -231,18 +243,18 @@ void posix_mqueue_case1(void)
 {
     int   ret    = -1;
     void *status = NULL;
+
     pthread_t thread1;
     pthread_t thread2;
-    struct mq_attr mqa = {0};
 
     LOGI(TAG, "posix_mqueue_case1 start !\n");
-    mqa.mq_maxmsg  = 20;
-    mqa.mq_msgsize = 96;
+
     succeed_flag = 1;
+
     memset(recv_buf, 0, sizeof(recv_buf));
 
-    mqueue = mq_open("/mqueue", O_CREAT | O_RDWR, 0, &mqa);
-    if (mqueue == -1) {
+    mqueue = mq_open("mqueue", 0);
+    if (mqueue == NULL) {
         succeed_flag = 0;
     }
 
@@ -272,16 +284,15 @@ void posix_mqueue_case2(void)
 
     pthread_t thread1;
     pthread_t thread2;
-    struct mq_attr mqa = {0};
 
     LOGI(TAG, "posix_mqueue_case2 start !\n");
-    mqa.mq_maxmsg  = 20;
-    mqa.mq_msgsize = 96;
+
     succeed_flag = 1;
+
     memset(recv_buf, 0, sizeof(recv_buf));
 
-    mqueue = mq_open("/mqueue", O_CREAT | O_RDWR, 0, &mqa);
-    if (mqueue == -1) {
+    mqueue = mq_open("mqueue", 0);
+    if (mqueue == NULL) {
         succeed_flag = 0;
     }
 
@@ -311,16 +322,15 @@ void posix_mqueue_case3(void)
 
     pthread_t thread1;
     pthread_t thread2;
-    struct mq_attr mqa = {0};
 
     LOGI(TAG, "posix_mqueue_case3 start !\n");
-    mqa.mq_maxmsg  = 20;
-    mqa.mq_msgsize = 96;
+
     succeed_flag = 1;
+
     memset(recv_buf, 0, sizeof(recv_buf));
 
-    mqueue = mq_open("/mqueue", O_CREAT | O_RDWR, 0, &mqa);
-    if (mqueue == -1) {
+    mqueue = mq_open("mqueue", 0);
+    if (mqueue == NULL) {
         succeed_flag = 0;
     }
 

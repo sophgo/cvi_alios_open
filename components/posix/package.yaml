@@ -43,8 +43,22 @@ build_config:
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
 source_file:
-  - src/*.c
-
+  - src/dirent.c ? <CONFIG_DUALOS_NO_CROP>
+  - src/fs.c ? <CONFIG_DUALOS_NO_CROP>
+  - src/select.c ? <CONFIG_DUALOS_NO_CROP>
+  - src/poll.c ? <CONFIG_DUALOS_NO_CROP>
+  - src/enviro.c
+  - src/mqueue.c
+  - src/prctl.c
+  - src/pthread_attr.c
+  - src/pthread.c
+  - src/pthread_cond.c
+  - src/pthread_mutex.c
+  - src/pthread_tsd.c
+  - src/sched.c
+  - src/semaphore.c
+  - src/time.c
+  - src/timer.c
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项
 #   CONFIG_DEBUG: y
@@ -71,8 +85,7 @@ install:
       - "include/sched.h"
   - dest: "include/sys"
     source:
-      - "include/sys/prctl.h"
-      - "include/sys/select.h"
+      - "include/sys/*.h"
   - dest: "include/posix"
     source:
       - "include/posix/timer.h"

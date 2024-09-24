@@ -14,8 +14,8 @@
 #include "cvi_buffer.h"
 #include "test_vi.h"
 #include "cvi_sns_ctrl.h"
-#include "cif_uapi.h"
-#include "common_vi.h"
+#include "cvi_comm_cif.h"
+#include "sensor_cfg.h"
 #include <pinctrl-mars.h>
 #include "vi_isp.h"
 
@@ -347,7 +347,7 @@ void stop_vi(int32_t argc, char **argv)
 		APP_CHECK_RET(CVI_VI_DisableDev(ViDev), "CVI_VI_DisableDev fail");
 	}
 
-	APP_CHECK_RET(CVI_SYS_VI_Close(), "CVI_SYS_VI_Close fail");
+	// APP_CHECK_RET(CVI_SYS_VI_Close(), "CVI_SYS_VI_Close fail");
 	aos_cli_printf("******stop vi******\n");
 }
 ALIOS_CLI_CMD_REGISTER(stop_vi, stop_vi, stop vi);
@@ -377,11 +377,7 @@ static CVI_S32 _vi_get_chn_frame(CVI_U8 chn, CVI_U8 loop)
 		}
 
 		u32LumaSize =  stVideoFrame.stVFrame.u32Stride[0] * stVideoFrame.stVFrame.u32Height;
-		if (stVideoFrame.stVFrame.enPixelFormat == PIXEL_FORMAT_YUV_PLANAR_422) {
-			u32ChromaSize =  stVideoFrame.stVFrame.u32Stride[0] * stVideoFrame.stVFrame.u32Height / 2;
-		} else {
-			u32ChromaSize =  stVideoFrame.stVFrame.u32Stride[1] * stVideoFrame.stVFrame.u32Height / 2;
-		}
+		u32ChromaSize =  stVideoFrame.stVFrame.u32Stride[1] * stVideoFrame.stVFrame.u32Height / 2;
 		CVI_VI_GetChnCrop(0, chn, &crop_info);
 		if (crop_info.bEnable) {
 			u32LumaSize = ALIGN((crop_info.stCropRect.u32Width * 8 + 7) >> 3, DEFAULT_ALIGN) *
@@ -578,123 +574,3 @@ void dump_vi_raw(int32_t argc, char **argv)
 	}
 }
 ALIOS_CLI_CMD_REGISTER(dump_vi_raw, dump_vi_raw, dump vi raw function);
-
-static void dump_register(void *para)
-{
-	CVI_S32 s32Ret = CVI_SUCCESS;
-	VI_PIPE ViPipe = 0;
-	char name[64] = {0};
-	FILE *fp = NULL;
-	VI_DUMP_REGISTER_TABLE_S	reg_tbl;
-	ISP_INNER_STATE_INFO_S		*pstInnerStateInfo;
-
-	pstInnerStateInfo = (ISP_INNER_STATE_INFO_S *)malloc(sizeof(ISP_INNER_STATE_INFO_S));
-	if (pstInnerStateInfo == NULL) {
-		CVI_TRACE_LOG(CVI_DBG_WARN, "malloc %d fail!!!\n", sizeof(ISP_INNER_STATE_INFO_S));
-		return;
-	}
-
-	if (CVI_ISP_QueryInnerStateInfo(ViPipe, pstInnerStateInfo) != CVI_SUCCESS) {
-		CVI_TRACE_LOG(CVI_DBG_ERR, "CVI_ISP_QueryInnerStateInfo fail");
-		goto free_innner;
-	}
-
-	reg_tbl.MlscGainLut.RGain = pstInnerStateInfo->mlscGainTable.RGain;
-	reg_tbl.MlscGainLut.GGain = pstInnerStateInfo->mlscGainTable.GGain;
-	reg_tbl.MlscGainLut.BGain = pstInnerStateInfo->mlscGainTable.BGain;
-
-#define DUMP_SIZE 300*1024
-	void *json = malloc(DUMP_SIZE);
-
-	if (json == NULL) {
-		CVI_TRACE_LOG(CVI_DBG_WARN, "malloc %d fail!!!\n", DUMP_SIZE);
-		goto free_innner;
-	}
-
-	snprintf(name, 64, "/mnt/sd/vi_dump_register.json");
-	fp = fopen(name, "w+");
-	if (fp == NULL) {
-		CVI_TRACE_LOG(CVI_DBG_WARN, "open %s fail!!!\n", name);
-		goto free_json;
-	}
-
-	s32Ret = CVI_VI_DumpHwRegisterToFile(ViPipe, json, &reg_tbl);
-	if (s32Ret != CVI_SUCCESS) {
-		CVI_TRACE_LOG(CVI_DBG_ERR, "CVI_VI_DumpHwRegisterToFile failed with %#x\n", s32Ret);
-		goto free_file;
-	}
-
-	fwrite(json, 1, DUMP_SIZE, fp);
-free_file:
-	fclose(fp);
-free_json:
-	free(json);
-free_innner:
-	free(pstInnerStateInfo);
-	CVI_TRACE_LOG(CVI_DBG_WARN, "Dump registera pass\n");
-}
-
-void dump_vi_register(int32_t argc, char **argv)
-{
-	aos_task_t task;
-
-	if (0 != aos_task_new_ext(&task,
-			"test",
-			dump_register,
-			NULL,
-			819200,
-			32)) {
-		printf("Fail to create task_log_save\n");
-	}
-}
-
-ALIOS_CLI_CMD_REGISTER(dump_vi_register, dump_vi_register, dump vi register function);
-
-static int call_back_test0(uint64_t data)
-{
-	int local_data = data;
-
-	aos_debug_printf("call_back_test0 0x%x\n", local_data);
-
-	return 0;
-}
-
-static int call_back_test1(uint64_t data)
-{
-	int local_data = data;
-
-	aos_debug_printf("call_back_test1 0x%x\n", local_data);
-
-	return 0;
-}
-
-VI_SYNC_TASK_NODE_S g_sync_node[2] = {
-	{
-		.isp_sync_task_call_back = call_back_test0,
-		.data = 0x10,
-		.name = "test0",
-	},
-	{
-		.isp_sync_task_call_back = call_back_test1,
-		.data = 0x11,
-		.name = "test1",
-	},
-};
-
-void vi_reg_sync_task(int32_t argc, char **argv)
-{
-	VI_PIPE ViPipe = 0;
-
-	CVI_VI_RegSyncTask(ViPipe, &g_sync_node[0]);
-	printf("vi_reg_sync_task ViPipe:%d\n", ViPipe);
-}
-ALIOS_CLI_CMD_REGISTER(vi_reg_sync_task, test_vi_reg_sync_task, vi register sync task);
-
-void vi_unreg_sync_task(int32_t argc, char **argv)
-{
-	VI_PIPE ViPipe = 0;
-
-	CVI_VI_UnRegSyncTask(ViPipe, &g_sync_node[0]);
-	printf("vi_unreg_sync_task ViPipe:%d\n", ViPipe);
-}
-ALIOS_CLI_CMD_REGISTER(vi_unreg_sync_task, test_vi_unreg_sync_task, vi unregister sync task);

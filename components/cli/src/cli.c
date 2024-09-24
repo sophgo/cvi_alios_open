@@ -78,14 +78,13 @@ int32_t cli_printf(const char *fmt, ...);
 static inline void cli_prefix_print(void)
 {
 #if CLI_IOBOX_ENABLE
-#ifndef PATH_MAX
-#define PATH_MAX    1024
-#endif
     char _buf[PATH_MAX] = {0};
     cli_printf("(%s:%s)"PROMPT, cli_task_get_console_name(),
                getcwd(_buf, sizeof(_buf)));
 #else
+#if defined(CONFIG_DW_UART) && (CONFIG_DW_UART == 1)
     cli_printf("(%s)"PROMPT, cli_task_get_console_name());
+#endif
 #endif
 }
 
@@ -1082,17 +1081,114 @@ void cli_main(void *data)
     check_console_task_exit();
 }
 
+#if defined(CONFIG_VIRTUAL_UART) && (CONFIG_VIRTUAL_UART == 1)
+#include <drv/common.h>
+#include "cvi_ipcm.h"
+
+extern int ipcm_port_common_get_shm_info(unsigned int *pool_paddr, unsigned int *pool_size);
+
+#define PANIC_CMD_BUF_LEN 1024
+#define CMD_HEAD_MAGIC 0x7269
+
+typedef struct _PANIC_LOG_CMD_HEAD {
+	unsigned short magic;
+	unsigned short cmd_len; // cmd buf len
+	unsigned short wr_pos;
+	unsigned short rd_pos;
+	char cmd_content[0];
+} PANIC_LOG_CMD_HEAD;
+
+// static int b_alios_panic = 0;
+
+static PANIC_LOG_CMD_HEAD *painc_cmd_head = NULL;
+static unsigned short painc_cmd_buf_len = 0;
+
+static void virt_uart_painc_log_init(void)
+{
+    unsigned int pool_paddr, pool_size = 0;
+    ipcm_port_common_get_shm_info(&pool_paddr, &pool_size);
+    painc_cmd_head = (PANIC_LOG_CMD_HEAD *)(unsigned long)(pool_paddr + pool_size - 2*1024);
+    painc_cmd_buf_len = PANIC_CMD_BUF_LEN - (unsigned short)(unsigned long)&(((PANIC_LOG_CMD_HEAD *)0)->cmd_content);
+    cli_printf("painc_cmd_head:%lx painc_cmd_buf_len:%u\r\n", (unsigned long)painc_cmd_head, painc_cmd_buf_len);
+    cli_printf("(panic)#");
+    painc_cmd_head->magic = CMD_HEAD_MAGIC;
+    painc_cmd_head->cmd_len = 0;
+    painc_cmd_head->wr_pos = 0;
+    painc_cmd_head->rd_pos = 0;
+    // flush head
+    CVI_IPCM_FlushData(painc_cmd_head, 64);
+}
+
+static int virt_uart_painc_get_input(char *inbuf, uint32_t size)
+{
+    int cnt = 0;
+    int cmd_len = 0;
+	char *p_cmd = painc_cmd_head->cmd_content;
+    // invild cache
+    CVI_IPCM_InvData(painc_cmd_head, 64);
+    while (painc_cmd_head->wr_pos == painc_cmd_head->rd_pos) {
+        udelay(1000); // wait for linux write cmd
+        cnt++;
+        if ((cnt % 200) == 0) {
+            CVI_IPCM_InvData(painc_cmd_head, 64); // invalid every 200ms
+            cnt = 0;
+        }
+        if (cnt >= 1000) {
+            return 0;
+        }
+    }
+    // invalid cmd
+    CVI_IPCM_InvData(painc_cmd_head, PANIC_CMD_BUF_LEN);
+    // copy cmd
+    if (painc_cmd_head->rd_pos + painc_cmd_head->cmd_len <= painc_cmd_buf_len) {
+        memcpy(inbuf, p_cmd + painc_cmd_head->rd_pos, painc_cmd_head->cmd_len);
+    } else {
+		unsigned short len_pre = painc_cmd_buf_len - painc_cmd_head->rd_pos;
+		unsigned short len_post = painc_cmd_head->cmd_len - len_pre;
+        memcpy(inbuf, p_cmd + painc_cmd_head->rd_pos, len_pre);
+        memcpy(inbuf + len_pre, p_cmd, len_post);
+    }
+
+    cmd_len = painc_cmd_head->cmd_len;
+    while(cmd_len > 0) {
+        if ((inbuf[cmd_len-1] == '\n') || (inbuf[cmd_len-1] == '\r')) { // delete last \r \n
+            inbuf[cmd_len-1] = '\0';
+            cmd_len--;
+        } else {
+            break;
+        }
+    }
+
+    // cli_printf("AL: recv %s\r\n", inbuf);
+
+    // update rd pos
+    painc_cmd_head->rd_pos = painc_cmd_head->wr_pos;
+    painc_cmd_head->cmd_len = 0;
+    // flush head
+    CVI_IPCM_FlushData(painc_cmd_head, 64);
+
+    return cmd_len;
+}
+#endif
+
 void cli_main_panic(void)
 {
     int32_t ret;
     char *msg = NULL;
     char cli_console_inbuf[CLI_INBUF_SIZE] = {0};
 
+#if defined(CONFIG_VIRTUAL_UART) && (CONFIG_VIRTUAL_UART == 1)
+    virt_uart_painc_log_init();
+#endif
     /* set uart console for panic*/
     cli_task_set_console((void *)&cli_uart_console);
 
     while (1) {
+#if defined(CONFIG_VIRTUAL_UART) && (CONFIG_VIRTUAL_UART == 1)
+        if (virt_uart_painc_get_input(cli_console_inbuf, CLI_INBUF_SIZE) != 0) {
+#else
         if (cli_get_input(cli_console_inbuf, CLI_INBUF_SIZE) != 0) {
+#endif
             msg = cli_console_inbuf;
 
             if (strlen((const char *)cli_console_inbuf) > 0) {
@@ -1219,7 +1315,11 @@ int32_t cli_init(void)
     }
 
     g_cli->inited = 1;
+#if defined(CONFIG_VIRTUAL_UART) && (CONFIG_VIRTUAL_UART == 1)
+    g_cli->echo_disabled = 1;
+#else
     g_cli->echo_disabled = 0;
+#endif
 
     ret = cli_register_default_commands();
     if (ret != CLI_OK) {

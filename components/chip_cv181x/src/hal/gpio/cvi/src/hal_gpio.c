@@ -9,8 +9,8 @@
 void hal_gpio_uninit(unsigned long reg_base)
 {
     /* reset all related register*/
-    dw_gpio_set_port_irq(reg_base, 0U);
-    dw_gpio_set_port_msk(reg_base, 0U);
-    dw_gpio_set_port_irq_sensitive(reg_base, 0U);
-    dw_gpio_set_port_irq_polarity(reg_base, 0U);
+    //dw_gpio_set_port_irq(reg_base, 0U);
+    //dw_gpio_set_port_msk(reg_base, 0U);
+    //dw_gpio_set_port_irq_sensitive(reg_base, 0U);
+    //dw_gpio_set_port_irq_polarity(reg_base, 0U);
 }

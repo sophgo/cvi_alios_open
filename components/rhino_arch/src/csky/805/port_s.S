@@ -19,7 +19,6 @@
 
 .global cpu_intrpt_save
 .global cpu_intrpt_restore
-.global cpu_is_irq_enable
 .weak   cpu_task_switch
 .weak   cpu_intrpt_switch
 .weak   cpu_first_task_start
@@ -54,12 +53,6 @@ cpu_intrpt_save:
 .type cpu_intrpt_restore, %function
 cpu_intrpt_restore:
     mtcr    r0, psr
-    rts
-
-.type cpu_is_irq_enable, %function
-cpu_is_irq_enable:
-    mfcr    r0, psr
-    andi    r0, r0, 0x40
     rts
 
 /******************************************************************************

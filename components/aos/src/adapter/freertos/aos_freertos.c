@@ -116,7 +116,7 @@ int aos_task_new_ext(aos_task_t *task, const char *name, void (*fn)(void *), voi
 
     if (ret == pdPASS) {
         if(task) {
-            *task = xHandle;
+            task->hdl = xHandle;
         }
         aos_task_create_hook_lwip_thread_sem(task);
         return 0;
@@ -139,7 +139,7 @@ void aos_task_exit(int code)
 
 aos_status_t aos_task_delete(aos_task_t *task)
 {
-    TaskHandle_t ptask = (TaskHandle_t)*task;
+    TaskHandle_t *ptask = (TaskHandle_t *)task;
 
     vTaskDelete(ptask);
 
@@ -147,13 +147,13 @@ aos_status_t aos_task_delete(aos_task_t *task)
 }
 const char *aos_task_name(void)
 {
-    TaskHandle_t task = (TaskHandle_t)xTaskGetCurrentTaskHandle();
+    TaskHandle_t *task = (TaskHandle_t *)xTaskGetCurrentTaskHandle();
     return  pcTaskGetTaskName(task);
 
 }
 const char *aos_task_get_name(aos_task_t *task)
 {
-    TaskHandle_t ptask = (TaskHandle_t)*task;
+    TaskHandle_t *ptask = (TaskHandle_t *)task;
 
     return pcTaskGetTaskName(ptask);
 }
@@ -231,7 +231,7 @@ void aos_task_key_delete(aos_task_key_t key)
 
 int aos_task_setspecific(aos_task_key_t key, void *vp)
 {
-    TaskHandle_t task = (TaskHandle_t)xTaskGetCurrentTaskHandle();
+    AosStaticTask_t *task = (AosStaticTask_t *)xTaskGetCurrentTaskHandle();
 
 	vTaskSetThreadLocalStoragePointer(task, key, vp);
 
@@ -240,8 +240,8 @@ int aos_task_setspecific(aos_task_key_t key, void *vp)
 
 void *aos_task_getspecific(aos_task_key_t key)
 {
-    TaskHandle_t task = (TaskHandle_t)xTaskGetCurrentTaskHandle();
-
+    AosStaticTask_t *task = (AosStaticTask_t *)xTaskGetCurrentTaskHandle();
+    
     return (void *)pvTaskGetThreadLocalStoragePointer(task, key);;
 }
 
@@ -280,23 +280,23 @@ void aos_task_wdt_feed(int time)
 int aos_mutex_new(aos_mutex_t *mutex)
 {
     SemaphoreHandle_t mux = xSemaphoreCreateMutex();
-    *mutex = mux;
+    mutex->hdl = mux;
     return mux != NULL ? 0 : -1;
 }
 
 void aos_mutex_free(aos_mutex_t *mutex)
 {
-    vSemaphoreDelete(*mutex);
+    vSemaphoreDelete(mutex->hdl);
 }
 
 int aos_mutex_lock(aos_mutex_t *mutex, unsigned int ms)
 {
-    if (mutex && *mutex) {
+    if (mutex && mutex->hdl) {
         if(is_in_intrp()) {
             BaseType_t temp = pdFALSE;
-            xSemaphoreTakeFromISR(*mutex,&temp);
+            xSemaphoreTakeFromISR(mutex->hdl,&temp);
         } else {
-            xSemaphoreTake(*mutex, ms == AOS_WAIT_FOREVER ? portMAX_DELAY : pdMS_TO_TICKS(ms));
+            xSemaphoreTake(mutex->hdl, ms == AOS_WAIT_FOREVER ? portMAX_DELAY : pdMS_TO_TICKS(ms));
         }
     }
     return 0;
@@ -304,12 +304,12 @@ int aos_mutex_lock(aos_mutex_t *mutex, unsigned int ms)
 
 int aos_mutex_unlock(aos_mutex_t *mutex)
 {
-    if (mutex && *mutex) {
+    if (mutex && mutex->hdl) {
         if(is_in_intrp()) {
             BaseType_t temp = pdFALSE;
-            xSemaphoreGiveFromISR(*mutex,&temp);
+            xSemaphoreGiveFromISR(mutex->hdl,&temp);
         } else {
-            xSemaphoreGive(*mutex);
+            xSemaphoreGive(mutex->hdl);
         }
     }
     return 0;
@@ -317,23 +317,23 @@ int aos_mutex_unlock(aos_mutex_t *mutex)
 
 int aos_mutex_is_valid(aos_mutex_t *mutex)
 {
-    return *mutex != NULL;
+    return mutex->hdl != NULL;
 }
 
 int aos_sem_new(aos_sem_t *sem, int count)
 {
     SemaphoreHandle_t s = xSemaphoreCreateCounting(1024, count);
-    *sem = s;
+    sem->hdl = s;
     return 0;
 }
 
 void aos_sem_free(aos_sem_t *sem)
 {
-    if (sem == NULL || *sem ) {
+    if (sem == NULL || sem->hdl ) {
         return;
     }
 
-    vSemaphoreDelete(*sem);
+    vSemaphoreDelete(sem->hdl);
 }
 
 int aos_sem_wait(aos_sem_t *sem, unsigned int ms)
@@ -344,29 +344,29 @@ int aos_sem_wait(aos_sem_t *sem, unsigned int ms)
     int ret;
     if(is_in_intrp()) {
         BaseType_t pxHiProTskWkup = pdTRUE;
-        ret = xSemaphoreTakeFromISR(*sem, &pxHiProTskWkup);
+        ret = xSemaphoreTakeFromISR(sem->hdl, &pxHiProTskWkup);
     } else {
-        ret = xSemaphoreTake(*sem, ms == AOS_WAIT_FOREVER ? portMAX_DELAY : pdMS_TO_TICKS(ms));
+        ret = xSemaphoreTake(sem->hdl, ms == AOS_WAIT_FOREVER ? portMAX_DELAY : pdMS_TO_TICKS(ms));
     }
     return ret == pdPASS ? 0 : -1;
 }
 
 void aos_sem_signal(aos_sem_t *sem)
 {
-    if (sem == NULL && *sem) {
+    if (sem == NULL && sem->hdl) {
         return;
     }
     if(is_in_intrp()) {
         BaseType_t  temp = pdTRUE;
-        xSemaphoreGiveFromISR(*sem, &temp);
+        xSemaphoreGiveFromISR(sem->hdl, &temp);
     } else {
-        xSemaphoreGive(*sem);
+        xSemaphoreGive(sem->hdl);
     }
 }
 
 int aos_sem_is_valid(aos_sem_t *sem)
 {
-    return sem && *sem != NULL;
+    return sem && sem->hdl != NULL;
 }
 
 void aos_sem_signal_all(aos_sem_t *sem)
@@ -389,7 +389,7 @@ int aos_queue_new(aos_queue_t *queue, void *buf, size_t size, int max_msg)
     if(q == NULL) {
         return -1;
     }
-    *queue = q;
+    queue->hdl = q;
 
     return 0;
 }
@@ -397,14 +397,14 @@ int aos_queue_new(aos_queue_t *queue, void *buf, size_t size, int max_msg)
 void aos_queue_free(aos_queue_t *queue)
 {
     /* delete queue object */
-    if(queue && *queue) {
-        vQueueDelete(*queue);
+    if(queue && queue->hdl) {
+        vQueueDelete(queue->hdl);
     }
 
     return;
 }
 
-int aos_queue_send(aos_queue_t *queue, void *msg, size_t size)
+int aos_queue_send(aos_queue_t *queue, void *msg, unsigned int size)
 {
     /* verify param */
     if(queue == NULL || msg == NULL || size == 0 ) {
@@ -412,7 +412,7 @@ int aos_queue_send(aos_queue_t *queue, void *msg, size_t size)
     }
 
     /* send msg  to specific queue */
-    return xQueueSend(*queue, msg, portMAX_DELAY) == pdPASS ? 0 : -1;
+    return xQueueSend(queue->hdl, msg, portMAX_DELAY) == pdPASS ? 0 : -1;
 }
 
 int aos_queue_recv(aos_queue_t *queue, unsigned int ms, void *msg, size_t *size)
@@ -423,13 +423,13 @@ int aos_queue_recv(aos_queue_t *queue, unsigned int ms, void *msg, size_t *size)
     }
 
     /* receive msg from specific queue */
-    return xQueueReceive(*queue, msg, ms == AOS_WAIT_FOREVER ? portMAX_DELAY : pdMS_TO_TICKS(ms)) == pdPASS ? 0 : -1;
+    return xQueueReceive(queue->hdl, msg, ms == AOS_WAIT_FOREVER ? portMAX_DELAY : pdMS_TO_TICKS(ms)) == pdPASS ? 0 : -1;
 
 }
 
 int aos_queue_is_valid(aos_queue_t *queue)
 {
-    return queue && *queue != NULL;
+    return queue && queue->hdl != NULL;
 }
 
 void *aos_queue_buf_ptr(aos_queue_t *queue)
@@ -442,7 +442,7 @@ void *aos_queue_buf_ptr(aos_queue_t *queue)
 int aos_queue_get_count(aos_queue_t *queue)
 {
     BaseType_t ret;
-    ret = uxQueueMessagesWaiting(*queue);
+    ret = uxQueueMessagesWaiting(queue->hdl);
     return ret;
 }
 
@@ -497,7 +497,7 @@ int aos_timer_new_ext(aos_timer_t *timer, void (*fn)(void *, void *),
     }
 
     tmr_adapter->timer = ptimer;
-    *timer = (void*)tmr_adapter;
+    timer->hdl = (void*)tmr_adapter;
 
     /* start timer if auto_run == TRUE */
     if(auto_run) {
@@ -515,7 +515,7 @@ void aos_timer_free(aos_timer_t *timer)
         return;
     }
 
-    tmr_adapter_t *tmr_adapter = *timer;
+    tmr_adapter_t *tmr_adapter = timer->hdl;
     int ret = xTimerDelete(tmr_adapter->timer, 0);
 
     if (!ret) {
@@ -523,7 +523,7 @@ void aos_timer_free(aos_timer_t *timer)
     }
 
     vPortFree(tmr_adapter);
-    *timer = NULL;
+    timer->hdl = NULL;
 
     return ;
 }
@@ -536,7 +536,7 @@ int aos_timer_start(aos_timer_t *timer)
     }
 
     /* start timer  */
-    tmr_adapter_t *tmr_adapter = *timer;
+    tmr_adapter_t *tmr_adapter = timer->hdl;
     int ret;
 
     if(is_in_intrp()) {
@@ -560,7 +560,7 @@ int aos_timer_stop(aos_timer_t *timer)
     }
 
     /* stop timer */
-    tmr_adapter_t *tmr_adapter = *timer;
+    tmr_adapter_t *tmr_adapter = timer->hdl;
     int ret;
 
     if(is_in_intrp()) {
@@ -585,7 +585,7 @@ int aos_timer_change(aos_timer_t *timer, int ms)
     }
     BaseType_t  xHigherProTskWoken  = pdFALSE;
     /* change timer period value */
-    tmr_adapter_t *pTimer = *timer;
+    tmr_adapter_t *pTimer = timer->hdl;
     int ret;
     if(is_in_intrp()) {
         ret = xTimerChangePeriodFromISR(pTimer->timer,pdMS_TO_TICKS(ms),&xHigherProTskWoken);
@@ -602,7 +602,7 @@ int aos_timer_change(aos_timer_t *timer, int ms)
 
 int aos_timer_is_valid(aos_timer_t *timer)
 {
-    tmr_adapter_t *pTimer = *timer;
+    tmr_adapter_t *pTimer = timer->hdl;
     if( xTimerIsTimerActive(pTimer->timer) != pdFALSE ) {
         // pTimer is active, do something.
         return 1;
@@ -617,8 +617,8 @@ int aos_timer_change_once(aos_timer_t *timer, int ms)
 {
     int ret = -1;
 
-    aos_check_return_einval(timer && *timer);
-    tmr_adapter_t *pTimer = *timer;
+    aos_check_return_einval(timer && timer->hdl);
+    tmr_adapter_t *pTimer = timer->hdl;
     if( xTimerIsTimerActive(pTimer->timer) != pdFALSE ) {
         xTimerStop(pTimer->timer, 100);
     }
@@ -666,14 +666,14 @@ int aos_work_init(aos_work_t *work, void (*fn)(void *), void *arg, int dly)
     w->fn = fn;
     w->arg = arg;
     w->dly = dly;
-    *work = w;
+    work->hdl = w;
     return 0;
 }
 
 void aos_work_destroy(aos_work_t *work)
 {
     //todo
-    free(*work);
+    free(work->hdl);
 }
 
 int aos_work_run(aos_workqueue_t *workqueue, aos_work_t *work)
@@ -695,7 +695,7 @@ static void worker_entry(void *arg)
 int aos_work_sched(aos_work_t *work)
 {
     //todo
-    struct work *w = *work;
+    struct work *w = work->hdl;
     return aos_task_new("worker", worker_entry, w, 8192);
 }
 
@@ -705,6 +705,25 @@ int aos_work_cancel(aos_work_t *work)
     return -1;
 }
 
+void *yoc_malloc(int32_t size, void *caller)
+{
+    (void)caller;
+    return pvPortMalloc(size);
+
+}
+
+void *yoc_realloc(void *ptr, size_t size, void *caller)
+{
+    (void)caller;
+    return pvPortRealloc(ptr,size);
+
+}
+
+void yoc_free(void *ptr, void *caller)
+{
+    (void)caller;
+    vPortFree(ptr);
+}
 void *aos_zalloc(size_t size)
 {
     void* ptr = pvPortMalloc(size);
@@ -737,7 +756,7 @@ void aos_free(void *mem)
 
 void *aos_zalloc_check(size_t size)
 {
-    void *ptr = aos_malloc(size);
+    void *ptr = yoc_malloc(size, __builtin_return_address(0));
 
     aos_check_mem(ptr);
     if (ptr) {
@@ -749,7 +768,7 @@ void *aos_zalloc_check(size_t size)
 
 void *aos_malloc_check(size_t size)
 {
-    void *p = aos_malloc(size);
+    void *p = yoc_malloc(size, __builtin_return_address(0));
     aos_check_mem(p);
 
     return p;
@@ -762,7 +781,7 @@ void *aos_calloc_check(size_t size, size_t num)
 
 void *aos_realloc_check(void *ptr, size_t size)
 {
-    void *new_ptr = aos_realloc(ptr, size);
+    void *new_ptr = yoc_realloc(ptr, size, __builtin_return_address(0));
     aos_check_mem(new_ptr);
 
     return new_ptr;
@@ -848,16 +867,16 @@ void aos_task_yield()
 
 aos_task_t aos_task_self(void)
 {
-    static TaskHandle_t task;
-    task = xTaskGetCurrentTaskHandle();
+    static aos_task_t task;
+    task.hdl = xTaskGetCurrentTaskHandle();
 
-    return (aos_task_t)task;
+    return task;
 }
 
 int aos_event_new(aos_event_t *event, unsigned int flags)
 {
     EventGroupHandle_t event_handle;
-    *event = NULL;
+    event->hdl = NULL;
     aos_check_return_einval(event);
 
     /* create event handle */
@@ -868,18 +887,18 @@ int aos_event_new(aos_event_t *event, unsigned int flags)
     } else {
         return -1;
     }
-    *event = event_handle;
+    event->hdl = event_handle;
 
     return 0;
 }
 
 void aos_event_free(aos_event_t *event)
 {
-    aos_check_return(event && *event);
+    aos_check_return(event && event->hdl);
 
-    vEventGroupDelete((EventGroupHandle_t)*event);
+    vEventGroupDelete((EventGroupHandle_t)event->hdl);
 
-    *event = NULL;
+    event->hdl = NULL;
 }
 
 int aos_event_get
@@ -893,17 +912,17 @@ int aos_event_get
 {
     uint32_t   wait_bits = 0;
     (void)opt;
-    aos_check_return_einval(event && *event);
+    aos_check_return_einval(event && event->hdl);
 
     if (timeout == AOS_WAIT_FOREVER) {
-        wait_bits = xEventGroupWaitBits(*event,
+        wait_bits = xEventGroupWaitBits(event->hdl,
                                         flags,
                                         pdTRUE,
                                         pdFALSE,
                                         0xffffffff
                                        );
     } else {
-        wait_bits=  xEventGroupWaitBits(*event,
+        wait_bits=  xEventGroupWaitBits(event->hdl,
                                         flags,
                                         pdTRUE,
                                         pdFALSE,
@@ -917,12 +936,12 @@ int aos_event_get
 
 int aos_event_set(aos_event_t *event, unsigned int flags, unsigned char opt)
 {
-    aos_check_return_einval(event && *event);
+    aos_check_return_einval(event && event->hdl);
     if(is_in_intrp()) {
         BaseType_t xHighProTaskWoken = pdFALSE;
-        xEventGroupSetBitsFromISR(*event,flags,&xHighProTaskWoken);
+        xEventGroupSetBitsFromISR(event->hdl,flags,&xHighProTaskWoken);
     } else {
-        xEventGroupSetBits(*event,flags);
+        xEventGroupSetBits(event->hdl,flags);
     }
 
     return 0;
@@ -936,7 +955,7 @@ int aos_event_is_valid(aos_event_t *event)
         return 0;
     }
 
-    k_event = *event;
+    k_event = event->hdl;
 
     if (k_event == NULL) {
         return 0;
@@ -991,13 +1010,13 @@ uint64_t aos_kernel_ms2tick(uint32_t ms)
     return ms *configTICK_RATE_HZ/1000;
 }
 
-int aos_kernel_intrpt_enter(void)
+k_status_t aos_kernel_intrpt_enter(void)
 {
     g_intrpt_nested_cnt ++;
     return 0;
 }
 
-int aos_kernel_intrpt_exit(void)
+k_status_t aos_kernel_intrpt_exit(void)
 {
     g_intrpt_nested_cnt --;
     portYIELD_FROM_ISR(pdTRUE);
@@ -1006,6 +1025,5 @@ int aos_kernel_intrpt_exit(void)
 
 void aos_sys_tick_handler(void)
 {
-    extern void xPortSysTickHandler(void);
     xPortSysTickHandler();
 }

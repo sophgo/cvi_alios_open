@@ -11,7 +11,7 @@
 #include "cv181x_adc_dac.h"
 
 static struct cv182xadc g_adc;
-static struct cv182xadc *adc = &g_adc;
+static struct cv182xadc *adc;
 
 static int adc_vol_list[25] = {
     ADC_VOL_GAIN_0,
@@ -68,7 +68,7 @@ static int cv182xadc_hw_params(struct cv182xadc *adc, u32 rate)
 
 	/* ECO function, register naming is not corrected, use ioremap to access register of DAC */
 	dac = (volatile u32 *)(0x0300A000);
-	ana0 = readl(dac + (AUDIO_PHY_TXDAC_ANA0/sizeof(u32))) & ~AUDIO_PHY_REG_ADDI_TXDAC_MASK;
+	ana0 = readl(dac + AUDIO_PHY_TXDAC_ANA0) & ~AUDIO_PHY_REG_ADDI_TXDAC_MASK;
 
 	if (rate >= 8000 && rate <= 48000) {
 		debug("%s, set rate to %d\n", __func__, rate);
@@ -137,10 +137,10 @@ static int cv182xadc_hw_params(struct cv182xadc *adc, u32 rate)
 		adc_write_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA3, ana3);
 		adc_write_reg(adc->adc_base, AUDIO_PHY_RXADC_CLK, clk);
 
-		//printf("adc_clk:%x\n", adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_CLK));
+		printf("adc_clk:%x\n", adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_CLK));
 
 		//adc_write_reg(adc->adc_base, AUDIO_PHY_SPARE_0, spare0);
-		writel(ana0, dac + (AUDIO_PHY_TXDAC_ANA0/sizeof(u32)));;
+		writel(ana0, dac + AUDIO_PHY_TXDAC_ANA0);
 	} else {
 		printf("%s, unsupported sample rate\n", __func__);
 		return 0;
@@ -157,8 +157,8 @@ static void cv182xadc_on(struct cv182xadc *adc)
 	debug("%s, before rxadc reg val=0x%08x\n",
 	__func__, adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_CTRL0));
 
-	//if ((val & AUDIO_PHY_REG_RXADC_EN_ON) | (val & AUDIO_PHY_REG_I2S_TX_EN_ON))
-	//	printf("ADC or I2S TX already switched ON!!, val=0x%08x\n", val);
+	if ((val & AUDIO_PHY_REG_RXADC_EN_ON) | (val & AUDIO_PHY_REG_I2S_TX_EN_ON))
+		printf("ADC or I2S TX already switched ON!!, val=0x%08x\n", val);
 
 	val |= AUDIO_PHY_REG_RXADC_EN_ON | AUDIO_PHY_REG_I2S_TX_EN_ON;
 	adc_write_reg(adc->adc_base, AUDIO_PHY_RXADC_CTRL0, val);
@@ -187,24 +187,20 @@ static void cv182xadc_shutdown(struct cv182xadc *adc)
 	cv182xadc_off(adc);
 }
 
-int cv182xadc_ioctl(u32 cmd, u64 parg)
+int cv182xadc_ioctl(u32 cmd, struct cvi_vol_ctrl vol, u32 val)
 {
 	u32 val2;
 	u32 temp;
-	u32 val = 0;
-	pr_debug("%s, received cmd=%u, arg=%lu\n", __func__, cmd, parg);
-	if(parg == 0)
-		return -1;
 
-	if(adc->adc_base == NULL)
-		adc->adc_base = (volatile u32 *)(0x0300A100);
+	pr_debug("%s, received cmd=%u, val=%d\n", __func__, cmd, val);
+	adc = &g_adc;
+	adc->adc_base = (volatile u32 *)(0x0300A100);
 	switch (cmd) {
 	case ACODEC_SOFT_RESET_CTRL:
 		cv182x_reset_adc();
 		break;
 
 	case ACODEC_SET_INPUT_VOL:
-		val = *((u32 *)parg);
 		pr_debug("adc: ACODEC_SET_INPUT_VOL\n");
 		if ((val < 0) | (val > 24))
 			pr_err("Only support range 0 [0dB] ~ 24 [48dB]\n");
@@ -226,7 +222,7 @@ int cv182xadc_ioctl(u32 cmd, u64 parg)
 				/* unmute */
 				temp = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2)
 					& AUDIO_PHY_REG_MUTEL_OFF
-					& AUDIO_PHY_REG_MUTER_OFF;
+					& AUDIO_PHY_REG_MUTEL_OFF;
 				adc_write_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2, temp);
 			}
 			temp = (adc_vol_list[val] | (adc_vol_list[val] << 16));
@@ -241,15 +237,11 @@ int cv182xadc_ioctl(u32 cmd, u64 parg)
 			if (val == adc_vol_list[temp])
 				break;
 		}
-		if (temp == 25){
+		if (temp == 25)
 			pr_info("adc: cannot find, out of range\n");
-			return -1;
-		}
-		else
-			*((u32 *)parg) = temp;
+
 		//if (copy_to_user(argp, &temp, sizeof(temp)))
 		//	pr_err("adc, failed to return input vol\n");
-
 		break;
 
 	case ACODEC_SET_I2S1_FS:
@@ -260,7 +252,6 @@ int cv182xadc_ioctl(u32 cmd, u64 parg)
 		pr_info("ACODEC_SET_MIXER_MIC is not support\n");
 		break;
 	case ACODEC_SET_GAIN_MICL:
-		val = *((u32 *)parg);
 		pr_debug("adc: ACODEC_SET_GAIN_MICL\n");
 		if ((val < 0) | (val > 24))
 			pr_err("Only support range 0 [0dB] ~ 24 [48dB]\n");
@@ -272,7 +263,6 @@ int cv182xadc_ioctl(u32 cmd, u64 parg)
 		}
 		break;
 	case ACODEC_SET_GAIN_MICR:
-		val = *((u32 *)parg);
 		pr_debug("adc: ACODEC_SET_GAIN_MICR\n");
 		if ((val < 0) | (val > 24))
 			pr_err("Only support range 0 [0dB] ~ 24 [48dB]\n");
@@ -285,46 +275,46 @@ int cv182xadc_ioctl(u32 cmd, u64 parg)
 		break;
 
 	case ACODEC_SET_ADCL_VOL:
-		val = *((u32 *)parg);
-		pr_info("adc: ACODEC_SET_ADCL_VOL to %d, \n", val);
 
-		if ((val < 0) | (val > 24))
+		pr_info("adc: ACODEC_SET_ADCL_VOL to %d, mute=%d\n", vol.vol_ctrl, vol.vol_ctrl_mute);
+
+		if (vol.vol_ctrl_mute == 1) {
+			temp = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2) | AUDIO_PHY_REG_MUTEL_ON;
+			adc_write_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2, temp);
+		} else if ((vol.vol_ctrl < 0) | (vol.vol_ctrl > 24))
 			pr_err("adc-L: Only support range 0 [0dB] ~ 24 [48dB]\n");
 		else {
 			temp = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA0) & ~AUDIO_PHY_REG_ADC_VOLL_MASK;
 			temp |= adc_vol_list[val];
 			old_adc_voll = val;
 			adc_write_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA0, temp);
-			if (val == 0) {
-				temp = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2) | AUDIO_PHY_REG_MUTEL_ON;
-			} else{
-				temp = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2) & AUDIO_PHY_REG_MUTEL_OFF;
-			}
+
+			temp = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2) & AUDIO_PHY_REG_MUTEL_OFF;
 			adc_write_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2, temp);
 		}
+
 		break;
 
 	case ACODEC_SET_ADCR_VOL:
-		val = *((u32 *)parg);
-		pr_info("adc: ACODEC_SET_ADCR VOL to %d, \n", val);
 
-		if ((val < 0) | (val > 24))
+		pr_debug("adc: ACODEC_SET_ADCR_VOL to %d, mute=%d\n", vol.vol_ctrl, vol.vol_ctrl_mute);
+
+		if (vol.vol_ctrl_mute == 1) {
+			temp = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2) | AUDIO_PHY_REG_MUTER_ON;
+			adc_write_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2, temp);
+		} else if ((vol.vol_ctrl < 0) | (vol.vol_ctrl > 24))
 			pr_err("adc-R: Only support range 0 [0dB] ~ 24 [48dB]\n");
 		else {
 			temp = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA0) & ~AUDIO_PHY_REG_ADC_VOLR_MASK;
 			temp |= (adc_vol_list[val] << 16);
-			old_adc_voll = val;
+			old_adc_volr = val;
 			adc_write_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA0, temp);
-			if (val == 0) {
-				temp = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2) | AUDIO_PHY_REG_MUTER_ON;
-			} else{
-				temp = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2) & AUDIO_PHY_REG_MUTER_OFF;
-			}
+
+			temp = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2) & AUDIO_PHY_REG_MUTER_OFF;
 			adc_write_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2, temp);
 		}
 		break;
 	case ACODEC_SET_MICL_MUTE:
-		val = *((u32 *)parg);
 		pr_debug("adc: ACODEC_SET_MICL_MUTE\n");
 		if (val == 0)
 			temp = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2) & AUDIO_PHY_REG_MUTEL_OFF;
@@ -334,7 +324,6 @@ int cv182xadc_ioctl(u32 cmd, u64 parg)
 		adc_write_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2, temp);
 		break;
 	case ACODEC_SET_MICR_MUTE:
-		val = *((u32 *)parg);
 		pr_debug("adc: ACODEC_SET_MICR_MUTE\n");
 		if (val == 0)
 			temp = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2) & AUDIO_PHY_REG_MUTER_OFF;
@@ -352,12 +341,9 @@ int cv182xadc_ioctl(u32 cmd, u64 parg)
 			if (val == adc_vol_list[temp])
 				break;
 		}
-		if (temp == 25){
-			pr_info("adc: cannot find, out of range\n");
-			return -1;
-		}
-		else
-			*((u32 *)parg) = temp;
+
+		//if (copy_to_user(argp, &temp, sizeof(temp)))
+		//	pr_err("failed to return MICL gain\n");
 		break;
 	case ACODEC_GET_GAIN_MICR:
 		pr_debug("adc: ACODEC_GET_GAIN_MICR\n");
@@ -367,12 +353,8 @@ int cv182xadc_ioctl(u32 cmd, u64 parg)
 			if (val == adc_vol_list[temp])
 				break;
 		}
-		if (temp == 25){
-			pr_info("adc: cannot find, out of range\n");
-			return -1;
-		}
-		else
-			*((u32 *)parg) = temp;
+	//	if (copy_to_user(argp, &temp, sizeof(temp)))
+		//	pr_err("failed to return MICR gain\n");
 		break;
 
 	case ACODEC_GET_ADCL_VOL:
@@ -383,12 +365,12 @@ int cv182xadc_ioctl(u32 cmd, u64 parg)
 			if (val == adc_vol_list[temp])
 				break;
 		}
-		if (temp == 25){
-			pr_info("adc: cannot find, out of range\n");
-			return -1;
-		}
-		else
-			*((u32 *)parg) = temp;
+		vol.vol_ctrl = temp;
+		vol.vol_ctrl_mute = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2) & AUDIO_PHY_REG_MUTEL_RXPGA_MASK;
+
+		//if (copy_to_user(argp, &vol, sizeof(vol)))
+		//	pr_err("failed to return ADCL vol\n");
+
 		break;
 	case ACODEC_GET_ADCR_VOL:
 		pr_debug("adc: ACODEC_GET_ADCR_VOL\n");
@@ -398,16 +380,15 @@ int cv182xadc_ioctl(u32 cmd, u64 parg)
 			if (val == adc_vol_list[temp])
 				break;
 		}
-		if (temp == 25){
-			pr_info("adc: cannot find, out of range\n");
-			return -1;
-		}
-		else
-			*((u32 *)parg) = temp;
+		vol.vol_ctrl = temp;
+		vol.vol_ctrl_mute = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_ANA2) & AUDIO_PHY_REG_MUTER_RXPGA_MASK;
+
+		//if (copy_to_user(argp, &vol, sizeof(vol)))
+		//	pr_err("failed to return ADCR vol\n");
+
 		break;
 
 	case ACODEC_SET_PD_ADCL:
-		val = *((u32 *)parg);
 		pr_debug("adc: ACODEC_SET_PD_ADCL, val=%d\n", val);
 		if (val == 0) {
 			temp = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_CTRL0);
@@ -420,7 +401,6 @@ int cv182xadc_ioctl(u32 cmd, u64 parg)
 		}
 		break;
 	case ACODEC_SET_PD_ADCR:
-		val = *((u32 *)parg);
 		pr_debug("adc: ACODEC_SET_PD_ADCR, val=%d\n", val);
 		if (val == 0) {
 			temp = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_CTRL0);
@@ -434,7 +414,6 @@ int cv182xadc_ioctl(u32 cmd, u64 parg)
 		break;
 
 	case ACODEC_SET_PD_LINEINL:
-		val = *((u32 *)parg);
 		pr_debug("adc: ACODEC_SET_PD_LINEINL, val=%d\n", val);
 		if (val == 0) {
 			temp = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_CTRL0);
@@ -447,7 +426,6 @@ int cv182xadc_ioctl(u32 cmd, u64 parg)
 		}
 		break;
 	case ACODEC_SET_PD_LINEINR:
-		val = *((u32 *)parg);
 		pr_debug("adc: ACODEC_SET_PD_LINEINR, val=%d\n", val);
 		if (val == 0) {
 			temp = adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_CTRL0);
@@ -491,6 +469,7 @@ int cv182xadc_init(u32 rate)
     u32 ctrl1;
     u64 mclk_source_addr = 0x0;
     debug("%s,%d start \n", __func__, __LINE__);
+    adc = &g_adc;
     adc->adc_base = (volatile u32 *)(0x0300A100);
     mclk_source_addr = 0x04130000;
     if (mclk_source_addr)

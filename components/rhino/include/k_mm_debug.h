@@ -38,6 +38,12 @@ void krhino_owner_attach(void *addr, size_t allocator);
 #define krhino_owner_return_addr(addr) \
     krhino_owner_attach(addr, (size_t)__builtin_return_address(0))
 
+
+void krhino_owner_attach_resv(void *addr, size_t allocator);
+
+#define krhino_owner_return_addr_resv(addr) \
+    krhino_owner_attach_resv(addr, (size_t)__builtin_return_address(0))
+
 /**
  * Show heap information.
  *
@@ -46,6 +52,8 @@ void krhino_owner_attach(void *addr, size_t allocator);
  * @return  RHINO_SUCCESS
  */
 uint32_t dumpsys_mm_info_func(uint32_t mm_status);
+
+uint32_t dumpsys_mm_info_func_resv(uint32_t mm_status);
 
 #endif /* RHINO_CONFIG_MM_DEBUG */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2022 Alibaba Group Holding Limited
+ * Copyright (C) 2019-2022 Alibaba Group Holding Limited
  */
 
 #ifndef CXVISION_PLUGIN_BUFFER_H_
@@ -8,6 +8,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <posto/posto.h>
 
@@ -21,18 +22,19 @@ using BufferPtr = std::shared_ptr<Buffer>;
 class Buffer final : public posto::MessageBase {
 public:
   bool AddMemory(const cx::MemoryPtr& memory) {
-    return AppendBlock(memory);
+    memories_.push_back(memory);
+    return true;
   }
 
   cx::MemoryPtr GetMemory(unsigned int index) {
-    if (index < io_blocks().size()) {
-      return io_blocks().at(index);
+    if (index < memories_.size()) {
+      return memories_.at(index);
     }
     return nullptr;
   }
 
   bool SetMetadata(const std::string& key, std::shared_ptr<void> meta) {
-    metas_[key].object = meta;
+    metas_[key] = meta;
     return true;
   }
 
@@ -40,15 +42,7 @@ public:
   std::shared_ptr<T> GetMetadata(const std::string& key) {
     const auto& it = metas_.find(key);
     if (it != metas_.end()) {
-      auto& meta = it->second;
-      if (meta.object) {
-        return std::static_pointer_cast<T>(meta.object);
-      } else if (!meta.view.empty()) {
-        auto obj = std::make_shared<T>();
-        obj->ParseFromArray(meta.view.data(), meta.view.size());
-        meta.object = obj;
-        return obj;
-      }
+      return std::static_pointer_cast<T>(it->second);
     }
     return nullptr;
   }
@@ -58,12 +52,8 @@ public:
   bool _ParseFromArray(const void* data, size_t size) override;
 
 private:
-  struct MetaValue {
-    std::shared_ptr<void> object;
-    std::string view;
-  };
-
-  std::map<std::string, MetaValue> metas_;
+  std::vector<cx::MemoryPtr> memories_;
+  std::map<std::string, std::shared_ptr<void>> metas_;
 };
 
 }  // namespace cx

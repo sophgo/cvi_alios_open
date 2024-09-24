@@ -1,6 +1,5 @@
 #include "cvi_sns_ctrl.h"
 #include "cvi_comm_video.h"
-#include "cvi_sns_ctrl.h"
 #include "gc2093_cmos_ex.h"
 #include "drv/common.h"
 #include "sensor_i2c.h"
@@ -9,7 +8,7 @@
 static void gc2093_linear_1080p30_init(VI_PIPE ViPipe);
 static void gc2093_wdr_1080p30_init(VI_PIPE ViPipe);
 
-CVI_U8 gc2093_i2c_addr = 0x37;//0x6e
+const CVI_U8 gc2093_i2c_addr = 0x37;//0x6e
 const CVI_U32 gc2093_addr_byte = 2;
 const CVI_U32 gc2093_data_byte = 1;
 

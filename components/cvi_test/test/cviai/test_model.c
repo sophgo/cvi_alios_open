@@ -7,14 +7,12 @@
 #include <aos/kernel.h>
 #include "cviruntime.h"
 #include "fatfs_vfs.h"
-#include "cvi_tpu_interface.h"
 
 #define DEFAULT_INFERENCE_NUM 10
 
 static void cvimodel_inference(const char *model_path, int inference_num) {
   printf("test model inference (path: %s)\n", model_path);
   CVI_MODEL_HANDLE model = NULL;
-  // cvi_tpu_init();
   int ret = CVI_NN_RegisterModel(model_path, &model);
   if (CVI_RC_SUCCESS != ret) {
   	printf("CVI_NN_RegisterModel failed, err %d\n", ret);
@@ -106,9 +104,3 @@ ALIOS_CLI_CMD_REGISTER(cviai_test_model, cviai_test_model, test cvimodel inferen
 ALIOS_CLI_CMD_REGISTER(cviai_test_fd_model, cviai_test_fd_model, test face detection model);
 ALIOS_CLI_CMD_REGISTER(cviai_test_od_model, cviai_test_od_model, test object detection model);
 ALIOS_CLI_CMD_REGISTER(cviai_test_fr_model, cviai_test_fr_model, test face recognition detection model);
-
-void init_tpu(int32_t argc, char **argv) {
-  cvi_tpu_init();
-}
-
-ALIOS_CLI_CMD_REGISTER(init_tpu, init_tpu, init_tpu);

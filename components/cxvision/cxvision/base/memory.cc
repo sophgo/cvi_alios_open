@@ -1,7 +1,3 @@
-/*
- * Copyright (C) 2021-2022 Alibaba Group Holding Limited
- */
-
 #include "cxvision/base/memory.h"
 
 namespace cx {

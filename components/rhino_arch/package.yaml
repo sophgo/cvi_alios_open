@@ -64,9 +64,12 @@ source_file:
 #     source:                              # 安装源列表
 #      - src/*.h                           # 支持通配符，相对路径
 install:
-  - dest: "include/rhino"
+  - dest: "include"
     source:
       - "include/*.h"
+  - dest: "include"
+    source:
+      - "include/<arch>/<cpu_num>/*.h"
 
 ## 第七部分：导出部分
 # export:

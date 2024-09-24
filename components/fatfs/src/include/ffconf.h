@@ -69,11 +69,7 @@
 / Locale and Namespace Configurations
 /---------------------------------------------------------------------------*/
 
-#ifndef CONFIG_FATFS_LANGUAGE_CODE
 #define FF_CODE_PAGE	936
-#else
-#define FF_CODE_PAGE	CONFIG_FATFS_LANGUAGE_CODE
-#endif
 /* This option specifies the OEM code page to be used on the target system.
 /  Incorrect code page setting can cause a file open failure.
 /
@@ -240,11 +236,8 @@
 /  To enable exFAT, also LFN needs to be enabled. (FF_USE_LFN >= 1)
 /  Note that enabling exFAT discards ANSI C (C89) compatibility. */
 
-#if (CONFIG_FATFS_MODIFIED_TIME == 0)
-#define FF_FS_NORTC     1
-#else 
-#define FF_FS_NORTC     0
-#endif
+
+#define FF_FS_NORTC		1
 #define FF_NORTC_MON	1
 #define FF_NORTC_MDAY	1
 #define FF_NORTC_YEAR	2018

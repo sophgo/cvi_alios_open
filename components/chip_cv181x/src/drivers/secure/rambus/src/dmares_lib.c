@@ -89,10 +89,10 @@ DMAResource_Release(
  */
 uint32_t
 DMAResource_Read32(
-        const DMAResource_Handle_t CVI_Handle,
-        const unsigned int CVI_WordOffset)
+        const DMAResource_Handle_t Handle,
+        const unsigned int WordOffset)
 {
-    return *((uint32_t*)(uintptr_t)CVI_Handle + CVI_WordOffset);
+    return *((uint32_t*)(uintptr_t)Handle + WordOffset);
 }
 
 
@@ -101,11 +101,11 @@ DMAResource_Read32(
  */
 void
 DMAResource_Write32(
-        const DMAResource_Handle_t CVI_Handle,
-        const unsigned int CVI_WordOffset,
-        const uint32_t CVI_Value)
+        const DMAResource_Handle_t Handle,
+        const unsigned int WordOffset,
+        const uint32_t Value)
 {
-    *((uint32_t*)(uintptr_t)CVI_Handle + CVI_WordOffset) = CVI_Value;
+    *((uint32_t*)(uintptr_t)Handle + WordOffset) = Value;
 
 }
 

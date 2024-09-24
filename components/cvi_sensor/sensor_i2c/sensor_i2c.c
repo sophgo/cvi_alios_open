@@ -4,7 +4,7 @@ static csi_iic_t iic_adapter_list[5] = {0};
 
 int sensor_i2c_init(CVI_U8 i2c_id)
 {
-	csi_iic_t *iic; 
+	csi_iic_t *iic;
 
 	if (i2c_id >= IIC_MAX) {
 		return CVI_FAILURE;
@@ -62,7 +62,7 @@ int sensor_i2c_read(CVI_U8 i2c_id, CVI_U8 snsr_i2c_addr,
 	CVI_U8 buf[8];
 	CVI_U8 idx = 0;
 	CVI_U32 data = 0;
-	CVI_U32 timeout = 1;
+	CVI_U32 timeout = 100;
 	csi_iic_t *iic;
 	csi_iic_mem_addr_size_t reg_addr_len;
 
@@ -85,7 +85,7 @@ int sensor_i2c_read(CVI_U8 i2c_id, CVI_U8 snsr_i2c_addr,
 	ret = csi_iic_mem_receive(iic, snsr_i2c_addr, addr,
 					reg_addr_len, buf, snsr_data_byte, timeout);
 	if (ret != snsr_data_byte) {
-		printf("I2C_WRITE error!\n");
+		printf("I2C_READ error!\n");
 		return CVI_FAILURE;
 	}
 
@@ -106,7 +106,7 @@ int sensor_i2c_write(CVI_U8 i2c_id, CVI_U8 snsr_i2c_addr,
 	int ret = CVI_SUCCESS;
 	CVI_U8 buf[8];
 	CVI_U8 idx = 0;
-	CVI_U32 timeout = 1;
+	CVI_U32 timeout = 10;
 	csi_iic_t *iic;
 	csi_iic_mem_addr_size_t reg_addr_len;
 

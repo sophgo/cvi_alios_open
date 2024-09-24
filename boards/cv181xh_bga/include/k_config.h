@@ -47,7 +47,7 @@
 #define RHINO_CONFIG_TIMER                   1
 #define RHINO_CONFIG_BUF_QUEUE               1
 #ifndef RHINO_CONFIG_MM_BLK
-#define RHINO_CONFIG_MM_BLK                  0
+#define RHINO_CONFIG_MM_BLK                  1
 #endif
 #ifndef RHINO_CONFIG_MM_TLF_BLK_SIZE
 #define RHINO_CONFIG_MM_TLF_BLK_SIZE         1024
@@ -121,7 +121,7 @@
 #endif
 
 #define RHINO_CONFIG_TIMER_RATE              1
-#define RHINO_CONFIG_TIMER_TASK_PRI          5
+#define RHINO_CONFIG_TIMER_TASK_PRI          30
 
 #ifdef CONFIG_KERNEL_TIMER_MSG_NUM
 #define RHINO_CONFIG_TIMER_MSG_NUM CONFIG_KERNEL_TIMER_MSG_NUM

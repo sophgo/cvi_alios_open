@@ -40,6 +40,8 @@ depends:
   - netmgr: develop
   - drv_wifi_hi3861l_fnlink: develop
   - cjson: develop
+  - cvi_json_c: develop
+  - cvi_miniz: develop
   - devices: develop
   - drivers: develop
   - fatfs: cv_dev
@@ -47,17 +49,41 @@ depends:
   - lwext4: develop
   - cv181xc_qfn: v0.0.1
   - chip_cv181x: v0.0.1
+  - cvi_osdrv: v0.0.1
+  - cvi_mw_sys: v0.0.1
+  - cvi_mw_audio: v0.0.1
+  - cvi_kernel: v0.0.1
+  - cvi_runtime: v0.0.1
+  - cvi_math: v0.0.1
+  - cviai: v0.0.1
   - minialsa: v7.5.1
   - drv_snd_cv181x: v7.5.1
   - lvgl: develop
+  - cvi_mw_mipi_tx: v0.0.1
+  - cvi_mw_vdec: v0.0.1
+  - cvi_mw_venc: v0.0.1
+  - cvi_mw_gdc: v0.0.1
+  - cvi_mw_ldc: v0.0.1
+  - cvi_mw_rgn: v0.0.1
+  - cvi_mw_vi: v0.0.1
+  - cvi_mw_vo: v0.0.1
+  - cvi_mw_vpss: v0.0.1
   - cvi_sensor: develop
   - rtsp: develop
 #  - cvi_mw_tpu: v0.0.1
+  - cvi_mw_isp: develop
+  - cvi_mw_isp_algo: develop
+  - cvi_mw_isp_ae: develop
+  - cvi_mw_isp_af: develop
+  - cvi_mw_isp_awb: develop
+  - cvi_mw_isp_bin: develop
+  - cvi_mw_bin: develop
+  - cvi_mw_isp_com_raw_replay: develop
+  - cvi_mw_isp_daemon: develop
   - cvi_platform: develop
   - g711: v0.0.1
   - fdk_aac: v0.0.1
 
-  - cvi_mmf_sdk_cv181xx: develop
 ## 第三部分：板级信息
 # hw_info:                                 # 对 solution、board、chip 三个字段的改进，统称为 hw_info 字段
 #   cpu_id: cpu0
@@ -150,6 +176,7 @@ source_file:
   - audio/test_g711_fun.c ? <CONFIG_AUDIO_G711>
   - audio/test_aac_fun.c ? <CONFIG_AUDIO_AAC>
   - flash/*.c
+  - spinand/*.c
   - pwm/*.c
   - adc/*.c
   - disk_sd/*.c

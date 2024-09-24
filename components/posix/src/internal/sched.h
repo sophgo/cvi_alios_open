@@ -13,8 +13,6 @@
 static inline int sched_policy_posix2aos(int policy)
 {
     switch (policy) {
-        case SCHED_OTHER:
-            return AOS_KSCHED_OTHER;
         case SCHED_FIFO:
             return AOS_KSCHED_FIFO;
         case SCHED_RR:
@@ -30,8 +28,6 @@ static inline int sched_policy_posix2aos(int policy)
 static inline int sched_policy_aos2posix(int policy)
 {
     switch (policy) {
-        case AOS_KSCHED_OTHER:
-            return SCHED_OTHER;
         case AOS_KSCHED_FIFO:
             return SCHED_FIFO;
         case AOS_KSCHED_RR:

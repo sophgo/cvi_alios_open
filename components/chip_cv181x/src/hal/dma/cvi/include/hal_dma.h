@@ -16,8 +16,6 @@ void hal_dma_write_llp(dw_dma_channel_t *dwc, uint64_t llp);
 uint64_t hal_dma_get_ch_en_status(struct dw_dma *dma);
 void hal_dma_ch_on(struct dw_dma *dma, uint8_t ch_mask);
 void hal_dma_ch_off(struct dw_dma *dma, uint8_t ch_mask);
-void hal_dma_ch_pause(struct dw_dma *dma, uint8_t ch_mask);
-void hal_dma_ch_resume(struct dw_dma *dma, uint8_t ch_mask);
 uint64_t hal_dma_get_intstatus(dw_dma_t *dma);
 void hal_dma_clear_comm_intstatus(dw_dma_t *dma);
 uint64_t hal_dma_dwc_read_clear_intstatus(dw_dma_channel_t *dwc);

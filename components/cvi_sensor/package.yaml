@@ -85,49 +85,92 @@ license: Copyright (C) Cvitek Co., Ltd. 2019-2020. All rights reserved. # <可�
 #     - libs                               #   -Llibs
 build_config:
   include:
+    - sensor_cfg
     - sensor_i2c
+    - byd_bf2253l
+    - cvsens_cv2003_1L
+    - cvsens_cv2003_1L_slave
+    - cvsens_cv2003_1L_slave1
     - gcore_gc02m1
     - gcore_gc02m1_slave
+    - gcore_gc0308
     - gcore_gc2053
     - gcore_gc2053_1L
     - gcore_gc2093
+    - gcore_gc2145
+    - gcore_gc4023
     - gcore_gc4653
-    - opnous_opn8018
-    - sms_sc200ai
-    - sms_sc2336
-    - sms_sc3336
-    - sms_sc030iot
-    - sms_sc201cs
-    - sms_sc201cs_slave
-    - sms_sc031iot
+    - ov_og01a1b
+    - ov_og01a10
+    - pixelplus_pr2020
     - sony_imx307
     - sony_imx327
-    - byd_bf314a
+    - sony_imx675
+    - techpoint_tp9950
+    - sms_sc035hgs_1L
+    - sms_sc035hgs_1L_slave
+    - sms_sc230ai_2L
+    - sms_sc230ai_2L_slave
+    - sms_sc1336_1L
+    - sms_sc1336_1L_slave
     - sms_sc1336_2L
-
+    - sms_sc1336_slave
+    - sms_sc1346_1L
+    - sms_sc1346_1L_slave
+    - sms_sc2331_1L
+    - sms_sc301iot
+    - cista_c4390
+    - sms_sc2331_1L_slave
+    - sms_sc2331_1L_slave1
+    - sms_sc2336
+    - sms_sc2336_slave
+    - sms_sc2336_slave1
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
 source_file:
 ## middleware
+  - sensor_cfg/*.c
   - sensor_i2c/*.c
-  - gcore_gc02m1/*.c
-  - gcore_gc02m1_slave/*.c
-  - gcore_gc2053/*.c
-  - gcore_gc2053_1L/*.c
-  - gcore_gc2093/*.c
-  - gcore_gc4653/*.c
-  - opnous_opn8018/*.c
-  - sms_sc200ai/*.c
-  - sms_sc2336/*.c
-  - sms_sc3336/*.c
-  - sms_sc030iot/*.c
-  - sms_sc201cs/*.c
-  - sms_sc201cs_slave/*.c
-  - sms_sc031iot/*.c
-  - sony_imx307/*.c
-  - sony_imx327/*.c
-  - byd_bf314a/*.c
-  - sms_sc1336_2L/*.c
+  - byd_bf2253l/*.c ? <CONFIG_SENSOR_BYD_BF2253L>
+  - cvsens_cv2003_1L/*.c ? <CONFIG_SENSOR_CVSENS_CV2003_1L>
+  - cvsens_cv2003_1L_slave/*.c ? <CONFIG_SENSOR_CVSENS_CV2003_1L_SLAVE>
+  - cvsens_cv2003_1L_slave1/*.c ? <CONFIG_SENSOR_CVSENS_CV2003_1L_SLAVE1>
+  - gcore_gc02m1/*.c ? <CONFIG_SENSOR_GCORE_GC02M1>
+  - gcore_gc02m1_slave/*.c ? <CONFIG_SENSOR_GCORE_GC02M1_SLAVE>
+  - gcore_gc0308/*.c ? <CONFIG_SENSOR_GCORE_GC0308>
+  - gcore_gc2053/*.c ? <CONFIG_SENSOR_GCORE_GC2053>
+  - gcore_gc2053_1L/*.c ? <CONFIG_SENSOR_GCORE_GC2053_1L>
+  - gcore_gc2093/*.c ? <CONFIG_SENSOR_GCORE_GC2093>
+  - gcore_gc2145/*.c ? <CONFIG_SENSOR_GCORE_GC2145>
+  - gcore_gc4023/*.c ? <CONFIG_SENSOR_GCORE_GC4023>
+  - gcore_gc4653/*.c ? <CONFIG_SENSOR_GCORE_GC4653>
+  - ov_og01a1b/*.c ? <CONFIG_SENSOR_OV_OG01A1B>
+  - ov_og01a10/*.c ? <CONFIG_SENSOR_OV_OG01A10>
+  - pixelplus_pr2020/*.c ? <CONFIG_SENSOR_PIXELPLUS_PR2020>
+  - sony_imx307/*.c ? <CONFIG_SENSOR_SONY_IMX307>
+  - sony_imx327/*.c ? <CONFIG_SENSOR_SONY_IMX327>
+  - sony_imx675/*.c ? <CONFIG_SENSOR_SONY_IMX675>
+  - techpoint_tp9950/*.c ? <CONFIG_SENSOR_TECHPOINT_TP9950>
+  - sms_sc1336_1L/*.c ? <CONFIG_SENSOR_SMS_SC1336_1L>
+  - sms_sc035hgs_1L/*.c ? <CONFIG_SENSOR_SMS_SC035HGS_1L>
+  - sms_sc035hgs_1L_slave/*.c ? <CONFIG_SENSOR_SMS_SC035HGS_1L_SLAVE>
+  - sms_sc230ai_2L/*.c ? <CONFIG_SENSOR_SMS_SC230AI_2L>
+  - sms_sc230ai_2L_slave/*.c ? <CONFIG_SENSOR_SMS_SC230AI_2L_SLAVE>
+  - sms_sc1336_1L_slave/*.c ? <CONFIG_SENSOR_SMS_SC1336_1L_SLAVE>
+  - sms_sc1336_2L/*.c ? <CONFIG_SENSOR_SMS_SC1336_2L>
+  - sms_sc1336_slave/*.c ? <CONFIG_SENSOR_SMS_SC1336_SALVE>
+  - sms_sc1346_1L/*.c ? <CONFIG_SENSOR_SMS_SC1346_1L>
+  - sms_sc1346_1L_slave/*.c ? <CONFIG_SENSOR_SMS_SC1346_1L_SLAVE>
+  - sms_sc2331_1L/*.c ? <CONFIG_SENSOR_SMS_SC2331_1L>
+  - sms_sc301iot/*.c ? <CONFIG_SENSOR_SMS_SC301IOT>
+  - cista_c4390/*.c ? <CONFIG_SENSOR_CISTA_C4390>
+  - sms_sc2336/*.c ? <CONFIG_SENSOR_SMS_SC2336>
+  - sms_sc2336_slave/*.c ? <CONFIG_SENSOR_SMS_SC2336_SLAVE>
+  - sms_sc2336_slave1/*.c ? <CONFIG_SENSOR_SMS_SC2336_SLAVE1>
+  - sms_sc2331_1L_slave/*.c ? <CONFIG_SENSOR_SMS_SC2331_1L_SLAVE>
+  - sms_sc2331_1L_slave1/*.c ? <CONFIG_SENSOR_SMS_SC2331_1L_SLAVE1>
+
+
 
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项
@@ -145,7 +188,6 @@ def_config:
 install:
   - dest: "include/"
     source:
-
 ## 第七部分：导出部分
 # export:
 #   - dest: "<SOLUTION_PATH>/generated/data" # 安装的目的路径 dest是相对路径

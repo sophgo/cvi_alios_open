@@ -56,10 +56,7 @@ int32_t dw_uart_config_baudrate(dw_uart_regs_t *uart_base, uint32_t baud, uint32
     ret = dw_uart_wait_timeout(uart_base);
 
     if (ret == 0) {
-        if ((uart_freq / 16) % baud >= (baud / 2))
-            divisor = (uart_freq / 16) / baud + 1;
-        else
-            divisor = (uart_freq / 16) / baud;
+        divisor = (uart_freq / 16) / baud;
         //divisor = ((UART_SCLK  * 10) / baud) >> 4;
 
         uart_base->LCR |= DW_UART_LCR_DLAB_EN;

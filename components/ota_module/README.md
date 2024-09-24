@@ -79,7 +79,7 @@ int ota_server_init()
 | OTA_STATE_ONGOING = 0x01,       | 设备升级开始，升级事件数据参见ota_state_ongoing结构体     |
 | OTA_STATE_LOAD_COMPLETE = 0x02  | 设备固件下载成功（该消息不上报）                          |
 | OTA_STATE_SUCCESS = 0x03        | 设备固件升级成功，升级事件数据参见ota_state_success结构体 |
-| OTA_STATE_FAILED   = 0X04        | 设备固件升级失败，升级事件数据参见ota_state_fail结构体    |
+| OTA_STATE_FAILD   = 0X04        | 设备固件升级失败，升级事件数据参见ota_state_fail结构体    |
 
 | ota_state_ongoing（结构体）定义 |                                           |
 | ------------------------------- | ----------------------------------------- |
@@ -127,7 +127,7 @@ int ota_server_init()
 | OTA_FAIL_INVAILD_MTU        = 0x09     | 设备升级MTU协商失败    |
 | OTA_FAIL_READ_FIRMWARE      = 0x0a     | 读取升级固件失败       |
 | OTA_FAIL_SEND_FIRMWARE      = 0x0b     | 发送升级固件失败       |
-| OTA_FAIL_DEV_FAILED          = 0x0c     | 升级设备主动停止升级   |
+| OTA_FAIL_DEV_FAILD          = 0x0c     | 升级设备主动停止升级   |
 | OTA_FAIL_REPORT_VERSION_TIMEOUT = 0x0d | 设备上报版本超时       |
 | OTA_FAIL_TIMEOUT                = 0x0e | 设备升级超时           |
 | OTA_FAIL_FIRMWARE_DEL           =0x0f  | 升级固件删除           |
@@ -221,8 +221,8 @@ int ota_server_init()
 
   | ota_type_en（枚举）定义                         |                  |
   | ----------------------------------------------- | ---------------- |
-  | OTA_CHANNEL_ON_GATT                              = 0x00 | 通过GATT通道升级 |
-  | OTA_CHANNEL_ON_UART                              = 0x01 | 通过UART通道升级 |
+  | OTA_BY_GATT                              = 0x00 | 通过GATT通道升级 |
+  | OTA_BY_UART                              = 0x01 | 通过UART通道升级 |
 
 - 返回值
 

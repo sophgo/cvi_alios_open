@@ -1,6 +1,13 @@
 /*
-* Copyright (C) Cvitek Co., Ltd. 2019-2020. All rights reserved.
-*/
+ * Copyright (C) 2017-2019 Alibaba Group Holding Limited
+ */
+
+/******************************************************************************
+ * @file     phy.c
+ * @brief    CSI Source File for generic PHY Driver
+ * @version  V1.0
+ * @date     21 March 2019
+ ******************************************************************************/
 
 /* LOG_LEVEL: 0: Err; 1: Err&Warn; 2: Err&Warn&Info; 3: Err&Warn&Info&Debug */
 #define LOG_LEVEL 0
@@ -77,7 +84,7 @@ static int32_t eth_read_phy_id(eth_phy_priv_t *priv, uint8_t phy_addr, uint32_t 
     uint16_t data;
     uint32_t id;
 
-    ret = eth_phy_read(priv, phy_addr, CVI_MII_PHYSID1, &data);
+    ret = eth_phy_read(priv, phy_addr, MII_PHYSID1, &data);
 
     if (ret != 0) {
         return ret;
@@ -86,7 +93,7 @@ static int32_t eth_read_phy_id(eth_phy_priv_t *priv, uint8_t phy_addr, uint32_t 
     id = data;
     id = (id & 0xffff) << 16;
 
-    ret = eth_phy_read(priv, phy_addr, CVI_MII_PHYSID2, &data);
+    ret = eth_phy_read(priv, phy_addr, MII_PHYSID2, &data);
 
     if (ret != 0) {
         return ret;
@@ -176,8 +183,8 @@ int32_t eth_phy_reset(eth_phy_handle_t handle)
     uint32_t phy_addr = dev->phy_addr;
 
     /* Soft reset */
-    ret = eth_phy_read(priv, phy_addr, CVI_MII_BMCR, &data);
-    ret = eth_phy_write(priv, phy_addr, CVI_MII_BMCR, data | CVI_BMCR_RESET);
+    ret = eth_phy_read(priv, phy_addr, MII_BMCR, &data);
+    ret = eth_phy_write(priv, phy_addr, MII_BMCR, data | BMCR_RESET);
 
     if (ret != 0) {
         pr_err("PHY soft reset failed\n");
@@ -192,9 +199,9 @@ int32_t eth_phy_reset(eth_phy_handle_t handle)
      * IEEE 802.3, Section 2, Subsection 22.2.4.1.1 a PHY reset may take
      * up to 0.5 s.
      */
-    ret = eth_phy_read(priv, phy_addr, CVI_MII_BMCR, &data);
-    while ((data & CVI_BMCR_RESET) && timeout--) {
-        ret = eth_phy_read(priv, phy_addr, CVI_MII_BMCR, &data);
+    ret = eth_phy_read(priv, phy_addr, MII_BMCR, &data);
+    while ((data & BMCR_RESET) && timeout--) {
+        ret = eth_phy_read(priv, phy_addr, MII_BMCR, &data);
 
         if (ret != 0) {
             return ret;
@@ -203,7 +210,7 @@ int32_t eth_phy_reset(eth_phy_handle_t handle)
         aos_msleep(1);
     }
 
-    if (data & CVI_BMCR_RESET) {
+    if (data & BMCR_RESET) {
         pr_err("PHY reset timed out\n");
         return -1;
     }
@@ -278,18 +285,18 @@ int32_t generic_phy_restart_aneg(eth_phy_dev_t *phy_dev)
     uint16_t ctl;
     int32_t ret;
 
-    ret = eth_phy_read(priv, phy_addr, CVI_MII_BMCR, &ctl);
+    ret = eth_phy_read(priv, phy_addr, MII_BMCR, &ctl);
 
     if (ret != 0) {
         return ret;
     }
 
-    ctl |= (CVI_BMCR_ANENABLE | CVI_BMCR_ANRESTART);
+    ctl |= (BMCR_ANENABLE | BMCR_ANRESTART);
 
     /* Don't isolate the PHY if we're negotiating */
-    ctl &= ~(CVI_BMCR_ISOLATE);
+    ctl &= ~(BMCR_ISOLATE);
 
-    ret = eth_phy_write(priv, phy_addr, CVI_MII_BMCR, ctl);
+    ret = eth_phy_write(priv, phy_addr, MII_BMCR, ctl);
 
     if (ret != 0) {
         return ret;
@@ -321,7 +328,7 @@ static int32_t genphy_config_advert(eth_phy_dev_t *phy_dev)
 	advertise = phy_dev->advertising;
 
 	/* Setup standard advertisement */
-    ret = eth_phy_read(priv, phy_addr, CVI_MII_ADVERTISE, &adv);
+    ret = eth_phy_read(priv, phy_addr, MII_ADVERTISE, &adv);
     if (ret != 0) {
         return ret;
     }
@@ -330,27 +337,27 @@ static int32_t genphy_config_advert(eth_phy_dev_t *phy_dev)
 	if (adv < 0)
 		return adv;
 
-	adv &= ~(CVI_ADVERTISE_ALL | CVI_ADVERTISE_100BASE4 | CVI_ADVERTISE_PAUSE_CAP |
-		 CVI_ADVERTISE_PAUSE_ASYM);
-	if (advertise & CVI_ADVERTISED_10baseT_Half)
-		adv |= CVI_ADVERTISE_10HALF;
-	if (advertise & CVI_ADVERTISED_10baseT_Full)
-		adv |= CVI_ADVERTISE_10FULL;
-	if (advertise & CVI_ADVERTISED_100baseT_Half)
-		adv |= CVI_ADVERTISE_100HALF;
-	if (advertise & CVI_ADVERTISED_100baseT_Full)
-		adv |= CVI_ADVERTISE_100FULL;
-	if (advertise & CVI_ADVERTISED_Pause)
-		adv |= CVI_ADVERTISE_PAUSE_CAP;
-	if (advertise & CVI_ADVERTISED_Asym_Pause)
-		adv |= CVI_ADVERTISE_PAUSE_ASYM;
-	if (advertise & CVI_ADVERTISED_1000baseX_Half)
-		adv |= CVI_ADVERTISE_1000XHALF;
-	if (advertise & CVI_ADVERTISED_1000baseX_Full)
-		adv |= CVI_ADVERTISE_1000XFULL;
+	adv &= ~(ADVERTISE_ALL | ADVERTISE_100BASE4 | ADVERTISE_PAUSE_CAP |
+		 ADVERTISE_PAUSE_ASYM);
+	if (advertise & ADVERTISED_10baseT_Half)
+		adv |= ADVERTISE_10HALF;
+	if (advertise & ADVERTISED_10baseT_Full)
+		adv |= ADVERTISE_10FULL;
+	if (advertise & ADVERTISED_100baseT_Half)
+		adv |= ADVERTISE_100HALF;
+	if (advertise & ADVERTISED_100baseT_Full)
+		adv |= ADVERTISE_100FULL;
+	if (advertise & ADVERTISED_Pause)
+		adv |= ADVERTISE_PAUSE_CAP;
+	if (advertise & ADVERTISED_Asym_Pause)
+		adv |= ADVERTISE_PAUSE_ASYM;
+	if (advertise & ADVERTISED_1000baseX_Half)
+		adv |= ADVERTISE_1000XHALF;
+	if (advertise & ADVERTISED_1000baseX_Full)
+		adv |= ADVERTISE_1000XFULL;
 
 	if (adv != oldadv) {
-        ret = eth_phy_write(priv, phy_addr, CVI_MII_ADVERTISE, adv);
+        ret = eth_phy_write(priv, phy_addr, MII_ADVERTISE, adv);
 
         if (ret != 0) {
             return ret;
@@ -358,21 +365,21 @@ static int32_t genphy_config_advert(eth_phy_dev_t *phy_dev)
 		changed = 1;
 	}
 
-    ret = eth_phy_read(priv, phy_addr, CVI_MII_BMSR, &bmsr);
+    ret = eth_phy_read(priv, phy_addr, MII_BMSR, &bmsr);
 
     if (ret != 0 || bmsr < 0) {
         return ret;
     }
 
 	/* Per 802.3-2008, Section 22.2.4.2.16 Extended status all
-	 * 1000Mbits/sec capable PHYs shall have the CVI_BMSR_ESTATEN bit set to a
+	 * 1000Mbits/sec capable PHYs shall have the BMSR_ESTATEN bit set to a
 	 * logical 1.
 	 */
-	if (!(bmsr & CVI_BMSR_ESTATEN))
+	if (!(bmsr & BMSR_ESTATEN))
 		return changed;
 
 	/* Configure gigabit if it's supported */
-    ret = eth_phy_read(priv, phy_addr, CVI_MII_CTRL1000, &adv);
+    ret = eth_phy_read(priv, phy_addr, MII_CTRL1000, &adv);
 
     if (ret != 0 || adv < 0) {
         return ret;
@@ -380,20 +387,20 @@ static int32_t genphy_config_advert(eth_phy_dev_t *phy_dev)
 
     oldadv = adv;
 
-	adv &= ~(CVI_ADVERTISE_1000FULL | CVI_ADVERTISE_1000HALF);
+	adv &= ~(ADVERTISE_1000FULL | ADVERTISE_1000HALF);
 
-	if (phy_dev->supported & (CVI_SUPPORTED_1000baseT_Half |
-				CVI_SUPPORTED_1000baseT_Full)) {
-		if (advertise & CVI_SUPPORTED_1000baseT_Half)
-			adv |= CVI_ADVERTISE_1000HALF;
-		if (advertise & CVI_SUPPORTED_1000baseT_Full)
-			adv |= CVI_ADVERTISE_1000FULL;
+	if (phy_dev->supported & (SUPPORTED_1000baseT_Half |
+				SUPPORTED_1000baseT_Full)) {
+		if (advertise & SUPPORTED_1000baseT_Half)
+			adv |= ADVERTISE_1000HALF;
+		if (advertise & SUPPORTED_1000baseT_Full)
+			adv |= ADVERTISE_1000FULL;
 	}
 
 	if (adv != oldadv)
 		changed = 1;
 
-    ret = eth_phy_write(priv, phy_addr, CVI_MII_CTRL1000, adv);
+    ret = eth_phy_write(priv, phy_addr, MII_CTRL1000, adv);
 
     if (ret != 0) {
         return ret;
@@ -413,20 +420,20 @@ static int32_t genphy_setup_forced(eth_phy_dev_t *phy_dev)
 
     eth_phy_priv_t *priv = phy_dev->priv;
     uint8_t phy_addr = phy_dev->phy_addr;
-    int32_t ctl = CVI_BMCR_ANRESTART;
+    int32_t ctl = BMCR_ANRESTART;
     int32_t ret;
 
 	if (CSI_ETH_SPEED_1G == priv->link_info.speed)
-		ctl |= CVI_BMCR_SPEED1000;
+		ctl |= BMCR_SPEED1000;
 	else if (CSI_ETH_SPEED_100M == priv->link_info.speed)
-		ctl |= CVI_BMCR_SPEED100;
+		ctl |= BMCR_SPEED100;
     else//CSI_ETH_SPEED_10M == priv->link_info.speed
-		ctl |= CVI_BMCR_SPEED100;
+		ctl |= BMCR_SPEED100;
 
 	if (CSI_ETH_DUPLEX_FULL == priv->link_info.duplex)
-		ctl |= CVI_BMCR_FULLDPLX;
+		ctl |= BMCR_FULLDPLX;
 
-    ret = eth_phy_write(priv, phy_addr, CVI_MII_BMCR, ctl);
+    ret = eth_phy_write(priv, phy_addr, MII_BMCR, ctl);
 
 	return ret;
 }
@@ -439,17 +446,17 @@ int genphy_restart_aneg(eth_phy_dev_t *phy_dev)
 {
 	int32_t ret;
     uint16_t ctl;
-    ret = eth_phy_read(phy_dev->priv, phy_dev->phy_addr, CVI_MII_BMCR, &ctl);
+    ret = eth_phy_read(phy_dev->priv, phy_dev->phy_addr, MII_BMCR, &ctl);
 
 	if (ret != 0 || ctl < 0)
 		return ret;
 
-	ctl |= (CVI_BMCR_ANENABLE | CVI_BMCR_ANRESTART);
+	ctl |= (BMCR_ANENABLE | BMCR_ANRESTART);
 
 	/* Don't isolate the PHY if we're negotiating */
-	ctl &= ~(CVI_BMCR_ISOLATE);
+	ctl &= ~(BMCR_ISOLATE);
 
-    ret = eth_phy_write(phy_dev->priv, phy_dev->phy_addr, CVI_MII_BMCR, ctl);
+    ret = eth_phy_write(phy_dev->priv, phy_dev->phy_addr, MII_BMCR, ctl);
 
 	return ret;
 }
@@ -480,11 +487,11 @@ int32_t genphy_config_aneg(eth_phy_dev_t *phy_dev)
 	if (result == 0) {
 		/* Advertisment hasn't changed, but maybe aneg was never on to
 		 * begin with?  Or maybe phy was isolated? */
-        ret = eth_phy_read(priv, phy_addr, CVI_MII_BMCR, &ctl);
+        ret = eth_phy_read(priv, phy_addr, MII_BMCR, &ctl);
         if (ret != 0 || ctl < 0)
             return ret;
 
-		if (!(ctl & CVI_BMCR_ANENABLE) || (ctl & CVI_BMCR_ISOLATE))
+		if (!(ctl & BMCR_ANENABLE) || (ctl & BMCR_ISOLATE))
 			result = 1; /* do restart aneg */
 	}
 
@@ -511,40 +518,40 @@ int32_t genphy_config(eth_phy_dev_t *phy_dev)
     uint16_t val;
 	uint32_t features;
 
-	features = (CVI_SUPPORTED_TP | CVI_SUPPORTED_MII
-			| CVI_SUPPORTED_AUI | CVI_SUPPORTED_FIBRE |
-			CVI_SUPPORTED_BNC);
+	features = (SUPPORTED_TP | SUPPORTED_MII
+			| SUPPORTED_AUI | SUPPORTED_FIBRE |
+			SUPPORTED_BNC);
 
 	/* Do we support autonegotiation? */
-    ret = eth_phy_read(priv, phy_addr, CVI_MII_BMSR, &val);
+    ret = eth_phy_read(priv, phy_addr, MII_BMSR, &val);
 	if (ret != 0 || val < 0)
 		return ret;
 
-	if (val & CVI_BMSR_ANEGCAPABLE)
-		features |= CVI_SUPPORTED_Autoneg;
+	if (val & BMSR_ANEGCAPABLE)
+		features |= SUPPORTED_Autoneg;
 
-	if (val & CVI_BMSR_100FULL)
-		features |= CVI_SUPPORTED_100baseT_Full;
-	if (val & CVI_BMSR_100HALF)
-		features |= CVI_SUPPORTED_100baseT_Half;
-	if (val & CVI_BMSR_10FULL)
-		features |= CVI_SUPPORTED_10baseT_Full;
-	if (val & CVI_BMSR_10HALF)
-		features |= CVI_SUPPORTED_10baseT_Half;
+	if (val & BMSR_100FULL)
+		features |= SUPPORTED_100baseT_Full;
+	if (val & BMSR_100HALF)
+		features |= SUPPORTED_100baseT_Half;
+	if (val & BMSR_10FULL)
+		features |= SUPPORTED_10baseT_Full;
+	if (val & BMSR_10HALF)
+		features |= SUPPORTED_10baseT_Half;
 
-	if (val & CVI_BMSR_ESTATEN) {
-        ret = eth_phy_read(priv, phy_addr, CVI_MII_ESTATUS, &val);
+	if (val & BMSR_ESTATEN) {
+        ret = eth_phy_read(priv, phy_addr, MII_ESTATUS, &val);
 	    if (ret != 0 || val < 0)
 		    return val;
 
-		if (val & CVI_ESTATUS_1000_TFULL)
-			features |= CVI_SUPPORTED_1000baseT_Full;
-		if (val & CVI_ESTATUS_1000_THALF)
-			features |= CVI_SUPPORTED_1000baseT_Half;
-		if (val & CVI_ESTATUS_1000_XFULL)
-			features |= CVI_SUPPORTED_1000baseX_Full;
-		if (val & CVI_ESTATUS_1000_XHALF)
-			features |= CVI_SUPPORTED_1000baseX_Half;
+		if (val & ESTATUS_1000_TFULL)
+			features |= SUPPORTED_1000baseT_Full;
+		if (val & ESTATUS_1000_THALF)
+			features |= SUPPORTED_1000baseT_Half;
+		if (val & ESTATUS_1000_XFULL)
+			features |= SUPPORTED_1000baseX_Full;
+		if (val & ESTATUS_1000_XHALF)
+			features |= SUPPORTED_1000baseX_Half;
 	}
 
 	phy_dev->supported &= features;
@@ -570,7 +577,7 @@ int32_t genphy_update_link(eth_phy_dev_t *phy_dev)
 	 * Wait if the link is up, and autonegotiation is in progress
 	 * (ie - we're capable and it's not done)
 	 */
-    ret = eth_phy_read(phy_dev->priv, phy_addr, CVI_MII_BMSR, &mii_reg);
+    ret = eth_phy_read(phy_dev->priv, phy_addr, MII_BMSR, &mii_reg);
 
     if (ret != 0) {
         return ret;
@@ -580,20 +587,20 @@ int32_t genphy_update_link(eth_phy_dev_t *phy_dev)
 	 * If we already saw the link up, and it hasn't gone down, then
 	 * we don't need to wait for autoneg again
 	 */
-	if (phy_dev->link_state && mii_reg & CVI_BMSR_LSTATUS)
+	if (phy_dev->link_state && mii_reg & BMSR_LSTATUS)
 		return 0;
 
 	if ((phy_dev->priv->link_info.autoneg == CSI_ETH_AUTONEG_ENABLE) &&
-	    !(mii_reg & CVI_BMSR_ANEGCOMPLETE)) {
+	    !(mii_reg & BMSR_ANEGCOMPLETE)) {
 		int i = 0;
 
 		pr_info("%s waiting for PHY auto negotiation to complete...\n",
 			phy_dev->name);
-		while (!(mii_reg & CVI_BMSR_ANEGCOMPLETE)) {
+		while (!(mii_reg & BMSR_ANEGCOMPLETE)) {
 			/*
 			 * Timeout reached ?
 			 */
-			if (i > CVI_PHY_ANEG_TIMEOUT) {
+			if (i > PHY_ANEG_TIMEOUT) {
 				pr_err("TIMEOUT!\n");
                 phy_dev->link_state = ETH_LINK_DOWN;
 				return -1;
@@ -605,7 +612,7 @@ int32_t genphy_update_link(eth_phy_dev_t *phy_dev)
 
 			udelay(1000);	/* 1 ms */
 
-            ret = eth_phy_read(phy_dev->priv, phy_addr, CVI_MII_BMSR, &mii_reg);
+            ret = eth_phy_read(phy_dev->priv, phy_addr, MII_BMSR, &mii_reg);
             if (ret != 0) {
                 return ret;
             }
@@ -615,13 +622,13 @@ int32_t genphy_update_link(eth_phy_dev_t *phy_dev)
 	} else {
 
 		/* Read the link a second time to clear the latched state */
-        ret = eth_phy_read(phy_dev->priv, phy_addr, CVI_MII_BMSR, &mii_reg);
+        ret = eth_phy_read(phy_dev->priv, phy_addr, MII_BMSR, &mii_reg);
 
         if (ret != 0) {
             return ret;
         }
 
-		if (mii_reg & CVI_BMSR_LSTATUS)
+		if (mii_reg & BMSR_LSTATUS)
 			phy_dev->link_state = ETH_LINK_UP;
 		else
 			phy_dev->link_state = ETH_LINK_DOWN;
@@ -704,7 +711,7 @@ eth_phy_handle_t csi_eth_phy_initialize(csi_eth_phy_read_t fn_read, csi_eth_phy_
         return NULL;
     }
 
-    phy_dev->supported &= CVI_PHY_GBIT_FEATURES;
+    phy_dev->supported &= PHY_GBIT_FEATURES;
     phy_dev->advertising = phy_dev->supported;
 
     /* Config PHY */
@@ -794,7 +801,7 @@ eth_link_state_t csi_eth_phy_get_linkstate(eth_phy_handle_t handle)
 	 * Wait if the link is up, and autonegotiation is in progress
 	 * (ie - we're capable and it's not done)
 	 */
-    ret = eth_phy_read(phy_dev->priv, phy_addr, CVI_MII_BMSR, &mii_reg);
+    ret = eth_phy_read(phy_dev->priv, phy_addr, MII_BMSR, &mii_reg);
 
     if (ret != 0) {
         return ETH_LINK_DOWN;
@@ -804,7 +811,7 @@ eth_link_state_t csi_eth_phy_get_linkstate(eth_phy_handle_t handle)
 	 * If we already saw the link up, and it hasn't gone down, then
 	 * we don't need to wait for autoneg again
 	 */
-    if (mii_reg & CVI_BMSR_LSTATUS)
+    if (mii_reg & BMSR_LSTATUS)
         phy_dev->link_state = ETH_LINK_UP;
     else
         phy_dev->link_state = ETH_LINK_DOWN;

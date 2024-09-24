@@ -217,9 +217,9 @@ int genphy_config_init(eth_phy_handle_t handle)
 	uint16_t val;
 	uint32_t features;
 
-	features = (CVI_SUPPORTED_TP | CVI_SUPPORTED_MII
-			| CVI_SUPPORTED_AUI | CVI_SUPPORTED_FIBRE |
-			CVI_SUPPORTED_BNC | CVI_SUPPORTED_Pause | CVI_SUPPORTED_Asym_Pause);
+	features = (SUPPORTED_TP | SUPPORTED_MII
+			| SUPPORTED_AUI | SUPPORTED_FIBRE |
+			SUPPORTED_BNC | SUPPORTED_Pause | SUPPORTED_Asym_Pause);
 
 	/* Do we support autonegotiation? */
 	ret = eth_phy_read(priv, phy_addr, MII_BMSR, &val);
@@ -227,16 +227,16 @@ int genphy_config_init(eth_phy_handle_t handle)
 		return ret;
     
 	if (val & BMSR_ANEGCAPABLE)
-		features |= CVI_SUPPORTED_Autoneg;
+		features |= SUPPORTED_Autoneg;
 
 	if (val & BMSR_100FULL)
-		features |= CVI_SUPPORTED_100baseT_Full;
+		features |= SUPPORTED_100baseT_Full;
 	if (val & BMSR_100HALF)
-		features |= CVI_SUPPORTED_100baseT_Half;
+		features |= SUPPORTED_100baseT_Half;
 	if (val & BMSR_10FULL)
-		features |= CVI_SUPPORTED_10baseT_Full;
+		features |= SUPPORTED_10baseT_Full;
 	if (val & BMSR_10HALF)
-		features |= CVI_SUPPORTED_10baseT_Half;
+		features |= SUPPORTED_10baseT_Half;
 
 	if (val & BMSR_ESTATEN) {
 		ret = eth_phy_read(priv, phy_addr, MII_ESTATUS, &val);
@@ -244,9 +244,9 @@ int genphy_config_init(eth_phy_handle_t handle)
 			return ret;
 
 		if (val & ESTATUS_1000_TFULL)
-			features |= CVI_SUPPORTED_1000baseT_Full;
+			features |= SUPPORTED_1000baseT_Full;
 		if (val & ESTATUS_1000_THALF)
-			features |= CVI_SUPPORTED_1000baseT_Half;
+			features |= SUPPORTED_1000baseT_Half;
 	}
 
 	dev->supported &= features;
@@ -344,7 +344,7 @@ static int yt8512_read_status(eth_phy_handle_t handle)
 eth_phy_dev_t YT8512B_device = {
     .phy_id = PHY_ID_YT8512B,
     .mask = MOTORCOMM_PHY_ID_MASK,
-    .features = CVI_PHY_BASIC_FEATURES,
+    .features = PHY_BASIC_FEATURES,
     .config = &yt8512_config_init,
     .start = &yt8512_read_status,
     //.loopback = &yt8512_loopback,

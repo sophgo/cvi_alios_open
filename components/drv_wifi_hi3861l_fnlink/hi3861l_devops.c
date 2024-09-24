@@ -17,8 +17,8 @@
 #include <aos/kernel.h>
 #include <k_api.h>
 #include <devices/wifi.h>
-#include <devices/impl/wifi_impl.h>
-#include <devices/impl/net_impl.h>
+#include <devices/hal/wifi_impl.h>
+#include <devices/hal/net_impl.h>
 #include <devices/netdrv.h>
 #include <devices/driver.h>
 #include "wal_net.h"
@@ -43,9 +43,9 @@ uint8_t g_wifi_got_ip = 0;
 static event_callback_t s_MsgrecvCallBack;
 
 typedef struct {
-	rvm_dev_t   device;
+	aos_dev_t   device;
 	uint8_t mode;
-	void (*write_event)(rvm_dev_t *dev, int event_id, void *priv);
+	void (*write_event)(aos_dev_t *dev, int event_id, void *priv);
 	void *priv;
 } wifi_dev_t;
 
@@ -59,7 +59,7 @@ char host_cmd[][MAX_CMD_LEN] = {
 	"cmd_report_wpa_event", // 11
 };
 
-static int hi3861l_init(rvm_dev_t *dev)
+static int hi3861l_init(aos_dev_t *dev)
 {
 	int ret = 0;
 	wal_irq_config();
@@ -72,96 +72,92 @@ hcc_host_init_fail:
 	return -HI_FAILURE;
 }
 
-static int hi3861l_deinit(rvm_dev_t *dev)
+static int hi3861l_deinit(aos_dev_t *dev)
 {
 	return 0;
 }
 
-static int hi3861l_reset(rvm_dev_t *dev)
+static int hi3861l_reset(aos_dev_t *dev)
 {
 	return 0;
 }
 
-static int hi3861l_set_mode(rvm_dev_t *dev, rvm_hal_wifi_mode_t mode)
+static int hi3861l_set_mode(aos_dev_t *dev, wifi_mode_t mode)
 {
 	uint32_t ret = -1;
-#if (CONFIG_APP_ALIHI3861_WIFI_SUPPORT == 1)
-	ret = hi_channel_send_msg_to_dev((hi_u8 *)host_cmd[HOST_CMD_START_STA], (hi_s32)strlen(host_cmd[HOST_CMD_START_STA]));
-#else
+
 	unsigned char cdata[2] = {0};
 	cdata[0] = HOST_CMD_START_STA;
 	ret = hi_channel_send_msg_to_dev(cdata, 1);
-#endif
 	if (ret == -1) {
 		printf("[error] oal_start_sta ret %d\r\n", ret);
 	} else {
 		printf("[success] oal_start_sta ret %d\r\n", ret);
 	}
-
 	return 0;
 }
 
-static int hi3861l_get_mode(rvm_dev_t *dev, rvm_hal_wifi_mode_t *mode)
+static int hi3861l_get_mode(aos_dev_t *dev, wifi_mode_t *mode)
 {
 	return 0;
 }
 
-static int hi3861l_install_event_cb(rvm_dev_t *dev, rvm_hal_wifi_event_func *evt_func)
+static int hi3861l_install_event_cb(aos_dev_t *dev, wifi_event_func *evt_func)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_set_protocol(rvm_dev_t *dev, uint8_t protocol_bitmap)
+static int hi3861l_set_protocol(aos_dev_t *dev, uint8_t protocol_bitmap)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_get_protocol(rvm_dev_t *dev, uint8_t *protocol_bitmap)
+static int hi3861l_get_protocol(aos_dev_t *dev, uint8_t *protocol_bitmap)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_set_country(rvm_dev_t *dev, rvm_hal_wifi_country_t country)
+static int hi3861l_set_country(aos_dev_t *dev, wifi_country_t country)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_get_country(rvm_dev_t *dev, rvm_hal_wifi_country_t *country)
+static int hi3861l_get_country(aos_dev_t *dev, wifi_country_t *country)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_set_auto_reconnect(rvm_dev_t *dev, bool en)
+static int hi3861l_set_auto_reconnect(aos_dev_t *dev, bool en)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_get_auto_reconnect(rvm_dev_t *dev, bool *en)
+static int hi3861l_get_auto_reconnect(aos_dev_t *dev, bool *en)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_set_lpm(rvm_dev_t *dev, rvm_hal_wifi_lpm_mode_t mode)
+static int hi3861l_set_lpm(aos_dev_t *dev, wifi_lpm_mode_t mode)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_get_lpm(rvm_dev_t *dev, rvm_hal_wifi_lpm_mode_t *mode)
+static int hi3861l_get_lpm(aos_dev_t *dev, wifi_lpm_mode_t *mode)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_power_on(rvm_dev_t *dev)
+static int hi3861l_power_on(aos_dev_t *dev)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_power_off(rvm_dev_t *dev)
+static int hi3861l_power_off(aos_dev_t *dev)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_start_scan(rvm_dev_t *dev, wifi_scan_config_t *config, bool block)
+static int hi3861l_start_scan(aos_dev_t *dev, wifi_scan_config_t *config, bool block)
 {
 	return WIFI_ERR_OK;
 }
@@ -173,53 +169,12 @@ static int hi3861l_start_scan(rvm_dev_t *dev, wifi_scan_config_t *config, bool b
 #define CMD_CONNECT_TAG_BSSID    3
 #define CMD_CONNECT_TAG_PAIRWISE 4
 #define CMD_TLV_FORMAT   "%02x%02lx%s"
-static void hi3861l_start_sta(rvm_hal_wifi_config_t *config)
+static void hi3861l_start_sta(wifi_config_t *config)
 {
 	char *cmd, *tmp;
 	unsigned long len;
 	unsigned char bssid[6] = {0};
-#if (CONFIG_APP_ALIHI3861_WIFI_SUPPORT == 1)
-	int i;
-	int ret;
-	  len = strlen("cmd_connect") + \
-			TLV_HDR_LEN + strlen(config->ssid) + \
-			TLV_HDR_LEN + strlen(config->password) + \
-			TLV_HDR_LEN + sizeof(bssid) * 2 + 1;
 
-  cmd = aos_malloc(len);
-	tmp = cmd;
-	if(cmd != NULL) {
-		memset(tmp, 0, len);
-		memcpy(tmp, "cmd_connect", strlen("cmd_connect"));
-
-		tmp += strlen("cmd_connect");
-		snprintf(tmp, len, CMD_TLV_FORMAT, CMD_CONNECT_TAG_SSID, strlen(config->ssid), config->ssid);
-
-		tmp += strlen(config->ssid) + TLV_HDR_LEN;
-		snprintf(tmp, len, CMD_TLV_FORMAT, CMD_CONNECT_TAG_KEY, strlen(config->password), config->password);
-
-		tmp += strlen(config->password) + TLV_HDR_LEN;
-		snprintf(tmp, len, "%02x%02lx", CMD_CONNECT_TAG_BSSID, sizeof(bssid) * 2);
-
-		tmp += TLV_HDR_LEN;
-		for (i = 0; i < sizeof(bssid); i++) {
-			snprintf(tmp, len, "%02x", 0);
-			tmp += 2;
-		}
-
-		hi_channel_send_msg_to_dev((void*)cmd, strlen(cmd));
-		aos_free(cmd);
-		//return 1 for not do RT_WLAN_DEV_EVT_CONNECT report in wlan_dev.c
-		return;
-	}
-
-	ret = hi_channel_send_msg_to_dev((hi_u8 *)host_cmd[HOST_CMD_GET_MAC], (hi_s32)strlen(host_cmd[HOST_CMD_GET_MAC]));
-	if(ret == -1) {
-		printf("[error] oal_send_msg_to_device ret %d\r\n",ret);
-	} else {
-		printf("[success] oal_send_msg_to_device ret %d\r\n",ret);
-	}
-#else
 	len = 1 + 3 + strlen(config->ssid) + strlen(config->password) + 3 + sizeof(bssid);
 	cmd = aos_malloc(len);
 	tmp = cmd;
@@ -244,30 +199,21 @@ static void hi3861l_start_sta(rvm_hal_wifi_config_t *config)
 		aos_free(cmd);
 		return;
 	}
-#endif
-
 }
 
-static int hi3861l_start(rvm_dev_t *dev, rvm_hal_wifi_config_t *config)
+static int hi3861l_start(aos_dev_t *dev, wifi_config_t *config)
 {
-#if (CONFIG_APP_ALIHI3861_WIFI_SUPPORT == 1)
-	hi3861l_set_mode(dev, WIFI_MODE_STA);
-	hi_channel_send_msg_to_dev((hi_u8 *)host_cmd[HOST_CMD_GET_MAC], (hi_s32)strlen(host_cmd[HOST_CMD_GET_MAC]));
-	aos_msleep(50);
-	hi3861l_start_sta(config);
-#else
 	hi3861l_set_mode(dev, WIFI_MODE_STA);
 	hi3861l_start_sta(config);
-#endif
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_stop(rvm_dev_t *dev)
+static int hi3861l_stop(aos_dev_t *dev)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_sta_get_link_status(rvm_dev_t *dev, rvm_hal_wifi_ap_record_t *ap_info)
+static int hi3861l_sta_get_link_status(aos_dev_t *dev, wifi_ap_record_t *ap_info)
 {
 	uint8_t ssid_len = 0;
 	if (g_wifi_got_ip)
@@ -284,17 +230,17 @@ static int hi3861l_sta_get_link_status(rvm_dev_t *dev, rvm_hal_wifi_ap_record_t 
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_ap_get_sta_list(rvm_dev_t *dev, rvm_hal_wifi_sta_list_t *sta)
+static int hi3861l_ap_get_sta_list(aos_dev_t *dev, wifi_sta_list_t *sta)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_set_mac_addr(rvm_dev_t *dev, const uint8_t *mac)
+static int hi3861l_set_mac_addr(aos_dev_t *dev, const uint8_t *mac)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_get_mac_addr(rvm_dev_t *dev, uint8_t *mac)
+static int hi3861l_get_mac_addr(aos_dev_t *dev, uint8_t *mac)
 {
 	unsigned char cdata[2] = {0};
 	cdata[0] = HOST_CMD_GET_MAC;
@@ -304,47 +250,47 @@ static int hi3861l_get_mac_addr(rvm_dev_t *dev, uint8_t *mac)
 	return WIFI_ERR_OK;
 }
 
-int hi3861l_start_mgnt_monitor(rvm_dev_t *dev, rvm_hal_wifi_mgnt_cb_t cb)
+int hi3861l_start_mgnt_monitor(aos_dev_t *dev, wifi_mgnt_cb_t cb)
 {
 	return WIFI_ERR_OK;
 }
 
-int hi3861l_stop_mgnt_monitor(rvm_dev_t *dev)
+int hi3861l_stop_mgnt_monitor(aos_dev_t *dev)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_start_monitor(rvm_dev_t *dev, rvm_hal_wifi_promiscuous_cb_t cb)
+static int hi3861l_start_monitor(aos_dev_t *dev, wifi_promiscuous_cb_t cb)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_stop_monitor(rvm_dev_t *dev)
+static int hi3861l_stop_monitor(aos_dev_t *dev)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_send_80211_raw_frame(rvm_dev_t *dev, void *buffer, uint16_t len)
+static int hi3861l_send_80211_raw_frame(aos_dev_t *dev, void *buffer, uint16_t len)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_set_channel(rvm_dev_t *dev, uint8_t primary, rvm_hal_wifi_second_chan_t second)
+static int hi3861l_set_channel(aos_dev_t *dev, uint8_t primary, wifi_second_chan_t second)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_get_channel(rvm_dev_t *dev, uint8_t *primary, rvm_hal_wifi_second_chan_t *second)
+static int hi3861l_get_channel(aos_dev_t *dev, uint8_t *primary, wifi_second_chan_t *second)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_set_smartcfg(rvm_dev_t *dev, int enable)
+static int hi3861l_set_smartcfg(aos_dev_t *dev, int enable)
 {
 	return WIFI_ERR_OK;
 }
 
-static int hi3861l_set_dns_server(rvm_dev_t *dev, ip_addr_t ipaddr[], uint32_t num)
+static int hi3861l_set_dns_server(aos_dev_t *dev, ip_addr_t ipaddr[], uint32_t num)
 {
 	int n, i;
 
@@ -357,7 +303,7 @@ static int hi3861l_set_dns_server(rvm_dev_t *dev, ip_addr_t ipaddr[], uint32_t n
 	return n;
 }
 
-static int hi3861l_get_dns_server(rvm_dev_t *dev, ip_addr_t ipaddr[], uint32_t num)
+static int hi3861l_get_dns_server(aos_dev_t *dev, ip_addr_t ipaddr[], uint32_t num)
 {
 	int n, i;
 
@@ -374,7 +320,7 @@ static int hi3861l_get_dns_server(rvm_dev_t *dev, ip_addr_t ipaddr[], uint32_t n
 	return n;
 }
 
-static int hi3861l_set_hostname(rvm_dev_t *dev, const char *name)
+static int hi3861l_set_hostname(aos_dev_t *dev, const char *name)
 {
 #if LWIP_NETIF_HOSTNAME
 	struct netif *netif = &hi3861l_netif[0];
@@ -385,7 +331,7 @@ static int hi3861l_set_hostname(rvm_dev_t *dev, const char *name)
 #endif
 }
 
-static const char *hi3861l_get_hostname(rvm_dev_t *dev)
+static const char *hi3861l_get_hostname(aos_dev_t *dev)
 {
 #if LWIP_NETIF_HOSTNAME
 	struct netif *netif = &hi3861l_netif[0];
@@ -395,35 +341,35 @@ static const char *hi3861l_get_hostname(rvm_dev_t *dev)
 #endif
 }
 
-static int hi3861l_set_link_up(rvm_dev_t *dev)
+static int hi3861l_set_link_up(aos_dev_t *dev)
 {
 	netif_set_link_up(&hi3861l_netif[0]);
 	return 0;
 }
 
-static int hi3861l_set_link_down(rvm_dev_t *dev)
+static int hi3861l_set_link_down(aos_dev_t *dev)
 {
 	//netif_set_link_down(&hi3861l_netif[0]);
 	return 0;
 }
 
-static int hi3861l_start_dhcp(rvm_dev_t *dev)
+static int hi3861l_start_dhcp(aos_dev_t *dev)
 {
 	return 0;
 }
 
-static int hi3861l_stop_dhcp(rvm_dev_t *dev)
+static int hi3861l_stop_dhcp(aos_dev_t *dev)
 {
 	return 0;
 }
 
-static int hi3861l_set_ipaddr(rvm_dev_t *dev, const ip_addr_t *ipaddr, const ip_addr_t *netmask,
+static int hi3861l_set_ipaddr(aos_dev_t *dev, const ip_addr_t *ipaddr, const ip_addr_t *netmask,
 			      const ip_addr_t *gw)
 {
 	return 0;
 }
 
-static int hi3861l_get_ipaddr(rvm_dev_t *dev, ip_addr_t *ipaddr, ip_addr_t *netmask, ip_addr_t *gw)
+static int hi3861l_get_ipaddr(aos_dev_t *dev, ip_addr_t *ipaddr, ip_addr_t *netmask, ip_addr_t *gw)
 {
 	struct netif *netif = &hi3861l_netif[0];
 	aos_check_return_einval(netif && ipaddr && netmask && gw);
@@ -435,12 +381,12 @@ static int hi3861l_get_ipaddr(rvm_dev_t *dev, ip_addr_t *ipaddr, ip_addr_t *netm
 	return 0;
 }
 
-static int hi3861l_ping_remote(rvm_dev_t *dev, int type, char *remote_ip)
+static int hi3861l_ping_remote(aos_dev_t *dev, int type, char *remote_ip)
 {
 	return -1;
 }
 
-static int hi3861l_subscribe(rvm_dev_t *dev, uint32_t event, event_callback_t cb, void *param)
+static int hi3861l_subscribe(aos_dev_t *dev, uint32_t event, event_callback_t cb, void *param)
 {
 	if (event == 0) {
 		s_MsgrecvCallBack = cb;
@@ -448,7 +394,7 @@ static int hi3861l_subscribe(rvm_dev_t *dev, uint32_t event, event_callback_t cb
 	return 0;
 }
 
-static int hi3861l_unsubscribe(rvm_dev_t *dev, uint32_t event, event_callback_t cb, void *param)
+static int hi3861l_unsubscribe(aos_dev_t *dev, uint32_t event, event_callback_t cb, void *param)
 {
 	if (event == 0) {
 		s_MsgrecvCallBack = NULL;
@@ -612,26 +558,26 @@ static void hi3861l_lwip_init(void)
 	netifapi_netif_set_up(&hi3861l_netif[0]);
 }
 
-static rvm_dev_t *hi3861l_dev_init(driver_t *drv, void *config, int id)
+static aos_dev_t *hi3861l_dev_init(driver_t *drv, void *config, int id)
 {
-    rvm_dev_t *dev = rvm_hal_device_new(drv, sizeof(wifi_dev_t), id);
+	aos_dev_t *dev = device_new(drv, sizeof(wifi_dev_t), id);
 
 	return dev;
 }
 
-static void hi3861l_dev_uninit(rvm_dev_t *dev)
+static void hi3861l_dev_uninit(aos_dev_t *dev)
 {
 	aos_check_param(dev);
 
-    rvm_hal_device_free(dev);
+	device_free(dev);
 }
 
-static int hi3861l_dev_open(rvm_dev_t *dev)
+static int hi3861l_dev_open(aos_dev_t *dev)
 {
 	return 0;
 }
 
-static int hi3861l_dev_close(rvm_dev_t *dev)
+static int hi3861l_dev_close(aos_dev_t *dev)
 {
 	return 0;
 }
@@ -658,7 +604,7 @@ void wifi_hi3861l_register(hi3861l_wifi_param_t *config)
 	// aos_msleep(5);
 
 	hi3861l_lwip_init();
-  rvm_driver_register(&hi3861l_driver.drv, NULL, 0);
+	driver_register(&hi3861l_driver.drv, NULL, 0);
 }
 
 /******************************* register end **************************************************/
@@ -725,21 +671,7 @@ void hi3861l_msg_rx(void *buf, int len)
 	char *msg = (char *)buf;
 	// int ret;
 	int index = msg[0];
-#if (CONFIG_APP_ALIHI3861_WIFI_SUPPORT == 1)
-	switch (index) {
-	case HOST_CMD_GET_MAC:
-		hi3861l_report_mac((unsigned char *)&msg[1], HI_WIFI_MAC_LEN);
-		break;
-	case HOST_CMD_GET_IP:
-		hi3861l_report_ip((unsigned char *)&msg[1], len - 1);
-		break;
-	case HOST_CMD_REPORT_WPA_EVENT:
-		hi3861l_report_wpa_event((unsigned char *)&msg[1], len - 1);
-		break;
-	default:
-		break;
-	}
-#else
+
 	switch (index) {
 	case HOST_CMD_GET_MAC:
 		hi3861l_report_mac((unsigned char *)&msg[4], HI_WIFI_MAC_LEN);
@@ -753,7 +685,6 @@ void hi3861l_msg_rx(void *buf, int len)
 	default:
 		break;
 	}
-#endif
 	if (s_MsgrecvCallBack) {
 		s_MsgrecvCallBack(0, buf, (void *)&len);
 	}

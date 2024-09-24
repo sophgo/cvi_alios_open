@@ -64,13 +64,12 @@ hw_info:
 #     - libs                               #   -Llibs
 build_config:
   cflag: >
-        -c -g -Os -ffunction-sections -fdata-sections -Wall -Werror -fno-common -fno-asynchronous-unwind-tables -fno-builtin-fprintf
-  asmflag: -c -g -ffunction-sections -fdata-sections -Wall
-  ldflag: -Wl,--gc-sections -lstdc++ -lsupc++ -lm -lc -lgcc -lnosys -nostartfiles --specs=nosys.specs -Wl,-Map="yoc.map" -fno-asynchronous-unwind-tables
+        -c -g -Os -ffunction-sections -fdata-sections -Wall -Werror
+  asmflag: -c -g -ffunction-sections -fdata-sections -Wall -Werror -fno-omit-frame-pointer
+  ldflag: -Wl,--gc-sections -lstdc++ -lsupc++ -lm -lc -lgcc -lnosys -nostartfiles --specs=nosys.specs -Wl,-Map="yoc.map"
   cxxflag: >
         -D_GLIBCXX_HAS_GTHREADS
-        -std=gnu++11 -fno-common -fno-exceptions -ffunction-sections -Wall -Werror -fdata-sections -fomit-frame-pointer -fpermissive -g -Os
-        -fno-asynchronous-unwind-tables -fexceptions
+        -std=gnu++11 -ffunction-sections -fdata-sections -fomit-frame-pointer -g -Os -Wall -Werror
   include:
     - include
   prebuild_script: "script/pre_build.sh"
@@ -81,7 +80,6 @@ build_config:
 source_file:
   - "src/*.c"
   - adapter/*.c
-  - src/flash/*.c
 
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项
@@ -89,78 +87,33 @@ source_file:
 #   CONFIG_PARAM_NOT_CHECK: y
 #   CONFIG_CLI: y
 def_config:
-  CONFIG_BOARD_CV181XC: 0
-  CONFIG_BOARD_CV181XH: 1
-  CONFIG_BOARD_RUIXIANG_BOARD: 1
-  WITH_LWIP: 1
-  CONFIG_KERNEL_LWIP_HOOK: 1
+  CONFIG_SYSTEM_SECURE: y
+  CONFIG_SEC_BASE64_SW: y
+  CONFIG_SEC_CRYPTO_RSA_SW: y
+  CONFIG_TB_KP: 1
+  CONFIG_KEY_FROM_APP: 1
+  CONFIG_KEY_MGR_KP_PROTECT: 1
+  CONFIG_KEY_MGR_KP_PROTECT_OPT: 1
   CONFIG_SYSTICK_HZ: 250
-  #CONFIG_KERNEL_WORKQUEUE: 1
-  # CONFIG_INIT_TASK_STACK_SIZE: 4096
+  STDIO_UART: 0
+  WITH_LWIP: 1
+  CONFIG_KERNEL_WORKQUEUE: 1
   CLI_CONFIG_STACK_SIZE: 8192
   CONFIG_LFS_BLOCK_CYCLES: 500
   CONFIG_LFS_MOUNTPOINT: "/"
-  CONFIG_HAL_UART_FIFO_SIZE: 32
-  CONFIG_KV_SMART: 1
+  CONFIG_AEFXER_SONA: 0
+  CONFIG_KERNEL_LWIP_HOOK: 1
+  CONFIG_USING_TLS: 1
+  RHINO_CONFIG_MM_BLK: 0
+  RHINO_CONFIG_MM_TLF_BLK_SIZE: 0x400000
+#  CONFIG_KV_SMART: y
   POSIX_DEVICE_IO_NEED: 1
-  CONFIG_USING_TLS: y
+  CONFIG_CHIP_D1: 1
   FD_SETSIZE: 128
   CONFIG_USERVICE_EVENT_TASK_STACK_SIZE: 8192
+  SYSINFO_DEVICE_NAME: "cv181xh_bga"
+  OSAL_RHINO: 1
 
-  # CONFIG_XIP: y
-  CONFIG_SOFTWDT: y
-  CONFIG_MAX_PARTITION_NUM: 16
-  SHOW_PART_INFO_EN: 0
-
-  # emmc support
-  CONFIG_PARTITION_SUPPORT_EMMC: 1
-  CONFIG_PARTITION_SUPPORT_SD: 1
-  CONFIG_PARTITION_SUPPORT_SPINORFLASH: 1
-  CONFIG_NOT_USE_HC_ERASE_UNIT_SIZE: y
-  CONFIG_KV_GET_ERASE_FLAG_AUTO: 1
-
-  #sec_crypto
-  CONFIG_SYSTEM_SECURE: 1
-  CONFIG_SEC_CRYPTO_AES_SW: 1
-  CONFIG_SEC_BASE64_SW: 1
-  CONFIG_SEC_CRYPTO_SHA_SW: 1
-  CONFIG_SEC_CRYPTO_RSA_SW: 1
-  CONFIG_SEC_CRYPTO_RNG_SW: 0
-
-  HAVE_MBEDTLS_USER_CONFIG: 1
-  CONFIG_TB_KP: 1
-  CONFIG_KP_BUFFER_LEN: 4096
-  CONFIG_KEY_MGR_KP_PROTECT: 1
-  # player
-  CONFIG_AV_AO_CHANNEL_NUM: 2
-  CONFIG_AEFXER_SONA: 0
-  CONFIG_RESAMPLE_RATE: 16000
-  # fota
-  # CONFIG_OTA_AB: 0
-  USE_4K_ERASE_SECTION: 1
-  CONFIG_FOTA_BUFFER_SIZE: 16384
-  CONFIG_PARITION_NO_VERIFY: 0
-  CONFIG_FOTA_IMG_AUTHENTICITY_NOT_CHECK: 0
-  # Sensor
-  CONFIG_SENSOE_RGB0: 1
-  CONFIG_SENSOE_IR0: 1
-  CONFIG_SENSOE_IR1: 1
-
-  CONFIG_SNS0_TYPE: 9
-  CONFIG_SNS1_TYPE: 10
-  CONFIG_APP_HI3861_WIFI_SUPPORT: 1
-  CONFIG_SENSOR_GCORE_GC02M1: 1
-  CONFIG_SENSOR_GCORE_GC02M1_SLAVE: 1
-  CONFIG_BOARD_EVT: 1
-  CONFIG_WIFI_DRIVER_HI3861L: 1
-  CONFIG_FATFS_LANGUAGE_CODE: 437
-  # SDIF
-  CONFIG_EMMC_SDIF: 2
-  CONFIG_SDIO_SDIF: 0
-  CONFIG_SD_SDIF: 1
-
-#  CONFIG_SUPPORT_USB_DC: 1
-#  CONFIG_SUPPORT_USB_HC: 1
 
 ## 第六部分：安装信息
 # install:
@@ -179,9 +132,6 @@ def_config:
 export:
   - dest: "<SOLUTION_PATH>/generated/data" # 安装的目的路径 dest是相对路径
     source:                                # 安装源列表
-       - "bootimgs/boot"
-       - "bootimgs/boot0"
-       - "configs/config.yaml"
-       - "configs/partition_alios_spinor.xml"
-       - "bootimgs/fip_fsbl.bin"
-       - "bootimgs/fip.bin"
+      - "bootimgs/boot"
+      - "bootimgs/boot0"
+      - "configs/config.yaml"

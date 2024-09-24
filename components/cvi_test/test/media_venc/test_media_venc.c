@@ -17,7 +17,7 @@
 #include "vfs.h"
 #include "media_video.h"
 #include "cvi_param.h"
-#include "rtsp_func.h"
+//#include "rtsp_func.h"
 
 #define cvi_printf printf
 

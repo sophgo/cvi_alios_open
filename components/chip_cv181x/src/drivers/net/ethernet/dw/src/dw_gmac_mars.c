@@ -109,22 +109,22 @@ static void tx_descs_init(eth_mac_handle_t handle)
 	struct dmamacdescr *desc_p;
 	uint32_t idx;
 
-	for (idx = 0; idx < CVI_CONFIG_TX_DESCR_NUM; idx++) {
+	for (idx = 0; idx < CONFIG_TX_DESCR_NUM; idx++) {
 		desc_p = &desc_table_p[idx];
-		desc_p->dmamac_addr = (unsigned long)&txbuffs[idx * CVI_CONFIG_ETH_BUFSIZE];
+		desc_p->dmamac_addr = (unsigned long)&txbuffs[idx * CONFIG_ETH_BUFSIZE];
 		desc_p->dmamac_next = (unsigned long)&desc_table_p[idx + 1];
 
 #if defined(CONFIG_DW_ALTDESCRIPTOR)
-		desc_p->txrx_status &= ~(CVI_DESC_TXSTS_TXINT | CVI_DESC_TXSTS_TXLAST |
-				CVI_DESC_TXSTS_TXFIRST | CVI_DESC_TXSTS_TXCRCDIS |
-				CVI_DESC_TXSTS_TXCHECKINSCTRL |
-				CVI_DESC_TXSTS_TXRINGEND | CVI_DESC_TXSTS_TXPADDIS);
+		desc_p->txrx_status &= ~(DESC_TXSTS_TXINT | DESC_TXSTS_TXLAST |
+				DESC_TXSTS_TXFIRST | DESC_TXSTS_TXCRCDIS |
+				DESC_TXSTS_TXCHECKINSCTRL |
+				DESC_TXSTS_TXRINGEND | DESC_TXSTS_TXPADDIS);
 
-		desc_p->txrx_status |= CVI_DESC_TXSTS_TXCHAIN;
+		desc_p->txrx_status |= DESC_TXSTS_TXCHAIN;
 		desc_p->dmamac_cntl = 0;
-		desc_p->txrx_status &= ~(CVI_DESC_TXSTS_MSK | CVI_DESC_TXSTS_OWNBYDMA);
+		desc_p->txrx_status &= ~(DESC_TXSTS_MSK | DESC_TXSTS_OWNBYDMA);
 #else
-		desc_p->dmamac_cntl = CVI_DESC_TXCTRL_TXCHAIN;
+		desc_p->dmamac_cntl = DESC_TXCTRL_TXCHAIN;
 		desc_p->txrx_status = 0;
 #endif
 	}
@@ -156,18 +156,18 @@ static void rx_descs_init(eth_mac_handle_t handle)
 	 * Otherwise there's a chance to get some of them flushed in RAM when
 	 * GMAC is already pushing data to RAM via DMA. This way incoming from
 	 * GMAC data will be corrupted. */
-	soc_dcache_clean_invalid_range((unsigned long)rxbuffs, CVI_RX_TOTAL_BUFSIZE);
+	soc_dcache_clean_invalid_range((unsigned long)rxbuffs, RX_TOTAL_BUFSIZE);
 
-	for (idx = 0; idx < CVI_CONFIG_RX_DESCR_NUM; idx++) {
+	for (idx = 0; idx < CONFIG_RX_DESCR_NUM; idx++) {
 		desc_p = &desc_table_p[idx];
-		desc_p->dmamac_addr = (unsigned long)&rxbuffs[idx * CVI_CONFIG_ETH_BUFSIZE];
+		desc_p->dmamac_addr = (unsigned long)&rxbuffs[idx * CONFIG_ETH_BUFSIZE];
 		desc_p->dmamac_next = (unsigned long)&desc_table_p[idx + 1];
 
 		desc_p->dmamac_cntl =
-			(CVI_MAC_MAX_FRAME_SZ & CVI_DESC_RXCTRL_SIZE1MASK) |
-				      CVI_DESC_RXCTRL_RXCHAIN;
+			(MAC_MAX_FRAME_SZ & DESC_RXCTRL_SIZE1MASK) |
+				      DESC_RXCTRL_RXCHAIN;
 
-		desc_p->txrx_status = CVI_DESC_RXSTS_OWNBYDMA;
+		desc_p->txrx_status = DESC_RXSTS_OWNBYDMA;
 	}
 
 	/* Correcting the last pointer of the chain */
@@ -189,7 +189,7 @@ static int32_t designware_adjust_link(eth_mac_handle_t handle)
     eth_link_info_t *link_info = &mac_dev->phy_dev->priv->link_info;
     eth_link_state_t link_state = mac_dev->phy_dev->link_state;
 
-	uint32_t conf = mac_reg->conf | CVI_FRAMEBURSTENABLE | CVI_DISABLERXOWN;
+	uint32_t conf = mac_reg->conf | FRAMEBURSTENABLE | DISABLERXOWN;
 
 	if (!link_state) {
 		pr_err("eth No link.\n");
@@ -197,15 +197,15 @@ static int32_t designware_adjust_link(eth_mac_handle_t handle)
 	}
 
 	if (link_info->speed != CSI_ETH_SPEED_1G)
-		conf |= CVI_MII_PORTSELECT;
+		conf |= MII_PORTSELECT;
 	else
-		conf &= ~CVI_MII_PORTSELECT;
+		conf &= ~MII_PORTSELECT;
 
 	if (link_info->speed == CSI_ETH_SPEED_100M)
-		conf |= CVI_FES_100;
+		conf |= FES_100;
 
 	if (link_info->duplex)
-		conf |= CVI_FULLDPLXMODE;
+		conf |= FULLDPLXMODE;
 
 	mac_reg->conf = conf;
 
@@ -224,11 +224,11 @@ static int32_t designware_eth_init(eth_mac_handle_t handle)
 
     uint32_t start;
 
-    dma_reg->busmode |= CVI_DMAMAC_SRST;
+    dma_reg->busmode |= DMAMAC_SRST;
 
 	start = aos_now_ms();
-	while (dma_reg->busmode & CVI_DMAMAC_SRST) {
-        if ((aos_now_ms() - start) >= CVI_CONFIG_MACRESET_TIMEOUT) {
+	while (dma_reg->busmode & DMAMAC_SRST) {
+        if ((aos_now_ms() - start) >= CONFIG_MACRESET_TIMEOUT) {
             pr_err("DMA reset timeout\n");
 			return -ETIMEDOUT;
         }
@@ -246,7 +246,7 @@ static int32_t designware_eth_init(eth_mac_handle_t handle)
 	rx_descs_init(handle);
 	tx_descs_init(handle);
 
-	dma_reg->busmode = (CVI_FIXEDBURST | CVI_PRIORXTX_41 | CVI_DMA_PBL);
+	dma_reg->busmode = (FIXEDBURST | PRIORXTX_41 | DMA_PBL);
 
     // mac_reg->framefilt = 0x10;
     // mac_reg->flowcontrol = 0x8;
@@ -254,12 +254,12 @@ static int32_t designware_eth_init(eth_mac_handle_t handle)
     // dma_reg->axibus = 0x0012100F;
 
 #ifndef CONFIG_DW_MAC_FORCE_THRESHOLD_MODE
-	dma_reg->opmode |= (CVI_FLUSHTXFIFO | CVI_STOREFORWARD);
+	dma_reg->opmode |= (FLUSHTXFIFO | STOREFORWARD);
 #else
-	dma_reg->opmode |= CVI_FLUSHTXFIFO;
+	dma_reg->opmode |= FLUSHTXFIFO;
 #endif
 
-    dma_reg->opmode |= (CVI_RXSTART | CVI_TXSTART);
+    dma_reg->opmode |= (RXSTART | TXSTART);
     dma_reg->opmode = 0x2202906;
     dma_reg->busmode = 0x3900800;
     mac_reg->conf = 0x41cc00;
@@ -285,10 +285,10 @@ static int32_t designware_eth_enable(eth_mac_handle_t handle, int32_t control)
 
     switch (control) {
     case CSI_ETH_MAC_CONTROL_TX:
-        mac_reg->conf |= CVI_TXENABLE;
+        mac_reg->conf |= TXENABLE;
         break;
     case CSI_ETH_MAC_CONTROL_RX:
-        mac_reg->conf |= CVI_RXENABLE;
+        mac_reg->conf |= RXENABLE;
         break;
     default:
         break;
@@ -303,10 +303,10 @@ static int32_t designware_eth_disable(eth_mac_handle_t handle, int32_t arg)
 
     switch (arg) {
     case CSI_ETH_MAC_CONTROL_TX:
-        mac_reg->conf &= ~CVI_TXENABLE;
+        mac_reg->conf &= ~TXENABLE;
         break;
     case CSI_ETH_MAC_CONTROL_RX:
-        mac_reg->conf &= ~CVI_RXENABLE;
+        mac_reg->conf &= ~RXENABLE;
         break;
     default:
         break;
@@ -332,8 +332,8 @@ static void designware_eth_stop(eth_mac_handle_t handle)
     struct dw_gmac_mac_regs *mac_reg = mac_dev->priv->mac_regs_p;
     struct dw_gmac_dma_regs *dma_reg = mac_dev->priv->dma_regs_p;
 
-	mac_reg->conf &= ~(CVI_RXENABLE | CVI_TXENABLE);
-	dma_reg->opmode &= ~(CVI_RXSTART | CVI_TXSTART);
+	mac_reg->conf &= ~(RXENABLE | TXENABLE);
+	dma_reg->opmode &= ~(RXSTART | TXSTART);
 
 	//phy_shutdown(priv->phydev);
 }
@@ -364,7 +364,7 @@ static int32_t designware_eth_send(eth_mac_handle_t handle, const uint8_t *frame
 	/* Check if the descriptor is owned by CPU */
 	while (1) {
 		soc_dcache_invalid_range(desc_start, desc_end - desc_start);
-		if (!(desc_p->txrx_status & CVI_DESC_TXSTS_OWNBYDMA)) {
+		if (!(desc_p->txrx_status & DESC_TXSTS_OWNBYDMA)) {
 			break;
 		}
 		if (count > 1000) {
@@ -381,33 +381,33 @@ static int32_t designware_eth_send(eth_mac_handle_t handle, const uint8_t *frame
 	soc_dcache_clean_invalid_range(data_start, data_end - data_start);
 
 #if defined(CONFIG_DW_ALTDESCRIPTOR)
-	desc_p->txrx_status |= CVI_DESC_TXSTS_TXFIRST | CVI_DESC_TXSTS_TXLAST;
-    desc_p->dmamac_cntl &= ~CVI_DESC_TXCTRL_SIZE1MASK;
-	desc_p->dmamac_cntl |= (length << CVI_DESC_TXCTRL_SIZE1SHFT) &
-			       CVI_DESC_TXCTRL_SIZE1MASK;
+	desc_p->txrx_status |= DESC_TXSTS_TXFIRST | DESC_TXSTS_TXLAST;
+    desc_p->dmamac_cntl &= ~DESC_TXCTRL_SIZE1MASK;
+	desc_p->dmamac_cntl |= (length << DESC_TXCTRL_SIZE1SHFT) &
+			       DESC_TXCTRL_SIZE1MASK;
 
-	desc_p->txrx_status &= ~(CVI_DESC_TXSTS_MSK);
-	desc_p->txrx_status |= CVI_DESC_TXSTS_OWNBYDMA;
+	desc_p->txrx_status &= ~(DESC_TXSTS_MSK);
+	desc_p->txrx_status |= DESC_TXSTS_OWNBYDMA;
 #else
-	desc_p->dmamac_cntl &= ~CVI_DESC_TXCTRL_SIZE1MASK;
-	desc_p->dmamac_cntl |= ((length << CVI_DESC_TXCTRL_SIZE1SHFT) &
-			       CVI_DESC_TXCTRL_SIZE1MASK) | CVI_DESC_TXCTRL_TXLAST |
-			       CVI_DESC_TXCTRL_TXFIRST;
+	desc_p->dmamac_cntl &= ~DESC_TXCTRL_SIZE1MASK;
+	desc_p->dmamac_cntl |= ((length << DESC_TXCTRL_SIZE1SHFT) &
+			       DESC_TXCTRL_SIZE1MASK) | DESC_TXCTRL_TXLAST |
+			       DESC_TXCTRL_TXFIRST;
 
-	desc_p->txrx_status = CVI_DESC_TXSTS_OWNBYDMA;
+	desc_p->txrx_status = DESC_TXSTS_OWNBYDMA;
 #endif
 
 	/* Flush modified buffer descriptor */
 	soc_dcache_clean_invalid_range(desc_start, desc_end - desc_start);
 
 	/* Test the wrap-around condition. */
-	if (++desc_num >= CVI_CONFIG_TX_DESCR_NUM)
+	if (++desc_num >= CONFIG_TX_DESCR_NUM)
 		desc_num = 0;
 
 	priv->tx_currdescnum = desc_num;
 
 	/* Start the transmission */
-	dma_reg->txpolldemand = CVI_POLL_DATA;
+	dma_reg->txpolldemand = POLL_DATA;
 
 	return 0;
 }
@@ -429,9 +429,9 @@ static int32_t designware_eth_recv(eth_mac_handle_t handle, uint8_t **packetp)
 	soc_dcache_invalid_range(desc_start, desc_end - desc_start);
 	status = desc_p->txrx_status;
 	/* Check  if the owner is the CPU */
-	if (!(status & CVI_DESC_RXSTS_OWNBYDMA)) {
-		length = (status & CVI_DESC_RXSTS_FRMLENMSK) >>
-			 CVI_DESC_RXSTS_FRMLENSHFT;
+	if (!(status & DESC_RXSTS_OWNBYDMA)) {
+		length = (status & DESC_RXSTS_FRMLENMSK) >>
+			 DESC_RXSTS_FRMLENSHFT;
 		/* Invalidate received data */
 		data_end = data_start + roundup(length, DW_GMAC_DMA_ALIGN);
 		soc_dcache_invalid_range(data_start, data_end - data_start);
@@ -455,13 +455,13 @@ static int32_t designware_free_pkt(eth_mac_handle_t handle)
 	 * Make the current descriptor valid again and go to
 	 * the next one
 	 */
-	desc_p->txrx_status |= CVI_DESC_RXSTS_OWNBYDMA;
+	desc_p->txrx_status |= DESC_RXSTS_OWNBYDMA;
 
 	/* Flush only status field - others weren't changed */
 	soc_dcache_clean_invalid_range(desc_start, desc_end - desc_start);
 
 	/* Test the wrap-around condition. */
-	if (++desc_num >= CVI_CONFIG_RX_DESCR_NUM)
+	if (++desc_num >= CONFIG_RX_DESCR_NUM)
 		desc_num = 0;
 	priv->rx_currdescnum = desc_num;
 
@@ -535,14 +535,14 @@ int32_t csi_eth_mac_phy_read(eth_mac_handle_t handle, uint8_t phy_addr, uint8_t 
     uint16_t miiaddr;
     int32_t start;
 
-	miiaddr = ((phy_addr << CVI_MIIADDRSHIFT) & CVI_MII_ADDRMSK) |
-		  ((reg_addr << CVI_MIIREGSHIFT) & CVI_MII_REGMSK);
+	miiaddr = ((phy_addr << MIIADDRSHIFT) & MII_ADDRMSK) |
+		  ((reg_addr << MIIREGSHIFT) & MII_REGMSK);
 
-	mac_reg->miiaddr = (miiaddr | CVI_MII_CLKRANGE_150_250M | CVI_MII_BUSY);
+	mac_reg->miiaddr = (miiaddr | MII_CLKRANGE_150_250M | MII_BUSY);
 
 	start = aos_now_ms();
-	while ((aos_now_ms() - start) < CVI_CONFIG_MDIO_TIMEOUT) {
-		if (!(mac_reg->miiaddr & CVI_MII_BUSY)) {
+	while ((aos_now_ms() - start) < CONFIG_MDIO_TIMEOUT) {
+		if (!(mac_reg->miiaddr & MII_BUSY)) {
             *data = mac_reg->miidata;
             return 0;
         }
@@ -570,14 +570,14 @@ int32_t csi_eth_mac_phy_write(eth_mac_handle_t handle, uint8_t phy_addr, uint8_t
     int32_t start;
 
     mac_reg->miidata = data;
-	miiaddr = ((phy_addr << CVI_MIIADDRSHIFT) & CVI_MII_ADDRMSK) |
-		  ((reg_addr << CVI_MIIREGSHIFT) & CVI_MII_REGMSK) | CVI_MII_WRITE;
+	miiaddr = ((phy_addr << MIIADDRSHIFT) & MII_ADDRMSK) |
+		  ((reg_addr << MIIREGSHIFT) & MII_REGMSK) | MII_WRITE;
 
-	mac_reg->miiaddr = (miiaddr | CVI_MII_CLKRANGE_150_250M | CVI_MII_BUSY);
+	mac_reg->miiaddr = (miiaddr | MII_CLKRANGE_150_250M | MII_BUSY);
 
     start = aos_now_ms();
-	while ((aos_now_ms() - start) < CVI_CONFIG_MDIO_TIMEOUT) {
-		if (!(mac_reg->miiaddr & CVI_MII_BUSY)) {
+	while ((aos_now_ms() - start) < CONFIG_MDIO_TIMEOUT) {
+		if (!(mac_reg->miiaddr & MII_BUSY)) {
 			return 0;
         }
 		udelay(10);
@@ -622,7 +622,7 @@ eth_mac_handle_t csi_eth_mac_initialize(int32_t idx, eth_event_cb_t cb_event)
 
 	priv->mac_regs_p = (struct dw_gmac_mac_regs *)mac_dev->base;
 	priv->dma_regs_p = (struct dw_gmac_dma_regs *)(mac_dev->base +
-                        CVI_DW_DMA_BASE_OFFSET);
+                        DW_DMA_BASE_OFFSET);
 	//priv->interface = pdata->phy_interface;
 	//priv->max_speed = pdata->max_speed;
 
@@ -868,15 +868,15 @@ void dw_gmac_irqhandler(unsigned int irqn, void *arg)
     /* Clear the interrupt by writing a logic 1 to the CSR5[15-0] */
 	dma_reg->status = dma_status & 0x1ffff;
 
-    if (dma_status & CVI_DMA_STATUS_RI) {
+    if (dma_status & DMA_STATUS_RI) {
         event |= CSI_ETH_MAC_EVENT_RX_FRAME;
     }
 
-    if (dma_status & CVI_DMA_STATUS_TI) {
+    if (dma_status & DMA_STATUS_TI) {
         // event |= CSI_ETH_MAC_EVENT_TX_FRAME;
     }
 
-    if (dma_status & CVI_DMA_STATUS_ERI) {
+    if (dma_status & DMA_STATUS_ERI) {
         ;
     }
 

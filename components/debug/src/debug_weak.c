@@ -24,7 +24,17 @@ __attribute__((weak)) uint32_t dumpsys_mm_leakcheck(uint32_t call_cnt, int32_t q
     return 0;
 }
 
+__attribute__((weak)) uint32_t dumpsys_mm_leakcheck_resv(uint32_t call_cnt, int32_t query_index)
+{
+    return 0;
+}
+
 __attribute__((weak)) uint32_t dumpsys_mm_info_func(uint32_t mm_status)
+{
+    return 0;
+}
+
+__attribute__((weak)) uint32_t dumpsys_mm_info_func_resv(uint32_t mm_status)
 {
     return 0;
 }

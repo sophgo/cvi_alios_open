@@ -22,7 +22,6 @@ typedef struct {
     csi_dma_ch_t g_dma_ch_tx;
     csi_dma_ch_t g_dma_ch_rx;
 #endif
-    int init_cnt;
 } hal_i2c_priv_t;
 
 static hal_i2c_priv_t iic_list[6];
@@ -44,28 +43,15 @@ int32_t hal_i2c_init(i2c_dev_t *i2c)
         return -1;
     }
 
-    /* A port'mutex new once */
-    if (!aos_mutex_is_valid(&iic_list[i2c->port].mutex)) {
-        if (aos_mutex_new(&iic_list[i2c->port].mutex) != 0) {
-            return -1;
-        }
-    }
-
-    aos_mutex_lock(&iic_list[i2c->port].mutex, AOS_WAIT_FOREVER);
-
-    /* A port is initialized once */
-    if (iic_list[i2c->port].init_cnt > 0) {
-        ret = 0; // Run successfully
-        goto success;
-    } else {
-        iic_list[i2c->port].init_cnt = 0;
+    if (aos_mutex_new(&iic_list[i2c->port].mutex) != 0) {
+        return -1;
     }
 
     ret = csi_iic_init(&iic_list[i2c->port].handle, i2c->port);
 
     if (ret != CSI_OK) {
         printf("csi_iic_init error\n");
-        goto fail;
+        return -1;
     }
 
     if (i2c->config.mode == I2C_MODE_MASTER) {
@@ -73,7 +59,7 @@ int32_t hal_i2c_init(i2c_dev_t *i2c)
 
         if (ret != CSI_OK) {
             printf("csi_iic_set_mode error\n");
-             goto fail;
+            return -1;
         }
     }
 
@@ -82,7 +68,7 @@ int32_t hal_i2c_init(i2c_dev_t *i2c)
 
         if (ret != CSI_OK) {
             printf("csi_iic_set_mode error\n");
-            goto fail;
+            return -1;
         }
     }
 
@@ -91,7 +77,7 @@ int32_t hal_i2c_init(i2c_dev_t *i2c)
 
         if (ret != CSI_OK) {
             printf("csi_iic_set_addr_mode error\n");
-            goto fail;
+            return -1;
         }
     }
 
@@ -100,7 +86,7 @@ int32_t hal_i2c_init(i2c_dev_t *i2c)
 
         if (ret != CSI_OK) {
             printf("csi_iic_set_addr_mode error\n");
-            goto fail;
+            return -1;
         }
     }
 
@@ -110,7 +96,7 @@ int32_t hal_i2c_init(i2c_dev_t *i2c)
 
             if (ret != CSI_OK) {
                 printf("csi_iic_set_speed error\n");
-                goto fail;
+                return -1;
             }
 
             break;
@@ -120,7 +106,7 @@ int32_t hal_i2c_init(i2c_dev_t *i2c)
 
             if (ret != CSI_OK) {
                 printf("csi_iic_set_speed error\n");
-                goto fail;
+                return -1;
             }
 
             break;
@@ -130,7 +116,7 @@ int32_t hal_i2c_init(i2c_dev_t *i2c)
 
             if (ret != CSI_OK) {
                 printf("csi_iic_set_speed error\n");
-                goto fail;
+                return -1;
             }
 
             break;
@@ -139,13 +125,11 @@ int32_t hal_i2c_init(i2c_dev_t *i2c)
             break;
     }
 
-    if (i2c->config.mode == I2C_MODE_SLAVE) {
-        ret = csi_iic_own_addr(&iic_list[i2c->port].handle, i2c->config.dev_addr);
+    ret = csi_iic_own_addr(&iic_list[i2c->port].handle, i2c->config.dev_addr);
 
-        if (ret != CSI_OK) {
-            printf("csi_iic_own_addr error\n");
-            goto fail;
-        }
+    if (ret != CSI_OK) {
+        printf("csi_iic_set_speed error\n");
+        return -1;
     }
 
 #ifndef IIC_MODE_SYNC
@@ -153,11 +137,11 @@ int32_t hal_i2c_init(i2c_dev_t *i2c)
 
     if (ret != CSI_OK) {
         printf("csi_iic_attach_callback error\n");
-        goto fail;
+        return -1;
     }
 
     if (aos_sem_new(&iic_list[i2c->port].sem, 0) != 0) {
-        goto fail;
+        return -1;
     }
 
 #endif
@@ -167,20 +151,12 @@ int32_t hal_i2c_init(i2c_dev_t *i2c)
 
     if (ret != CSI_OK) {
         printf("csi_iic_link_dma fail \n");
-        goto fail;
+        return -1;
     }
 
 #endif
 
-success:
-    iic_list[i2c->port].init_cnt++;
-    aos_mutex_unlock(&iic_list[i2c->port].mutex);
-    return ret;
-
-fail:
-    aos_mutex_unlock(&iic_list[i2c->port].mutex);
-    return -1;
-
+    return  ret;
 }
 
 int32_t hal_i2c_master_send(i2c_dev_t *i2c, uint16_t dev_addr, const uint8_t *data,
@@ -405,13 +381,6 @@ int32_t hal_i2c_finalize(i2c_dev_t *i2c)
         return -1;
     }
 
-    aos_mutex_lock(&iic_list[i2c->port].mutex, AOS_WAIT_FOREVER);
-
-    iic_list[i2c->port].init_cnt--;
-    if (iic_list[i2c->port].init_cnt > 0) {
-        goto ignore_finalize;
-    }
-
 #ifdef IIC_MODE_DMA
     ret = csi_iic_link_dma(&iic_list[i2c->port].handle, NULL, NULL);
 
@@ -426,12 +395,7 @@ int32_t hal_i2c_finalize(i2c_dev_t *i2c)
 #ifndef IIC_MODE_SYNC
     aos_sem_free(&iic_list[i2c->port].sem);
 #endif
-
-ignore_finalize:
-    aos_mutex_unlock(&iic_list[i2c->port].mutex);
-    if (iic_list[i2c->port].init_cnt == 0) {
-        aos_mutex_free(&iic_list[i2c->port].mutex);
-    }
+    aos_mutex_free(&iic_list[i2c->port].mutex);
 
     return ret;
 }
