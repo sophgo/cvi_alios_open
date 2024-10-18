@@ -20,6 +20,17 @@ extern "C" {
 #define BIND_DEST_MAXNUM 32
 #define BIND_NODE_MAXNUM 64
 
+/**
+ * u64TotalSize: total size for ion
+ * u64FreeSize: total free size for ion
+ * u64MaxAvailSize: max available size for ion
+ */
+typedef struct _ION_MM_STATICS_S {
+	CVI_U64 u64TotalSize;
+	CVI_U64 u64FreeSize;
+	CVI_U64 u64MaxAvailSize;
+} ION_MM_STATICS_S;
+
 typedef struct _MMF_BIND_DEST_S {
 	CVI_U32   u32Num;
 	MMF_CHN_S astMmfChn[BIND_DEST_MAXNUM];

@@ -59,17 +59,10 @@ typedef enum{
     PIN_I2S_SDI,
     PIN_I2S_SDO
 }csi_pin_i2s_t;
- 
-typedef struct {
-    pin_name_t  pin_name;
-    uint8_t     idx;        ///< ctrl idx.    e.g: ADC0 channel 1, idx = 0, channel = 1
-    uint8_t     channel;    ///< channel idx. e.g: same as the previous line
-    pin_func_t  pin_func;
-} csi_pinmap_t;
 
-extern uint32_t target_pin_to_devidx(pin_name_t pin_name, const csi_pinmap_t *pinmap);
-extern uint32_t target_pin_to_channel(pin_name_t pin_name,const csi_pinmap_t *pinmap);
-extern pin_name_t target_gpio_to_pin(uint8_t gpio_idx, uint8_t channel,const csi_pinmap_t *pinmap);
+extern uint32_t target_pin_to_devidx(pin_name_t pin_name, const cvi_pinmap_t *pinmap);
+extern uint32_t target_pin_to_channel(pin_name_t pin_name, const cvi_pinmap_t *pinmap);
+extern pin_name_t target_gpio_to_pin(uint8_t gpio_idx, uint8_t channel, const cvi_pinmap_t *pinmap);
 
 /**
   \brief       Set pin mux function
@@ -117,32 +110,37 @@ csi_error_t csi_pin_drive(pin_name_t pin_name, csi_pin_drive_t drive);
 */
 __ALWAYS_STATIC_INLINE uint32_t csi_pin_get_gpio_devidx(pin_name_t pin_name)
 {
-    extern const csi_pinmap_t gpio_pinmap[];
-    return target_pin_to_devidx(pin_name, gpio_pinmap);
+	extern const cvi_pinmap_t cvi_gpio_pinmap[];
+
+	return target_pin_to_devidx(pin_name, cvi_gpio_pinmap);
 }
 
 __ALWAYS_STATIC_INLINE uint32_t csi_pin_get_uart_devidx(pin_name_t pin_name)
 {
-    extern const csi_pinmap_t uart_pinmap[];
-    return target_pin_to_devidx(pin_name, uart_pinmap);
+	extern const cvi_pinmap_t uart_pinmap[];
+
+	return target_pin_to_devidx(pin_name, uart_pinmap);
 }
 
 __ALWAYS_STATIC_INLINE uint32_t csi_pin_get_iic_devidx(pin_name_t pin_name)
 {
-    extern const csi_pinmap_t iic_pinmap[];
-    return target_pin_to_devidx(pin_name, iic_pinmap);
+	extern const cvi_pinmap_t iic_pinmap[];
+
+	return target_pin_to_devidx(pin_name, iic_pinmap);
 }
 
 __ALWAYS_STATIC_INLINE uint32_t csi_pin_get_spi_devidx(pin_name_t pin_name)
 {
-    extern const csi_pinmap_t spi_pinmap[];
-    return target_pin_to_devidx(pin_name, spi_pinmap);
+	extern const cvi_pinmap_t spi_pinmap[];
+
+	return target_pin_to_devidx(pin_name, spi_pinmap);
 }
 
 __ALWAYS_STATIC_INLINE uint32_t csi_pin_get_i2s_devidx(pin_name_t pin_name)
 {
-    extern  const csi_pinmap_t i2s_pinmap[];
-    return target_pin_to_devidx(pin_name, i2s_pinmap);
+	extern  const cvi_pinmap_t i2s_pinmap[];
+
+	return target_pin_to_devidx(pin_name, i2s_pinmap);
 }
 
 /**
@@ -152,20 +150,23 @@ __ALWAYS_STATIC_INLINE uint32_t csi_pin_get_i2s_devidx(pin_name_t pin_name)
 */
 __ALWAYS_STATIC_INLINE uint32_t csi_pin_get_adc_channel(pin_name_t pin_name)
 {
-    extern const csi_pinmap_t adc_pinmap[];
-    return target_pin_to_channel(pin_name, adc_pinmap);
+	extern const cvi_pinmap_t adc_pinmap[];
+
+	return target_pin_to_channel(pin_name, adc_pinmap);
 }
 
 __ALWAYS_STATIC_INLINE uint32_t csi_pin_get_pwm_channel(pin_name_t pin_name)
 {
-    extern const csi_pinmap_t pwm_pinmap[];
-    return target_pin_to_channel(pin_name, pwm_pinmap);
+	extern const cvi_pinmap_t pwm_pinmap[];
+
+	return target_pin_to_channel(pin_name, pwm_pinmap);
 }
 
 __ALWAYS_STATIC_INLINE uint32_t csi_pin_get_gpio_channel(pin_name_t pin_name)
 {
-    extern const csi_pinmap_t gpio_pinmap[];
-    return target_pin_to_channel(pin_name, gpio_pinmap);
+	extern const cvi_pinmap_t cvi_gpio_pinmap[];
+
+	return target_pin_to_channel(pin_name, cvi_gpio_pinmap);
 }
 
 /**
@@ -176,8 +177,9 @@ __ALWAYS_STATIC_INLINE uint32_t csi_pin_get_gpio_channel(pin_name_t pin_name)
 */
 __ALWAYS_STATIC_INLINE pin_name_t csi_pin_get_pinname_by_gpio(uint8_t gpio_idx, uint8_t channel)
 {
-    extern const csi_pinmap_t gpio_pinmap[];
-    return target_gpio_to_pin(gpio_idx,channel,gpio_pinmap);
+	extern const cvi_pinmap_t cvi_gpio_pinmap[];
+
+	return target_gpio_to_pin(gpio_idx, channel, cvi_gpio_pinmap);
 }
 
 #endif /* _DRV_PIN_H_ */

@@ -205,7 +205,11 @@ extern "C" {
 // vpss rgn define
 #define RGN_MAX_LAYER_VPSS        2
 #define RGN_ODEC_LAYER_VPSS       0
+#ifdef __CV181X__
 #define RGN_NORMAL_LAYER_VPSS     1
+#else
+#define RGN_NORMAL_LAYER_VPSS     0
+#endif
 #define RGN_MAX_NUM_VPSS          8
 #define RGN_EX_MAX_NUM_VPSS       16
 #define RGN_EX_MAX_WIDTH          2304

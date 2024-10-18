@@ -11,6 +11,7 @@
 #include "cvi_type.h"
 #include "cvi_comm_ive.h"
 #include "cvi_comm_video.h"
+#include "cvi_sys.h"
 #ifndef UNUSED
 #define UNUSED(x) ((void)(x))
 #endif
@@ -952,6 +953,24 @@ CVI_S32 CVI_IVE_FrameDiffMotion(IVE_HANDLE pIveHandle, IVE_SRC_IMAGE_S *pstSrc1,
  * @return CVI_S32 CVI_S32 Return CVI_SUCCESS if succeed.
  */
 CVI_S32 CVI_IVE_CMDQ(IVE_HANDLE pIveHandle);
+
+/**
+ * @brief Malloc Aligned memeory
+ *
+ * @param phy_addr Input addr
+ * @param size Malloc memeory size
+ * @return CVI_S32 CVI_S32 Return CVI_SUCCESS if succeed.
+ */
+CVI_S32 CVI_Aligned_Aos_Malloc(CVI_U64 *phy_addr, size_t size);
+
+/**
+ * @brief Free Aligned memeory
+ *
+ * @param phy_addr Input addr
+ * @return CVI_S32 CVI_S32 Return CVI_SUCCESS if succeed.
+ */
+CVI_S32 CVI_Aligned_Aos_Free(void *phy_addr);
+
 
 #ifdef __cplusplus
 #if __cplusplus

@@ -58,7 +58,7 @@ build_config:
 source_file:
   - src/*.c
   - src/bm1822/*.c
-  - src/cv1822/*.c
+  # - src/cv1822/*.c
   - src/cv181x/*.c ? <__CV181X__>
   - src/cv180x/*.c ? <__CV180X__>
 

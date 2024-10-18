@@ -55,6 +55,7 @@ struct uvc_device_info {
     uint32_t max_payload_size;
     uint32_t cam_fps;
     uint32_t interval;
+    uint32_t default_frame_size;
 #if CONFIG_USB_BULK_UVC
     volatile uint32_t rx_frm_idx;
     volatile uint32_t tx_frm_idx;
@@ -85,4 +86,5 @@ int usbd_vc_extension_unit_request_handler(struct usbd_video_cfg_priv *usbd_vide
                                            struct usb_setup_packet *setup,
                                            uint8_t **data, uint32_t *len);
 
+void uvc_switch(int argc, char** argv);
 #endif

@@ -15,10 +15,13 @@
 
 #include <drv/common.h>
 #include <drv/dma.h>
+#include <soc.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+extern const cvi_pinmap_t uart_pinmap[];
 
 /*----- UART Control Codes: Mode Parameters: Data Bits -----*/
 typedef enum {

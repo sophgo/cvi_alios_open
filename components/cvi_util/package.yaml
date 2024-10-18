@@ -1,0 +1,33 @@
+## Base Info
+name: cvi_util
+version: v1.0.0
+description: common utilities
+type: common
+tag: application
+keywords:
+  - base
+license: Apache license v2.0
+
+## Depend Info
+depends:
+  # - gpio_util ? <CONFIG_UTIL_GPIO>
+
+## Compile & Link Info
+build_config:
+  include:
+    - include
+    - gpio_util/
+  internal_include:
+  libs:
+  libpath:
+source_file:
+  - gpio_util/*.c ? <CONFIG_UTIL_GPIO>
+
+## Config Info
+def_config:
+  CONFIG_UTIL_GPIO: 1
+
+## Install Info
+install:
+  - dest: "include/"
+    source:

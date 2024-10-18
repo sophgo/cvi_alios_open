@@ -244,7 +244,7 @@ static void ov02b10_linear_1200p30_init(VI_PIPE ViPipe)
 	ov02b10_write_register(ViPipe, 0xaf, 0x04);
 	ov02b10_write_register(ViPipe, 0xb1, 0x40);
 	ov02b10_write_register(ViPipe, 0xae, 0x0d);
-	ov02b10_write_register(ViPipe, 0x88, 0x5b);
+	ov02b10_write_register(ViPipe, 0x88, 0x00); // Disable auto blc
 	ov02b10_write_register(ViPipe, 0x89, 0x7c);
 	ov02b10_write_register(ViPipe, 0xb4, 0x05);
 	ov02b10_write_register(ViPipe, 0x8c, 0x40);

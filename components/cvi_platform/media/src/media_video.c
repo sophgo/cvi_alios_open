@@ -1860,22 +1860,8 @@ int MEDIA_VIDEO_Deinit()
  * @param  dstFrm1: sensor1 target frame rate
  * @retval CVI_SUCCESS if switch sensor's frame rate ratio successfully
  */
-int32_t switch_frame_rate_ratio(int32_t dstFrm0, int32_t dstFrm1)
+int32_t cvi_switch_frame_rate_ratio(int32_t dstFrm0, int32_t dstFrm1)
 {
-    /* Confirm target AEResponseFrame value */
-    int32_t aeRespFrm0, aeRespFrm1;
-    if (dstFrm0 == 1) {
-        aeRespFrm0 = 3;
-        if (dstFrm1 == 1) {
-            aeRespFrm1 = 3;
-        } else {
-            aeRespFrm1 = 2;
-        }
-    } else {
-        aeRespFrm0 = 2;
-        aeRespFrm1 = 3;
-    }
-
     /* Modify dstFrm */
     uint8_t devNum = 2;
     VI_DEV ViDev;
@@ -1889,13 +1875,6 @@ int32_t switch_frame_rate_ratio(int32_t dstFrm0, int32_t dstFrm1)
                 : i;
         /* Disable VI dev for reload dev attribute configuration */
         MEDIA_CHECK_RET(CVI_VI_DisableDev(ViDev), "CVI_VI_DisableDev fail");
-
-        /* Update AEResponseFrame */
-        if (ViDev == 0) {
-            CVI_ISP_SetResponseFrame(ViDev, aeRespFrm0);
-        } else {
-            CVI_ISP_SetResponseFrame(ViDev, aeRespFrm1);
-        }
 
         MEDIA_CHECK_RET(getDevAttr(i, &stViDevAttr[ViDev]), "getDevAttr fail");
         if (pstViCfg->pstDevInfo[i].isMux) {
@@ -1990,7 +1969,7 @@ int32_t testMedia_switch_frame_rate_ratio(int32_t argc, char** argv)
     struct timeval start, end;
     gettimeofday(&start, NULL);
 
-    if (switch_frame_rate_ratio(dstFrm0, dstFrm1)) {
+    if (cvi_switch_frame_rate_ratio(dstFrm0, dstFrm1)) {
         return CVI_FAILURE;
     }
 

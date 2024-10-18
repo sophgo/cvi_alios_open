@@ -65,7 +65,7 @@ build_config:
     - customization/include
     - common/include
     - 3rdparty/inih
-    - sample/utils
+    - ../../components/cvi_tdl/cviai/sample
 
   internal_include:
 
@@ -83,13 +83,19 @@ source_file:
   - customization/tdl_sample_180xb/src/*.c
   - common/src/*.c
   - 3rdparty/inih/*.c
-  - sample/utils/*.c
+  - ../../components/cvi_tdl/cviai/sample/middleware_utils.c
+  - ../../components/cvi_tdl/cviai/sample/sample_utils.c
   - sample/sample_adas.c ? <CONFIG_TDL_SAMPLE_ADAS>
   - sample/sample_fd_liveness.c ? <CONFIG_TDL_SAMPLE_LIVENESS>
-  - sample/sample_fd_tracking_copy.c ? <CONFIG_TDL_SAMPLE_FACE_TRACKING>
-  - sample/sample_fd.c ? <CONFIG_TDL_SAMPLE_FACE_DETECTION>
+  - sample/sample_fd_tracking.c ? <CONFIG_TDL_SAMPLE_FACE_TRACKING>
+  - sample/sample_fd_image.c ? <CONFIG_TDL_SAMPLE_FACE_DETECTION>
+  - sample/sample_fd_video.c ? <CONFIG_TDL_SAMPLE_FACE_DETECTION>
   - sample/sample_face_recog.c ? <CONFIG_TDL_SAMPLE_FACE_RECOGNITION>
-  - sample/sample_pedestrian.c ? <CONFIG_TDL_SAMPLE_PEDESTRIAN>
+  - sample/sample_od.c ? <CONFIG_TDL_SAMPLE_OBJ_DETECTION>
+  - sample/sample_pedestrian_image.c ? <CONFIG_TDL_SAMPLE_PEDESTRIAN>
+  - sample/sample_pedestrian_video.c ? <CONFIG_TDL_SAMPLE_PEDESTRIAN>
+
+  - sample/sample_vi_vpss.c
 
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项
@@ -144,4 +150,5 @@ def_config:
   CONFIG_TDL_SAMPLE_FACE_TRACKING: 0
   CONFIG_TDL_SAMPLE_FACE_DETECTION: 0
   CONFIG_TDL_SAMPLE_FACE_RECOGNITION: 0
+  CONFIG_TDL_SAMPLE_OBJ_DETECTION: 0
   CONFIG_TDL_SAMPLE_PEDESTRIAN: 0

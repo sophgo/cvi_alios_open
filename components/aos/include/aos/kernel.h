@@ -497,9 +497,9 @@ void aos_sem_signal_all(aos_sem_t *sem);
  *
  * @param[out]  sem    pointer of semaphore object, semaphore object must be alloced,
  *                     hdl pointer in aos_sem_t will refer a kernel obj internally.
- * 
+ *
  * @param[in]   name   the name of the semaphore
- * 
+ *
  * @param[in]   count  initial semaphore counter.
  *
  * @return  0:success.
@@ -535,7 +535,7 @@ int aos_task_sem_wait(unsigned int timeout);
  * Set semaphore count for specified task.
  *
  * @param[in]   task   task handle.
- * 
+ *
  * @param[in]   count  the semaphore counter.
  *
  * @return  0:success.
@@ -546,7 +546,7 @@ int aos_task_sem_count_set(aos_task_t *task, int count);
  * Get semaphore count for specified task.
  *
  * @param[in]   task   task handle.
- * 
+ *
  * @param[in]   count  point to the semaphore counter.
  *
  * @return  0:success.
@@ -1085,7 +1085,7 @@ uint64_t aos_calendar_localtime_get(void);
  * Get the timer's time vaule.
  *
  * @param[in]  timer  pointer to the timer.
- * @param[out] value  store the returned time. 
+ * @param[out] value  store the returned time.
  *                       struct itimerspec {
  *                           struct timespec  it_interval;  // the spacing time
  *                           struct timespec  it_value;     // first delay start time
@@ -1094,8 +1094,8 @@ uint64_t aos_calendar_localtime_get(void);
  *                       it_interval.tv_nsec  = value[1];
  *                       it_value.tv_sec      = value[2];
  *                       it_value.tv_nsec     = value[3];
- * 
- * 
+ *
+ *
  * @return  0: success, otherwise error.
  */
 int aos_timer_gettime(aos_timer_t *timer, uint64_t value[4]);
@@ -1126,6 +1126,13 @@ void aos_sys_tick_handler(void);
  * @return  execution status code.
  */
 int aos_get_mminfo(int32_t *total, int32_t *used, int32_t *mfree, int32_t *peak);
+
+/**
+ * Get aos maximum continuous available memory length
+ *
+ * @return  aos maximum continuous available memory length.
+ */
+size_t aos_mm_max_free_size_get(void);
 
 /**
  * Dump aos memory .

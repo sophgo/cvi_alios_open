@@ -16,7 +16,13 @@
 #define HEIGHT (unsigned int)(1080)
 
 #define MAX_FRAME_SIZE (unsigned long)(WIDTH * HEIGHT * 2)
-#define DEFAULT_FRAME_SIZE (unsigned long)(WIDTH * HEIGHT * 3 / 2)
+#define DEFAULT_FRAME_SIZE_CHNA (unsigned long)  (WIDTH * HEIGHT * 3 / 2)
+#if (USBD_UVC_NUM >= 2)
+#define DEFAULT_FRAME_SIZE_CHNB (unsigned long)  (WIDTH * HEIGHT * 3 / 2)
+#endif
+#if (USBD_UVC_NUM >= 3)
+#define DEFAULT_FRAME_SIZE_CHNC (unsigned long)  (WIDTH * HEIGHT * 3 / 2)
+#endif
 #define TIMEOUT_CHECK_CNT  500 // 500 * 1ms
 
 #define MJPEG_FORMAT_INDEX  (1)
@@ -41,26 +47,14 @@ static struct uvc_frame_info_st yuy2_frame_info[] = {
 };
 
 static struct uvc_frame_info_st mjpeg_frame_info[] = {
-	{1, 240, 320, 30, 0},
-	{2, 320, 240, 30, 0},
-	{3, 480, 320, 30, 0},
-	{4, 640, 480, 30, 0},
-	{5, 656, 468, 30, 0},
-	{6, 720, 480, 30, 0},
-	{7, 800, 480, 30, 0},
-	{8, 864, 480, 30, 0},
-	{9, 800, 600, 30, 0},
-	{10, 1280, 720, 30, 0},
-	{11, 1920, 1080, 30, 0},
-	{12, 1600, 1200, 30, 0},
+	{1, 800, 480, 	15, 0, 10*1024},
+	{2, 864, 480, 	30, 0, 10*1024},
+	{3, 1920, 1080, 30, 0, 20*1024},
 };
 
 static struct uvc_frame_info_st h264_frame_info[] = {
-    {1, 800, 600, 30, 0},
-    {2, 1280, 720, 30, 0},
-    {3, 640, 480, 30, 0},
-    {4, 400, 300, 30, 0},
-    {5, 1920, 1080, 30, 0},
+    {1, 1280, 720,  15, 0, 1*1024},
+    {2, 1920, 1080, 15, 0, 3*512},
 };
 
 //  static struct uvc_frame_info_st nv21_frame_info[] = {
@@ -70,40 +64,61 @@ static struct uvc_frame_info_st h264_frame_info[] = {
 //  };
 
 static struct uvc_frame_info_st h265_frame_info[] = {
-    {1, 800, 600, 30, 0},
-    {2, 1280, 720, 30, 0},
-    {3, 640, 480, 30, 0},
-    {4, 400, 300, 30, 0},
-    {5, 1920, 1080, 30, 0},
+    {1, 1280, 720,  15, 0, 1*1024},
+    {2, 1920, 1080, 15, 0, 3*512},
 };
 
-static struct uvc_format_info_st uvc_format_info[] = {
+static struct uvc_format_info_st uvc_format_info_chna[] = {
     {MJPEG_FORMAT_INDEX, UVC_FORMAT_MJPEG, 1, ARRAY_SIZE(mjpeg_frame_info), mjpeg_frame_info},
     {H264_FORMAT_INDEX, UVC_FORMAT_H264, 1, ARRAY_SIZE(h264_frame_info), h264_frame_info},
     {YUYV_FORMAT_INDEX, UVC_FORMAT_YUY2, 1, ARRAY_SIZE(yuy2_frame_info), yuy2_frame_info},
     // {NV21_FORMAT_INDEX, UVC_FORMAT_NV21, 1, ARRAY_SIZE(nv21_frame_info), nv21_frame_info},
-	{H265_FORMAT_INDEX, UVC_FORMAT_H265, 1, ARRAY_SIZE(h265_frame_info), h265_frame_info},
+    {H265_FORMAT_INDEX, UVC_FORMAT_H265, 1, ARRAY_SIZE(h265_frame_info), h265_frame_info},
 };
+
+#if (USBD_UVC_NUM >= 2)
+static struct uvc_format_info_st uvc_format_info_chnb[] = {
+    {MJPEG_FORMAT_INDEX, UVC_FORMAT_MJPEG, 1, ARRAY_SIZE(mjpeg_frame_info), mjpeg_frame_info},
+    {H264_FORMAT_INDEX, UVC_FORMAT_H264, 1, ARRAY_SIZE(h264_frame_info), h264_frame_info},
+    {YUYV_FORMAT_INDEX, UVC_FORMAT_YUY2, 1, ARRAY_SIZE(yuy2_frame_info), yuy2_frame_info},
+    // {NV21_FORMAT_INDEX, UVC_FORMAT_NV21, 1, ARRAY_SIZE(nv21_frame_info), nv21_frame_info},
+    {H265_FORMAT_INDEX, UVC_FORMAT_H265, 1, ARRAY_SIZE(h265_frame_info), h265_frame_info},
+};
+#endif
+
+#if (USBD_UVC_NUM >= 3)
+static struct uvc_format_info_st uvc_format_info_chnc[] = {
+    {MJPEG_FORMAT_INDEX, UVC_FORMAT_MJPEG, 1, ARRAY_SIZE(mjpeg_frame_info), mjpeg_frame_info},
+    {H264_FORMAT_INDEX, UVC_FORMAT_H264, 1, ARRAY_SIZE(h264_frame_info), h264_frame_info},
+    {YUYV_FORMAT_INDEX, UVC_FORMAT_YUY2, 1, ARRAY_SIZE(yuy2_frame_info), yuy2_frame_info},
+    // {NV21_FORMAT_INDEX, UVC_FORMAT_NV21, 1, ARRAY_SIZE(nv21_frame_info), nv21_frame_info},
+    {H265_FORMAT_INDEX, UVC_FORMAT_H265, 1, ARRAY_SIZE(h265_frame_info), h265_frame_info},
+};
+#endif
 
 static struct uvc_device_info uvc[USBD_UVC_MAX_NUM] = {
     {
         // .ep = 0x81,
-        .format_info = uvc_format_info,
-        .formats = ARRAY_SIZE(uvc_format_info),
+        .format_info = uvc_format_info_chna,
+        .formats = ARRAY_SIZE(uvc_format_info_chna),
         .video = {0, 0, 0},
     },
+	#if (USBD_UVC_NUM >= 2)
     {
         // .ep = 0x82,
-        .format_info = uvc_format_info,
-        .formats = ARRAY_SIZE(uvc_format_info),
+        .format_info = uvc_format_info_chnb,
+        .formats = ARRAY_SIZE(uvc_format_info_chnb),
         .video = {1, 1, 1},
     },
+	#endif
+	#if (USBD_UVC_NUM >= 3)
     {
         // .ep = 0x83,
-        .format_info = uvc_format_info,
-        .formats = ARRAY_SIZE(uvc_format_info),
+        .format_info = uvc_format_info_chnc,
+        .formats = ARRAY_SIZE(uvc_format_info_chnc),
         .video = {2, 1, 0},
     }
+	#endif
 };
 
 struct uvc_device_info *uvc_container_of_device_id(uint8_t device_id)
@@ -111,8 +126,22 @@ struct uvc_device_info *uvc_container_of_device_id(uint8_t device_id)
 	return &uvc[device_id];
 }
 
-static uint8_t media_buffer[USBD_UVC_NUM][DEFAULT_FRAME_SIZE] __attribute__((aligned(64)));
-
+static uint8_t media_buffer_chna[DEFAULT_FRAME_SIZE_CHNA] __attribute__((aligned(64)));
+#if (USBD_UVC_NUM >= 2)
+static uint8_t media_buffer_chnb[DEFAULT_FRAME_SIZE_CHNB] __attribute__((aligned(64)));
+#endif
+#if (USBD_UVC_NUM >= 3)
+static uint8_t media_buffer_chnc[DEFAULT_FRAME_SIZE_CHNC] __attribute__((aligned(64)));
+#endif
+static uint8_t *media_buffer[] = {
+	media_buffer_chna,
+	#if (USBD_UVC_NUM >= 2)
+	media_buffer_chnb,
+	#endif
+	#if (USBD_UVC_NUM >= 3)
+	media_buffer_chnc,
+	#endif
+};
 
 static CVI_S32 is_media_info_update(struct uvc_device_info *info){
 	PAYLOAD_TYPE_E enType;
@@ -147,6 +176,7 @@ static CVI_S32 is_media_info_update(struct uvc_device_info *info){
 		return CVI_TRUE;
 
 	if((pstVpssChnAttr->enPixelFormat != enPixelFormat) ||
+		(pstVpssChnAttr->stFrameRate.s32DstFrameRate != uvc_frame_info.fps) ||
 		(pstVpssChnAttr->u32Width != uvc_frame_info.width) ||
 		(pstVpssChnAttr->u32Height != uvc_frame_info.height))
 		return CVI_TRUE;
@@ -183,10 +213,41 @@ static CVI_S32 is_media_info_update(struct uvc_device_info *info){
 
 }
 
-static void uvc_parse_media_info(uint8_t bFormatIndex, uint8_t bFrameIndex)
+
+CVI_S32 uvc_index_of_vs_intf(uint8_t intf)
 {
-    const struct uvc_format_info_st *format_info;
-    const int uvcout_format_cnt = ARRAY_SIZE(uvc_format_info);
+    for (int i = 0; i < USBD_UVC_NUM; i++) {
+        if(intf == uvc[i].vs_intf.intf_num)
+            return i;
+    }
+    return -1;
+}
+
+static void uvc_parse_media_info(uint8_t intf, uint8_t bFormatIndex, uint8_t bFrameIndex)
+{
+    const struct uvc_format_info_st *format_info = NULL;
+	const int uvc_index = uvc_index_of_vs_intf(intf);
+    int uvcout_format_cnt;
+
+	switch(uvc_index)
+	{
+		case 0:
+			uvcout_format_cnt = ARRAY_SIZE(uvc_format_info_chna);
+			break;
+	#if (USBD_UVC_NUM >= 2)
+		case 1:
+			uvcout_format_cnt = ARRAY_SIZE(uvc_format_info_chnb);
+			break;
+	#endif
+	#if (USBD_UVC_NUM >= 3)
+		case 2:
+			uvcout_format_cnt = ARRAY_SIZE(uvc_format_info_chnb);
+			break;
+	#endif
+	default:
+		aos_debug_printf(" cur uvc_index not suppert!\n");
+		break;
+	}
 
     if (bFormatIndex < 0)
         bFormatIndex = uvcout_format_cnt + bFormatIndex;
@@ -196,7 +257,25 @@ static void uvc_parse_media_info(uint8_t bFormatIndex, uint8_t bFrameIndex)
         return;
     }
 
-    format_info = &uvc_format_info[bFormatIndex - 1];
+	switch(uvc_index)
+	{
+		case 0:
+			format_info = &uvc_format_info_chna[bFormatIndex - 1];
+			break;
+#if (USBD_UVC_NUM >= 2)
+		case 1:
+			format_info = &uvc_format_info_chnb[bFormatIndex - 1];
+			break;
+#endif
+#if (USBD_UVC_NUM >= 3)
+		case 2:
+			format_info = &uvc_format_info_chnc[bFormatIndex - 1];
+			break;
+#endif
+	default:
+		aos_debug_printf(" cur uvc_index not suppert!\n");
+		break;
+	}
 
     const int nframes = format_info->frame_cnt;
     if (bFrameIndex < 0)
@@ -279,16 +358,26 @@ static void uvc_media_update(struct uvc_device_info *info){
 	stVpssChnAttr.enPixelFormat = enPixelFormat;
 	stVpssChnAttr.u32Width = uvc_frame_info.width;
 	stVpssChnAttr.u32Height = uvc_frame_info.height;
+	stVpssChnAttr.stFrameRate.s32SrcFrameRate = 30;
+	stVpssChnAttr.stFrameRate.s32DstFrameRate = uvc_frame_info.fps;
 	CVI_VPSS_SetChnAttr(info->video.vpss_group, info->video.vpss_channel, &stVpssChnAttr);
 
 	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u16Width = uvc_frame_info.width;
 	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u16Height = uvc_frame_info.height;
 	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u16EnType = enType;
-	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stRcParam.u32BitRate =
+
+	if(uvc_frame_info.bitrate){
+		pstVencCfg->pstVencChnCfg[info->video.venc_channel].stRcParam.u32BitRate = uvc_frame_info.bitrate;
+	}
+	else{
+		pstVencCfg->pstVencChnCfg[info->video.venc_channel].stRcParam.u32BitRate =
 			(enType == PT_MJPEG) ? CONFIG_UVC_MJPEG_BITRATE : CONFIG_UVC_H264_H265_BITRATE;
+	}
+
+	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stRcParam.u8SrcFrameRate = uvc_frame_info.fps;
 	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stRcParam.u16RcMode =
 			(enType == PT_MJPEG) ? VENC_RC_MODE_MJPEGCBR:((enType == PT_H264) ? VENC_RC_MODE_H264CBR : VENC_RC_MODE_H265CBR);;
-	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u8ModId = CVI_ID_VPSS;
+	// pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u8ModId = CVI_ID_VPSS;
 	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u8DevId = info->video.vpss_group;
    	pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u8DevChnid = info->video.vpss_channel;
 
@@ -376,7 +465,7 @@ static void usbd_video_frame_submmit(void *args) {
 
 	if(uvc->tx_frm_idx < uvc->rx_frm_idx && uvc->frm_sz[idx]>0) {
 		uvc->xfer_flag = true;
-		usbd_ep_start_write(uvc->ep, uvc->packet_buffer_uvc + idx * DEFAULT_FRAME_SIZE, uvc->frm_sz[idx]);
+		usbd_ep_start_write(uvc->ep, uvc->packet_buffer_uvc + idx * uvc->default_frame_size, uvc->frm_sz[idx]);
 	}
 }
 #else
@@ -418,9 +507,9 @@ static uint32_t uvc_payload_fill(struct uvc_device_info *uvc, uint8_t *input, ui
         USB_LOG_ERR("the size of payload is too long!!!!\n");
     }
 
-	if (input_len + size_uvc_header > DEFAULT_FRAME_SIZE) {
+	if (input_len + size_uvc_header > uvc->default_frame_size) {
 		USB_LOG_ERR("input_len + size_uvc_header (%u) > DEFAULT_FRAME_SIZE (%u)\n",
-			input_len + size_uvc_header, DEFAULT_FRAME_SIZE);
+			input_len + size_uvc_header, uvc->default_frame_size);
 		return 0;
 	}
 
@@ -451,9 +540,9 @@ static uint32_t uvc_payload_fill(struct uvc_device_info *uvc, uint8_t *input, ui
     return packets;
 }
 
-void usbd_video_commit_set_cur(struct video_probe_and_commit_controls *commit)
+void usbd_video_commit_set_cur(uint8_t intf, struct video_probe_and_commit_controls *commit)
 {
-	uvc_parse_media_info(commit->bFormatIndex, commit->bFrameIndex);
+	uvc_parse_media_info(intf, commit->bFormatIndex, commit->bFrameIndex);
     aos_debug_printf("commit format idx:%d, frame idx:%d\n", commit->bFormatIndex, commit->bFrameIndex);
 }
 
@@ -509,7 +598,7 @@ static void vedio_streaming_send(struct uvc_device_info *uvc, int dev_index)
 					ppack->u32Len - ppack->u32Offset);
 			buf_len += (ppack->u32Len - ppack->u32Offset);
 
-			if (buf_len > DEFAULT_FRAME_SIZE) {
+			if (buf_len > uvc->default_frame_size) {
 				printf("venc buf_len oversize\n");
 				MEDIA_VIDEO_VencReleaseStream(uvc->video.venc_channel, pstStream);
 				return;
@@ -575,7 +664,7 @@ static void vedio_streaming_send(struct uvc_device_info *uvc, int dev_index)
 
 #if CONFIG_USB_BULK_UVC
 	packets = uvc_payload_fill(uvc, media_buffer[dev_index], buf_len,
-			uvc->packet_buffer_uvc + FRM_BUFFER_GET_IDX(uvc->rx_frm_idx) * DEFAULT_FRAME_SIZE,
+			uvc->packet_buffer_uvc + FRM_BUFFER_GET_IDX(uvc->rx_frm_idx) * uvc->default_frame_size,
 			&data_len);
 	uvc->frm_sz[FRM_BUFFER_GET_IDX(uvc->rx_frm_idx)] = data_len;
 	uvc->rx_frm_idx++;
@@ -642,7 +731,7 @@ static void uvc_desc_register_cb()
 
 static void fix_frame_info_fps()
 {
-	uint8_t format_cnt = sizeof(uvc_format_info) / sizeof(uvc_format_info[0]);
+	// uint8_t format_cnt = sizeof(uvc_format_info) / sizeof(uvc_format_info[0]);
 
 	for(uint8_t i = 0; i < USBD_UVC_NUM; i++) {
 			uvc[i].cam_fps = 30;
@@ -651,11 +740,11 @@ static void fix_frame_info_fps()
 			}
 			uvc[i].interval = (10000000 / uvc[i].cam_fps);
 
-			for (uint8_t j = 0; j < format_cnt; j++) {
-				for (uint8_t k = 0; j < uvc_format_info[k].frame_cnt; k++) {
-					uvc_format_info[j].frames[k].fps = uvc[i].cam_fps;
-				}
-			}
+			// for (uint8_t j = 0; j < format_cnt; j++) {
+			// 	for (uint8_t k = 0; j < uvc_format_info[k].frame_cnt; k++) {
+			// 		uvc_format_info[j].frames[k].fps = uvc[i].cam_fps;
+			// 	}
+			// }
 	}
 }
 
@@ -748,16 +837,36 @@ int uvc_init(void)
 	av_session_init_flag = CVI_TRUE;
 
 	for (uint8_t i = 0; i < USBD_UVC_NUM; i++) {
+		switch(i){
+			case 0:
+				uvc[i].default_frame_size = DEFAULT_FRAME_SIZE_CHNA;
+				break;
+			#if (USBD_UVC_NUM >= 2)
+			case 1:
+				uvc[i].default_frame_size = DEFAULT_FRAME_SIZE_CHNB;
+				break;
+			#endif
+			#if (USBD_UVC_NUM >= 3)
+			case 2:
+				uvc[i].default_frame_size = DEFAULT_FRAME_SIZE_CHNC;
+				break;
+			#endif
+			default:
+				break;
+		}
+	}
+
+	for (uint8_t i = 0; i < USBD_UVC_NUM; i++) {
 	#if CONFIG_USB_BULK_UVC
 		static char workqueuename[3][16] = {0};
 		snprintf(workqueuename[i], sizeof(workqueuename[i]), "uvc_submmit%d", i);
 		aos_workqueue_create_ext(&uvc[i].uvc_workqueue, workqueuename[i], 15, 4096);
 		aos_work_init(&uvc[i].uvc_frame_submmit, usbd_video_frame_submmit, &uvc[i], 5);
-		uvc[i].packet_buffer_uvc = (uint8_t *)usb_iomalloc(DEFAULT_FRAME_SIZE * FRM_BUFFER_LEN);
-		memset(uvc[i].packet_buffer_uvc, 0, DEFAULT_FRAME_SIZE * FRM_BUFFER_LEN);
+		uvc[i].packet_buffer_uvc = (uint8_t *)usb_iomalloc(uvc[i].default_frame_size * FRM_BUFFER_LEN);
+		memset(uvc[i].packet_buffer_uvc, 0, uvc[i].default_frame_size * FRM_BUFFER_LEN);
 	#else
-		uvc[i].packet_buffer_uvc = (uint8_t *)usb_iomalloc(DEFAULT_FRAME_SIZE);
-		memset(uvc[i].packet_buffer_uvc, 0, DEFAULT_FRAME_SIZE);
+		uvc[i].packet_buffer_uvc = (uint8_t *)usb_iomalloc(uvc[i].default_frame_size);
+		memset(uvc[i].packet_buffer_uvc, 0, uvc[i].default_frame_size);
 	#endif
 	}
 

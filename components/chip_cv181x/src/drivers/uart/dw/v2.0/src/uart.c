@@ -32,7 +32,6 @@
 
 extern uint16_t uart_tx_hs_num[];
 extern uint16_t uart_rx_hs_num[];
-extern const csi_pinmap_t uart_pinmap[];
 
 static void rx_pin_uart_to_gpio(uint8_t dev_idx, pin_name_t *rx_pin);
 static void tx_pin_uart_to_gpio(uint8_t dev_idx, pin_name_t *tx_pin);

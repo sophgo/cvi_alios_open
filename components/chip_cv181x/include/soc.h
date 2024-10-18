@@ -998,6 +998,7 @@ typedef struct {
 #define CONFIG_OTP_BANK_SIZE 256U    // Bytes
 
 extern const pin_reg_offset_t cvi_pin_reg_offset[];
+extern const cvi_pinmap_t cvi_gpio_pinmap[];
 
 #ifdef __cplusplus
 }

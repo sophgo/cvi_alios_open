@@ -35,5 +35,8 @@ int MEDIA_VIDEO_VencRequstIDR(int VencChn);
 int MEDIA_VIDEO_ViSetImageMono(VI_PIPE ViPipe);
 int MEDIA_VIDEO_VoInit(PARAM_VO_CFG_S * pstVoCtx);
 int MEDIA_VIDEO_VoDeinit(PARAM_VO_CFG_S * pstVoCtx);
+int32_t switch_frame_rate_ratio(int32_t dstFrm0, int32_t dstFrm1);
+
+int32_t cvi_switch_frame_rate_ratio(int32_t dstFrm0, int32_t dstFrm1);
 
 #endif

@@ -179,99 +179,8 @@ const csi_dma_ch_spt_list_t dma_spt_list[] = {
     {0xFFFFU,         0xFFU,         NULL},
 };
 
-const csi_pinmap_t gpio_pinmap[] = {
-    // {PB0,    0,  0,           PIN_FUNC_GPIO },
-    // {PB1,    0,  1,           PIN_FUNC_GPIO },
-    // {PB2,    0,  2,           PIN_FUNC_GPIO },
-    // {PB3,    0,  3,           PIN_FUNC_GPIO },
-    // {PB4,    0,  4,           PIN_FUNC_GPIO },
-    // {PB5,    0,  5,           PIN_FUNC_GPIO },
-    // {PB6,    0,  6,           PIN_FUNC_GPIO },
-    // {PB7,    0,  7,           PIN_FUNC_GPIO },
-    // {PB8 ,   0,  8,           PIN_FUNC_GPIO },
-    // {PB9 ,   0,  9,           PIN_FUNC_GPIO },
-    // {PB10,   0,  10,          PIN_FUNC_GPIO },
-    // {PB11,   0,  11,          PIN_FUNC_GPIO },
-    // {PB12,   0,  12,          PIN_FUNC_GPIO },
-    // {PC0,    0,  0,           PIN_FUNC_GPIO },
-    // {PC1,    0,  1,           PIN_FUNC_GPIO },
-    // {PC2,    0,  2,           PIN_FUNC_GPIO },
-    // {PC3,    0,  3,           PIN_FUNC_GPIO },
-    // {PC4,    0,  4,           PIN_FUNC_GPIO },
-    // {PC5,    0,  5,           PIN_FUNC_GPIO },
-    // {PC6,    0,  6,           PIN_FUNC_GPIO },
-    // {PC7,    0,  7,           PIN_FUNC_GPIO },
-    // {PD0,    0,  0,           PIN_FUNC_GPIO },
-    // {PD1,    0,  1,           PIN_FUNC_GPIO },
-    // {PD2,    0,  2,           PIN_FUNC_GPIO },
-    // {PD3,    0,  3,           PIN_FUNC_GPIO },
-    // {PD4,    0,  4,           PIN_FUNC_GPIO },
-    // {PD5,    0,  5,           PIN_FUNC_GPIO },
-    // {PD6,    0,  6,           PIN_FUNC_GPIO },
-    // {PD7,    0,  7,           PIN_FUNC_GPIO },
-    // {PD8,    0,  8,           PIN_FUNC_GPIO },
-    // {PD9,    0,  9,           PIN_FUNC_GPIO },
-    // {PD10,   0,  10,          PIN_FUNC_GPIO },
-    // {PD11,   0,  11,          PIN_FUNC_GPIO },
-    // {PD12,   0,  12,          PIN_FUNC_GPIO },
-    // {PD13,   0,  13,          PIN_FUNC_GPIO },
-    // {PD14,   0,  14,          PIN_FUNC_GPIO },
-    // {PD15,   0,  15,          PIN_FUNC_GPIO },
-    // {PD16,   0,  16,          PIN_FUNC_GPIO },
-    // {PD17,   0,  17,          PIN_FUNC_GPIO },
-    // {PD18,   0,  18,          PIN_FUNC_GPIO },
-    // {PD19,   0,  19,          PIN_FUNC_GPIO },
-    // {PD20,   0,  20,          PIN_FUNC_GPIO },
-    // {PD21,   0,  21,          PIN_FUNC_GPIO },
-    // {PD22,   0,  22,          PIN_FUNC_GPIO },
-    // {PE0 ,   0,  0 ,          PIN_FUNC_GPIO },
-    // {PE1 ,   0,  1 ,          PIN_FUNC_GPIO },
-    // {PE2 ,   0,  2 ,          PIN_FUNC_GPIO },
-    // {PE3 ,   0,  3 ,          PIN_FUNC_GPIO },
-    // {PE4 ,   0,  4 ,          PIN_FUNC_GPIO },
-    // {PE5 ,   0,  5 ,          PIN_FUNC_GPIO },
-    // {PE6 ,   0,  6 ,          PIN_FUNC_GPIO },
-    // {PE7 ,   0,  7 ,          PIN_FUNC_GPIO },
-    // {PE8 ,   0,  8 ,          PIN_FUNC_GPIO },
-    // {PE9 ,   0,  9 ,          PIN_FUNC_GPIO },
-    // {PE10,   0,  10,          PIN_FUNC_GPIO },
-    // {PE11,   0,  11,          PIN_FUNC_GPIO },
-    // {PE12,   0,  12,          PIN_FUNC_GPIO },
-    // {PE13,   0,  13,          PIN_FUNC_GPIO },
-    // {PE14,   0,  14,          PIN_FUNC_GPIO },
-    // {PE15,   0,  15,          PIN_FUNC_GPIO },
-    // {PE16,   0,  16,          PIN_FUNC_GPIO },
-    // {PE17,   0,  17,          PIN_FUNC_GPIO },
-    // {PF0 ,   0,  0 ,          PIN_FUNC_GPIO },
-    // {PF1 ,   0,  1 ,          PIN_FUNC_GPIO },
-    // {PF2 ,   0,  2 ,          PIN_FUNC_GPIO },
-    // {PF3 ,   0,  3 ,          PIN_FUNC_GPIO },
-    // {PF4 ,   0,  4 ,          PIN_FUNC_GPIO },
-    // {PF5 ,   0,  5 ,          PIN_FUNC_GPIO },
-    // {PF6 ,   0,  6 ,          PIN_FUNC_GPIO },
-    // {PG0 ,   0,  0 ,          PIN_FUNC_GPIO },
-    // {PG1 ,   0,  1 ,          PIN_FUNC_GPIO },
-    // {PG2 ,   0,  2 ,          PIN_FUNC_GPIO },
-    // {PG3 ,   0,  3 ,          PIN_FUNC_GPIO },
-    // {PG4 ,   0,  4 ,          PIN_FUNC_GPIO },
-    // {PG5 ,   0,  5 ,          PIN_FUNC_GPIO },
-    // {PG6 ,   0,  6 ,          PIN_FUNC_GPIO },
-    // {PG7 ,   0,  7 ,          PIN_FUNC_GPIO },
-    // {PG8 ,   0,  8 ,          PIN_FUNC_GPIO },
-    // {PG9 ,   0,  9 ,          PIN_FUNC_GPIO },
-    // {PG10,   0,  10,          PIN_FUNC_GPIO },
-    // {PG11,   0,  11,          PIN_FUNC_GPIO },
-    // {PG12,   0,  12,          PIN_FUNC_GPIO },
-    // {PG13,   0,  13,          PIN_FUNC_GPIO },
-    // {PG14,   0,  14,          PIN_FUNC_GPIO },
-    // {PG15,   0,  15,          PIN_FUNC_GPIO },
-    // {PG16,   0,  16,          PIN_FUNC_GPIO },
-    // {PG17,   0,  17,          PIN_FUNC_GPIO },
-    // {PG18,   0,  18,          PIN_FUNC_GPIO },
-    {0xFFFFFFFFU,   0xFFU, 0xFFU,       0xFFFFFFFFU   },
-};
 
-const csi_pinmap_t uart_pinmap[] = {
+const cvi_pinmap_t uart_pinmap[] = {
     // {PA4,             0,     PIN_UART_RX,    PA4_UART_RX  },
     // {PA5,             0,     PIN_UART_TX,    PA5_UART_TX  },
     // {PA6,             0,     PIN_UART_RX,    PA6_UART_RX  },
@@ -283,11 +192,11 @@ const csi_pinmap_t uart_pinmap[] = {
     {0xFFFFFFFFU, 0xFFU, 0xFFU,      0xFFFFFFFFU  },
 };
 
-const csi_pinmap_t iic_pinmap[] = {
+const cvi_pinmap_t iic_pinmap[] = {
     {0xFFFFFFFFU, 0xFFU,       0xFFU,   0xFFFFFFFFU },
 };
 
-const csi_pinmap_t i2s_pinmap[] = {
+const cvi_pinmap_t i2s_pinmap[] = {
     {0xFFFFFFFFU, 0xFFU, 0xFFU, 0xFFFFFFFFU  },
 };
 
@@ -322,6 +231,6 @@ const csi_clkmap_t clk_map[] = {
     {0xFFFFFFFFU, 0xFFFFU,          0xFFU}
 };
 
-const csi_pinmap_t adc_pinmap[] = {
+const cvi_pinmap_t adc_pinmap[] = {
     {0xFFFFFFFFU, 0xFFU,       0xFFU,   0xFFFFFFFFU },
 };

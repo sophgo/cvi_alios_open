@@ -672,6 +672,7 @@ struct uvc_frame_info_st
     uint32_t height;
     uint32_t fps;
     uint32_t rotate_flag;   //0:0, 1:90, 2:180, 3:270
+    uint32_t bitrate;
 } __attribute__((__packed__));
 
 

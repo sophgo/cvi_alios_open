@@ -69,7 +69,7 @@ struct usbd_endpoint *usbd_video_init_ep(struct usbd_endpoint *ep,
 void usbd_video_register_uvc_callbacks(uvc_event_callbacks_t *cb);
 void usbd_video_register_video_control_callbacks(uvc_video_control_callbacks_t *cb);
 
-void usbd_video_commit_set_cur(struct video_probe_and_commit_controls *commit);
+void usbd_video_commit_set_cur(uint8_t intf, struct video_probe_and_commit_controls *commit);
 
 #ifdef __cplusplus
 }

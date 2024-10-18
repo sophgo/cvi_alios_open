@@ -333,7 +333,7 @@ const char *aos_task_get_name(aos_task_t *task)
 int aos_task_key_create(aos_task_key_t *key)
 {
     int i;
-    if (key == NULL) 
+    if (key == NULL)
         return -EINVAL;
 
     for (i = RHINO_CONFIG_TASK_INFO_NUM - 1; i >= 0; i--) {
@@ -1249,6 +1249,11 @@ int aos_get_mminfo(int32_t *total, int32_t *used, int32_t *mfree, int32_t *peak)
     *peak = g_kmm_head->maxused_size;
 
     return 0;
+}
+
+size_t aos_mm_max_free_size_get(void)
+{
+    return krhino_mm_max_free_size_get();
 }
 
 int aos_mm_dump(void)

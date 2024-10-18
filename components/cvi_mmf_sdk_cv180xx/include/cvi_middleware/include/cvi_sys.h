@@ -59,6 +59,15 @@ CVI_S32 CVI_SYS_InitPTSBase(CVI_U64 u64PTSBase);
 CVI_S32 CVI_SYS_SyncPTS(CVI_U64 u64PTSBase);
 
 CVI_S32 CVI_SYS_IonAlloc(CVI_U64 *pu64PhyAddr, CVI_VOID **ppVirAddr, const CVI_CHAR *strName, CVI_U32 u32Len);
+
+/**
+ * @brief The user get alios memory statics
+ *
+ * @param pstStatics(Out), the statics of ION memory
+ * @return CVI_S32 Return CVI_SUCCESS if succeed.
+ */
+CVI_S32 CVI_SYS_GetMemoryStatics(ION_MM_STATICS_S *pstStatics);
+
 CVI_S32 CVI_SYS_IonAlloc_Cached(CVI_U64 *pu64PhyAddr, CVI_VOID **ppVirAddr,
 				 const CVI_CHAR *strName, CVI_U32 u32Len);
 
