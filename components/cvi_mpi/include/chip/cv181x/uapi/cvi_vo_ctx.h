@@ -29,6 +29,7 @@ struct cvi_vo_ctx {
 	VO_CHN_ATTR_S stChnAttr;
 	ROTATION_E enRotation;
 	RGN_HANDLE rgn_handle[RGN_MAX_NUM_VO];
+	RGN_HANDLE rgn_coverEx_handle[RGN_COVEREX_MAX_NUM];
 	CVI_U64 u64DisplayPts[VO_MAX_LAYER_NUM][VO_MAX_CHN_NUM];
 	CVI_U64 u64PreDonePts[VO_MAX_LAYER_NUM][VO_MAX_CHN_NUM];
 
@@ -36,6 +37,7 @@ struct cvi_vo_ctx {
 	VO_CHN_STATUS_S chnStatus[VO_MAX_LAYER_NUM][VO_MAX_CHN_NUM];
 
 	struct cvi_rgn_cfg rgn_cfg;
+	struct cvi_rgn_coverex_cfg rgn_coverex_cfg;
 	struct {
 		CVI_U64 paddr;
 		CVI_VOID *vaddr;

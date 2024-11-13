@@ -130,11 +130,9 @@ release_components()
 	MMF_INCLUDE_ARRAY=$(find ./cvi_mmf_sdk/cvi_middleware/include/ -type d |\
 		grep  "^./cvi_mmf_sdk/cvi_middleware/include" | \
 		sed "{s/^\.\/cvi_mmf_sdk\/cvi_middleware\/include/include/g}")
-	TPU_DEPNED_ARRAY=$(ls ./cvi_mmf_sdk/cvi_tpu/ | grep -v "include")
-	TPU_INCLUDE_ARRAY=$(find ./cvi_mmf_sdk/cvi_tpu/include/ -type d |\
-		 grep  "^./cvi_mmf_sdk/cvi_tpu/include" | sed "{s/^\.\/cvi_mmf_sdk\/cvi_tpu\/include/include/g}")
-	cp -rf ./cvi_mmf_sdk/${MMFSDK_CHIP_NAME} ./
-	rm -rf ./cvi_mmf_sdk/chip_*
+	TPU_DEPNED_ARRAY=$(ls ./cvi_tpu/ | grep -v "include")
+	TPU_INCLUDE_ARRAY=$(find ./cvi_tpu/include/ -type d |\
+		 grep  "^./cvi_tpu/include" | sed "{s/^\.\/cvi_tpu\/include/include/g}")
 	for mmfdir_array in ${DELETE_MMFSDK_DIRS[@]};
 	do
 		pushd ./cvi_mmf_sdk/${mmfdir_array}
@@ -151,7 +149,7 @@ release_components()
 		rm -rf ./${components_array}
 	done
 	#拷贝其余不需要依赖成库的组件出来
-	cp -rf ./cvi_mmf_sdk/* ./
+	#cp -rf ./cvi_mmf_sdk/* ./
 	rm -rf ./cvi_mmf_sdk
 	popd
 }

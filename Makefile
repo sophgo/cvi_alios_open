@@ -1,6 +1,6 @@
 SRCTREE := $(CURDIR)
 YOC_FILE := $(SRCTREE)/.yoc
-YAML_FILE := $(SRCTREE)/components/cvi_mmf_sdk/chip_cv181x
+YAML_FILE := $(SRCTREE)/components/chip_cv181x
 #NPROC ?= $(shell expr $(shell nproc) - 1)
 NPROC := 7
 $(info "NPROC = $(NPROC)")

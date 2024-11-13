@@ -49,6 +49,7 @@ typedef struct _PARAM_RC_PARAM_S {
     CVI_S32 s32AvbrFrmGap;
     CVI_S32 s32AvbrPureStillThr;
     CVI_S16 s16Quality;
+    CVI_S16 s16MCUPerECS;
 	CVI_U8 u8MinQfactor; /* RW; Range:[1,99]; minQfactor value*/
 	CVI_U8 u8MaxQfactor; /* RW; Range:[1,99]; maxQfactor value*/
 } PARAM_RC_PARAM_S;

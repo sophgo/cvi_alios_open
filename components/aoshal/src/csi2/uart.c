@@ -248,11 +248,18 @@ int32_t hal_uart_send_irq(uart_dev_t *uart, const void *data, uint32_t size)
     if (uart == NULL) {
         return -1;
     }
+#ifdef UART_MODE_SYNC
+    ret = csi_uart_send(&uart_list[uart->port].handle, data, size, 10); // timeout 10ms default
 
+    if (ret != size) {
+        goto send_fail;
+    }
+#else
     ret = csi_uart_send_async_irq(&uart_list[uart->port].handle, data, size);
     if (ret < 0) {
         return -1;
     }
+#endif
 #endif
 
 #if defined(CONFIG_VIRTUAL_UART) && (CONFIG_VIRTUAL_UART == 1)

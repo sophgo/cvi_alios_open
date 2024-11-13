@@ -23,8 +23,6 @@ enum cvi_sc_scaling_coef {
 	CVI_SC_SCALING_COEF_BICUBIC = 0,
 	CVI_SC_SCALING_COEF_BILINEAR,
 	CVI_SC_SCALING_COEF_NEAREST,
-	CVI_SC_SCALING_COEF_Z2,
-	CVI_SC_SCALING_COEF_Z3,
 	CVI_SC_SCALING_COEF_DOWNSCALE_SMOOTH,
 	CVI_SC_SCALING_COEF_OPENCV_BILINEAR,
 	CVI_SC_SCALING_COEF_MAX,
@@ -91,6 +89,8 @@ struct cvi_vpss_chn_cfg {
 	enum cvi_sc_flip_mode flip;
 	enum cvi_sc_scaling_coef sc_coef;
 	struct cvi_rgn_cfg rgn_cfg[RGN_MAX_LAYER_VPSS];
+	struct cvi_rgn_coverex_cfg rgn_coverex_cfg;
+	struct cvi_rgn_mosaic_cfg rgn_mosaic_cfg;
 	struct cvi_sc_quant_param quant_cfg;
 	struct cvi_sc_border_param border_cfg;
 	struct cvi_sc_mute mute_cfg;

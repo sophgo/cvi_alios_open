@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <aos/cli.h>
-
 #include "cvi_ipcmsg.h"
+#include "cvi_msg_server.h"
 
 static CVI_S32 s_s32Id;
 static pthread_t s_threadid;
@@ -21,23 +21,25 @@ void* rcv_thread(void* arg)
 void handle_message(CVI_S32 s32Id, CVI_IPCMSG_MESSAGE_S* msg)
 {
 	CVI_S32 s32Ret = CVI_SUCCESS;
-	char content[32];
+	CVI_CHAR content[32];
 
 	//printf("==============\n");
-	//printf("receive msg: %s, len: %d\n", (char*)msg->pBody, msg->u32BodyLen);
+	printf("receive msg: %s, len: %d\n", (CVI_CHAR*)msg->pBody, msg->u32BodyLen);
 
 	memset(content, 0, 32);
 	switch(msg->u32Module) {
 		case 1:
-			snprintf(content, 32, "modle:%d, cmd:%d, have done.", msg->u32Module, msg->u32CMD);
+			snprintf(content, 32, "module:%d, cmd:%d, have done.", msg->u32Module, msg->u32CMD);
 			s32Ret = 0;
 			break;
 		case 2:
-			snprintf(content, 32, "modle:%d, cmd:%d, have done.", msg->u32Module, msg->u32CMD);
+			snprintf(content, 32, "module:%d, cmd:%d, have done.", msg->u32Module, msg->u32CMD);
 			s32Ret = 0;
 			break;
+		case 3:
+			return;
 		default:
-			snprintf(content, 32, "modle:%d, cmd:%d, is not found.", msg->u32Module, msg->u32CMD);
+			snprintf(content, 32, "module:%d, cmd:%d, is not found.", msg->u32Module, msg->u32CMD);
 			s32Ret = -1;
 	}
 
@@ -47,9 +49,9 @@ void handle_message(CVI_S32 s32Id, CVI_IPCMSG_MESSAGE_S* msg)
 	//printf("==============\n\n");
 }
 
-void recv_msg(int32_t argc, char **argv)
+void recv_msg(CVI_S32 argc, CVI_CHAR **argv)
 {
-	int ret = 0;
+	CVI_S32 ret = 0;
 	CVI_IPCMSG_CONNECT_S stConnectAttr;
 	struct sched_param tsk;
 	pthread_attr_t attr;
@@ -57,6 +59,12 @@ void recv_msg(int32_t argc, char **argv)
 	stConnectAttr.u32RemoteId = 0;
 	stConnectAttr.u32Port = 201;
 	stConnectAttr.u32Priority = 0;
+
+	ret = CVI_MSG_Deinit();
+	if (ret != CVI_SUCCESS) {
+		printf("CVI_MSG_Deinit fail, return err:%x\n", ret);
+		return;
+	}
 	ret = CVI_IPCMSG_AddService("Test", &stConnectAttr);
 	if(ret != 0) {
 		printf("CVI_IPCMSG_AddService return err:%x\n", ret);
@@ -84,7 +92,7 @@ void recv_msg(int32_t argc, char **argv)
 
 ALIOS_CLI_CMD_REGISTER(recv_msg, ipcmsg_start, test ipcmsg start);
 
-void recv_msg_stop(int32_t argc, char **argv)
+void recv_msg_stop(CVI_S32 argc, CVI_CHAR **argv)
 {
 
 	CVI_IPCMSG_Disconnect(s_s32Id);

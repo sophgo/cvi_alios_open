@@ -19,11 +19,7 @@ extern "C" {
 #include <cvi_common.h>
 #include <cvi_comm_video.h>
 
-#ifdef __arm__
-typedef CVI_S32 GDC_HANDLE; /*gdc handle*/
-#else
-typedef CVI_S64 GDC_HANDLE; /*gdc handle*/
-#endif
+typedef CVI_U64 GDC_HANDLE; /*gdc handle*/
 
 /*
  * stImgIn: Input picture

@@ -38,6 +38,8 @@ struct VPSS_CHN_CFG {
 	CVI_U32 blk_size;
 	CVI_U32 align;
 	RGN_HANDLE rgn_handle[RGN_MAX_LAYER_VPSS][RGN_MAX_NUM_VPSS];
+	RGN_HANDLE coverEx_handle[RGN_COVEREX_MAX_NUM];
+	RGN_HANDLE mosaic_handle[RGN_MOSAIC_MAX_NUM];
 	VPSS_SCALE_COEF_E enCoef;
 	CVI_U32 YRatio;
 	VPSS_LDC_ATTR_S stLDCAttr;

@@ -85,30 +85,38 @@ void test_gpio(int32_t argc, char **argv)
     } else {
         gpio_mode = GPIO_MODE_PULLDOWN;
     }
-    ret = csi_gpio_mode(&gpio, 1 << gpio_pin, gpio_mode);
+	ret = csi_gpio_mode(&gpio, GPIO_PIN_MASK(gpio_pin), gpio_mode);
     if (ret != CSI_OK)
     {
 	    aos_cli_printf("csi_gpio_mode failed\r\n");
 		return;
     }
 
-    ret = csi_gpio_dir(&gpio, 1 << gpio_pin, dir);
+	ret = csi_gpio_dir(&gpio, GPIO_PIN_MASK(gpio_pin), dir);
     if (ret != CSI_OK)
     {
 	    aos_cli_printf("csi_gpio_dir failed\r\n");
 		return;
     }
 
-    csi_gpio_irq_mode(&gpio, 1 << gpio_pin, GPIO_IRQ_MODE_FALLING_EDGE);
+	csi_gpio_irq_mode(&gpio, GPIO_PIN_MASK(gpio_pin), GPIO_IRQ_MODE_FALLING_EDGE);
 
-    csi_gpio_attach_callback(&gpio, gpio_irq_test, NULL);
+    //csi_gpio_attach_callback(&gpio, gpio_irq_test, NULL);
+	/*
+	 *	This function is not recommend, it's already replace by csi_gpio_irq_register.
+	 *	The irq will not be clear if the gpio_pin didn't been registered.
+	 *	The irq callback function work for the single pin now.
+	 */
+	csi_gpio_irq_register(&gpio, GPIO_PIN_MASK(gpio_pin), gpio_irq_test, NULL);
 
-    csi_gpio_irq_enable(&gpio, 1 << gpio_pin, true);
+	csi_gpio_irq_enable(&gpio, GPIO_PIN_MASK(gpio_pin), true);
 
     while(1)
     {
         mdelay(1000);
     }
+
+	csi_gpio_irq_unregister(&gpio, GPIO_PIN_MASK(gpio_pin), NULL);
 #endif
 
 	csi_gpio_uninit(&gpio);

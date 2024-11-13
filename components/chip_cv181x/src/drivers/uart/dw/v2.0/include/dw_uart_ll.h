@@ -22,6 +22,8 @@
 extern "C" {
 #endif
 
+extern const cvi_pinmap_t uart_pinmap[];
+
 #ifdef CONFIG_XIP
 #define ATTRIBUTE_DATA __attribute__((section(".ram.code")))
 #else

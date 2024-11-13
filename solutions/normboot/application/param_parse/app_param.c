@@ -972,6 +972,7 @@ static int parse_VencParam(char * buffer)
         pstRcParam->s32AvbrFrmGap        = ini_getl(_section, "AvbrFrmGap", 0, buffer);
         pstRcParam->s32AvbrPureStillThr  = ini_getl(_section, "AvbrPureStillThr", 0, buffer);
         pstRcParam->s16Quality           = ini_getl(_section, "quality", 0, buffer);
+        pstRcParam->s16MCUPerECS         = ini_getl(_section, "MCUPerECS", 0, buffer);
     }
 
 #if (DUMP_DEBUG == 1)
@@ -1084,6 +1085,8 @@ static int parse_VencParam(char * buffer)
             , venc_idx, pstVencCtx->pstVencChnCfg[venc_idx].stRcParam.s32AvbrPureStillThr);
         aos_debug_printf("pstVencCtx->pstVencChnCfg[%d].stRcParam.s16Quality:%d \r\n"
             , venc_idx, pstVencCtx->pstVencChnCfg[venc_idx].stRcParam.s16Quality);
+        aos_debug_printf("pstVencCtx->pstVencChnCfg[%d].stRcParam.s16MCUPerECS:%d \r\n"
+            , venc_idx, pstVencCtx->pstVencChnCfg[venc_idx].stRcParam.s16MCUPerECS);
     }
 #endif
 
@@ -1388,7 +1391,7 @@ int iniParseHashMapInit()
 int APP_PARAM_Parse()
 {
     int ret = 0;
-    
+
     /*
     * Get param.bin
     */

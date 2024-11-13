@@ -57,10 +57,10 @@ csi_error_t target_get(csi_dev_tag_t dev_tag, uint32_t idx, csi_dev_t *dev)
     return ret;
 }
 
-uint32_t target_pin_to_devidx(pin_name_t pin_name, const  csi_pinmap_t *pinmap)
+uint32_t target_pin_to_devidx(pin_name_t pin_name, const  cvi_pinmap_t *pinmap)
 {
-    const csi_pinmap_t *map = pinmap;
-    uint32_t ret = 0xFFFFFFFFU;
+	const cvi_pinmap_t *map = pinmap;
+	uint32_t ret = 0xFFFFFFFFU;
 
     while ((uint32_t)map->pin_name != 0xFFFFFFFFU) {
         if ((map->pin_name == pin_name) && (csi_pin_get_mux(pin_name) == map->pin_func)) {
@@ -74,10 +74,10 @@ uint32_t target_pin_to_devidx(pin_name_t pin_name, const  csi_pinmap_t *pinmap)
     return ret;
 }
 
-uint32_t target_pin_to_channel(pin_name_t pin_name, const csi_pinmap_t *pinmap)
+uint32_t target_pin_to_channel(pin_name_t pin_name, const cvi_pinmap_t *pinmap)
 {
-    const csi_pinmap_t *map = pinmap;
-    uint32_t ret = 0xFFFFFFFFU;
+	const cvi_pinmap_t *map = pinmap;
+	uint32_t ret = 0xFFFFFFFFU;
 
     while ((uint32_t)map->pin_name != 0xFFFFFFFFU) {
         if (map->pin_name == pin_name) {
@@ -91,10 +91,10 @@ uint32_t target_pin_to_channel(pin_name_t pin_name, const csi_pinmap_t *pinmap)
     return ret;
 }
 
-pin_name_t target_gpio_to_pin(uint8_t gpio_idx, uint8_t channel, const csi_pinmap_t *pinmap)
+pin_name_t target_gpio_to_pin(uint8_t gpio_idx, uint8_t channel, const cvi_pinmap_t *pinmap)
 {
-    const csi_pinmap_t *map = pinmap;
-    pin_name_t ret = (pin_name_t)0xFFU;
+	const cvi_pinmap_t *map = pinmap;
+	pin_name_t ret = (pin_name_t)0xFFU;
 
     while ((uint32_t)map->pin_name != 0xFFFFFFFFU) {
         if ((map->idx == gpio_idx) && (map->channel == channel)) {

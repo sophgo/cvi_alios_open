@@ -323,6 +323,8 @@ static void PARAM_Printf(void)
                 , venc_idx, pstVencCtx->pstVencChnCfg[venc_idx].stRcParam.s32AvbrPureStillThr);
             aos_debug_printf("pstVencCtx->pstVencChnCfg[%d].stRcParam.s16Quality:%d \r\n"
                 , venc_idx, pstVencCtx->pstVencChnCfg[venc_idx].stRcParam.s16Quality);
+            aos_debug_printf("pstVencCtx->pstVencChnCfg[%d].stRcParam.s16MCUPerECS:%d \r\n"
+                , venc_idx, pstVencCtx->pstVencChnCfg[venc_idx].stRcParam.s16MCUPerECS);
         }
     }
 }

@@ -17,6 +17,7 @@ struct _rgn_chn_size_cb_param {
 struct _rgn_hdls_cb_param {
 	MMF_CHN_S stChn;
 	RGN_HANDLE *hdls;
+	RGN_TYPE_E enType;
 	__u32 layer;
 };
 
@@ -29,6 +30,16 @@ struct _rgn_cfg_cb_param {
 struct _rgn_ex_cfg_cb_param {
 	MMF_CHN_S stChn;
 	struct cvi_rgn_ex_cfg rgn_ex_cfg;
+};
+
+struct _rgn_coverex_cfg_cb_param {
+	MMF_CHN_S stChn;
+	struct cvi_rgn_coverex_cfg rgn_coverex_cfg;
+};
+
+struct _rgn_mosaic_cfg_cb_param {
+	MMF_CHN_S stChn;
+	struct cvi_rgn_mosaic_cfg rgn_mosaic_cfg;
 };
 
 struct _rgn_lut_cb_param {

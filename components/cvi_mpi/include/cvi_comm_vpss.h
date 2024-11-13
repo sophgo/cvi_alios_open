@@ -41,6 +41,11 @@ typedef enum _VPSS_CROP_COORDINATE_E {
 	VPSS_CROP_BUTT,
 } VPSS_CROP_COORDINATE_E;
 
+/**
+ * VPSS_ROUNDING_TO_EVEN: Round off, refer to the table below.
+ * VPSS_ROUNDING_AWAY_FROM_ZERO: Round off, refer to the table below.
+ * VPSS_ROUNDING_TRUNCATE: Unconditional rounding, see table below.
+*/
 typedef enum _VPSS_ROUNDING_E {
 	VPSS_ROUNDING_TO_EVEN = 0,
 	VPSS_ROUNDING_AWAY_FROM_ZERO,
@@ -52,6 +57,7 @@ typedef enum _VPSS_ROUNDING_E {
  * bEnable: Whether Normalize is enabled.
  * factor: scaling factors for 3 planes.
  * mean: minus means for 3 planes.
+ * rounding: the pattern of rounding mode during Normalize.
  */
 typedef struct _VPSS_NORMALIZE_S {
 	CVI_BOOL bEnable;
@@ -121,32 +127,32 @@ typedef struct _VPSS_LDC_ATTR_S {
 } VPSS_LDC_ATTR_S;
 // -------- If you want to change these interfaces, please contact the isp team. --------
 
-typedef struct _VPSS_PARAM_MOD_S {
-	CVI_U32 u32VpssVbSource;
-	CVI_U32 u32VpssSplitNodeNum;
-} VPSS_MOD_PARAM_S;
-
+/**
+ * VPSS_SCALE_COEF_BICUBIC: bicubic algorithm.
+ * VPSS_SCALE_COEF_BILINEAR: bilinear algorithm.
+ * VPSS_SCALE_COEF_NEAREST: nearest algorithm.
+ * VPSS_SCALE_COEF_DOWNSCALE_SMOOTH: downscale algorithm.
+ * VPSS_SCALE_COEF_OPENCV_BILINEAR: opencv bilinear algorithm.
+*/
 typedef enum _VPSS_SCALE_COEF_E {
 	VPSS_SCALE_COEF_BICUBIC = 0,
 	VPSS_SCALE_COEF_BILINEAR,
 	VPSS_SCALE_COEF_NEAREST,
-	VPSS_SCALE_COEF_Z2,
-	VPSS_SCALE_COEF_Z3,
 	VPSS_SCALE_COEF_DOWNSCALE_SMOOTH,
 	VPSS_SCALE_COEF_OPENCV_BILINEAR,
 	VPSS_SCALE_COEF_MAX,
 } VPSS_SCALE_COEF_E;
 
+/**
+ * bEnable: switch for enable chn buffer wrap.
+ * u32BufLine: wrap buffer row height.
+ * u32WrapBufferSize: wrap buffer size.
+*/
 typedef struct _VPSS_CHN_BUF_WRAP_S {
 	CVI_BOOL bEnable;
 	CVI_U32 u32BufLine;	// 64, 128
 	CVI_U32 u32WrapBufferSize;	// depth for now
 } VPSS_CHN_BUF_WRAP_S;
-
-struct vpss_proc_amp_ctrl_cfg {
-	PROC_AMP_E type;
-	PROC_AMP_CTRL_S ctrl;
-};
 
 /*for record ISP bindata secne*/
 struct vpss_proc_amp_cfg {
@@ -155,21 +161,37 @@ struct vpss_proc_amp_cfg {
 	CVI_U8 scene;
 };
 
+/*vpss all group ctrl info*/
 struct vpss_all_proc_amp_cfg {
 	CVI_S32 proc_amp[VPSS_MAX_GRP_NUM][PROC_AMP_MAX];
 };
 
+/*vpss stitch src info*/
 typedef struct _CVI_STITCH_SRC_S {
 	VPSS_GRP VpssGrp;
 	VPSS_CHN VpssChn;
 } CVI_STITCH_SRC_S;
 
+/**
+ * stStitchSrc: vpss stitch src info
+ * stDstRect: vpss stitch dest position
+ * u8Priority: Priority
+ */
 typedef struct _CVI_STITCH_CHN_S {
 	CVI_STITCH_SRC_S stStitchSrc;
 	RECT_S stDstRect;
 	CVI_U8 u8Priority;
 } CVI_STITCH_CHN_S;
 
+/**
+ * u8ChnNum: the number of vpss stitch chn
+ * VoChn: Vo chn id
+ * s32OutFps: Output FPS
+ * enOutPixelFormat: image pixel format
+ * stOutSize: Output size
+ * hVbPool: Attached vb pool
+ * astStitchChn: vpss stitch chn attr
+ */
 typedef struct _CVI_STITCH_ATTR_S {
 	CVI_U8 u8ChnNum;
 	CVI_U8 VoChn;

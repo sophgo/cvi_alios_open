@@ -87,6 +87,26 @@ struct cvi_rgn_ex_cfg {
 	__u32 colorkey;
 };
 
+struct cvi_rgn_coverex_param {
+	struct cvi_vpss_rect rect;
+	__u32 color;
+	__u8 enable;
+};
+
+struct cvi_rgn_coverex_cfg {
+	struct cvi_rgn_coverex_param rgn_coverex_param[4];
+};
+
+struct cvi_rgn_mosaic_cfg {
+	__u8 enable;
+	__u8 blk_size;  //0: 8x8   1:16x16
+	__u16 start_x;
+	__u16 start_y;
+	__u16 end_x;
+	__u16 end_y;
+	__u64 phy_addr;
+};
+
 struct cvi_rgn_lut_cfg {
 	__u16 lut_length;
 	__u16 *lut_addr;

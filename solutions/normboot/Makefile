@@ -47,7 +47,6 @@ clean:
 	$(CPRE) cp -f package_yamls/package.yaml.$(PROJECT) package.yaml;
 	@/usr/bin/env python ../../scripts/defconfig/defconfig.py
 	@/usr/bin/env python ../../scripts/yaml_update.py
-	@make -C ../../components/cvi_mpi clean
 	$(CPRE) scons -c
 ifeq ($(OS), Windows_NT)
 	$(CPRE) if exist yoc_sdk rmdir /s /q yoc_sdk

@@ -1401,6 +1401,8 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
         MEDIA_CHECK_RET(CVI_VENC_SetH264Vui(VencChn, &stH264Vui), "CVI_VENC_SetH264Vui");
     } else if (pstVecncChnCtx->stChnParam.u16EnType == PT_JPEG) {
         MEDIA_CHECK_RET(CVI_VENC_GetJpegParam(VencChn, &stJpegParam), "CVI_VENC_GetJpegParam");
+        stJpegParam.u32Qfactor = pstVecncChnCtx->stRcParam.s16Quality;
+        stJpegParam.u32MCUPerECS = pstVecncChnCtx->stRcParam.s16MCUPerECS;
         MEDIA_CHECK_RET(CVI_VENC_SetJpegParam(VencChn, &stJpegParam), "CVI_VENC_SetJpegParam");
     }
 

@@ -139,20 +139,20 @@ CVI_S32 CVI_SYS_GetCurPTS(CVI_U64 *pu64CurPTS);
 CVI_S32 CVI_SYS_IonAlloc(CVI_U64 *pu64PhyAddr, CVI_VOID **ppVirAddr, const CVI_CHAR *strName, CVI_U32 u32Len);
 
 /**
- * @brief The user get ION memory statics
+ * @brief The user get ION memory state
  *
- * @param statics(Out), the statics of ION memory
+ * @param pstState(Out), the state of ION memory
  * @return CVI_S32 Return CVI_SUCCESS if succeed.
  */
-CVI_S32 CVI_SYS_IonGetMMStatics(ION_MM_STATICS_S *statics);
+CVI_S32 CVI_SYS_IonGetMemoryState(ION_MEM_STATE_S *pstState);
 
 /**
- * @brief The user get alios memory statics
+ * @brief The user get alios memory state
  *
- * @param statics(Out), the statics of ION memory
+ * @param pstState(Out), the state of ION memory
  * @return CVI_S32 Return CVI_SUCCESS if succeed.
  */
-CVI_S32 CVI_SYS_GetAliosMMStatics(ION_MM_STATICS_S *statics);
+CVI_S32 CVI_SYS_GetMemoryState(ION_MEM_STATE_S *pstState);
 
 /**
  * @brief Alloc cached ion memory.
@@ -324,6 +324,24 @@ void CVI_SYS_TraceCounter(const char *name, signed int value);
  * @return void.
  */
 void CVI_SYS_TraceEnd(void);
+
+/**
+ * @brief memory copy by TPU.
+ *
+ * @param u64PhyDst(In), destination physical address.
+ * @param u64PhySrc(In), source physical address.
+ * @param u32Len(In), Length.
+ * @return CVI_S32 Return CVI_SUCCESS if succeed.
+ */
+CVI_S32 CVI_SYS_TDMACopy(CVI_U64 u64PhyDst, CVI_U64 u64PhySrc, CVI_U32 u32Len);
+
+/**
+ * @brief 2D memory copy by TPU.
+ *
+ * @param pointer(In), 2D memory.
+ * @return CVI_S32 Return CVI_SUCCESS if succeed.
+ */
+CVI_S32 CVI_SYS_TDMACopy2D(CVI_TDMA_2D_S *param);
 
 #ifdef __cplusplus
 #if __cplusplus

@@ -61,6 +61,7 @@ typedef enum {
     DW_IIC2_IRQn                    =  34U,
     DW_IIC3_IRQn                    =  35U,
     DW_IIC4_IRQn                    =  36U,
+	DW_PWR_IIC_IRQn                 =  52U,
 	DW_MAC_IRQn                   	=  0U,
     ADC_IRQn                        =  0U,
     DW_SPI0_IRQn                    =  37U,
@@ -1428,6 +1429,9 @@ typedef struct {
 #define DW_IIC4_BASE               0x04040000UL
 #define DW_IIC4_SIZE               0x1000U
 
+#define DW_PWR_IIC_BASE            0x0502B000UL
+#define DW_PWR_IIC_SIZE            0x1000U
+
 #define DW_MAC_BASE                0x04070000UL
 #define DW_MAC_SIZE                0x10000U
 
@@ -1454,6 +1458,7 @@ typedef struct {
 #define CONFIG_OTP_BANK_SIZE 256U    // Bytes
 
 extern const pin_reg_offset_t cvi_pin_reg_offset[];
+extern const cvi_pinmap_t cvi_gpio_pinmap[];
 
 #ifdef __cplusplus
 }

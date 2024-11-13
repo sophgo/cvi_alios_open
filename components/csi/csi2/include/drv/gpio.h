@@ -63,17 +63,28 @@ typedef enum {
     GPIO_IRQ_MODE_HIGH_LEVEL,          ///< Interrupt mode for high level
 } csi_gpio_irq_mode_t;
 
+typedef struct csi_gpio csi_gpio_t;
+/**
+ * \struct   gpio_irq_list_node
+ * \brief    GPIO irq list
+ */
+struct gpio_irq_list_node {
+	dlist_t node;
+	uint32_t pin_mask;
+	void (*callback)(csi_gpio_t *gpio, uint32_t pins, void *arg);
+};
+
 /**
  * \struct   csi_gpio_t
  * \brief    GPIO control block
  */
 
-typedef struct csi_gpio csi_gpio_t;
 struct csi_gpio {
     csi_dev_t           dev;           ///< Hw-dev info
     void (*callback)(csi_gpio_t *gpio, uint32_t pins, void *arg); ///<   Call-back of gpio port
     void                *arg;          ///< User param passed to callback
     void                *priv;         ///< User private param
+	struct gpio_irq_list_node *irq_list_head;
 };
 
 /**

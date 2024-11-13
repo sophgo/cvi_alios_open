@@ -18,7 +18,7 @@ extern uint16_t iic_tx_hs_num[];
 extern uint16_t iic_rx_hs_num[];
 #define VOID_P_DEC(p, val) do{ uint8_t *temp = (uint8_t *)p; temp -= val; p = (void *)temp; }while(0);
 
-static struct iic_drv_priv iic_list[5] = {0};
+static struct iic_drv_priv iic_list[6] = {0};
 
 /**
   \brief       wait_iic_transmit

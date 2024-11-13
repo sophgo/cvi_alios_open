@@ -12,17 +12,22 @@ static void dw_gpio_irqhandler(unsigned int irqn, void *args)
 {
     csi_gpio_t *handle = (csi_gpio_t *)args;
     uint32_t bitmask;
+	struct gpio_irq_list_node *list = NULL;
 
     unsigned long reg_base = HANDLE_REG_BASE(handle);
     bitmask = dw_gpio_read_port_int_status(reg_base);
 
-    /* clear all interrput */
-    dw_gpio_clr_port_irq(reg_base, bitmask);
-
-    /* execute the callback function */
-    if (handle->callback) {
-        handle->callback(handle, bitmask, handle->arg);
-    }
+	list = csi_gpio_irq_list_each(handle, bitmask);
+	/* now alios will not clear irq if the irq unregister*/
+	if (list)
+		dw_gpio_clr_port_irq(reg_base, bitmask);
+	else
+		return;
+	/* execute the callback function */
+	if (list->callback)
+		list->callback(handle, bitmask, handle->arg);
+	else if (handle->callback)
+		handle->callback(handle, bitmask, handle->arg);
 }
 
 csi_error_t csi_gpio_init(csi_gpio_t *gpio, uint32_t port_idx)
@@ -37,8 +42,7 @@ csi_error_t csi_gpio_init(csi_gpio_t *gpio, uint32_t port_idx)
     }
 
     pr_debug("gpio %d reg_base 0x%x\n", gpio->dev.idx, gpio->dev.reg_base);
-
-    return ret;
+	return ret;
 }
 
 void csi_gpio_uninit(csi_gpio_t *gpio)
@@ -234,15 +238,15 @@ csi_error_t csi_gpio_attach_callback(csi_gpio_t *gpio, void *callback, void *arg
 {
 
     CSI_PARAM_CHK(gpio, CSI_ERROR);
-    CSI_PARAM_CHK(callback, CSI_ERROR);
+    //CSI_PARAM_CHK(callback, CSI_ERROR);
 
     unsigned long reg_base = HANDLE_REG_BASE(gpio);
 
     /* clear interrput status before enable irq */
     dw_gpio_clr_port_irq(reg_base, 0U);
-
-    gpio->callback = callback;
-    gpio->arg      = arg;
+	if (callback)
+		gpio->callback = callback;
+	gpio->arg = arg;
 
 #if 0
     csi_irq_attach((uint32_t)gpio->dev.irq_num, &dw_gpio_irqhandler, gpio);
@@ -261,4 +265,90 @@ void csi_gpio_detach_callback(csi_gpio_t *gpio)
 
     gpio->callback = NULL;
     gpio->arg      = NULL;
+}
+
+
+
+#define  csi_gpio_irq_node_alloc  (struct gpio_irq_list_node *)malloc(sizeof(struct gpio_irq_list_node))
+
+csi_error_t csi_gpio_irq_list_del(csi_gpio_t *gpio, struct gpio_irq_list_node **list)
+{
+	struct gpio_irq_list_node *head = gpio->irq_list_head;
+
+	if (*list == head) {
+		gpio->irq_list_head = aos_container_of(head->node.next, struct gpio_irq_list_node, node);
+		if (head == gpio->irq_list_head)
+			gpio->irq_list_head = NULL;
+	}
+	dlist_del(&(*list)->node);
+	free(*list);
+	return CSI_OK;
+}
+
+csi_error_t csi_gpio_irq_list_add(csi_gpio_t *gpio, struct gpio_irq_list_node **list)
+{
+	struct gpio_irq_list_node *head = gpio->irq_list_head;
+	*list = csi_gpio_irq_node_alloc;
+	if (!(*list))
+		return CSI_ERROR;
+	(*list)->pin_mask = 0xffff;
+	dlist_add_tail(&(*list)->node, &head->node);
+	return CSI_OK;
+}
+
+csi_error_t csi_gpio_irq_list_init(csi_gpio_t *gpio)
+{
+	struct gpio_irq_list_node *head = csi_gpio_irq_node_alloc;
+
+	if (!head)
+		return CSI_ERROR;
+	head->pin_mask = 0xffff;
+	dlist_init(&head->node);
+	gpio->irq_list_head = head;
+	return CSI_OK;
+}
+
+struct gpio_irq_list_node *csi_gpio_irq_list_each(csi_gpio_t *gpio, uint32_t pin_mask)
+{
+	struct gpio_irq_list_node *list = NULL;
+	struct gpio_irq_list_node *head = gpio->irq_list_head;
+
+	dlist_for_each_entry(&head->node, list, struct gpio_irq_list_node, node) {
+		if (list->pin_mask == pin_mask)
+			return list;
+	}
+	return NULL;
+}
+
+
+csi_error_t csi_gpio_irq_register(csi_gpio_t *gpio, uint32_t pin_mask, void *callback, void *arg)
+{
+	struct gpio_irq_list_node *list = NULL;
+	struct gpio_irq_list_node *head = gpio->irq_list_head;
+
+	CSI_PARAM_CHK(gpio, CSI_ERROR);
+	CSI_PARAM_CHK(callback, CSI_ERROR);
+	if (!head) {
+		if (csi_gpio_irq_list_init(gpio))
+			return CSI_ERROR;
+		list = head;
+	} else {
+		if (csi_gpio_irq_list_add(gpio, &list))
+			return CSI_ERROR;
+	}
+	list->pin_mask = pin_mask;
+	list->callback = callback;
+	return csi_gpio_attach_callback(gpio, NULL, arg);
+}
+
+csi_error_t csi_gpio_irq_unregister(csi_gpio_t *gpio, uint32_t pin_mask, void *arg)
+{
+	struct gpio_irq_list_node *list = NULL;
+
+	CSI_PARAM_CHK(gpio, CSI_ERROR);
+	list = csi_gpio_irq_list_each(gpio, pin_mask);
+	if (!list)
+		return CSI_ERROR;
+	csi_gpio_irq_list_del(gpio, &list);
+	return CSI_OK;
 }

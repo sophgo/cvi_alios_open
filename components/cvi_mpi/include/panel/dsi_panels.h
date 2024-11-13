@@ -1,7 +1,7 @@
 #ifndef _DSI_PANELS_
 #define _DSI_PANELS_
 
-#include "cvi_vip.h"
+// #include "cvi_vip.h"
 #include "cvi_type.h"
 #include "cvi_mipi_tx.h"
 #include "cvi_comm_mipi_tx.h"

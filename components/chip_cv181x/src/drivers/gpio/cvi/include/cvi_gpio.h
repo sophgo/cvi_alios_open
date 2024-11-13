@@ -4,6 +4,8 @@
 #include <soc.h>
 #include "hal_gpio.h"
 #include "cvi_pin.h"
+#include <aos/list.h>
+#include <drv/gpio.h>
 
 typedef enum {
     GPIO_DIR_INPUT       = 0,    ///< GPIO as input
@@ -29,6 +31,15 @@ typedef struct _cvi_gpio_t {
     void                *args;
     void                *priv;
 } cvi_gpio_t;
+
+
+csi_error_t csi_gpio_irq_list_del(csi_gpio_t *gpio, struct gpio_irq_list_node **list);
+csi_error_t csi_gpio_irq_list_add(csi_gpio_t *gpio, struct gpio_irq_list_node **list);
+csi_error_t csi_gpio_irq_list_init(csi_gpio_t *gpio);
+struct gpio_irq_list_node *csi_gpio_irq_list_each(csi_gpio_t *gpio, uint32_t pin_mask);
+csi_error_t csi_gpio_irq_register(csi_gpio_t *gpio, uint32_t pin_mask, void *callback, void *arg);
+csi_error_t csi_gpio_irq_unregister(csi_gpio_t *gpio, uint32_t pin_mask, void *arg);
+
 
 cvi_error_t cvi_gpio_init(cvi_gpio_t *gpio);
 void cvi_gpio_uninit(cvi_gpio_t *gpio);

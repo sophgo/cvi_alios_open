@@ -31,7 +31,6 @@
 
 extern uint16_t uart_tx_hs_num[];
 extern uint16_t uart_rx_hs_num[];
-extern const csi_pinmap_t uart_pinmap[];
 
 uint16_t uart_ringbuffer_write_err_times = 0;
 uint16_t uart_irqbuffer_write_err_times = 0;

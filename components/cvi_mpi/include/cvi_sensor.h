@@ -297,6 +297,18 @@ CVI_S32 CVI_SENSOR_EnableSnsClk(CVI_U32 devNo, CVI_U32 clkEnable);
 CVI_S32 CVI_SENSOR_SetSnsStandby(VI_PIPE ViPipe);
 
 /**
+ * @brief Puts the sensor into restart mode for the specified video input pipe.
+ *
+ * This function sets the sensor to restart state.
+ *
+ * @param ViPipe The identifier for the video input pipe.
+ *
+ * @return CVI_S32 Returns 0 on success, or a negative error code on failure.
+ */
+CVI_S32 CVI_SENSOR_SetSnsRestart(VI_PIPE ViPipe);
+
+
+/**
  * @brief Initializes the sensor for the specified video input pipe.
  *
  * This function performs the necessary initialization steps for the sensor.
