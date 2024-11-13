@@ -20,6 +20,7 @@ all:
 	$(CPRE) cp -f package_yamls/package.yaml.$(PROJECT) package.yaml;
 	@/usr/bin/env python ../../scripts/defconfig/defconfig.py
 	@/usr/bin/env python ../../scripts/yaml_update.py
+	@make -C ../../components/cvi_mpi CHIP_ARCH=$(CHIP_ARCH)
 	$(CPRE) scons $(VERB) --board=$(ALIOS_BOARD) -j4
 	@cp yoc.bin $(MK_GENERATED_IMGS_PATH)/data/prim
 	@echo YoC SDK Done
