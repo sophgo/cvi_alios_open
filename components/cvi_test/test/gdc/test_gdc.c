@@ -127,7 +127,7 @@ static CVI_S32 test_gdc_config_video_frame(SIZE_S size, PIXEL_FORMAT_E PixelFmt,
 	}
 
 #if GDC_FUNC_TEST_DEBUG
-	printf("phy addr(%#lx, %#lx, %#lx)\n", pstVideoFrame->stVFrame.u64PhyAddr[0]
+	printf("phy addr(%#llx, %#llx, %#llx)\n", pstVideoFrame->stVFrame.u64PhyAddr[0]
 		, pstVideoFrame->stVFrame.u64PhyAddr[1], pstVideoFrame->stVFrame.u64PhyAddr[2]);
 
 	printf("u32Stride(%d, %d, %d)\n", pstVideoFrame->stVFrame.u32Stride[0]
@@ -163,7 +163,7 @@ static CVI_S32 test_gdc_load_frame(CVI_CHAR *name, SIZE_S size_in
 			//, pstDestVideoFrame->stVFrame.u32Length[i]);
 
 #if GDC_FUNC_TEST_DEBUG
-		printf("phy addr(%#lx, vir addr(%p), len:%d\n", pstDestVideoFrame->stVFrame.u64PhyAddr[i]
+		printf("phy addr(%#llx, vir addr(%p), len:%d\n", pstDestVideoFrame->stVFrame.u64PhyAddr[i]
 			, pstDestVideoFrame->stVFrame.pu8VirAddr[i], pstDestVideoFrame->stVFrame.u32Length[i]);
 #endif
 		if (i == 0) {
@@ -215,7 +215,7 @@ CVI_S32 SAMPLE_COMM_FRAME_SaveToFile(const CVI_CHAR *filename, VIDEO_FRAME_INFO_
 		pstVideoFrame->stVFrame.pu8VirAddr[i] = (CVI_U8 *)pstVideoFrame->stVFrame.u64PhyAddr[i];
 			//= CVI_SYS_Mmap(pstVideoFrame->stVFrame.u64PhyAddr[i], pstVideoFrame->stVFrame.u32Length[i]);
 
-		printf("plane(%d): paddr(%#lx) vaddr(%p) stride(%d)\n",
+		printf("plane(%d): paddr(%#llx) vaddr(%p) stride(%d)\n",
 			   i, pstVideoFrame->stVFrame.u64PhyAddr[i],
 			   pstVideoFrame->stVFrame.pu8VirAddr[i],
 			   pstVideoFrame->stVFrame.u32Stride[i]);
@@ -310,7 +310,7 @@ void test_gdc_begain_job(int32_t argc, char **argv)
 
 	u64OutPhyAddr = CVI_VB_Handle2PhysAddr(vbOutBlk);
 	if (0 == u64OutPhyAddr) {
-		printf("CVI_VB_Handle2PhyAddr fail, u32OutPhyAddr:0x%lx\n", u64OutPhyAddr);
+		printf("CVI_VB_Handle2PhyAddr fail, u32OutPhyAddr:0x%llx\n", u64OutPhyAddr);
 		goto EXIT2;
 	}
 

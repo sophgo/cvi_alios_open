@@ -5,6 +5,7 @@ VERB := --verbose
 endif
 HOST_TOOLS := $(CURDIR)/../../host-tools/Xuantie-900-gcc-elf-newlib-x86_64-V2.6.1/bin
 BOARD_PATH:=../../boards/cv181xc_qfn
+BOARD_PATH_180X:=../../boards/cv180xb_qfn
 BOOT_YAML_PATH:=../../components/chip_cv181x
 
 .PHONY:startup
@@ -19,9 +20,12 @@ all:
 
 .PHONY:install
 install:
-	@echo install boot
+	@echo install boot cv181xc_qfn
 	$(CPRE) cp boot.bin ${BOARD_PATH}/bootimgs/boot
 	$(CPRE) cp boot.elf ${BOARD_PATH}/bootimgs/boot.elf
+	@echo install boot cv180xb_qfn
+	$(CPRE) cp boot.bin ${BOARD_PATH_180X}/bootimgs/boot
+	$(CPRE) cp boot.elf ${BOARD_PATH_180X}/bootimgs/boot.elf
 
 .PHONY:clean
 clean:

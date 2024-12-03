@@ -80,8 +80,6 @@ static void* cvi_handle_uvc_server(void* p_args)
     return NULL;
 }
 
-#if (CONFIG_ALGOKIT_ENABLE)
-
 static void* cvi_algokit_handler(void* args)
 {
     struct timeval start, end;
@@ -98,7 +96,6 @@ static void* cvi_algokit_handler(void* args)
     pthread_exit(NULL);
     return NULL;
 }
-#endif
 
 
 int32_t APP_CustomEventStart(void)

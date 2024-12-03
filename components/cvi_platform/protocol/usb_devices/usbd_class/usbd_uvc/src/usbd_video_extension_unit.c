@@ -2,6 +2,7 @@
 
 #include "usbd_core.h"
 #include "usbd_video.h"
+#include "ota_util.h"
 
 static int usbd_vc_xu_reboot_request_handler(uint8_t bRequest, uint8_t **data, uint32_t *len)
 {
@@ -11,7 +12,11 @@ static int usbd_vc_xu_reboot_request_handler(uint8_t bRequest, uint8_t **data, u
 				USB_LOG_WRN("receive reboot\n");
 				aos_reboot(); /* if need, create a thread to reboot */
 			}
-		} break;
+            if (strncmp((char*)(*data), "ota", 3) == 0) {
+                USB_LOG_ERR("receive ota\n");
+                cvi_ota_set_flag(1);
+            }
+        } break;
 		case VIDEO_REQUEST_GET_LEN: {
 			(*data)[0] = 0x06;
 			(*data)[1] = 0x00;

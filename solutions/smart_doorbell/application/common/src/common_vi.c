@@ -13,10 +13,10 @@ typedef struct _SNS_CONFIG_S {
 } SNS_CONFIG_S;
 
 ISP_CMOS_SENSOR_IMAGE_MODE_S snsr_image_mode = {
-	.u16Width = 1280,
-	.u16Height = 720,
-	.f32Fps = 30,
-	.u8SnsMode = WDR_MODE_NONE,
+    .u16Width  = 1280,
+    .u16Height = 720,
+    .f32Fps    = 30,
+    .u8SnsMode = WDR_MODE_NONE,
 };
 
 VI_DEV_ATTR_S vi_dev_attr_base = {
@@ -139,6 +139,10 @@ ISP_SNS_OBJ_S *getSnsObj(SNS_TYPE_E enSnsType)
 #if CONFIG_SENSOR_GCORE_GC2083_1L
 	case GCORE_GC2083_1L_MIPI_2M_30FPS_10BIT:
 		return &stSnsGc2083_1L_Obj;
+#endif
+#if CONFIG_SENSOR_GCORE_GC3003
+	case GCORE_GC3003_MIPI_3M_30FPS_10BIT:
+		return &stSnsGc3003_Obj;
 #endif
 #if CONFIG_SENSOR_GCORE_GC4653
 	case GCORE_GC4653_MIPI_4M_30FPS_10BIT:
@@ -270,7 +274,13 @@ ISP_SNS_OBJ_S *getSnsObj(SNS_TYPE_E enSnsType)
 #endif
 #if CONFIG_SENSOR_SPIX_SP2509
 	case SPIX_SP2509_MIPI_2M_30FPS_10BIT:
-		return &stSnsSp2509_Obj;
+    case SPIX_SP2509_MIPI_600P_45FPS_10BIT:
+        return &stSnsSp2509_Obj;
+#endif
+#if CONFIG_SENSOR_SPIX_SP2509_MULTI
+    case SPIX_SP2509_MULTI_MIPI_2M_30FPS_10BIT:
+    case SPIX_SP2509_MULTI_MIPI_600P_45FPS_10BIT:
+        return &stSnsSp2509_Multi_Obj;
 #endif
 #if CONFIG_SENSOR_OV_OG01A10
 	case OV_OG01A10_MIPI_2M_30FPS_10BIT:
@@ -300,6 +310,11 @@ ISP_SNS_OBJ_S *getSnsObj(SNS_TYPE_E enSnsType)
 #if CONFIG_SENSOR_OV_OV9732
 	case OV_OV9732_MIPI_1M_30FPS_10BIT:
 		return &stSnsOv9732_Obj;
+#endif
+#if CONFIG_SENSOR_SMS_SC035HGS
+    case SMS_SC035HGS_MIPI_480P_120FPS_10BIT:
+    case SMS_SC035HGS_MIPI_480P_60FPS_10BIT:
+        return &stSnsSC035HGS_1L_Obj;
 #endif
 	default:
 		return CVI_NULL;
@@ -341,11 +356,15 @@ CVI_S32 getPicSize(CVI_S32 dev_id, SNS_SIZE_S *pstSize)
 	sensor_type = get_sensor_type(dev_id);
 
 	switch (sensor_type) {
-    case SMS_SC530AI_4L_MIPI_4M_30FPS_10BIT:
-        pstSize->u32Width = 2880;
-        pstSize->u32Height = 1620;
-        break;
-    case SMS_SC301IOT_MIPI_3M_30FPS_10BIT:
+	case SMS_SC530AI_4L_MIPI_4M_30FPS_10BIT:
+		pstSize->u32Width = 2880;
+		pstSize->u32Height = 1620;
+		break;
+	case GCORE_GC3003_MIPI_3M_30FPS_10BIT:
+		pstSize->u32Width  = 2304;
+		pstSize->u32Height = 1296;
+		break;
+	case SMS_SC301IOT_MIPI_3M_30FPS_10BIT:
 		pstSize->u32Width  = 2048;
 		pstSize->u32Height = 1536;
 		break;
@@ -362,7 +381,8 @@ CVI_S32 getPicSize(CVI_S32 dev_id, SNS_SIZE_S *pstSize)
 	case SMS_SC202CS_SLAVE_MIPI_2M_30FPS_10BIT:
 	case SMS_SC202CS_MULTI_MIPI_2M_30FPS_10BIT:
 	case SPIX_SP2509_MIPI_2M_30FPS_10BIT:
-	case OV_OV02B10_MIPI_2M_30FPS_10BIT:
+    case SPIX_SP2509_MULTI_MIPI_2M_30FPS_10BIT:
+    case OV_OV02B10_MIPI_2M_30FPS_10BIT:
     case OV_OV02B10_MULTI_MIPI_2M_30FPS_10BIT:
     case CISTA_C2599_MIPI_1200P_30FPS_10BIT:
 		pstSize->u32Width  = 1600;
@@ -371,7 +391,9 @@ CVI_S32 getPicSize(CVI_S32 dev_id, SNS_SIZE_S *pstSize)
 	case GCORE_GC02M1_MIPI_600P_30FPS_10BIT:
 	case GCORE_GC02M1_SLAVE_MIPI_600P_30FPS_10BIT:
 	case OV_OV02B10_MIPI_600P_30FPS_10BIT:
-		pstSize->u32Width  = 800;
+    case SPIX_SP2509_MIPI_600P_45FPS_10BIT:
+    case SPIX_SP2509_MULTI_MIPI_600P_45FPS_10BIT:
+        pstSize->u32Width  = 800;
 		pstSize->u32Height = 600;
 		break;
 	case SMS_SC1346_1L_MIPI_600P_30FPS_10BIT:
@@ -404,6 +426,8 @@ CVI_S32 getPicSize(CVI_S32 dev_id, SNS_SIZE_S *pstSize)
 	case SMS_SC030IOT_MIPI_480P_30FPS_8BIT:
 	case SMS_SC031IOT_MIPI_480P_30FPS_8BIT:
 	case SMS_SC031IOT_MIPI_RAW_480P_30FPS_8BIT:
+    case SMS_SC035HGS_MIPI_480P_60FPS_10BIT:
+    case SMS_SC035HGS_MIPI_480P_120FPS_10BIT:
 		pstSize->u32Width  = 640;
 		pstSize->u32Height = 480;
 		break;
@@ -455,6 +479,7 @@ CVI_S32 getDevAttr(VI_DEV ViDev, VI_DEV_ATTR_S *pstViDevAttr)
 	case GCORE_GC1054_MIPI_1M_30FPS_10BIT:
 	case GCORE_GC2093_MIPI_2M_30FPS_10BIT:
 	case GCORE_GC2093_MIPI_2M_30FPS_10BIT_WDR2TO1:
+	case GCORE_GC3003_MIPI_3M_30FPS_10BIT:
 	case BYD_BF314A_MIPI_720P_30FPS_10BIT:
 	case GCORE_GC2083_1L_MIPI_2M_30FPS_10BIT:
 	case CVSENS_CV2003_MIPI_2M_1080P_30FPS_10BIT:

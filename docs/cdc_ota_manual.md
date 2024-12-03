@@ -1,6 +1,6 @@
 # BOOT USB CDC OTA 使用手册
 
- - 当前SDK的CDC OTA逻辑在 boot 阶段进行
+ - 当前SDK的CDC OTA逻辑在 boot 阶段进行，当前boot默认开启ota
  - 上位CDC OTA应用使用 python 编写，可在 PC 端运行，开发者可自定义修改
    - 路径：`host-tools/usb_cdc_ota/usb_cdc_ota.py`
 
@@ -16,10 +16,10 @@ smart_doorbell
 turnkey_180xb
 
 **Tool：**
-host-tools/usb_cdc_ota/usb_cdc_ota.exe
+host-tools/usb_cdc_ota/ota.7z
 
 > [!NOTE]
-> Tool 需要放在固件同级目录，工具对 config.yaml进行flash分区配置解析
+> OTA.exe 需要放在固件同级目录，工具对 config.yaml进行flash分区配置解析
 
 <br>
 
@@ -34,7 +34,6 @@ OTA yaml配置文件路径：
   CONFIG_SUPPORT_USB_DC: 1
   CONFIG_USB_DWC2_PORT: 1
   CONFIG_USB_HS: 1
-  CONFIG_USB_DWC2_DMA_ENABLE: 1
   CONFIG_USBD_CDC_ACM_UART: 1
 
   # UPGRADE
@@ -59,49 +58,81 @@ OTA yaml配置文件路径：
   6. 上位应用发送板端 OTA 固件数据包
   7. 板端完成更新，上发当前版本号
 
-### 升级标志位设置
-开启`CONFIG_APP_TEST`功能宏
-
-路径：`solutions/smart_doorbell/customization/turnkey_180xb/package.turnkey_180xb.yaml`
-
-
-设备上电后可使用`help`命令查询CDC OTA相关指令
-
-
-```c
-update_flag_e  : erase update flag
-update_flag_r  : read update flag
-update_flag_w  : write update flag
-```
->> [!WARNING]
->> 对 flash 的操作需要先擦除才可以正确写入， 这部分代码可以全局搜索到后用户自行加入到用户代码中
-
 
 ### CDC固件升级
-使用`update_flag_w`命令设置升级标志位后重新启动设备
 
 - 当前升级等待时间为 20s 超时后退出升级过程
+- 升级工具解析yaml后在所在目录搜索固件，ota不建议升级boot分区，以防在该过程中断电导致boot分区损毁，无法再升级
+
+#### 方法一
+
+  1. 使用`ota_set_flag`命令设置升级标志位后会自动重启设备
+  2. 重启后PC(window)运行 **OTA.exe**
 
 运行参考日志如下
 ```shell
-(cli-uart)# update_flag_w
-(cli-uart)# reboot
-C.SCS/0/0.WD.URPL.USBI.USBEF.BS/NOR.PS.PE.BS.BE.J.upgrade_init start
-[ctx_init:189]flash_size:16777216， page_size:256， sector_size:4096
-[ctx_init:242]MAX_PACKET_SIZE:4096， local_version:0
-[upgrade_init:648]upgrade ctx int done
-[upgrade_init:656]start upgrade
-[upgrade_init:657]compile time 12:07:41
+(cli-uart)# ota_set_flag
+
+(cli-uart)# spinor: ID = a1 40 18
+[UTIL_INFO](cvi_ota_flag_set_pthread) 64:  flash_id :668
+ flash_size :8388608
+ xip_addr :0
+ sector_size :4096
+ page_size :256
+C.SCS/0/0.BS/NOR.PS.PE.BS.BE.J.upgrade_init start
+[ctx_init:190]flash_size:8388608, page_size:256, sector_size:4096
+[ctx_init:243]MAX_PACKET_SIZE:4096, local_version:0
+[upgrade_init:649]upgrade ctx int done
+[upgrade_init:657]start upgrade
+[upgrade_init:658]compile time 15:52:07
 =======usb reset==========
 DevEnumSpeed:0
 ============ enum done ============
-[run_state_machine:609]state:1， event:9， not found transform
-[run_state_machine:609]state:1， event:9， not found transform
-[run_state_machine:609]state:1， event:9， not found transform
-[run_state_machine:609]state:1， event:9， not found transform
+[run_state_machine:610]state:1, event:9, not found transform
+[run_state_machine:610]state:1, event:9, not found transform
+[run_state_machine:610]state:1, event:9, not found transform
 ```
 
-出现上述 **LOG** 表示成功进入升级模式，双击 **usb_cdc_ota.exe** 运行升级工具， LOG如下：
+#### 方法二
+
+此方法仅需 usb 连接，使用 uvc 扩展单元实现
+
+  1. 替换驱动
+
+![alt text](assets/cdc_ota_manual/image.png)
+![alt text](assets/cdc_ota_manual/image-1.png)
+
+  2. PC(window)运行 **OTA.exe**
+  3. 或者卸载设备时勾选删除驱动选项，
+> [!NOTE]
+> 升级完成后需要在设备管理器中找到设备并回退驱动后重启uvc才能正常出流，或者卸载设备时勾选删除驱动选项，完成驱动的更换后重启设备即可
+
+运行参考日志如下
+```shell
+[E/USB] receive ota
+
+(cli-uart)# spinor: ID = a1 40 18
+[UTIL_INFO](cvi_ota_flag_set_pthread) 64:  flash_id :668
+ flash_size :8388608
+ xip_addr :0
+ sector_size :4096
+ page_size :256
+C.SCS/0/0.BS/NOR.PS.PE.BS.BE.J.upgrade_init start
+[ctx_init:190]flash_size:8388608, page_size:256, sector_size:4096
+[ctx_init:243]MAX_PACKET_SIZE:4096, local_version:0
+[upgrade_init:650]upgrade ctx int done
+[upgrade_init:658]start upgrade
+[upgrade_init:659]compile time 14:39:21
+=======usb reset==========
+DevEnumSpeed:0
+============ enum done ============
+[run_state_machine:611]state:1, event:9, not found transform
+[run_state_machine:611]state:1, event:9, not found transform
+[run_state_machine:611]state:1, event:9, not found transform
+```
+#### 升级LOG示例
+
+出现上述 **LOG** 表示成功进入升级模式，升级LOG如下：
 
 ```shell
 [run_state_machine:609]state:1， event:9， not found transform
@@ -158,18 +189,6 @@ csi codec open success
 [cviaudio][info] CviAud algo interface[Aud_AlgoInterface_ver20211202]
 [cviaudio][info] CviAud  algo lib[CVITEK_AEC_Algo_20211202]
 [cvi3aVersion:CVITEK_AEC_Algo_20211202]
-get_buffer_alig_64 tmp = 0x8214e408， addr = 0x8214e440
-csi_i2s_format format->rate = 8000
-csi_codec_output_config ch->period = 320
-csi_i2s_tx_set_period ch->period = 320
-csi_i2s_tx_set_period ch->period = 320
->>> output_db2idx [16] = 0.00
--------------------------code init ok
-set spkMute = 1
-alios media audio set adc vol 12， dac vol 32
-alios audio init success
-winusb int ep:0x81
-winusb out ep:0x2
 ```
 
 <br>

@@ -4,7 +4,7 @@ CPRE :=
 VERB := --verbose
 endif
 
-BOARD_PATH:=../../boards/cv181xh_evb
+BOARD_PATH:=../../boards/cv181xh_bga
 BOOT_YAML_PATH:=../../components/chip_cv181x
 
 .PHONY:startup

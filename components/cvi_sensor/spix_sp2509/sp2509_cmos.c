@@ -214,9 +214,6 @@ static CVI_S32 cmos_fps_set(VI_PIPE ViPipe, CVI_FLOAT f32Fps, AE_SENSOR_DEFAULT_
 
 	u32VMAX = (u32VMAX > SP2509_FULL_LINES_MAX) ? SP2509_FULL_LINES_MAX : u32VMAX;
 
-	if (pstSnsState->u8ImgMode == SP2509_MODE_800X600P30) {
-		u32VMAX = ((u32VMAX >> 1) << 1);
-	}
 
 	if (pstSnsState->enWDRMode == WDR_MODE_NONE) {
 		pstSnsRegsInfo->astI2cData[LINEAR_VTS_H].u32Data = ((u32VMAX & 0xFF00) >> 8);
@@ -254,10 +251,6 @@ static CVI_S32 cmos_inttime_update(VI_PIPE ViPipe, CVI_U32 *u32IntTime) {
 	CMOS_CHECK_POINTER(u32IntTime);
 	pstSnsRegsInfo = &pstSnsState->astSyncInfo[0].snsCfg;
 
-	if (pstSnsState->u8ImgMode == SP2509_MODE_800X600P30) {
-		expLine = ((expLine >> 1) << 1);
-		u32IntTime[0] = expLine;
-	}
 
 	pstSnsRegsInfo->astI2cData[LINEAR_EXP_H].u32Data = ((expLine >> 8) & 0x3F);
 	pstSnsRegsInfo->astI2cData[LINEAR_EXP_L].u32Data = (expLine & 0xFF);
@@ -635,13 +628,13 @@ static CVI_S32 cmos_set_image_mode(VI_PIPE ViPipe,
 	u8SensorImageMode = pstSnsState->u8ImgMode;
 	pstSnsState->bSyncInit = CVI_FALSE;
 
-	if (pstSensorImageMode->f32Fps <= 30) {
+	if (pstSensorImageMode->f32Fps <= 45) {
 		if (pstSnsState->enWDRMode == WDR_MODE_NONE) {
 			if (IS_SP2509_RES_1200P(pstSensorImageMode->u16Width, pstSensorImageMode->u16Height))
 				u8SensorImageMode = SP2509_MODE_1600X1200P30;
 			else if (IS_SP2509_RES_600P(pstSensorImageMode->u16Width,
 										pstSensorImageMode->u16Height))
-				u8SensorImageMode = SP2509_MODE_800X600P30;
+				u8SensorImageMode = SP2509_MODE_800X600P45;
 			else {
 				CVI_TRACE_SNS(CVI_DBG_ERR, "Not support! Width:%d, Height:%d, Fps:%f, WDRMode:%d\n",
 							  pstSensorImageMode->u16Width, pstSensorImageMode->u16Height,
@@ -716,7 +709,9 @@ static CVI_VOID sensor_global_init(VI_PIPE ViPipe) {
 	pstSnsState->bInit = CVI_FALSE;
 	pstSnsState->bSyncInit = CVI_FALSE;
 	pstSnsState->u8ImgMode = SP2509_MODE_1600X1200P30;
-	pstSnsState->enWDRMode = WDR_MODE_NONE;
+    // pstSnsState->u8ImgMode = SP2509_MODE_800X600P45;
+
+    pstSnsState->enWDRMode = WDR_MODE_NONE;
 	pstSnsState->u32FLStd = g_astSp2509_mode[pstSnsState->u8ImgMode].u32VtsDef;
 	pstSnsState->au32FL[0] = g_astSp2509_mode[pstSnsState->u8ImgMode].u32VtsDef;
 	pstSnsState->au32FL[1] = g_astSp2509_mode[pstSnsState->u8ImgMode].u32VtsDef;

@@ -18,6 +18,7 @@
 #include "media_video.h"
 #include "platform.h"
 #include "usbd_comp.h"
+#include "ota_util.h"
 
 #if CONFIG_USBD_CDC_RNDIS
 #include "usbd_cdc_rndis.h"
@@ -128,6 +129,8 @@ int main(int argc, char* argv[])
 #if CONFIG_SUPPORT_USB_DC
     // usb composite device
     usbd_comp_init();
+    //usb ota
+    cvi_ota_init();
 #endif
 #if CONFIG_NIGHT_VISION_SUPPORT
     // night_vision

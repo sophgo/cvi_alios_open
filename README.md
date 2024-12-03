@@ -24,7 +24,6 @@
   - [OTA](#ota)
   - [Peripheral](#peripheral)
   - [ISP](#isp)
-  - [Algo](#algo)
 - [FAQ](#faq)
 - [关于算能](#关于算能)
 
@@ -275,10 +274,7 @@ package.yaml 配置及使用可参考 https://help.aliyun.com/document_detail/30
 ## USB
 
 - [UVC & RTSP 出流指南](docs/uvc_rtsp_streaming_manual.md)
-- [UVC 配置指南](docs/uvc_config_manual.md)
-- [UVC 猫眼屏调试指南](docs/peephole_panel_adapt_manual.md)
-- [UAC 配置指南](docs/uac_cfg_manual.md)
-- [HID 配置指南](docs/hid_cfg_manual.md)
+- [USB 配置指南](docs/usb_cfg_manual.md)
 - [WINUSB 配置指南](docs/winusb_cfg_manual.md)
 
 ## OTA
@@ -295,10 +291,10 @@ package.yaml 配置及使用可参考 https://help.aliyun.com/document_detail/30
 - [PQtool 使用手册](docs/pqtool_manual.md)
 - [SmartAE 使用指南](docs/smartAE_manual.md)
 
-## Algo
+<!-- ## Algo
 
 - [视频算法 Demo 使用指南](docs/video_algo_demo_manual.md)
-- [音频算法 Demo 使用指南](docs/audio_algo_demo_manual.md)
+- [音频算法 Demo 使用指南](docs/audio_algo_demo_manual.md) -->
 
 <br>
 

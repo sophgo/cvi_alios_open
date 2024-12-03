@@ -19,6 +19,10 @@ void isp_daemon2_uninit(void);
 
 void isp_daemon2_enable_device_bind_control(int enable);
 
+// uart app API
+void isp_daemon2_uart_init(void);
+void isp_daemon2_uart_uninit(void);
+
 #ifdef __cplusplus
 #if __cplusplus
 }

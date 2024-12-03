@@ -16,7 +16,7 @@ STRIP := $(HOST_TOOLS)/riscv64-unknown-elf-strip
 export CC CXX AR STRIP
 export PATH := $(HOST_TOOLS):$(PATH)
 #
-TOPSUBDIRS := smart_doorbell autotest smart_pad cv181x_boot peripherals_test usb_cam ipc barcode_scan sophpi mpi_sample mpi_self_test tdl_sample
+TOPSUBDIRS := smart_doorbell autotest smart_pad cv181x_boot cv181xh_boot peripherals_test usb_cam ipc barcode_scan sophpi mpi_sample mpi_self_test tdl_sample
 #
 .PHONY:all clean install $(TOPSUBDIRS)
 

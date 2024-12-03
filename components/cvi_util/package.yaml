@@ -17,15 +17,18 @@ build_config:
   include:
     - include
     - gpio_util/
+    - ota_util/
   internal_include:
   libs:
   libpath:
 source_file:
   - gpio_util/*.c ? <CONFIG_UTIL_GPIO>
+  - ota_util/*.c ? <CONFIG_UTIL_OTA>
 
 ## Config Info
 def_config:
   CONFIG_UTIL_GPIO: 1
+  CONFIG_UTIL_OTA: 1
 
 ## Install Info
 install:

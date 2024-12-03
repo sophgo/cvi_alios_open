@@ -12,9 +12,9 @@
 
 typedef uint32_t VB_POOL;
 #ifdef __arm__
-typedef uint32_t VB_BLK;
+typedef CVI_U32 VB_BLK;
 #else
-typedef uint64_t VB_BLK;
+typedef CVI_U64 VB_BLK;
 #endif
 
 #define FIFO_HEAD(name, type)						\
@@ -176,7 +176,7 @@ STAILQ_HEAD(vb_req_q, vb_req);
 struct vb_pool {
 	VB_POOL poolID;
 	int16_t ownerID;
-	uint64_t memBase;
+	CVI_U64 memBase;
 	uint64_t memBaseAlign;
 	void *vmemBase;
 	struct vbq freeList;

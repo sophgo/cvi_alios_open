@@ -95,6 +95,7 @@ build_config:
     - gcore_gc2053_1L
     - gcore_gc2093
     - gcore_gc2083_1L
+    - gcore_gc3003
     - gcore_gc4653
     - opnous_opn8018
     - sms_sc200ai
@@ -124,6 +125,7 @@ build_config:
     - byd_bf2257cs
     - byd_bf2257cs_slave
     - spix_sp2509
+    - spix_sp2509_multi
     - sms_sc530ai_4L
     - sms_sc230ai
     - sms_sc230ai_slave
@@ -135,6 +137,7 @@ build_config:
     - cvsens_cv2003
     - ov_ov9732
     - sms_sc2331_1L
+    - sms_sc035hgs_1L
 
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
@@ -150,6 +153,7 @@ source_file:
   - gcore_gc2053_1L/*.c ? <CONFIG_SENSOR_GCORE_GC2053_1L>
   - gcore_gc2093/*.c ? <CONFIG_SENSOR_GCORE_GC2093>
   - gcore_gc2083_1L/*.c ? <CONFIG_SENSOR_GCORE_GC2083_1L>
+  - gcore_gc3003/*.c ? <CONFIG_SENSOR_GCORE_GC3003>
   - gcore_gc4653/*.c ? <CONFIG_SENSOR_GCORE_GC4653>
   - opnous_opn8018/*.c ? <CONFIG_SENSOR_OPNOUS_OPN8018>
   - sms_sc200ai/*.c ? <CONFIG_SENSOR_SMS_SC200AI>
@@ -182,6 +186,7 @@ source_file:
   - byd_bf2257cs/*.c ? <CONFIG_SENSOR_BYD_BF2257CS>
   - byd_bf2257cs_slave/*.c ? <CONFIG_SENSOR_BYD_BF2257CS_SLAVE>
   - spix_sp2509/*.c ? <CONFIG_SENSOR_SPIX_SP2509>
+  - spix_sp2509_multi/*.c ? <CONFIG_SENSOR_SPIX_SP2509_MULTI>
   - ov_og01a10/*.c ? <CONFIG_SENSOR_OV_OG01A10>
   - ov_og01a1b/*.c ? <CONFIG_SENSOR_OV_OG01A1B>
   - ov_ov02b10/*.c ? <CONFIG_SENSOR_OV_OV02B10>
@@ -190,7 +195,7 @@ source_file:
   - cvsens_cv2003/*.c ? <CONFIG_SENSOR_CVSENS_CV2003>
   - ov_ov9732/*.c ? <CONFIG_SENSOR_OV_OV9732>
   - sms_sc2331_1L/*.c ? <CONFIG_SENSOR_SMS_SC2331_1L>
-
+  - sms_sc035hgs_1L/*.c ? <CONFIG_SENSOR_SMS_SC035HGS>
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项
 #   CONFIG_DEBUG: y

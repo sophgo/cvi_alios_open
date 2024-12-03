@@ -5,9 +5,6 @@
 #define LOG_LEVEL LOG_LEVEL_INFO
 
 #include "aos/cli.h"
-#include "middleware_utils.h"
-#include "sample_utils.h"
-#include "vi_vo_utils.h"
 
 #include <core/utils/vpss_helper.h>
 #include <cvi_comm.h>

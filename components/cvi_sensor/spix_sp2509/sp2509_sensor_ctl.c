@@ -29,7 +29,7 @@
 
 extern CVI_U16 g_au16Sp2509_UseHwSync[VI_MAX_PIPE_NUM];
 static void sp2509_linear_1200p30_init(VI_PIPE ViPipe);
-static void sp2509_linear_600p30_init(VI_PIPE ViPipe);
+static void sp2509_linear_600p45_init(VI_PIPE ViPipe);
 
 CVI_U8 sp2509_i2c_addr = 0x3d;
 const CVI_U32 sp2509_addr_byte = 1;
@@ -62,39 +62,11 @@ int sp2509_write_register(VI_PIPE ViPipe, int addr, int data) {
 }
 
 void sp2509_standby(VI_PIPE ViPipe) {
-	int nVal;
-
-	sp2509_write_register(ViPipe, 0xfe, 0x00);
-
-	nVal = sp2509_read_register(ViPipe, 0x3e);
-	nVal &= ~(0x1 << 7);
-	nVal &= ~(0x1 << 4);
-	sp2509_write_register(ViPipe, 0x3e, nVal);
-	sp2509_write_register(ViPipe, 0xfc, 0x01);
-
-	nVal = sp2509_read_register(ViPipe, 0xf9);
-	nVal |= (0x1 << 0);
-	sp2509_write_register(ViPipe, 0xf9, nVal);
-
-	printf("sp2509_standby\n");
+    sp2509_write_register(ViPipe, 0xac, 0x00);  // mipi disable
 }
 
 void sp2509_restart(VI_PIPE ViPipe) {
-	int nVal;
-
-	nVal = sp2509_read_register(ViPipe, 0xf9);
-	nVal &= ~(0x1 << 0);
-	sp2509_write_register(ViPipe, 0xf9, nVal);
-
-	udelay(1);
-	sp2509_write_register(ViPipe, 0xfc, 0x8e);
-	sp2509_write_register(ViPipe, 0xfe, 0x00);
-	nVal = sp2509_read_register(ViPipe, 0x3e);
-	nVal |= (0x1 << 7);
-	nVal |= (0x1 << 4);
-	sp2509_write_register(ViPipe, 0x3e, nVal);
-
-	printf("sp2509_restart\n");
+    sp2509_write_register(ViPipe, 0xac, 0x01);  // mipi enable
 }
 
 void sp2509_default_reg_init(VI_PIPE ViPipe) {
@@ -141,8 +113,8 @@ void sp2509_init(VI_PIPE ViPipe) {
 	} else {
 		if (u8ImgMode == SP2509_MODE_1600X1200P30)
 			sp2509_linear_1200p30_init(ViPipe);
-		else if (u8ImgMode == SP2509_MODE_800X600P30)
-			sp2509_linear_600p30_init(ViPipe);
+		else if (u8ImgMode == SP2509_MODE_800X600P45)
+			sp2509_linear_600p45_init(ViPipe);
 		else {
 			CVI_TRACE_SNS(CVI_DBG_ERR, "not surpport this ImgMode[%d]!\n", u8ImgMode);
 			return;
@@ -248,7 +220,89 @@ static void sp2509_linear_1200p30_init(VI_PIPE ViPipe) {
 	printf("ViPipe:%d,===SP2509 1200P 30fps 10bit LINEAR Init OK!===\n", ViPipe);
 }
 
-static void sp2509_linear_600p30_init(VI_PIPE ViPipe) {
-	sp2509_default_reg_init(ViPipe);
-	printf("ViPipe:%d,===SP2509 600P 30fps 10bit LINEAR Init OK!===\n", ViPipe);
+static void sp2509_linear_600p45_init(VI_PIPE ViPipe) {
+    sp2509_write_register(ViPipe, 0xfd, 0x00);
+    sp2509_write_register(ViPipe, 0x2f, 0x08);
+    sp2509_write_register(ViPipe, 0x34, 0x00);
+    sp2509_write_register(ViPipe, 0x35, 0x21);
+    sp2509_write_register(ViPipe, 0x30, 0x1d);
+    sp2509_write_register(ViPipe, 0x33, 0x00);
+    sp2509_write_register(ViPipe, 0xfd, 0x01);
+    sp2509_write_register(ViPipe, 0x44, 0x00);
+    sp2509_write_register(ViPipe, 0x2a, 0x4c);
+    sp2509_write_register(ViPipe, 0x2b, 0x1e);
+    sp2509_write_register(ViPipe, 0x2c, 0x60);
+    sp2509_write_register(ViPipe, 0x25, 0x11);
+    sp2509_write_register(ViPipe, 0x30, 0x01);
+    sp2509_write_register(ViPipe, 0x31, 0x04);
+    sp2509_write_register(ViPipe, 0x03, 0x01);
+    sp2509_write_register(ViPipe, 0x04, 0x68);
+    sp2509_write_register(ViPipe, 0x09, 0x00);
+    sp2509_write_register(ViPipe, 0x0a, 0x02);
+    sp2509_write_register(ViPipe, 0x06, 0x0a);
+    sp2509_write_register(ViPipe, 0x24, 0xf0);
+    sp2509_write_register(ViPipe, 0x01, 0x01);
+    sp2509_write_register(ViPipe, 0xfb, 0x73);
+    sp2509_write_register(ViPipe, 0xfd, 0x01);
+    sp2509_write_register(ViPipe, 0x16, 0x04);
+    sp2509_write_register(ViPipe, 0x1a, 0x13);
+    sp2509_write_register(ViPipe, 0x1c, 0x09);
+    sp2509_write_register(ViPipe, 0x21, 0x46);
+    sp2509_write_register(ViPipe, 0x6c, 0x00);
+    sp2509_write_register(ViPipe, 0x6b, 0x00);
+    sp2509_write_register(ViPipe, 0x84, 0x00);
+    sp2509_write_register(ViPipe, 0x85, 0x10);
+    sp2509_write_register(ViPipe, 0x86, 0x10);
+    sp2509_write_register(ViPipe, 0x51, 0x14);
+    sp2509_write_register(ViPipe, 0x52, 0x10);
+    sp2509_write_register(ViPipe, 0x55, 0x20);
+    sp2509_write_register(ViPipe, 0x66, 0x56);
+    sp2509_write_register(ViPipe, 0x68, 0x58);
+    sp2509_write_register(ViPipe, 0x72, 0x60);
+    sp2509_write_register(ViPipe, 0x58, 0x10);
+    sp2509_write_register(ViPipe, 0x71, 0x10);
+    sp2509_write_register(ViPipe, 0x6f, 0x30);
+    sp2509_write_register(ViPipe, 0x75, 0x40);
+    sp2509_write_register(ViPipe, 0x76, 0x10);
+    sp2509_write_register(ViPipe, 0x8a, 0x22);
+    sp2509_write_register(ViPipe, 0x8b, 0x22);
+    sp2509_write_register(ViPipe, 0x19, 0xf1);
+    sp2509_write_register(ViPipe, 0x29, 0x01);
+    sp2509_write_register(ViPipe, 0xc9, 0x70);
+    sp2509_write_register(ViPipe, 0xd6, 0x40);
+    sp2509_write_register(ViPipe, 0xd8, 0xc0);
+    sp2509_write_register(ViPipe, 0xd9, 0x02);
+    sp2509_write_register(ViPipe, 0xda, 0x58);
+    sp2509_write_register(ViPipe, 0xdc, 0x60);
+    sp2509_write_register(ViPipe, 0xdd, 0x01);
+    sp2509_write_register(ViPipe, 0xde, 0x58);
+    sp2509_write_register(ViPipe, 0xea, 0x60);
+    sp2509_write_register(ViPipe, 0xeb, 0x01);
+    sp2509_write_register(ViPipe, 0xfd, 0x01);
+    sp2509_write_register(ViPipe, 0x8e, 0x03);
+    sp2509_write_register(ViPipe, 0x8f, 0x28);
+    sp2509_write_register(ViPipe, 0x90, 0x02);
+    sp2509_write_register(ViPipe, 0x91, 0x60);
+    sp2509_write_register(ViPipe, 0x9d, 0xea);
+    sp2509_write_register(ViPipe, 0xa0, 0x29);
+    sp2509_write_register(ViPipe, 0xa1, 0x04);
+    sp2509_write_register(ViPipe, 0xad, 0x62);
+    sp2509_write_register(ViPipe, 0xae, 0x00);
+    sp2509_write_register(ViPipe, 0xaf, 0x85);
+    sp2509_write_register(ViPipe, 0xb1, 0x01);
+    sp2509_write_register(ViPipe, 0xac, 0x01);
+    sp2509_write_register(ViPipe, 0xfd, 0x01);
+    sp2509_write_register(ViPipe, 0xfc, 0x10);
+    sp2509_write_register(ViPipe, 0xfe, 0x10);
+    sp2509_write_register(ViPipe, 0xf9, 0x00);
+    sp2509_write_register(ViPipe, 0xfa, 0x00);
+    sp2509_write_register(ViPipe, 0xfd, 0x02);
+    sp2509_write_register(ViPipe, 0x10, 0xff);
+    sp2509_write_register(ViPipe, 0x11, 0xff);
+    sp2509_write_register(ViPipe, 0x13, 0xff);
+    sp2509_write_register(ViPipe, 0x14, 0xff);
+    sp2509_write_register(ViPipe, 0xfd, 0x01);
+
+    sp2509_default_reg_init(ViPipe);
+	printf("ViPipe:%d,===SP2509 600P 45fps 10bit LINEAR Init OK!===\n", ViPipe);
 }

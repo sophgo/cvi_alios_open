@@ -65,7 +65,6 @@ build_config:
     - customization/include
     - common/include
     - 3rdparty/inih
-    - ../../components/cvi_tdl/cviai/sample
 
   internal_include:
 
@@ -83,8 +82,6 @@ source_file:
   - customization/tdl_sample_180xb/src/*.c
   - common/src/*.c
   - 3rdparty/inih/*.c
-  - ../../components/cvi_tdl/cviai/sample/middleware_utils.c
-  - ../../components/cvi_tdl/cviai/sample/sample_utils.c
   - sample/sample_adas.c ? <CONFIG_TDL_SAMPLE_ADAS>
   - sample/sample_fd_liveness.c ? <CONFIG_TDL_SAMPLE_LIVENESS>
   - sample/sample_fd_tracking.c ? <CONFIG_TDL_SAMPLE_FACE_TRACKING>
@@ -94,6 +91,11 @@ source_file:
   - sample/sample_od.c ? <CONFIG_TDL_SAMPLE_OBJ_DETECTION>
   - sample/sample_pedestrian_image.c ? <CONFIG_TDL_SAMPLE_PEDESTRIAN>
   - sample/sample_pedestrian_video.c ? <CONFIG_TDL_SAMPLE_PEDESTRIAN>
+  - sample/sample_yolo.c ? <CONFIG_TDL_SAMPLE_YOLO>
+  - sample/sample_yolov5.c ? <CONFIG_TDL_SAMPLE_YOLOV5>
+  - sample/sample_yolov7.c ? <CONFIG_TDL_SAMPLE_YOLOV7>
+  - sample/sample_yolov8.c ? <CONFIG_TDL_SAMPLE_YOLOV8>
+  - sample/sample_yolov10.c ? <CONFIG_TDL_SAMPLE_YOLOV10>
 
   - sample/sample_vi_vpss.c
 
@@ -146,9 +148,14 @@ def_config:
 
   # these tdl config can only select one of them
   CONFIG_TDL_SAMPLE_ADAS: 0
-  CONFIG_TDL_SAMPLE_LIVENESS: 0
-  CONFIG_TDL_SAMPLE_FACE_TRACKING: 0
   CONFIG_TDL_SAMPLE_FACE_DETECTION: 0
   CONFIG_TDL_SAMPLE_FACE_RECOGNITION: 0
+  CONFIG_TDL_SAMPLE_FACE_TRACKING: 0
+  CONFIG_TDL_SAMPLE_LIVENESS: 0
   CONFIG_TDL_SAMPLE_OBJ_DETECTION: 0
   CONFIG_TDL_SAMPLE_PEDESTRIAN: 0
+  CONFIG_TDL_SAMPLE_YOLO: 0
+  CONFIG_TDL_SAMPLE_YOLOV5: 0
+  CONFIG_TDL_SAMPLE_YOLOV7: 0
+  CONFIG_TDL_SAMPLE_YOLOV8: 0
+  CONFIG_TDL_SAMPLE_YOLOV10: 0
