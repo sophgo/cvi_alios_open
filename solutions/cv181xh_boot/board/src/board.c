@@ -23,6 +23,8 @@ void board_dma_init(void)
 void board_init(void)
 {
     /* config uart clk */
+// mmio_write is not define in boot solution
+#if 0  
 #if CONSOLE_UART_CLK == 1188000000
     mmio_write_32(DIV_CLK_CAM0_200 , BIT_DIV_RESET_CONT | BIT_SELT_DIV_REG | BIT_CLK_SRC |
 	 BIT_CLK_DIV_FACT_16);
@@ -35,6 +37,7 @@ void board_init(void)
 #elif CONSOLE_UART_CLK == 297000000
     mmio_write_32(DIV_CLK_CAM0_200 , BIT_DIV_RESET_CONT | BIT_SELT_DIV_REG | BIT_CLK_SRC |
 	 BIT_CLK_DIV_FACT_18);
+#endif
 #endif
     // board_dma_init();
     board_dma_init();

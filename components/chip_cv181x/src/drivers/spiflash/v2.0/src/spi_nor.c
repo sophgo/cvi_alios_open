@@ -74,6 +74,8 @@ const struct flash_info spi_flash_ids[] = {
 
 	{ "ZB25VQ128A", INFO(0x5E4018, 0x0, 64 * 1024, 256,
 			RD_FULL | WR_FULL | SECT_4K) },
+	{ "ZB25VQ128D", INFO(0x5E8018, 0x0, 64 * 1024, 256,
+			RD_FULL | WR_FULL | SECT_4K) },
 	{ "S25FL128L", INFO(0x016018, 0x0, 64 * 1024, 256,
 		RD_FULL | WR_QPP | SECT_4K | _10_DUMMY_CYCLE) },
 	{ "S25FL256L", INFO(0x016019, 0x0, 64 * 1024, 512,

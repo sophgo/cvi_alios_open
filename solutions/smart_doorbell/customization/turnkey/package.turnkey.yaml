@@ -53,6 +53,7 @@ depends:
   - cvi_platform: develop
   # - cvi_test: develop
   - fw_h26x: v0.0.1
+  - algokit: v1.0.0
 
   - cvi_mmf_sdk_cv180xx: develop
 ## 第三部分：板级信息
@@ -123,8 +124,8 @@ def_config:
   CONFIG_SENSOR_QUICK_STARTUP: 0
   CONFIG_SENSOR_DUAL_SWITCH: 1
 
-  CONFIG_SNS0_TYPE: 50
-  CONFIG_SNS1_TYPE: 51
+  CONFIG_SNS0_TYPE: 53
+  CONFIG_SNS1_TYPE: 54
   CONFIG_SNS2_TYPE: 0
 
   ## USB
@@ -143,8 +144,11 @@ def_config:
 
   ## Misc
   CONFIG_PQTOOL_SUPPORT: 0
+  CONFIG_PQTOOL_UART_SUPPORT: 0
   CONFIG_PQBIN_USE_JSON: 0
   CONFIG_ISP_SUPPORT_PROC: 0
+  CONFIG_ALGOKIT_ENABLE: 1
+  CONFIG_ALGOKIT_SEV3X_SUPPORT: 1
 
   ## ISP
   CONFIG_ISP_COMPRESS: 1
@@ -156,7 +160,9 @@ def_config:
   CONFIG_PROTOCOL_SEV3X: 1
 
   ## datalink
-  CONFIG_DATALINK_UART: 1
+  CONFIG_DATALINK_UART_ENABLE: 1
+  CONFIG_DATALINK_UART_INDEX: 1
+
 ## 第六部分：安装信息
 
 ## 第七部分：导出部分

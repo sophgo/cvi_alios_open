@@ -178,7 +178,7 @@ CVI_VOID test_VpssDump(VPSS_GRP Grp, VPSS_CHN Chn, CVI_U32 u32FrameCnt)
 				(stFrameInfo.stVFrame.enPixelFormat == PIXEL_FORMAT_NV21)))
 				u32DataLen >>= 1;
 
-			printf("plane(%d): paddr(%lx) vaddr(%p) stride(%d)\n",
+			printf("plane(%d): paddr(%llx) vaddr(%p) stride(%d)\n",
 				   i, stFrameInfo.stVFrame.u64PhyAddr[i],
 				   stFrameInfo.stVFrame.pu8VirAddr[i],
 				   stFrameInfo.stVFrame.u32Stride[i]);
@@ -339,7 +339,7 @@ CVI_S32 frame_save_to_file(const CVI_CHAR * filename, VIDEO_FRAME_INFO_S * pstVi
 			(pstVideoFrame->stVFrame.enPixelFormat == PIXEL_FORMAT_NV21)))
 			u32DataLen >>= 1;
 
-		printf("plane(%d): paddr(%#lx) vaddr(%p) stride(%d)\n",
+		printf("plane(%d): paddr(%#llx) vaddr(%p) stride(%d)\n",
 			   i, pstVideoFrame->stVFrame.u64PhyAddr[i],
 			   pstVideoFrame->stVFrame.pu8VirAddr[i],
 			   pstVideoFrame->stVFrame.u32Stride[i]);

@@ -49,50 +49,50 @@ build_config:
   # cxxflag: '-fsigned-char -fPIC -Werror=all -fdiagnostics-color=always -std=gnu++11 -O3'
   cxxflag: '-Wno-error'
   include:
-    - cviai/include
-    - cviai/include/core
-    - cviai/include/core/utils
-    - cviai/include/cvi_tdl_app
+    - tdl_sdk/include
+    - tdl_sdk/include/core
+    - tdl_sdk/include/core/utils
+    - tdl_sdk/include/cvi_tdl_app
 
   internal_include:
     - 3rd_party/eigen-3.3.7/include/eigen3
 
     - ./ # version.hpp
 
-    - cviai/modules/app/face_cap_utils
-    - cviai/modules/app/face_capture
-    - cviai/modules/app/person_capture
-    - cviai/modules/app/personvehicle_capture
-    - cviai/modules/app/vehicle_adas
+    - tdl_sdk/modules/app/face_cap_utils
+    - tdl_sdk/modules/app/face_capture
+    - tdl_sdk/modules/app/person_capture
+    - tdl_sdk/modules/app/personvehicle_capture
+    - tdl_sdk/modules/app/vehicle_adas
 
-    - cviai/modules/core
-    - cviai/modules/core/core
-    - cviai/modules/core/utils
-    - cviai/modules/core/ive
+    - tdl_sdk/modules/core
+    - tdl_sdk/modules/core/core
+    - tdl_sdk/modules/core/utils
+    - tdl_sdk/modules/core/ive
 
-    - cviai/modules/core/deepsort
-    - cviai/modules/core/face_attribute
-    - cviai/modules/core/face_detection/retina_face
-    - cviai/modules/core/lane_detection
-    - cviai/modules/core/lane_detection/lstr
-    - cviai/modules/core/liveness/ir_liveness
-    - cviai/modules/core/motion_detection
-    - cviai/modules/core/object_detection/mobiledetv2
-    - cviai/modules/core/object_detection/ppyoloe
-    - cviai/modules/core/object_detection/yolo
-    - cviai/modules/core/object_detection/yolov3
-    - cviai/modules/core/object_detection/yolov5
-    - cviai/modules/core/object_detection/yolov6
-    - cviai/modules/core/object_detection/yolov8
-    - cviai/modules/core/object_detection/yolov10
-    - cviai/modules/core/object_detection/yolox
-    - cviai/modules/core/sound_classification
+    - tdl_sdk/modules/core/deepsort
+    - tdl_sdk/modules/core/face_attribute
+    - tdl_sdk/modules/core/face_detection/retina_face
+    - tdl_sdk/modules/core/lane_detection
+    - tdl_sdk/modules/core/lane_detection/lstr
+    - tdl_sdk/modules/core/liveness/ir_liveness
+    - tdl_sdk/modules/core/motion_detection
+    - tdl_sdk/modules/core/object_detection/mobiledetv2
+    - tdl_sdk/modules/core/object_detection/ppyoloe
+    - tdl_sdk/modules/core/object_detection/yolo
+    - tdl_sdk/modules/core/object_detection/yolov3
+    - tdl_sdk/modules/core/object_detection/yolov5
+    - tdl_sdk/modules/core/object_detection/yolov6
+    - tdl_sdk/modules/core/object_detection/yolov8
+    - tdl_sdk/modules/core/object_detection/yolov10
+    - tdl_sdk/modules/core/object_detection/yolox
+    - tdl_sdk/modules/core/sound_classification
 
-    - cviai/modules/service/area_detect
-    - cviai/modules/service/digital_tracking
-    - cviai/modules/service/draw_rect
-    - cviai/modules/service/feature_matching
-    - cviai/modules/service/tracker
+    - tdl_sdk/modules/service/area_detect
+    - tdl_sdk/modules/service/digital_tracking
+    - tdl_sdk/modules/service/draw_rect
+    - tdl_sdk/modules/service/feature_matching
+    - tdl_sdk/modules/service/tracker
 
   libpath:
     # - lib
@@ -104,57 +104,57 @@ build_config:
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
 source_file:
-  - cviai/modules/app/*.c
-  - cviai/modules/app/face_cap_utils/*.c
-  - cviai/modules/app/face_capture/*.c
-  - cviai/modules/app/person_capture/*.c
-  - cviai/modules/app/personvehicle_capture/*.c
-  - cviai/modules/app/vehicle_adas/*.c
+  - tdl_sdk/modules/app/*.c
+  - tdl_sdk/modules/app/face_cap_utils/*.c
+  - tdl_sdk/modules/app/face_capture/*.c
+  - tdl_sdk/modules/app/person_capture/*.c
+  - tdl_sdk/modules/app/personvehicle_capture/*.c
+  - tdl_sdk/modules/app/vehicle_adas/*.c
 
-  - cviai/modules/core/cvi_tdl_core.cpp
-  - cviai/modules/core/cvi_tdl_rescale_bbox.cpp
-  - cviai/modules/core/cvi_tdl_types_mem.cpp
-  - cviai/modules/core/cvi_tdl_utils.cpp
+  - tdl_sdk/modules/core/cvi_tdl_core.cpp
+  - tdl_sdk/modules/core/cvi_tdl_rescale_bbox.cpp
+  - tdl_sdk/modules/core/cvi_tdl_types_mem.cpp
+  - tdl_sdk/modules/core/cvi_tdl_utils.cpp
 
-  - cviai/modules/core/utils/ccl.cpp
-  - cviai/modules/core/utils/core_utils.cpp
-  - cviai/modules/core/utils/demangle.cpp
-  - cviai/modules/core/utils/img_process.cpp
-  - cviai/modules/core/utils/img_warp.cpp
-  - cviai/modules/core/utils/object_utils.cpp
-  - cviai/modules/core/utils/profiler.cpp
-  - cviai/modules/core/utils/rescale_utils.cpp
-  - cviai/modules/core/core/core.cpp
-  - cviai/modules/core/core/face_detection.cpp
-  - cviai/modules/core/core/obj_detection.cpp
-  - cviai/modules/core/core/pose_detection.cpp
-  - cviai/modules/core/core/vpss_engine.cpp
-  - cviai/modules/core/ive/ive.cpp
+  - tdl_sdk/modules/core/utils/ccl.cpp
+  - tdl_sdk/modules/core/utils/core_utils.cpp
+  - tdl_sdk/modules/core/utils/demangle.cpp
+  - tdl_sdk/modules/core/utils/img_process.cpp
+  - tdl_sdk/modules/core/utils/img_warp.cpp
+  - tdl_sdk/modules/core/utils/object_utils.cpp
+  - tdl_sdk/modules/core/utils/profiler.cpp
+  - tdl_sdk/modules/core/utils/rescale_utils.cpp
+  - tdl_sdk/modules/core/core/core.cpp
+  - tdl_sdk/modules/core/core/face_detection.cpp
+  - tdl_sdk/modules/core/core/obj_detection.cpp
+  - tdl_sdk/modules/core/core/pose_detection.cpp
+  - tdl_sdk/modules/core/core/vpss_engine.cpp
+  - tdl_sdk/modules/core/ive/ive.cpp
 
-  - cviai/modules/core/deepsort/*.cpp
-  - cviai/modules/core/face_attribute/*.cpp
-  - cviai/modules/core/face_detection/retina_face/*.cpp
-  - cviai/modules/core/lane_detection/*.cpp
-  - cviai/modules/core/lane_detection/lstr/*.cpp
-  - cviai/modules/core/liveness/ir_liveness/*.cpp
-  - cviai/modules/core/motion_detection/*.cpp
-  - cviai/modules/core/object_detection/mobiledetv2/*.cpp
-  - cviai/modules/core/object_detection/ppyoloe/*.cpp
-  - cviai/modules/core/object_detection/yolo/*.cpp
-  - cviai/modules/core/object_detection/yolov3/*.cpp
-  - cviai/modules/core/object_detection/yolov5/*.cpp
-  - cviai/modules/core/object_detection/yolov6/*.cpp
-  - cviai/modules/core/object_detection/yolov8/*.cpp
-  - cviai/modules/core/object_detection/yolov10/*.cpp
-  - cviai/modules/core/object_detection/yolox/*.cpp
-  - cviai/modules/core/sound_classification/*.cpp
+  - tdl_sdk/modules/core/deepsort/*.cpp
+  - tdl_sdk/modules/core/face_attribute/*.cpp
+  - tdl_sdk/modules/core/face_detection/retina_face/*.cpp
+  - tdl_sdk/modules/core/lane_detection/*.cpp
+  - tdl_sdk/modules/core/lane_detection/lstr/*.cpp
+  - tdl_sdk/modules/core/liveness/ir_liveness/*.cpp
+  - tdl_sdk/modules/core/motion_detection/*.cpp
+  - tdl_sdk/modules/core/object_detection/mobiledetv2/*.cpp
+  - tdl_sdk/modules/core/object_detection/ppyoloe/*.cpp
+  - tdl_sdk/modules/core/object_detection/yolo/*.cpp
+  - tdl_sdk/modules/core/object_detection/yolov3/*.cpp
+  - tdl_sdk/modules/core/object_detection/yolov5/*.cpp
+  - tdl_sdk/modules/core/object_detection/yolov6/*.cpp
+  - tdl_sdk/modules/core/object_detection/yolov8/*.cpp
+  - tdl_sdk/modules/core/object_detection/yolov10/*.cpp
+  - tdl_sdk/modules/core/object_detection/yolox/*.cpp
+  - tdl_sdk/modules/core/sound_classification/*.cpp
 
-  - cviai/modules/service/*.cpp
-  - cviai/modules/service/area_detect/*.cpp
-  - cviai/modules/service/digital_tracking/*.cpp
-  - cviai/modules/service/draw_rect/*.cpp
-  - cviai/modules/service/feature_matching/*.cpp
-  - cviai/modules/service/tracker/*.cpp
+  - tdl_sdk/modules/service/*.cpp
+  - tdl_sdk/modules/service/area_detect/*.cpp
+  - tdl_sdk/modules/service/digital_tracking/*.cpp
+  - tdl_sdk/modules/service/draw_rect/*.cpp
+  - tdl_sdk/modules/service/feature_matching/*.cpp
+  - tdl_sdk/modules/service/tracker/*.cpp
 
 ## 第五部分：配置信息
 def_config:

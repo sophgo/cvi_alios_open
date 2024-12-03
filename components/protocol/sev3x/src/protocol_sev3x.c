@@ -200,23 +200,16 @@ static void* protocol_service_req(void* args)
                     get_check_sum((unsigned char*)g_potocol_rx_buf + offset + 2, rx_value_len + 3),
                     g_potocol_rx_buf[offset + rx_value_len + 5]);
                 // 校验出错
-                offset += rx_value_len + 6;
+                offset += rx_value_len + PROTOCOL_HEAD;
                 continue;
             }
 
+            aos_debug_printf("recv protocol len(%d): ", rx_value_len + PROTOCOL_HEAD);
             protocol_data_handle(offset);
-
-            offset += rx_value_len + 6;
-            break;
-        }  // end while
-
+            offset += rx_value_len + PROTOCOL_HEAD;
+        }
         rx_in  = 0;
         offset = 0;
-
-        // if(rx_in > 0)
-        // {
-        //   memcpy(g_potocol_rx_buf,g_potocol_rx_buf + offset,rx_in);
-        // }
     }
 
     return NULL;
@@ -1275,6 +1268,7 @@ static void do_mid_enroll_single(void)
     s_msg_reply_enroll_data reply_enroll_data;
     msg_enroll_data.admin = g_potocol_rx_buf[DATA_START];
     memcpy(msg_enroll_data.user_name, g_potocol_rx_buf + DATA_START + 1, 32);
+    msg_enroll_data.timeout = g_potocol_rx_buf[DATA_START + 34];
     if (NULL != g_protocol_handles.enroll_single) {
         /* 启动note */
         upgrade_service_status(SS_NID_FACE_STATE, 1);
@@ -1297,7 +1291,7 @@ static void do_mid_enroll(void)
     req_msg.admin = g_potocol_rx_buf[DATA_START];
     memcpy(req_msg.user_name, g_potocol_rx_buf + DATA_START + 1, 32);
     req_msg.face_direction = g_potocol_rx_buf[DATA_START + 33];
-    if (req_msg.face_direction == 0x0) {
+    if (req_msg.face_direction == FACE_DIRECTION_MIDDLE) {
         enroll_direct = 0x0;
     }
     printf("req_msg.face_direction = %d\n", req_msg.face_direction);
@@ -1824,10 +1818,8 @@ int32_t protocol_init(void)
     pthread_t pthreadId;
     datalink_init_param_t uart_params;
 
-#if CONFIG_DATALINK_UART == 1
-    uart_params.id       = 1;
+    uart_params.id       = CONFIG_DATALINK_UART_INDEX;
     uart_params.baudrate = 115200;
-#endif
 
     g_datalink_handles = get_datalink_handles();
     if (NULL != g_datalink_handles.init) {

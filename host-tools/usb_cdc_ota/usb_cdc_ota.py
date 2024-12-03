@@ -1,3 +1,6 @@
+import time
+import usb.core
+import usb.util
 import serial
 import re
 import os
@@ -5,8 +8,7 @@ import math
 import hashlib
 import inspect
 import serial.tools.list_ports
-
-# PC test
+import usb.backend.libusb1
 
 MAX_PACK = 4096
 crc8_table = [
@@ -33,16 +35,22 @@ crc8_table = [
     0xde, 0xd9, 0xd0, 0xd7, 0xc2, 0xc5, 0xcc, 0xcb, 0xe6, 0xe1, 0xe8, 0xef,
     0xfa, 0xfd, 0xf4, 0xf3
 ]
-debug = 0
+debug = 1
 
 
-def find_usb_cdc_cmm():
-    # 获取系统中所有串口设备的信息
-    ports = serial.tools.list_ports.comports()
-    # 遍历所有串口设备，查找USB串行设备
-    for port in ports:
-        if "USB 串行设备" in port.description:  # 你可以根据设备描述中的关键词来识别USB串行设备
-            return port.device  # 打印设备位(Device Instance Path)
+def find_usb_cdc_cmm(attempts=20, delay=1):
+    # 尝试指定次数以找到USB串行设备
+    for attempt in range(attempts):
+        if debug: print(f"尝试 {attempt + 1}/{attempts}...")
+        ports = serial.tools.list_ports.comports()
+        for port in ports:
+            if "USB 串行设备" in port.description:
+                if debug: print("找到 USB 串行设备:", port.device)
+                return port.device
+        time.sleep(delay)  # 等待指定延时后再次尝试
+    # 所有尝试后未找到设备
+    raise RuntimeError("未找到 USB 串行设备")
+
 
 # 调用函数以获取当前行号并打印
 def print_current_line_number():
@@ -50,6 +58,8 @@ def print_current_line_number():
     if debug:
         print("Current line number:", current_line)
 
+
+# 校验位数组
 def calculate_crc8(data):
     crc = 0
     for byte in data:
@@ -57,9 +67,10 @@ def calculate_crc8(data):
     return crc
 
 
+# 打包固件需要解析 yaml
 def firmware_prepare(fw_pack):
     try:
-        with open('config.yaml', 'r',encoding='utf-8') as file:
+        with open('config.yaml', 'r', encoding='utf-8') as file:
             config = file.read()
             # 使用正则表达式查找所有的partition信息
             pattern = re.compile(
@@ -71,22 +82,23 @@ def firmware_prepare(fw_pack):
         fw_size = 0
         info_list = []
 
-        with open(fw_pack , 'wb') as file0:
+        with open(fw_pack, 'wb') as file0:
             for match in matches:
+                # print(f"Address: {match[0]}, Size: {match[1]}, Filename: {match[2]}")
                 # 获取各分区信息 首地址 大小 固件名 固件实际大小
                 try:
                     file_size = os.path.getsize(match[2])
                     my_list = list(match)
                     info_list.append(my_list)
                     info_list[partition_nums].append(file_size + 128)
-                    if debug:print(f"Address: {info_list[partition_nums][0]}, Size: {info_list[partition_nums][1]}, "
-                          f"Filename: {info_list[partition_nums][2]}, binsize: {info_list[partition_nums][3]}")
+                    if debug: print(f"Address: {info_list[partition_nums][0]}, Size: {info_list[partition_nums][1]}, "
+                                    f"Filename: {info_list[partition_nums][2]}, binsize: {info_list[partition_nums][3]}")
                     partition_nums += 1
                 except FileNotFoundError:
-                    if debug:print(f"文件不存在 : {match[2]}")
+                    if debug: print(f"文件不存在 : {match[2]}")
                     continue
 
-            if debug:print(partition_nums)
+            if debug: print(partition_nums)
             if partition_nums == 0:
                 file0.close()
                 return -1
@@ -95,9 +107,9 @@ def firmware_prepare(fw_pack):
             magic_num = 0xA5A5A5A5
             file0.write(magic_num.to_bytes(4, 'little'))
             file0.write(partition_nums.to_bytes(4, 'little'))
-            if debug:print(partition_nums)
+            if debug: print(partition_nums)
             for match in info_list:
-                if debug:print(f'a {(match[3])}')
+                if debug: print(f'a {(match[3])}')
                 file0.write(match[3].to_bytes(4, 'little'))
             fw_size += (partition_nums + 2) * 4
             # 填充
@@ -124,40 +136,48 @@ def firmware_prepare(fw_pack):
                     file0.write(content)
             file0.close()
     except FileNotFoundError:
-        if debug:print("文件未找到")
+        if debug: print("文件未找到")
         return -1
     except IOError:
-        if debug:print("无法打开文件")
+        if debug: print("无法打开文件")
         return -1
     except Exception as e:
-        if debug:print("发生了一个未知错误:", e)
+        if debug: print("发生了一个未知错误:", e)
         return -1
 
+
+# 传输固件并进行升级
 def upgrade_action(fw_pack):
-    Com = find_usb_cdc_cmm()
-    ser = serial.Serial(Com, 2000000, timeout=60)  # 串口号和波特率根据实际情况调整
+    try:
+        com = find_usb_cdc_cmm()
+        time.sleep(2)
+    except RuntimeError as e:
+        print("串口无法打开")
+        return
+    # @param timeout：单位秒,在等待usb设备回复时可以将时间拉长
+    ser = serial.Serial(com, 2000000, timeout=150)  # 串口号和波特率根据实际情况调整
+
+    ret = firmware_prepare(fw_pack)
+    if ret == -1:
+        print("firmware prepare fail")
+        return
     # 打开串口d
-    if ser.isOpen():
-        if debug:print("串口已打开")
     data_to_send = [0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA]
     ser.write(data_to_send)
-    if debug:print("upgrade_start")
+    if debug: print("upgrade_start")
     try:
         file_size = os.path.getsize(fw_pack)
         with open(fw_pack, 'rb') as file:
             pack_nums = math.ceil(file_size / MAX_PACK)
-            # 发送数据
-            if debug:print(f'file_size: {file_size}')
-            if debug:print(f'pack_nums: {pack_nums}')
-            # print(data_to_send)
-            # return -1
+            if debug: print(f'file_size： {file_size}')
+            if debug: print(f'pack_nums： {pack_nums}')
 
             # 进入升级模式
             data_to_send = [0xAA, 0x55, 0xF1, 0x00, 0x00, 0x00, 0x00, 0x00]
             expected_data = [0xAA, 0x55, 0xF2, 0x00, 0x00, 0x00, 0x00, 0x00]
             ser.write(data_to_send)
             data_to_recv = list(ser.read(8))
-            if debug:print(data_to_recv)
+            if debug: print(' '.join(f'{byte:02X}' for byte in data_to_recv))
             print_current_line_number()
             if data_to_recv != expected_data:
                 return -1
@@ -167,7 +187,7 @@ def upgrade_action(fw_pack):
             expected_data = [0xAA, 0x55, 0xF8, 0x00, 0x00, 0x00, 0x00, 0x00]
             ser.write(data_to_send)
             data_to_recv = list(ser.read(8))
-            if debug:print(data_to_recv)
+            if debug: print(' '.join(f'{byte:02X}' for byte in data_to_recv))
             print_current_line_number()
             if data_to_recv[:4] != expected_data[:4]:
                 return -1
@@ -175,11 +195,10 @@ def upgrade_action(fw_pack):
             # 启动数据传输 发送总包数与版本  总包数 = 整个固件包大小/最大传输大小
             data_to_send = [0xAA, 0x55, 0xFB, 0x00, 0x00, 0x00, 0x00, 0x00]
             data_to_send[3:5] = pack_nums.to_bytes(2, 'big')
-            if debug:print(data_to_send)
             expected_data = [0xAA, 0x55, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x00]
             ser.write(data_to_send)
             data_to_recv = list(ser.read(8))
-            if debug:print(data_to_recv)
+            if debug: print(' '.join(f'{byte:02X}' for byte in data_to_recv))
             print_current_line_number()
             if data_to_recv != expected_data:
                 return -1
@@ -193,9 +212,9 @@ def upgrade_action(fw_pack):
             expected_data = [0xAA, 0x55, 0xEB, 0x00, 0x00, 0x00, 0x00, 0x00]
             ser.write(data_to_send)
             ser.write(md5_hash)
-            if debug:print(md5_hash)
+            if debug: print(' '.join(f'{byte:02X}' for byte in md5_hash))
             data_to_recv = list(ser.read(8))
-            if debug:print(data_to_recv)
+            if debug: print(' '.join(f'{byte:02X}' for byte in data_to_recv))
             print_current_line_number()
             if data_to_recv != expected_data:
                 return -1
@@ -215,56 +234,97 @@ def upgrade_action(fw_pack):
                 ser.write(data_to_send)
                 ser.write(chunk)
                 data_to_recv = list(ser.read(8))
-                if debug:print(data_to_recv)
-                if debug:print(pack_seq)
-                print_current_line_number()
                 expected_data[4:8] = data_to_send[3:7]
                 if data_to_recv != expected_data:
                     return -1
                 pack_seq += 1
+            print_current_line_number()
 
             # 摄像头主动上传版本 (当前版本都是 0，没有正确使用版本信息)
             data_to_send = [0xAA, 0x55, 0xFA, 0x00, 0x00, 0x00, 0x00, 0x00]
             expected_data = [0xAA, 0x55, 0xF9, 0x00, 0x00, 0x00, 0x00, 0x00]
             data_to_recv = list(ser.read(8))
-            if debug:print(data_to_recv)
+            if debug: print(' '.join(f'{byte:02X}' for byte in data_to_recv))
             print_current_line_number()
             if data_to_recv != expected_data:
                 data_to_send[3] = 0x01
+                if debug: print(f"ota error")
             ser.write(data_to_send)
-            if debug:print(data_to_send)
 
             # 退出摄像头固件升级
             data_to_send = [0xAA, 0x55, 0xF5, 0x00, 0x00, 0x00, 0x00, 0x00]
             expected_data = [0xAA, 0x55, 0xF6, 0x00, 0x00, 0x00, 0x00, 0x00]
             ser.write(data_to_send)
             data_to_recv = list(ser.read(8))
-            if debug:print(data_to_recv)
+            if debug: print(' '.join(f'{byte:02X}' for byte in data_to_recv))
             print_current_line_number()
             if data_to_recv != expected_data:
-                return -1
+                if debug: print(f"ota error")
+                return None
+            if debug: print(f"ota successful")
 
             expected_data = [0xAA, 0x55, 0xE9, 0x00, 0x00, 0x00, 0x00, 0x00]
             data_to_recv = list(ser.read(8))
-            if debug:print(data_to_recv)
+            if debug: print(' '.join(f'{byte:02X}' for byte in data_to_send))
             print_current_line_number()
             if data_to_recv != expected_data:
                 return -1
-            if debug:print("升级完成")
+            if debug: print("升级完成")
         file.close()
         ser.close()
     except FileNotFoundError:
-        if debug:print("文件不存在")
+        if debug: print("文件不存在")
 
 
-def main():
-    ret = firmware_prepare("fw_pack")
-    if ret == -1:
-        print("firmware prepare fail")
-        return
-    upgrade_action("fw_pack")
+# 系统阶段设置标志位并重启设备
+def set_ota_flag_task():
+    try:
+        # 获取当前脚本的绝对路径
+        current_path = os.path.abspath(os.path.dirname(__file__))
+
+        # 构建库文件的完整路径
+        # 注意：这里的库文件名需要根据实际情况（如操作系统和库版本）进行调整
+        lib_path = os.path.join(current_path, 'libusb-1.0.dll')  # Windows
+        # lib_path = os.path.join(current_path, 'libusb-1.0.so')  # Linux or macOS
+
+        # 使用找到的库路径
+        backend = usb.backend.libusb1.get_backend(find_library=lambda x: lib_path)
+        print(backend)
+
+        # 尝试查找具有特定 vendor ID 和 product ID 的设备
+        device = usb.core.find(idVendor=0x3346, idProduct=0x0001, backend=backend)
+        # 如果未找到设备，返回 None
+        if device is None:
+            if debug: print("未找到设备")
+            return None
+        device.set_configuration()
+
+        data = bytes.fromhex('6f 74 61 00 00 00')  # 'ota\0\0\0'
+
+        device.ctrl_transfer(
+            bmRequestType=0x21,
+            bRequest=0x01,
+            wValue=0x0100,
+            wIndex=0x0400,
+            data_or_wLength=data,
+            timeout=1,
+        )
+
+    except FileNotFoundError:
+        if debug: print("ota set flag error")
+
+
+def ota_task():
+    ret = upgrade_action("fw_pack")
     if ret == -1:
         print("upgrade action fail")
         return
-if __name__ == "__main__":
+
+
+def main():
+    # 创建进程，每个进程执行不同的函数
+    set_ota_flag_task()
+    ota_task()
+
+if __name__ == '__main__':
     main()

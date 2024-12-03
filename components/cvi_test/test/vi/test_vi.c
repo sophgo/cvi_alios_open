@@ -398,7 +398,7 @@ static CVI_S32 _vi_get_chn_frame(CVI_U8 chn, CVI_U8 loop)
 			if (stVideoFrame.stVFrame.u32Length[i] != 0) {
 				stVideoFrame.stVFrame.pu8VirAddr[i] = vir_addr + plane_offset;
 				plane_offset += stVideoFrame.stVFrame.u32Length[i];
-				printf("plane(%d): paddr(%ld) vaddr(%p) stride(%d) length(%d)\n",
+				printf("plane(%d): paddr(%lld) vaddr(%p) stride(%d) length(%d)\n",
 					   i, stVideoFrame.stVFrame.u64PhyAddr[i],
 					   stVideoFrame.stVFrame.pu8VirAddr[i],
 					   stVideoFrame.stVFrame.u32Stride[i],
@@ -529,7 +529,7 @@ void dump_vi_raw(int32_t argc, char **argv)
 			if (attr.enDumpType == VI_DUMP_TYPE_RAW) {
 				stVideoFrame[j].stVFrame.pu8VirAddr[0] =
 							(CVI_U8 *)stVideoFrame[j].stVFrame.u64PhyAddr[0];
-				printf("paddr(%ld) vaddr(%p)\n",
+				printf("paddr(%lld) vaddr(%p)\n",
 							stVideoFrame[j].stVFrame.u64PhyAddr[0],
 							stVideoFrame[j].stVFrame.pu8VirAddr[0]);
 
@@ -785,7 +785,7 @@ void smooth_dump_raw(int32_t argc, char **argv)
 		}
 		u64PhyAddr = CVI_VB_Handle2PhysAddr(vb_blk);
 		*(phy_addr_list + i) = u64PhyAddr;
-		printf("i=%d, vb_blk=%"PRIx64", addr(0x%"PRIx64"), phy_addr(0x%"PRIx64")\n",
+		printf("i=%d, vb_blk=%#"PRIx64", addr(0x%llx), phy_addr(0x%llx)\n",
 					i, (intmax_t)vb_blk, u64PhyAddr, *(phy_addr_list + i));
 	}
 
@@ -815,13 +815,13 @@ void smooth_dump_raw(int32_t argc, char **argv)
 			continue;
 		}
 
-		printf("[%d] get roi frame addr(0x%"PRIx64") length(%d), number(%d)\n", i,
+		printf("[%d] get roi frame addr(0x%llx) length(%d), number(%d)\n", i,
 				stVideoFrame[0].stVFrame.u64PhyAddr[0],
 				stVideoFrame[0].stVFrame.u32Length[0],
 				stVideoFrame[0].stVFrame.u32TimeRef);
 
 		if (stVideoFrame[1].stVFrame.u64PhyAddr[0] != 0) {
-			printf("[%d] get roi frame addr(0x%"PRIx64") length(%d) number(%d)\n", i,
+			printf("[%d] get roi frame addr(0x%llx) length(%d) number(%d)\n", i,
 					stVideoFrame[1].stVFrame.u64PhyAddr[0],
 					stVideoFrame[1].stVFrame.u32Length[0],
 					stVideoFrame[1].stVFrame.u32TimeRef);
@@ -850,7 +850,7 @@ void smooth_dump_raw(int32_t argc, char **argv)
 		FILE *output;
 		char img_name[128] = {0,}, order_id[8] = {0,};
 
-		CVI_TRACE_LOG(CVI_DBG_WARN, "paddr(%#"PRIx64") vaddr(%p)\n",
+		CVI_TRACE_LOG(CVI_DBG_WARN, "paddr(%#llx) vaddr(%p)\n",
 					stVideoFrame[j].stVFrame.u64PhyAddr[0],
 					stVideoFrame[j].stVFrame.pu8VirAddr[0]);
 

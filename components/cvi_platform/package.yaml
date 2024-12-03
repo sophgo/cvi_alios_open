@@ -57,6 +57,7 @@ build_config:
     - protocol/usb_devices/usbd_class/usbd_hid_keyboard/include
     - protocol/usb_devices/usbd_class/usbd_winusb/include
     - protocol/usb_devices/usbd_composite/include
+    - pqtool_uart/include
 
 
   internal_include:
@@ -87,6 +88,7 @@ source_file:
   - protocol/usb_devices/usbd_class/usbd_hid_keyboard/src/*.c ? <CONFIG_USBD_HID_KEYBOARD>
   - protocol/usb_devices/usbd_class/usbd_winusb/src/*.c ? <CONFIG_USBD_WINUSB>
   - protocol/usb_devices/usbd_composite/src/*.c ? <CONFIG_SUPPORT_USB_DC>
+  - pqtool_uart/src/*.c ? <CONFIG_PQTOOL_UART_SUPPORT>
 
 # - ./hichannel_test/
 ## 第五部分：配置信息
@@ -99,7 +101,7 @@ def_config:                              # 组件的可配置项
   CONFIG_UVC_MJPEG_BITRATE: 20480          # UVC 推流时，设置视频编码器 MJPEG 的码率，单位 kbps
   CONFIG_UVC_H264_H265_BITRATE: 4096       # UVC 推流时，设置视频编码器 H264/H265 的码率，单位 kbps
   CONFIG_UVC_CROP_BEFORE_SCALE: 0          # UVC 推流时，是否对视频进行裁剪，以保证缩放前后长宽比一致（可能会有视野丢失）
-  CONFIG_UVC_COMM_FUNC: 0                  # USB camera 使能亮度、色调、对比度等调整功能
+  CONFIG_UVC_COMM_FUNC: 1                  # USB camera 使能亮度、色调、对比度等调整功能
 
 ## 第六部分：安装信息
 # install:

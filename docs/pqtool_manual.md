@@ -20,6 +20,10 @@ CONFIG_USBD_CDC_RNDIS: 1
 CONFIG_PQTOOL_SUPPORT: 1
 # UVC出流使能
 CONFIG_USBD_UVC: 1
+# 开启相关依赖
+- cvi_mw_isp_com_raw_replay: develop
+- cvi_mw_isp_com_raw_dump: develop
+- cvi_mw_isp_daemon: develop
 ```
 
 YAML 文件配置完成后，编译代码并进行固件的烧录更新
@@ -36,7 +40,7 @@ YAML 文件配置完成后，编译代码并进行固件的烧录更新
 > [!WARNING]
 > 上位机的 IP 配置应与板端 RNDIS IP 在同一网段
 >
-> 如板端 RNDIS 默认 IP 为`192.168.11.10`，上位机可配置为`192.168.11.101` > <br>
+> 如板端 RNDIS 默认 IP 为`192.168.11.10`，上位机可配置为`192.168.11.101` <br>
 
 ## PQtool 初始化
 

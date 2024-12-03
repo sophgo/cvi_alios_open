@@ -447,6 +447,7 @@ static int action_exit_upgrade(void *args)
 	if (cdc_acm_write(ret_msg, PROTOCOL_LEN) != 0) {
 		return ACTION_FAILED;
 	}
+	LOG("action_exit_upgrade \n");
 	return ACTION_DONE;
 }
 

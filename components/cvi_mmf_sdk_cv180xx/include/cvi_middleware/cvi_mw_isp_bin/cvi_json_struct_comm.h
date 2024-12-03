@@ -8,7 +8,7 @@
 
 #ifndef _CVI_JSON_STRUCT_COMM_H
 #define _CVI_JSON_STRUCT_COMM_H
-#if CONFIG_PQBIN_USE_JSON || CONFIG_PQTOOL_SUPPORT
+#if CONFIG_PQBIN_USE_JSON || CONFIG_PQTOOL_SUPPORT || CONFIG_PQTOOL_UART_SUPPORT
 #include <stdio.h>
 #include <float.h>
 #include "cvi_common.h"

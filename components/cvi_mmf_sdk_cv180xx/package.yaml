@@ -13,7 +13,7 @@ build_config:
     - include/cvi_miniz/include/
     - include/cvi_json_c/include/cvi_json_c
     - include/cvi_json_c/include/
-    - include/cviai/include/
+    - include/tdl_sdk/include/
     - include/cvi_middleware/include/cvi_mw_isp_bin
     - include/cvi_middleware/include/cvi_mw_isp_algo
     - include/cvi_middleware/include/cvi_mw_audio
@@ -39,7 +39,7 @@ build_config:
     - include/cvi_tpu/include/
     - include/cvi_miniz/include
     - include/cvi_json_c/include
-    - include/cviai/include
+    - include/tdl_sdk/include
     - include/cvi_osdrv/include
     - include/cvi_middleware/include
     - include/cvi_tpu/include
