@@ -6,6 +6,8 @@ enum MEDIA_PCM_TYPE {
 	MEDIA_PCM_TYPE_SPEAKER,
 	MEDIA_PCM_TYPE_BUTT,
 };
+/* AUDIO Class Config */
+#define AUDIO_FREQ 8000U
 
 int MEDIA_AUDIO_PcmRead(unsigned char *buf);
 int MEDIA_AUDIO_PcmWrite(const unsigned char *buf,int len);

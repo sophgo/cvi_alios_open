@@ -125,7 +125,7 @@ static struct uvc_camera_terminal_descriptor uvc_camera_terminal = {
     .bControlSize        = 3,
 #if CONFIG_UVC_COMM_FUNC
     .bmControls[0]        = 0,
-    .bmControls[1]        = 0x8,
+    .bmControls[1]        = 0x0,
     .bmControls[2]        = 0,
 #else
     .bmControls[0]        = 0,

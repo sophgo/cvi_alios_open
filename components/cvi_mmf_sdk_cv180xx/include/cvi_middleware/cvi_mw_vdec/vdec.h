@@ -3,6 +3,7 @@
 
 #include "cvi_type.h"
 #include "cvi_defines.h"
+#include "cvi_h265_interface.h"
 
 #define DISPLAY_QUEUE_SIZE 32
 #define MAX_VDEC_FRM_NUM 32

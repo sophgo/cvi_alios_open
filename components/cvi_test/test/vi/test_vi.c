@@ -567,6 +567,7 @@ void dump_vi_raw(int32_t argc, char **argv)
 				if (fd <= 0) {
 					printf("aos_open dst file failed\n");
 					CVI_VI_ReleasePipeFrame(dev, stVideoFrame);
+					free(ptr);
 					return;
 				}
 
@@ -591,7 +592,7 @@ ALIOS_CLI_CMD_REGISTER(dump_vi_raw, dump_vi_raw, dump vi raw function);
 static void dump_register(void *para)
 {
 	CVI_S32 s32Ret = CVI_SUCCESS;
-	VI_PIPE ViPipe = 0;
+	VI_PIPE ViPipe = *(VI_PIPE *)para;
 	char name[64] = {0};
 	FILE *fp = NULL;
 	VI_DUMP_REGISTER_TABLE_S	reg_tbl;
@@ -620,6 +621,12 @@ static void dump_register(void *para)
 		goto free_innner;
 	}
 
+	s32Ret = CVI_VI_DumpHwRegisterToFile(ViPipe, json, &reg_tbl);
+	if (s32Ret != CVI_SUCCESS) {
+		CVI_TRACE_LOG(CVI_DBG_ERR, "CVI_VI_DumpHwRegisterToFile failed with %#x\n", s32Ret);
+		goto free_json;
+	}
+
 	snprintf(name, 64, "/mnt/sd/vi_dump_register.json");
 	fp = fopen(name, "w+");
 	if (fp == NULL) {
@@ -627,14 +634,8 @@ static void dump_register(void *para)
 		goto free_json;
 	}
 
-	s32Ret = CVI_VI_DumpHwRegisterToFile(ViPipe, json, &reg_tbl);
-	if (s32Ret != CVI_SUCCESS) {
-		CVI_TRACE_LOG(CVI_DBG_ERR, "CVI_VI_DumpHwRegisterToFile failed with %#x\n", s32Ret);
-		goto free_file;
-	}
-
 	fwrite(json, 1, DUMP_SIZE, fp);
-free_file:
+
 	fclose(fp);
 free_json:
 	free(json);
@@ -646,11 +647,19 @@ free_innner:
 void dump_vi_register(int32_t argc, char **argv)
 {
 	aos_task_t task;
+	int pipe = 0;
+
+	if (argc != 2) {
+		printf("invailed param\n usage: %s [pipe (0/1/2/3)]\n", argv[0]);
+		return;
+	}
+
+	pipe = atoi(argv[1]);
 
 	if (0 != aos_task_new_ext(&task,
 			"test",
 			dump_register,
-			NULL,
+			(void *)&pipe,
 			819200,
 			32)) {
 		printf("Fail to create task_log_save\n");

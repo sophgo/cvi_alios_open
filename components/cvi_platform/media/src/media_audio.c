@@ -21,7 +21,7 @@
 #define PERIOD_FRAMES_SIZE 160
 
 static aos_pcm_t *capture_handle,*playback_handle;
-static unsigned int rate = 8000;       //ai ao default 16K
+static unsigned int rate = AUDIO_FREQ;
 static void *pssp_handle = NULL;
 aos_mutex_t g_dma_mutex;
 

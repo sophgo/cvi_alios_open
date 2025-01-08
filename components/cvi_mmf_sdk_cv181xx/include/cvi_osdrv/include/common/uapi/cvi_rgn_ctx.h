@@ -20,9 +20,11 @@ struct cvi_rgn_ctx {
 	MMF_CHN_S stChn;
 	RGN_CHN_ATTR_S stChnAttr;
 	RGN_CANVAS_INFO_S stCanvasInfo[RGN_MAX_BUF_NUM];
+	CVI_U32 u32MaxNeedIon;
 	CVI_U32 ion_len;
 	CVI_U8 canvas_idx;
 	CVI_BOOL canvas_get;
+	CVI_BOOL odec_data_valid;
 };
 
 #ifdef __cplusplus

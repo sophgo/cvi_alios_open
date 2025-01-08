@@ -25,7 +25,6 @@ void test_adc(int32_t argc, char **argv)
 
     int chip_id = atoi(argv[1]);
     int ch_id = atoi(argv[2]);
-
     // enable adc chip
     csi_adc_init(&adc, chip_id);
     #if (!ADC_IRQ_TEST)
@@ -34,6 +33,7 @@ void test_adc(int32_t argc, char **argv)
     // enable adc channel
     csi_adc_channel_enable(&adc, ch_id, true);
     csi_adc_start(&adc);
+    csi_adc_trim(&adc);
     value = csi_adc_read(&adc);
     aos_cli_printf("adc get value: %d\n", value);
     #else

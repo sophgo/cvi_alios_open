@@ -4,8 +4,9 @@
 #include <cvi_common.h>
 #include <cvi_comm_vpss.h>
 #include <vpss_uapi.h>
-
+#if !defined(CONFIG_VPSS_SUPPORT) || (CONFIG_VPSS_SUPPORT == 1)
 extern int vpss_ioctl(unsigned int cmd,  void *arg);
+#endif
 
 /* Configured from user  */
 CVI_S32 vpss_create_grp(struct vpss_crt_grp_cfg *cfg);

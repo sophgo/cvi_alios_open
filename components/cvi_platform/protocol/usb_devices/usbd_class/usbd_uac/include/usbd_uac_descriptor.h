@@ -4,12 +4,11 @@
 #include <stdint.h>
 
 #include "usbd_uac.h"
+#include "media_audio.h"
 
 #define HS_EP_INTERVAL 0x04
 #define FS_EP_INTERVAL 0x01
 
-/* AUDIO Class Config */
-#define AUDIO_FREQ 8000U
 
 #define AUDIO_SAMPLE_FREQ(frq) (uint8_t)(frq), (uint8_t)((frq >> 8)), (uint8_t)((frq >> 16))
 

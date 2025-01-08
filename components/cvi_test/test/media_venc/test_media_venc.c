@@ -1,3 +1,5 @@
+#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
+
 #include "board.h"
 #include <aos/aos.h>
 #include <aos/kernel.h>
@@ -161,3 +163,5 @@ void media_stop_venc(int32_t argc, char **argv)
 
 ALIOS_CLI_CMD_REGISTER(media_start_venc, media_start_venc, media start venc);
 ALIOS_CLI_CMD_REGISTER(media_stop_venc, media_stop_venc, media stop venc);
+
+#endif /* (!CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265) */

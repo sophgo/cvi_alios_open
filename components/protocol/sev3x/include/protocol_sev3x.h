@@ -7,70 +7,71 @@
 //=============================================================================
 // 帧的字节顺序
 //=============================================================================
-#define HEAD_FIRST 0
-#define HEAD_SECOND 1
-#define MSG_ID 2
-#define LENGTH_HIGH 3
-#define LENGTH_LOW 4
-#define DATA_START 5
+#define HEAD_FIRST   0
+#define HEAD_SECOND  1
+#define MSG_ID       2
+#define LENGTH_HIGH  3
+#define LENGTH_LOW   4
+#define DATA_START   5
 #define PARITY_CHECK 6
 
-#define CVI_MID_GET_HARDWARE 0xEE
+#define CVI_MID_GET_HARDWARE  0xEE
 #define CVI_MID_WRITE_LICENSE 0xEF
+#define CVI_MID_CAPTURE_IMAGE 0xE3
 
 //=============================================================================
-#define VERSION 0x00          // 协议版本号
-#define PROTOCOL_HEAD 0x06    // 固定协议头长度
-#define FIRM_UPDATA_SIZE 256  // 升级包大小
+#define VERSION          0x00  // 协议版本号
+#define PROTOCOL_HEAD    0x06  // 固定协议头长度
+#define FIRM_UPDATA_SIZE 256   // 升级包大小
 
-#define FRAME_FIRST 0xEF
+#define FRAME_FIRST  0xEF
 #define FRAME_SECOND 0xAA
 
 /******************************************************************************/
-#define DATALINK_QUEUE_LMT 256       // 数据接收队列大小,如MCU的RAM不够,可缩小
+#define DATALINK_QUEUE_LMT    256    // 数据接收队列大小,如MCU的RAM不够,可缩小
 #define PROTOCOL_RECV_BUF_LMT 256    // 根据用户DP数据大小量定,必须大于24
 #define PROTOCOL_SEND_BUF_LMT 65535  // 根据用户DP数据大小量定,必须大于24
 
 //=============================================================================
 // 数据帧类型
 //=============================================================================
-#define MID_REPLY 0x00
-#define MID_NOTE 0x01
-#define MID_IMAGE 0x02
-#define MID_RESET 0x10
-#define MID_GETSTATUS 0x11
-#define MID_VERIFY 0x12
-#define MID_ENROLL 0x13
-#define MID_SNAPIMAGE 0x16
-#define MID_GETSAVEDIMAGE 0x17
-#define MID_UPLOADIMAGE 0x18
-#define MID_ENROLL_SINGLE 0x1D
-#define MID_DELUSER 0x20
-#define MID_DELALL 0x21
-#define MID_GETUSERINFO 0x22
-#define MID_FACERESET 0x23
-#define MID_GET_ALL_USERID 0x24
-#define MID_ENROLL_ITG 0x26
-#define MID_NOTIFY_WIFI_INIT 0x28  // zhihong
-#define MID_GET_VERSION 0x30
-#define MID_START_OTA 0x40
-#define MID_STOP_OTA 0x41
-#define MID_GET_OTA_STATUS 0x42
-#define MID_OTA_HEADER 0x43
-#define MID_OTA_PACKET 0x44
-#define MID_INIT_ENCRYPTION 0x50
-#define MID_CONFIG_BAUDRATE 0x51
+#define MID_REPLY               0x00
+#define MID_NOTE                0x01
+#define MID_IMAGE               0x02
+#define MID_RESET               0x10
+#define MID_GETSTATUS           0x11
+#define MID_VERIFY              0x12
+#define MID_ENROLL              0x13
+#define MID_SNAPIMAGE           0x16
+#define MID_GETSAVEDIMAGE       0x17
+#define MID_UPLOADIMAGE         0x18
+#define MID_ENROLL_SINGLE       0x1D
+#define MID_DELUSER             0x20
+#define MID_DELALL              0x21
+#define MID_GETUSERINFO         0x22
+#define MID_FACERESET           0x23
+#define MID_GET_ALL_USERID      0x24
+#define MID_ENROLL_ITG          0x26
+#define MID_NOTIFY_WIFI_INIT    0x28
+#define MID_GET_VERSION         0x30
+#define MID_START_OTA           0x40
+#define MID_STOP_OTA            0x41
+#define MID_GET_OTA_STATUS      0x42
+#define MID_OTA_HEADER          0x43
+#define MID_OTA_PACKET          0x44
+#define MID_INIT_ENCRYPTION     0x50
+#define MID_CONFIG_BAUDRATE     0x51
 #define MID_SET_RELEASE_ENC_KEY 0x52
-#define MID_SET_DEBUG_ENC_KEY 0x53
-#define MID_GET_LOGFILE 0x60
-#define MID_UPLOAD_LOGFILE 0x61
+#define MID_SET_DEBUG_ENC_KEY   0x53
+#define MID_GET_LOGFILE         0x60
+#define MID_UPLOAD_LOGFILE      0x61
 #define MID_SET_THRESHOLD_LEVEL 0xD4
-#define MID_POWERDOWN 0xED
-#define MID_DEBUG_MODE 0xF0
-#define MID_GET_DEBUG_INFO 0xF1
-#define MID_UPLOAD_DEBUG_INFO 0xF2
-#define MID_GETLIBRARY_VERSION 0xF3
-#define MID_DEMOMODE 0xFE
+#define MID_POWERDOWN           0xED
+#define MID_DEBUG_MODE          0xF0
+#define MID_GET_DEBUG_INFO      0xF1
+#define MID_UPLOAD_DEBUG_INFO   0xF2
+#define MID_GETLIBRARY_VERSION  0xF3
+#define MID_DEMOMODE            0xFE
 
 //=============================================================================
 /*定义常量*/
@@ -107,7 +108,7 @@
 #define DISABLE 0
 #endif
 
-#define USER_NAME_SIZE 32
+#define USER_NAME_SIZE           32
 #define VERSION_INFO_BUFFER_SIZE 32
 
 typedef enum _MS_STATUS_E {
@@ -498,6 +499,11 @@ typedef struct __protocol_handles_t {
      * @return
      */
     MR_STATUS_E (*write_license)(uint8_t* auth_key, uint16_t auth_key_len);
+    /**
+     * @brief 设置开机抓图RGB和IR的数量
+     * @return
+     */
+    MR_STATUS_E (*set_image_num)(uint8_t rgb_num, uint8_t ir_num);
 } protocol_handles_t;
 
 int32_t protocol_init(void);

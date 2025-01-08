@@ -7,6 +7,9 @@
 
 #include <drv/common.h>
 #include "aos/cli.h"
+#include "cvi_efuse.h"
+
+csi_error_t cvi_efuse_read_word_from_shadow(uint32_t addr, uint32_t *data);
 
 #ifdef __cplusplus
 extern "C" {
@@ -116,6 +119,7 @@ struct cvi_adc_regs_t {
     uint32_t INTR_CLR;
     uint32_t INTR_STA;
     uint32_t INTR_RAW;
+	uint32_t TRIM;
 };
 
 static struct cvi_adc_regs_t cv182x_adc_reg = {
@@ -129,6 +133,7 @@ static struct cvi_adc_regs_t cv182x_adc_reg = {
     .INTR_CLR = 0x24,
     .INTR_STA = 0x28,
     .INTR_RAW = 0x2c,
+	.TRIM = 0x34,
 };
 
 static struct cvi_adc_regs_t *cvi_adc_reg = &cv182x_adc_reg;
@@ -146,6 +151,7 @@ static struct cvi_adc_regs_t *cvi_adc_reg = &cv182x_adc_reg;
 #define ADC_INTR_CLR(reg_base)     *((__IOM uint32_t *)(reg_base + cvi_adc_reg->INTR_CLR))
 #define ADC_INTR_STA(reg_base)     *((__IM uint32_t *)(reg_base + cvi_adc_reg->INTR_STA))
 #define ADC_INTR_RAW(reg_base)     *((__IM uint32_t *)(reg_base + cvi_adc_reg->INTR_RAW))
+#define ADC_TRIM(reg_base)     (*((__IM uint32_t *)((reg_base) + (cvi_adc_reg->TRIM))))
 
 static inline void adc_cyc_setting(unsigned long reg_base)
 {

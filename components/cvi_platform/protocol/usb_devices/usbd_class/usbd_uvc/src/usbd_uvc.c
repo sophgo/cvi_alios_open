@@ -31,6 +31,10 @@
 #define NV21_FORMAT_INDEX  (4)
 #define H265_FORMAT_INDEX  (5)
 
+#ifndef UNUSED
+#define UNUSED(x) (void)(x)
+#endif
+
 static int av_session_init_flag = CVI_FALSE;
 static atomic_t uvc_pause_flag  = CVI_FALSE;
 static atomic_t uvc_pause_done  = CVI_FALSE;
@@ -199,13 +203,15 @@ static CVI_S32 is_media_info_update(struct uvc_device_info* info)
 
     if (u8VencInitStatus == 0 && enType != PT_BUTT)
         return CVI_TRUE;
-
+#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
     CVI_VENC_GetChnAttr(info->video.venc_channel, pstVencChnAttr);
     if ((pstVencChnAttr->stVencAttr.enType != enType)
         || (pstVencChnAttr->stVencAttr.u32PicWidth != uvc_frame_info.width)
         || (pstVencChnAttr->stVencAttr.u32PicHeight != uvc_frame_info.height))
         return CVI_TRUE;
-
+#endif /* (!CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265) */
+    UNUSED(pstVencChnAttr);
+    UNUSED(stVencChnAttr);
     return CVI_FALSE;
 }
 
@@ -325,8 +331,10 @@ static void uvc_media_update(struct uvc_device_info* info)
     }
 
     if (u8VencInitStatus == 1) {
+#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
         MEDAI_VIDEO_VencChnDeinit(pstVencCfg, info->video.venc_channel);
         printf("venc chn %d deinit\n", info->video.venc_channel);
+#endif
     }
 
 #if CONFIG_UVC_CROP_BEFORE_SCALE
@@ -381,13 +389,16 @@ static void uvc_media_update(struct uvc_device_info* info)
     if (MJPEG_FORMAT_INDEX == uvc_format_info.format_index
         || H264_FORMAT_INDEX == uvc_format_info.format_index
         || H265_FORMAT_INDEX == uvc_format_info.format_index) {
+#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
         MEDIA_VIDEO_VencChnInit(pstVencCfg, info->video.venc_channel);
         printf("venc chn %d init\n", info->video.venc_channel);
 
         stRecvParam.s32RecvPicNum = -1;
         CVI_VENC_StartRecvFrame(info->video.venc_channel, &stRecvParam);
         pstVencCfg->pstVencChnCfg[info->video.venc_channel].stChnParam.u8InitStatus = 1;
+#endif
     }
+    UNUSED(stRecvParam);
 }
 
 struct uvc_device_info* uvc_container_of_ep(uint8_t ep)
@@ -565,7 +576,7 @@ static uvc_video_control_callbacks_t uvc_video_control_callbks = {
     .uvc_vc_extension_unit_handler  = usbd_vc_extension_unit_request_handler,
 };
 
-static void vedio_streaming_send(struct uvc_device_info* uvc, int dev_index)
+static void video_streaming_send(struct uvc_device_info* uvc, int dev_index)
 {
     int i, ret = 0;
     uint32_t data_len = 0;
@@ -589,6 +600,7 @@ static void vedio_streaming_send(struct uvc_device_info* uvc, int dev_index)
     case H264_FORMAT_INDEX:
     case H265_FORMAT_INDEX:
     case MJPEG_FORMAT_INDEX:
+#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
         ret = MEDIA_VIDEO_VencGetStream(uvc->video.venc_channel, pstStream, 2000);
         if (ret != CVI_SUCCESS) {
             aos_msleep(1);
@@ -611,6 +623,9 @@ static void vedio_streaming_send(struct uvc_device_info* uvc, int dev_index)
         ret = MEDIA_VIDEO_VencReleaseStream(uvc->video.venc_channel, pstStream);
         if (ret != CVI_SUCCESS)
             printf("MEDIA_VIDEO_VencReleaseStream failed\n");
+#endif /* (!CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265) */
+        UNUSED(ppack);
+        UNUSED(pstStream);
         break;
     case YUYV_FORMAT_INDEX:
         ret =
@@ -719,7 +734,7 @@ static void* send_to_uvc(void* arg)
         }
 
         if (uvc[dev_index].streaming_on) {
-            vedio_streaming_send(&uvc[dev_index], dev_index);
+            video_streaming_send(&uvc[dev_index], dev_index);
         } else {
             aos_msleep(1);
         }

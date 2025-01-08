@@ -51,7 +51,13 @@ else
     PRODUCT=product
 fi
 
-MK_SOLUTION_PARTITION_NAME=$(echo ${MK_OPTARG} | grep "CONFIG_CUSTOM_PARTITION_NAME" | awk -F: '{print $2}')
+LAST_PART=$(basename "$MK_SOLUTION_PATH")
+if [ "$LAST_PART" = "sophpi" ] || [ "$LAST_PART" = "ipc" ]; then
+    MK_SOLUTION_PARTITION_NAME="emmc"
+else
+    MK_SOLUTION_PARTITION_NAME=$(echo ${MK_OPTARG} | grep "CONFIG_CUSTOM_PARTITION_NAME" | awk -F: '{print $2}')
+fi
+
 MK_GENERATED_PATH=${MK_SOLUTION_PATH}/generated
 MK_PROJECT_PATH=$MK_SOLUTION_PATH/customization/$PROJECT
 rm -fr $MK_GENERATED_PATH

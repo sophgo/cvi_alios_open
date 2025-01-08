@@ -1,3 +1,5 @@
+#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
+
 #ifndef __ENC_CTX_H__
 #define __ENC_CTX_H__
 
@@ -63,4 +65,6 @@ typedef struct _venc_enc_ctx {
 
 CVI_S32 venc_create_enc_ctx(venc_enc_ctx *pEncCtx, CVI_VOID *pchnctx);
 
-#endif
+#endif /* __ENC_CTX_H__ */
+
+#endif /* (!CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265) */

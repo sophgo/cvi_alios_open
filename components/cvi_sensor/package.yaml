@@ -95,6 +95,7 @@ build_config:
     - gcore_gc2053_1L
     - gcore_gc2093
     - gcore_gc2083_1L
+    - gcore_gc2083
     - gcore_gc3003
     - gcore_gc4653
     - opnous_opn8018
@@ -133,6 +134,8 @@ build_config:
     - ov_og01a1b
     - ov_ov02b10
     - ov_ov02b10_multi
+    - ov_ov02b10_slave
+    - ov_os04a10
     - cista_c2599
     - cvsens_cv2003
     - ov_ov9732
@@ -153,6 +156,7 @@ source_file:
   - gcore_gc2053_1L/*.c ? <CONFIG_SENSOR_GCORE_GC2053_1L>
   - gcore_gc2093/*.c ? <CONFIG_SENSOR_GCORE_GC2093>
   - gcore_gc2083_1L/*.c ? <CONFIG_SENSOR_GCORE_GC2083_1L>
+  - gcore_gc2083/*.c ? <CONFIG_SENSOR_GCORE_GC2083>
   - gcore_gc3003/*.c ? <CONFIG_SENSOR_GCORE_GC3003>
   - gcore_gc4653/*.c ? <CONFIG_SENSOR_GCORE_GC4653>
   - opnous_opn8018/*.c ? <CONFIG_SENSOR_OPNOUS_OPN8018>
@@ -191,6 +195,8 @@ source_file:
   - ov_og01a1b/*.c ? <CONFIG_SENSOR_OV_OG01A1B>
   - ov_ov02b10/*.c ? <CONFIG_SENSOR_OV_OV02B10>
   - ov_ov02b10_multi/*.c ? <CONFIG_SENSOR_OV_OV02B10_MULTI>
+  - ov_ov02b10_slave/*.c ? <CONFIG_SENSOR_OV_OV02B10_SLAVE>
+  - ov_os04a10/*.c ? <CONFIG_SENSOR_OV_OS04A10>
   - cista_c2599/*.c ? <CONFIG_SENSOR_CISTA_C2599>
   - cvsens_cv2003/*.c ? <CONFIG_SENSOR_CVSENS_CV2003>
   - ov_ov9732/*.c ? <CONFIG_SENSOR_OV_OV9732>

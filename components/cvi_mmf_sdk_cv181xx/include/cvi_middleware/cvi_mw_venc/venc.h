@@ -1,3 +1,5 @@
+#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
+
 #ifndef __VENC_H__
 #define __VENC_H__
 
@@ -10,6 +12,7 @@
 #include "cvi_comm_venc.h"
 #include "enc_ctx.h"
 #include "cvi_jpg_interface.h"
+#include "cvi_h265_interface.h"
 #include "cvi_pthread.h"
 
 
@@ -239,3 +242,4 @@ typedef struct _proc_debug_config_t {
 } proc_debug_config_t;
 #endif
 
+#endif /* (!CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265) */

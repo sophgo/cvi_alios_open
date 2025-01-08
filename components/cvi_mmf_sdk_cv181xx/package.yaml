@@ -9,60 +9,45 @@ license: Copyright (C) Cvitek Co., Ltd. 2019-2020. All rights reserved.
 build_config:
   include:
     - include
-    - include/cvi_miniz/include/cvi_miniz
-    - include/cvi_miniz/include/
-    - include/cvi_json_c/include/cvi_json_c
-    - include/cvi_json_c/include/
-    - include/tdl_sdk/include/
-    - include/cvi_middleware/include/cvi_mw_isp_bin
-    - include/cvi_middleware/include/cvi_mw_isp_algo
-    - include/cvi_middleware/include/cvi_mw_audio
-    - include/cvi_middleware/include/cvi_mw_vdec
+    - include/cvi_miniz/include
+    - include/cvi_miniz/cvi_miniz
+    - include/cvi_miniz
+    - include/cvi_json_c/include
+    - include/cvi_json_c/cvi_json_c
+    - include/cvi_json_c
+    - include/tdl_sdk/include
+    - include/tdl_sdk
+    - include/cvi_middleware/cvi_mw_isp_bin
+    - include/cvi_middleware/cvi_mw_isp_algo
+    - include/cvi_middleware/cvi_mw_audio
     - include/cvi_middleware/include/isp/cv181x
     - include/cvi_middleware/include/isp
-    - include/cvi_middleware/include/cvi_mw_mipi_tx
-    - include/cvi_middleware/include/cvi_mw_sys
-    - include/cvi_middleware/include/cvi_mw_isp_ae
-    - include/cvi_middleware/include/cvi_mw_isp_awb
-    - include/cvi_middleware/include/cvi_mw_venc
-    - include/cvi_middleware/include/cvi_mw_ive
-    - include/cvi_middleware/include/cvi_mw_isp_daemon
-    - include/cvi_middleware/include/cvi_mw_bin
-    - include/cvi_middleware/include/cvi_mw_isp
-    - include/cvi_middleware/include/cvi_mw_isp_af
     - include/cvi_middleware/include/panel
-    - include/cvi_middleware/include/cvi_mw_isp_com_raw_dump
-    - include/cvi_middleware/include/cvi_mw_vpu
-    - include/cvi_middleware/include/cvi_mw_isp_com_raw_replay
-    - include/cvi_middleware/include/cvi_mw_rgn
-    - include/cvi_middleware/include/
-    - include/cvi_tpu/include/
+    - include/cvi_middleware/include
+    - include/cvi_middleware/cvi_mw_vdec
+    - include/cvi_middleware/cvi_mw_mipi_tx
+    - include/cvi_middleware/cvi_mw_sys
+    - include/cvi_middleware/cvi_mw_isp_ae
+    - include/cvi_middleware/cvi_mw_isp_awb
+    - include/cvi_middleware/cvi_mw_venc
+    - include/cvi_middleware/cvi_mw_ive
+    - include/cvi_middleware/cvi_mw_isp_daemon
+    - include/cvi_middleware/cvi_mw_bin
+    - include/cvi_middleware/cvi_mw_isp
+    - include/cvi_middleware/cvi_mw_isp_af
+    - include/cvi_middleware/cvi_mw_isp_com_raw_dump
+    - include/cvi_middleware/cvi_mw_vpu
+    - include/cvi_middleware/cvi_mw_isp_com_raw_replay
+    - include/cvi_middleware/cvi_mw_rgn
+    - include/cvi_middleware
+    - include/cvi_tpu/include
+    - include/cvi_tpu
     - include/cvi_miniz/include
     - include/cvi_json_c/include
     - include/tdl_sdk/include
     - include/cvi_osdrv/include
     - include/cvi_middleware/include
     - include/cvi_tpu/include
-    - include/cvi_miniz/include/cvi_miniz
-    - include/cvi_json_c/include/cvi_json_c
-    - include/cvi_middleware/include/cvi_mw_isp_bin
-    - include/cvi_middleware/include/cvi_mw_isp_algo
-    - include/cvi_middleware/include/cvi_mw_audio
-    - include/cvi_middleware/include/cvi_mw_vdec
-    - include/cvi_middleware/include/cvi_mw_mipi_tx
-    - include/cvi_middleware/include/cvi_mw_sys
-    - include/cvi_middleware/include/cvi_mw_isp_ae
-    - include/cvi_middleware/include/cvi_mw_isp_awb
-    - include/cvi_middleware/include/cvi_mw_venc
-    - include/cvi_middleware/include/cvi_mw_ive
-    - include/cvi_middleware/include/cvi_mw_isp_daemon
-    - include/cvi_middleware/include/cvi_mw_bin
-    - include/cvi_middleware/include/cvi_mw_isp
-    - include/cvi_middleware/include/cvi_mw_isp_af
-    - include/cvi_middleware/include/cvi_mw_isp_com_raw_dump
-    - include/cvi_middleware/include/cvi_mw_isp_com_raw_replay
-    - include/cvi_middleware/include/cvi_mw_vpu
-    - include/cvi_middleware/include/cvi_mw_rgn
     - include/cvi_osdrv/include/common/kapi
     - include/cvi_osdrv/include/chip/<CVI_SOC_NAME>/uapi
     - include/cvi_osdrv/include/common/uapi

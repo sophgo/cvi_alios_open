@@ -22,6 +22,7 @@ extern "C" {
 #define RGN_COLOR_LUT_NUM 2
 #define RGN_BATCHHANDLE_MAX 24
 #define RGN_INVALID_HANDLE (-1U)
+#define RGN_CMPR_MIN_SIZE 128000
 
 typedef CVI_U32 RGN_HANDLE;
 typedef CVI_U32 RGN_HANDLEGROUP;
@@ -241,6 +242,50 @@ typedef struct _RGN_CHN_ATTR_S {
 	RGN_CHN_ATTR_U unChnAttr;
 } RGN_CHN_ATTR_S;
 
+typedef enum _RGN_CMPR_TYPE_E {
+	RGN_CMPR_RECT = 0,
+	RGN_CMPR_BIT_MAP,
+	RGN_CMPR_LINE,
+	RGN_CMPR_BUTT
+} RGN_CMPR_TYPE_E;
+
+typedef struct _RGN_LINE_ATTR_S {
+	POINT_S stPointStart;
+	POINT_S stPointEnd;
+	CVI_U32 u32Thick;
+	CVI_U32 u32Color;
+} RGN_LINE_ATTR_S;
+
+typedef struct _RGN_RECT_ATTR_S {
+	RECT_S stRect;
+	CVI_U32 u32Thick;
+	CVI_U32 u32Color;
+	CVI_U32 u32IsFill;
+} RGN_RECT_ATTR_S;
+
+typedef struct _RGN_BITMAP_ATTR_S {
+	RECT_S stRect;
+	CVI_U32 u32BitmapPAddr;
+} RGN_BITMAP_ATTR_S;
+
+typedef struct _RGN_CMPR_OBJ_ATTR_S {
+	RGN_CMPR_TYPE_E enObjType;
+	union {
+		RGN_LINE_ATTR_S stLine;
+		RGN_RECT_ATTR_S stRgnRect;
+		RGN_BITMAP_ATTR_S stBitmap;
+	};
+} RGN_CMPR_OBJ_ATTR_S;
+
+typedef struct _RGN_CANVAS_CMPR_ATTR_S {
+	CVI_U32 u32Width;
+	CVI_U32 u32Height;
+	CVI_U32 u32BgColor;
+	PIXEL_FORMAT_E enPixelFormat;
+	CVI_U32 u32BsSize;
+	CVI_U32 u32ObjNum;
+} RGN_CANVAS_CMPR_ATTR_S;
+
 typedef struct _RGN_CANVAS_INFO_S {
 	CVI_U64 u64PhyAddr;
 	CVI_U8 *pu8VirtAddr;
@@ -252,6 +297,14 @@ typedef struct _RGN_CANVAS_INFO_S {
 	PIXEL_FORMAT_E enPixelFormat;
 	CVI_BOOL bCompressed;
 	CVI_U32 u32CompressedSize;
+	RGN_CANVAS_CMPR_ATTR_S *pstCanvasCmprAttr;
+#ifdef __arm__
+	CVI_U32 u32CanvasCmprAttrPadding; /* padding for keeping same size of this structure */
+#endif
+	RGN_CMPR_OBJ_ATTR_S *pstObjAttr;
+#ifdef __arm__
+	CVI_U32 u32ObjAttrPadding; /* padding for keeping same size of this structure */
+#endif
 } RGN_CANVAS_INFO_S;
 
 typedef struct _RGN_COMPONENT_INFO_S {

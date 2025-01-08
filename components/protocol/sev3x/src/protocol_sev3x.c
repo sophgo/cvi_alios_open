@@ -155,7 +155,6 @@ static void* protocol_service_req(void* args)
     static unsigned short rx_in = 0;
     unsigned short offset       = 0;
     unsigned short rx_value_len = 0;  // 数据帧长度
-
     DEBUG_PRINT("rx_in = %d\n", rx_in);
 
     while (1) {
@@ -484,26 +483,26 @@ static void msg_reply_verify(MR_STATUS_E result, s_msg_reply_verify_data* ret_ms
 
 static void msg_reply_face_state(s_note_data_face* ret_msg)
 {
-    g_potocol_tx_buf[HEAD_FIRST]      = 0xEF;
-    g_potocol_tx_buf[HEAD_SECOND]     = 0xAA;
-    g_potocol_tx_buf[MSG_ID]          = MID_NOTE;
+    g_potocol_tx_buf[HEAD_FIRST]  = 0xEF;
+    g_potocol_tx_buf[HEAD_SECOND] = 0xAA;
+    g_potocol_tx_buf[MSG_ID]      = MID_NOTE;
     /* SIZE */
-    g_potocol_tx_buf[LENGTH_HIGH]     = 0x00;
-    g_potocol_tx_buf[LENGTH_LOW]      = 0x11;
+    g_potocol_tx_buf[LENGTH_HIGH] = 0x00;
+    g_potocol_tx_buf[LENGTH_LOW]  = 0x11;
     /* DATA */
-    g_potocol_tx_buf[DATA_START]      = NID_FACE_STATE;
+    g_potocol_tx_buf[DATA_START] = NID_FACE_STATE;
     /* state */
-    g_potocol_tx_buf[DATA_START + 1]  = ret_msg->left & 0xff;
-    g_potocol_tx_buf[DATA_START + 2]  = ret_msg->left >> 8;
+    g_potocol_tx_buf[DATA_START + 1] = ret_msg->left & 0xff;
+    g_potocol_tx_buf[DATA_START + 2] = ret_msg->left >> 8;
     /* left */
-    g_potocol_tx_buf[DATA_START + 3]  = ret_msg->left & 0xff;
-    g_potocol_tx_buf[DATA_START + 4]  = ret_msg->left >> 8;
+    g_potocol_tx_buf[DATA_START + 3] = ret_msg->left & 0xff;
+    g_potocol_tx_buf[DATA_START + 4] = ret_msg->left >> 8;
     /* top */
-    g_potocol_tx_buf[DATA_START + 5]  = ret_msg->top & 0xff;
-    g_potocol_tx_buf[DATA_START + 6]  = ret_msg->top >> 8;
+    g_potocol_tx_buf[DATA_START + 5] = ret_msg->top & 0xff;
+    g_potocol_tx_buf[DATA_START + 6] = ret_msg->top >> 8;
     /* right */
-    g_potocol_tx_buf[DATA_START + 7]  = ret_msg->right & 0xff;
-    g_potocol_tx_buf[DATA_START + 8]  = ret_msg->right >> 8;
+    g_potocol_tx_buf[DATA_START + 7] = ret_msg->right & 0xff;
+    g_potocol_tx_buf[DATA_START + 8] = ret_msg->right >> 8;
     /* bottom */
     g_potocol_tx_buf[DATA_START + 9]  = ret_msg->bottom & 0xff;
     g_potocol_tx_buf[DATA_START + 10] = ret_msg->bottom >> 8;
@@ -1443,6 +1442,20 @@ static void do_mid_write_license(void)
     msg_reply_write_license(result);
 }
 
+static void do_mid_capture_image(void)
+{
+    MR_STATUS_E result = MR_FAILED4_UNKNOWNREASON;
+    uint8_t rgb_num    = g_potocol_rx_buf[DATA_START];
+    uint8_t ir_num     = g_potocol_rx_buf[DATA_START + 1];
+    if (NULL != g_protocol_handles.set_image_num) {
+        result = g_protocol_handles.set_image_num(rgb_num, ir_num);
+    } else {
+        result = MR_FAILED4_UNKNOWNREASON;
+        printf("set_image_num is NULL!\n");
+    }
+    printf("do_mid_get_dumpimage result = %d\n", result);
+}
+
 /**
  * @brief 设置加密规则, 加密功能在协议层实现，不提供接口给应用层
  *
@@ -1679,6 +1692,7 @@ void register_protocol_handles(protocol_handles_t* handles)
     g_protocol_handles.demo_mode           = handles->demo_mode;
     g_protocol_handles.get_hardware        = handles->get_hardware;
     g_protocol_handles.write_license       = handles->write_license;
+    g_protocol_handles.set_image_num       = handles->set_image_num;
 }
 
 /*****************************************************************************
@@ -1800,7 +1814,9 @@ static void protocol_data_handle(unsigned short offset)
     case CVI_MID_WRITE_LICENSE:
         do_mid_write_license();
         break;
-
+    case CVI_MID_CAPTURE_IMAGE:
+        do_mid_capture_image();
+        break;
     default:
         break;
     }

@@ -1,3 +1,5 @@
+#if !CONFIG_DISABLE_VDEC
+
 #include "board.h"
 #include <aos/aos.h>
 #include <aos/kernel.h>
@@ -284,7 +286,7 @@ static CVI_VOID* vdec_streamproc(CVI_VOID *pArgs)
 		} else {
 			CVI_VDEC_ERR("cannot support format\n");
 		}
-		
+
 		stStream.u64PTS = u64PTS;
 		stStream.pu8Addr = pu8Buf + u32Start;
 		stStream.u32Len = s32ReadLen;
@@ -374,3 +376,4 @@ void start_vdec(int32_t argc, char **argv)
 ALIOS_CLI_CMD_REGISTER(start_vdec, start_vdec, start vdec);
 #endif
 
+#endif  /* (!CONFIG_DISABLE_VDEC) */

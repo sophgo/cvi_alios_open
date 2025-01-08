@@ -60,7 +60,10 @@
 #include "vfs.h"
 #endif
 
+#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
 static PARAM_VENC_CFG_S *g_pstVencCfg = NULL;
+#endif
+
 static int g_mediaVideoRunStatus = 0;
 
 static int start_isp(ISP_PUB_ATTR_S stPubAttr, VI_PIPE ViPipe)
@@ -848,7 +851,10 @@ int MEDIA_VIDEO_SysInit()
     cvi_cif_init();
     cvi_snsr_i2c_probe();
     vi_core_init();
+#if !defined(CONFIG_VPSS_SUPPORT) || (CONFIG_VPSS_SUPPORT == 1)
     vpss_core_init();
+#endif
+
 #if (CONFIG_APP_VO_SUPPORT)
     vo_core_init();
 #endif
@@ -1268,7 +1274,7 @@ static int _MEDIA_VIDEO_VoDeinit()
 }
 
 
-
+#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
 int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
 {
     VENC_CHN_ATTR_S stAttr = {0};
@@ -1740,6 +1746,7 @@ int MEDIA_VIDEO_VencRequstIDR(int VencChn)
 {
     return CVI_VENC_RequestIDR(VencChn,0);
 }
+#endif /* (!CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265) */
 
 #if CONFIG_BOOT_FREQ_HIGHER
 void efuse_bootFreqHigher()
@@ -1812,7 +1819,11 @@ static int _MEDIA_VIDEO_Step2Init()
 #if (CONFIG_APP_GUI_SUPPORT == 1)
     GUI_Display_Start();
 #endif
+
+#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
     MEDIA_CHECK_RET(_MEDIA_VIDEO_VencInit(),"MEDIA_VIDEO_VencInit failed");
+#endif
+
 #if (CONFIG_APP_AI_SUPPORT == 1)
     APP_AiStart();
 #endif
@@ -1844,7 +1855,11 @@ int MEDIA_VIDEO_Deinit()
 #if (CONFIG_APP_AI_SUPPORT == 1)
     APP_AiStop();
 #endif
+
+#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
     MEDIA_CHECK_RET(_MEDIA_VIDEO_VencDeInit(),"MEDIA_VIDEO_VencDeInit failed");
+#endif
+
     MEDIA_CHECK_RET(_MEDIA_VIDEO_VoDeinit(),"MEDIA_VIDEO_VoDeinit failed");
     MEDIA_CHECK_RET(_MEDIA_VIDEO_VpssDeinit(),"MEDIA_VIDEO_VpssDeinit failed");
     MEDIA_CHECK_RET(_MEDIA_VIDEO_ViDeInit(),"MEDIA_VIDEO_ViDeInit failed");

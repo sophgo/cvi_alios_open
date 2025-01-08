@@ -140,6 +140,10 @@ ISP_SNS_OBJ_S *getSnsObj(SNS_TYPE_E enSnsType)
 	case GCORE_GC2083_1L_MIPI_2M_30FPS_10BIT:
 		return &stSnsGc2083_1L_Obj;
 #endif
+#if CONFIG_SENSOR_GCORE_GC2083
+	case GCORE_GC2083_MIPI_2M_30FPS_10BIT:
+		return &stSnsGc2083_Obj;
+#endif
 #if CONFIG_SENSOR_GCORE_GC3003
 	case GCORE_GC3003_MIPI_3M_30FPS_10BIT:
 		return &stSnsGc3003_Obj;
@@ -299,6 +303,14 @@ ISP_SNS_OBJ_S *getSnsObj(SNS_TYPE_E enSnsType)
     case OV_OV02B10_MULTI_MIPI_2M_30FPS_10BIT:
         return &stSnsOv02b10_multi_Obj;
 #endif
+#if CONFIG_SENSOR_OV_OV02B10_SLAVE
+	case OV_OV02B10_SLAVE_MIPI_600P_30FPS_10BIT:
+        return &stSnsOv02b10_slave_Obj;
+#endif
+#if CONFIG_SENSOR_OV_OS04A10
+    case OV_OS04A10_MIPI_4M_1440P_30FPS_12BIT:
+        return &stSnsOs04a10_Obj;
+#endif
 #if CONFIG_SENSOR_CISTA_C2599
 	case CISTA_C2599_MIPI_1200P_30FPS_10BIT:
 		return &stSnsC2599_Obj;
@@ -356,6 +368,10 @@ CVI_S32 getPicSize(CVI_S32 dev_id, SNS_SIZE_S *pstSize)
 	sensor_type = get_sensor_type(dev_id);
 
 	switch (sensor_type) {
+    case OV_OS04A10_MIPI_4M_1440P_30FPS_12BIT:
+        pstSize->u32Width  = 2560;
+        pstSize->u32Height = 1440;
+        break;
 	case SMS_SC530AI_4L_MIPI_4M_30FPS_10BIT:
 		pstSize->u32Width = 2880;
 		pstSize->u32Height = 1620;
@@ -391,6 +407,7 @@ CVI_S32 getPicSize(CVI_S32 dev_id, SNS_SIZE_S *pstSize)
 	case GCORE_GC02M1_MIPI_600P_30FPS_10BIT:
 	case GCORE_GC02M1_SLAVE_MIPI_600P_30FPS_10BIT:
 	case OV_OV02B10_MIPI_600P_30FPS_10BIT:
+	case OV_OV02B10_SLAVE_MIPI_600P_30FPS_10BIT:
     case SPIX_SP2509_MIPI_600P_45FPS_10BIT:
     case SPIX_SP2509_MULTI_MIPI_600P_45FPS_10BIT:
         pstSize->u32Width  = 800;
@@ -482,6 +499,7 @@ CVI_S32 getDevAttr(VI_DEV ViDev, VI_DEV_ATTR_S *pstViDevAttr)
 	case GCORE_GC3003_MIPI_3M_30FPS_10BIT:
 	case BYD_BF314A_MIPI_720P_30FPS_10BIT:
 	case GCORE_GC2083_1L_MIPI_2M_30FPS_10BIT:
+	case GCORE_GC2083_MIPI_2M_30FPS_10BIT:
 	case CVSENS_CV2003_MIPI_2M_1080P_30FPS_10BIT:
 		pstViDevAttr->enBayerFormat = BAYER_FORMAT_RG;
 		break;

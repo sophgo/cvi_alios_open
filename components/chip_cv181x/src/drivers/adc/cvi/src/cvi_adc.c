@@ -7,10 +7,25 @@
 #include <drv/cvi_irq.h>
 #include <drv/tick.h>
 #include "cvi_adc.h"
+#include "mmio.h"
+#include <stdint.h>
+#include <soc.h>
+#include <csi_core.h>
+#include <csi_config.h>
 
 #define ADC_FREQ_DEFAULT 25000000
 #define DEFUALT_CVI_ADC_OPERATION_TIMEOUT    1000000U   // 1 second
 #define MAX_CHANNEL_NUM                      3U
+
+#define EFUSE_ADC_TRIM_REG 0x18
+#define TOP_ADC_TRIM_MASK 0xf0000000
+#define TOP_ADC_TRIM_OFFSET 28
+#define RTC_ADC_TRIM_MASK 0x0f000000
+#define RTC_ADC_TRIM_OFFSET 24
+#define EFUSE_BASE      0x03050000
+#define EFUSE_FTSN0     0x100
+
+#define TRIM	  0x34
 
 // static void cvi_adc_all_channel_done_irq(cvi_adc_t *adc)
 // {
@@ -31,6 +46,40 @@
 //         }
 //     }
 // }
+static inline void __iomem *get_top_domain_adc(void)
+{
+	return (void __iomem *)0x030F0000;
+}
+
+static inline void __iomem *get_rtc_domain_adc(void)
+{
+	return (void __iomem *)0x0502C000;
+}
+
+void cvi_adc_trim(cvi_adc_t *adc)
+{
+	u32 top_trim, rtc_trim;
+	u32 efuse_value;
+
+	//unsigned reg_base = GET_DEV_REG_BASE(adc);
+
+	efuse_value = mmio_read_32(EFUSE_BASE + EFUSE_FTSN0 + (EFUSE_ADC_TRIM_REG));
+	printf("0x%x\n", efuse_value);
+
+	top_trim = (efuse_value & TOP_ADC_TRIM_MASK) >> TOP_ADC_TRIM_OFFSET;
+	rtc_trim = (efuse_value & RTC_ADC_TRIM_MASK) >> RTC_ADC_TRIM_OFFSET;
+
+	printf("Setting top_trim: 0x%x, rtc_trim: 0x%x\n", top_trim,
+		 rtc_trim);
+
+	writel(top_trim, get_top_domain_adc() + TRIM);
+	writel(rtc_trim, get_rtc_domain_adc() + TRIM);
+	printf("Getting top_trim: 0x%x, rtc_trim: 0x%x\n",
+		 readl(get_top_domain_adc() + TRIM) & 0xf,
+		 readl(get_rtc_domain_adc() + TRIM) & 0xf);
+
+	pr_err("adc trim ok!\n");
+}
 
 static void cvi_adc_irqhandler(unsigned int irqn, void *args)
 {
@@ -111,7 +160,8 @@ cvi_error_t cvi_adc_init(cvi_adc_t *adc)
 
 	if (reg_base)
 	{
-		pr_debug("adc init ok! reg_base: 0x%x, bank: %d, irq_num: %d\n", reg_base, GET_DEV_IDX(adc), irqn);
+		pr_err("adc init ok! reg_base: 0x%x, bank: %d, irq_num: %d\n", reg_base, GET_DEV_IDX(adc), irqn);
+        cvi_adc_sampling_time(adc, 0xf); // set smpling cycle 640ns
 		return CVI_OK;
 	}
 	else

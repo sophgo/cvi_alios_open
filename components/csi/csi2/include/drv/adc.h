@@ -59,6 +59,8 @@ csi_error_t csi_adc_init(csi_adc_t *adc, uint32_t idx);
 */
 void csi_adc_uninit(csi_adc_t *adc);
 
+void csi_adc_trim(csi_adc_t *adc);
+
 /**
   \brief       Set adc receive buffer
   \param[in]   adc    ADC handle to operate
