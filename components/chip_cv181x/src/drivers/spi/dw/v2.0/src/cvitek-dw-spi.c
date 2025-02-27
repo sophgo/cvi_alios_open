@@ -1,8 +1,12 @@
 /*
 * Copyright (C) Cvitek Co., Ltd. 2019-2020. All rights reserved.
 */
+#include <errno.h>
+#include <string.h>
 #include "cvitek-dw-spi.h"
 #include "drv/spi.h"
+
+extern void udelay(uint32_t us);
 
 /* Restart the controller, disable all interrupts, clean rx fifo */
 void spi_hw_init(struct dw_spi *dws)
@@ -44,7 +48,7 @@ static inline uint32_t tx_max(struct dw_spi *dws)
 {
 	uint32_t tx_left, tx_room, rxtx_gap, temp;
 	cpu_relax();
-	tx_left = (dws->tx_end - dws->tx) / dws->n_bytes;
+	tx_left = dws->tx_len;
 	tx_room = dws->fifo_len - dw_readl(dws, DW_SPI_TXFLR);
 
 	/*
@@ -59,8 +63,8 @@ static inline uint32_t tx_max(struct dw_spi *dws)
 	spi_debug("tx left: %#x, tx room: %#x\n", tx_left, tx_room);
 	if (dws->rx != NULL && dws->tx != NULL) {
 		cpu_relax();
-		rxtx_gap =  ((dws->rx_end - dws->rx) - (dws->tx_end - dws->tx)) / dws->n_bytes;
-		temp = min3(tx_left, tx_room, (uint32_t) (dws->fifo_len - rxtx_gap));
+		rxtx_gap =  dws->fifo_len - (dws->rx_len - dws->tx_len);
+		temp = min3(tx_left, tx_room, (uint32_t)(rxtx_gap));
 	} else {
 		temp = tx_left < tx_room ? tx_left : tx_room;
 	}
@@ -76,9 +80,8 @@ void dw_writer(struct dw_spi *dws)
 
 	max = tx_max(dws);
 	spi_debug("max: %#x \n", max);
-	while (max) {
-		/* Set the tx word if the transfer's original "tx" is not null */
-		if (dws->tx_end - dws->len) {
+	while (max--) {
+		if (dws->tx) {
 			if (dws->n_bytes == 1)
 				txw = *(uint8_t *)(dws->tx);
 			else
@@ -86,19 +89,50 @@ void dw_writer(struct dw_spi *dws)
 		}
 		dw_writel(dws, DW_SPI_DR, txw);
 		dws->tx += dws->n_bytes;
-		max--;
+		--dws->tx_len;
 	}
 }
 
 static inline uint32_t rx_max(struct dw_spi *dws)
 {
 	uint32_t temp;
-	uint32_t rx_left = (dws->rx_end - dws->rx) / dws->n_bytes;
+	uint32_t rx_left = dws->rx_len;
 	uint32_t data_in_fifo = dw_readl(dws, DW_SPI_RXFLR);
 
 	temp = (rx_left < data_in_fifo ? rx_left : data_in_fifo);
 	spi_debug("temp: %u\n", temp);
 	return temp;
+}
+
+int dw_spi_check_status(struct dw_spi *dws, bool raw)
+{
+        uint32_t irq_status;
+        int ret = 0;
+
+        if (raw)
+                irq_status = dw_readl(dws, DW_SPI_RISR);
+        else
+                irq_status = dw_readl(dws, DW_SPI_ISR);
+
+        if (irq_status & SPI_INT_RXOI) {
+                printf("RX FIFO overflow detected\n");
+                ret = -1;
+        }
+
+        if (irq_status & SPI_INT_RXUI) {
+                printf("RX FIFO underflow detected\n");
+                ret = -1;
+        }
+
+        if (irq_status & SPI_INT_TXOI) {
+                printf("TX FIFO overflow detected\n");
+                ret = -1;
+        }
+
+	if (ret)
+		spi_reset_chip(dws);
+
+	return ret;
 }
 
 void dw_reader(struct dw_spi *dws)
@@ -108,43 +142,105 @@ void dw_reader(struct dw_spi *dws)
 
 	max = rx_max(dws);
 	spi_debug("max: %#x \n", max);
-	while (max) {
+	while (max--) {
 		rxw = dw_readl(dws, DW_SPI_DR);
 		/* Care rx only if the transfer's original "rx" is not null */
-		if (dws->rx_end - dws->len) {
+		if (dws->rx) {
 			if (dws->n_bytes == 1)
 				*(uint8_t *)(dws->rx) = rxw;
 			else
 				*(uint16_t *)(dws->rx) = rxw;
-		}
 		dws->rx += dws->n_bytes;
-		max--;
+		}
+		--dws->rx_len;
 	}
+}
+
+int spi_delay_to_ns(struct spi_delay *_delay, struct dw_spi *dws)
+{
+	u32 delay = _delay->value;
+	u32 unit = _delay->unit;
+	u32 hz;
+
+	if (!delay)
+		return 0;
+
+	switch (unit) {
+		case SPI_DELAY_UNIT_USECS:
+			delay *= 1000;
+			break;
+		case SPI_DELAY_UNIT_NSECS: /* nothing to do here */
+			break;
+		case SPI_DELAY_UNIT_SCK:
+			/* clock cycles need to be obtained from spi_transfer */
+			if (!dws)
+				return -1;
+			/* if there is no effective speed know, then approximate
+			 * by underestimating with half the requested hz
+			 */
+			hz = dws->speed_hz / 2;
+			if (!hz)
+				return -1;
+			delay *= DIV_ROUND_UP(1000000000, hz);
+			break;
+		default:
+			return -EINVAL;
+	}
+
+	return delay;
+}
+
+static void _spi_transfer_delay_ns(u32 ns)
+{
+        if (!ns)
+                return;
+        if (ns <= 1000) {
+		udelay(1);
+        } else {
+                u32 us = DIV_ROUND_UP(ns, 1000);
+                udelay(us);
+        }
+}
+
+int spi_delay_exec(struct spi_delay *_delay, struct dw_spi *dws)
+{
+        int delay;
+
+        //might_sleep();
+
+        if (!_delay)
+                return -1;
+
+        delay = spi_delay_to_ns(_delay, dws);
+        if (delay < 0)
+                return delay;
+
+        _spi_transfer_delay_ns(delay);
+
+        return 0;
 }
 
 int poll_transfer(struct dw_spi *dws)
 {
-	uint32_t end = 0;
+	struct spi_delay delay;
+	uint16_t nbits;
+	delay.unit = SPI_DELAY_UNIT_SCK;
+	nbits = dws->n_bytes * BITS_PER_BYTE;
+	int ret = 0;
+
 	do {
-		if (dws->tx != NULL) {
-			dw_writer(dws);
-			cpu_relax();
-			end = dws->tx_end - dws->tx;
-		}
+		dw_writer(dws);
+		cpu_relax();
 
-		if (dws->rx != NULL) {
-			dw_reader(dws);
-			cpu_relax();
-			end = dws->tx_end - dws->tx;
-		}
-
-		if (dws->rx != NULL && dws->tx != NULL) {
-			cpu_relax();
-			end = dws->rx_end - dws->rx;
-		}
-
-	} while (end);
-	while(!(spi_get_status(dws) & 0x4));
+		delay.value = nbits * (dws->rx_len - dws->tx_len);
+		spi_delay_exec(&delay, dws);
+		//udelay(600);
+		dw_reader(dws);
+		cpu_relax();
+		ret = dw_spi_check_status(dws, true);
+		if (ret)
+			return ret;
+	} while (dws->rx_len && dws->tx_len);
 	return 0;
 }
 
@@ -212,16 +308,17 @@ void dw_spi_set_polarity_and_phase(struct dw_spi *dws, csi_spi_cp_format_t forma
 	dw_writel(dws, DW_SPI_CTRLR0, reg);
 }
 
-#define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
-void dw_spi_set_clock(struct dw_spi *dws, uint32_t clock_in, uint32_t clock_out)
+uint32_t dw_spi_set_clock(struct dw_spi *dws, uint32_t clock_in, uint32_t clock_out)
 {
 	uint16_t div;
 
 	spi_debug("clock_in: %u, clock_out: %u\n", clock_in, clock_in);
 
 	div = (DIV_ROUND_UP(clock_in, clock_out) + 1) & 0xfffe;
-	spi_debug("clk div value is: 0x%x\n", div);
+	dws->speed_hz = clock_in / div;
+	spi_debug("clk div value is: %u, hz:%u\n", div, dws->speed_hz);
 	spi_set_clk(dws, div);
+	return dws->speed_hz;
 }
 
 int dw_spi_set_data_frame_len(struct dw_spi *dws, uint32_t size)

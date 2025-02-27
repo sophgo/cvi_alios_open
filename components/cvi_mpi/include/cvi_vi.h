@@ -53,6 +53,13 @@ CVI_S32 CVI_VI_SetDevNum(CVI_U32 devNum);
  * @return CVI_S32 Return CVI_SUCCESS if succeed.
  */
 CVI_S32 CVI_VI_GetDevNum(CVI_U32 *devNum);
+/**
+ * @brief Enable vi pipe Pattern.
+ *
+ * @param ViPipe(Out), Pipe Num.
+ *
+ * @return CVI_S32 Return CVI_SUCCESS if succeed.
+ */
 CVI_S32 CVI_VI_EnablePatt(VI_PIPE ViPipe);
 /**
  * @brief Set vi device attribute.
@@ -108,10 +115,6 @@ CVI_S32 CVI_VI_SetDevTimingAttr(VI_DEV ViDev, const VI_DEV_TIMING_ATTR_S *pstTim
  * @return CVI_S32 Return CVI_SUCCESS if succeed.
  */
 CVI_S32 CVI_VI_GetDevTimingAttr(VI_DEV ViDev, VI_DEV_TIMING_ATTR_S *pstTimingAttr);
-
-CVI_S32 CVI_VI_SetUserPic(VI_PIPE ViPipe, const VI_USERPIC_ATTR_S *pstUsrPic);
-CVI_S32 CVI_VI_EnableUserPic(VI_PIPE ViPipe);
-CVI_S32 CVI_VI_DisableUserPic(VI_PIPE ViPipe);
 
 /**
  * @brief Create vi pipe.
@@ -653,26 +656,6 @@ CVI_S32 CVI_VI_SetExtChnAttr(VI_PIPE ViPipe, VI_CHN ViChn, const VI_EXT_CHN_ATTR
 CVI_S32 CVI_VI_GetExtChnAttr(VI_PIPE ViPipe, VI_CHN ViChn, VI_EXT_CHN_ATTR_S *pstExtChnAttr);
 
 /**
- * @brief Set bind dev to pipe.
- *
- * @param ViDev(In), Device ID.
- * @param pstDevBindPipe(In), Bind info.
- *
- * @return CVI_S32 Return CVI_SUCCESS if succeed.
- */
-CVI_S32 CVI_VI_SetDevBindPipe(VI_DEV ViDev, const VI_DEV_BIND_PIPE_S *pstDevBindPipe);
-
-/**
- * @brief Get bind dev to pipe.
- *
- * @param ViDev(In), Device ID.
- * @param pstDevBindPipe(Out), Bind info.
- *
- * @return CVI_S32 Return CVI_SUCCESS if succeed.
- */
-CVI_S32 CVI_VI_GetDevBindPipe(VI_DEV ViDev, VI_DEV_BIND_PIPE_S *pstDevBindPipe);
-
-/**
  * @brief Bind a MIPI device to a specified video input device.
  *
  * This function associates a MIPI device with a given video input device, enabling
@@ -746,28 +729,6 @@ CVI_S32 CVI_VI_SetChnEarlyInterrupt(VI_PIPE ViPipe, VI_CHN ViChn, const VI_EARLY
  * @return CVI_S32 Returns 0 on success, or a negative error code on failure.
  */
 CVI_S32 CVI_VI_GetChnEarlyInterrupt(VI_PIPE ViPipe, VI_CHN ViChn, VI_EARLY_INTERRUPT_S *pstEarlyInterrupt);
-
-/**
- * @brief Enable interrupts for a specified processing pipe.
- *
- * This function enables interrupt handling for the specified processing pipe, allowing
- * it to respond to interrupt events.
- *
- * @param ViPipe The processing pipe identifier.
- * @return CVI_S32 Returns 0 on success, or a negative error code on failure.
- */
-CVI_S32 CVI_VI_EnablePipeInterrupt(VI_PIPE ViPipe);
-
-/**
- * @brief Disable interrupts for a specified processing pipe.
- *
- * This function disables interrupt handling for the specified processing pipe, preventing
- * it from responding to interrupt events.
- *
- * @param ViPipe The processing pipe identifier.
- * @return CVI_S32 Returns 0 on success, or a negative error code on failure.
- */
-CVI_S32 CVI_VI_DisablePipeInterrupt(VI_PIPE ViPipe);
 
 
 #ifdef __cplusplus

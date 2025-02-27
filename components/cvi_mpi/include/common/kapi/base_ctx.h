@@ -399,7 +399,7 @@ struct cvi_vdec_vb_ctx {
 	struct vb_jobs_t vb_jobs;
 	CVI_BOOL pause;
 };
-extern struct cvi_vdec_vb_ctx	vdec_vb_ctx[VENC_MAX_CHN_NUM];
+extern struct cvi_vdec_vb_ctx	vdec_vb_ctx[VDEC_MAX_CHN_NUM];
 
 int base_set_mod_ctx(struct mod_ctx_s *ctx_s);
 int32_t base_get_frame_info(PIXEL_FORMAT_E fmt, SIZE_S size, struct cvi_buffer *buf, u64 mem_base, u8 align);

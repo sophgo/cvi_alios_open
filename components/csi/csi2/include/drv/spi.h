@@ -233,6 +233,16 @@ int32_t csi_spi_send_receive(csi_spi_t *spi, const void *data_out, void *data_in
 */
 csi_error_t csi_spi_send_receive_async(csi_spi_t *spi, const void *data_out, void *data_in, uint32_t size);
 
+/**
+  \brief       SPI DMA mode,sending and receiving data at the same time
+  \param[in]   spi         SPI handle to operate
+  \param[in]   data_out    Pointer to buffer with data to send to SPI transmitter
+  \param[out]  data_in     Pointer to buffer for data to receive from SPI receiver
+  \param[in]   size        Data size(byte)
+  \return      Error code
+*/
+int32_t csi_spi_send_receive_dma(csi_spi_t *spi, const void *data_out, void *data_in, uint32_t size);
+
 /*
   \brief       Set slave select num. Only valid for master
   \param[in]   handle       SPI handle to operate

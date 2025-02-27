@@ -238,26 +238,6 @@ CVI_S32 CVI_BIN_ExportBinData(CVI_U8 *pu8Buffer, CVI_U32 u32DataLength);
 CVI_S32 CVI_BIN_ImportBinData(CVI_U8 *pu8Buffer, CVI_U32 u32DataLength);
 // -------- If you want to change these interfaces, please contact the isp team. --------
 
-/* CVI_BIN_EnSingleMode:
- *   enable pqbin single mode
- *   It will set en_pqbin_single_mode = 1
- *
- * [in]	void
- * [Out]void
- * return: 0: Success;
- */
-CVI_S32 CVI_BIN_EnSingleMode(void);
-
-/* CVI_BIN_DisSingleMode:
- *   disable pqbin single mode
- *   It will set en_pqbin_single_mode = 0
- *
- * [in]	void
- * [Out]void
- * return: 0: Success;
- */
-CVI_S32 CVI_BIN_DisSingleMode(void);
-
 /* CVI_ISP_BIN_SetBypassParams:
  * set the params of ispBinBypass, indicatting which param to be bypassed.
  * [in]	id: sensor id whose params selecetd to be bypassed.

@@ -82,8 +82,8 @@ void read_msg(int32_t argc, char **argv)
 		return;
 	}
 
-	sscanf(argv[1],  "%lx", &phyAddr);
-	printf("PhyAddr: %lx\n", phyAddr);
+	sscanf(argv[1],  "%llx", &phyAddr);
+	printf("PhyAddr: %llx\n", phyAddr);
 
 	s32Ret = datafifo_read_init();
 	if (0 != s32Ret) {

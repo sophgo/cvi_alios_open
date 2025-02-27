@@ -577,10 +577,6 @@ int MEDIA_VIDEO_ViInit(PARAM_VI_CFG_S * pstViCfg)
         }
     }
 
-    if (devNum > 1 && pstViCfg->pstIspCfg[0].bUseSingleBin == CVI_TRUE) {
-        CVI_BIN_EnSingleMode();
-    }
-
     int scene_mode = PARAM_getSceneMode();
     CVI_BIN_ImportBinData(pstViCfg->pstIspCfg[scene_mode].stPQBinDes[scene_mode].pIspBinData,
     pstViCfg->pstIspCfg[scene_mode].stPQBinDes[scene_mode].u32IspBinDataLen);

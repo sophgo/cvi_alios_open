@@ -289,7 +289,7 @@ static void gc2053_1l_linear_1080p30_init(VI_PIPE ViPipe)
 	gc2053_1l_write_register(ViPipe, 0x03, 0xb6);
 	gc2053_1l_write_register(ViPipe, 0x12, 0x80);
 	gc2053_1l_write_register(ViPipe, 0x13, 0x07);
-	gc2053_1l_write_register(ViPipe, 0x15, 0x12);
+	gc2053_1l_write_register(ViPipe, 0x15, 0x10);
 	gc2053_1l_write_register(ViPipe, 0x29, 0x16);// hs_prepare
 	gc2053_1l_write_register(ViPipe, 0x36, 0x03);// clk lp drv
 	gc2053_1l_write_register(ViPipe, 0x37, 0x0f);// clk lp drv

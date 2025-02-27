@@ -115,6 +115,18 @@ CVI_S32 CVI_SENSOR_GetAhdStatus(SNS_STATUS_MSG_S *pstStatus);
 CVI_S32 CVI_SENSOR_SetSnsType(VI_PIPE ViPipe, CVI_U32 SnsType);
 
 /**
+ * @brief Get the sensor type by sensor Name.
+ *
+ * This function defines the type of sensor to get by sensor name.
+ *
+ * @param SnsName The identifier for sensor name.
+ * @param SnsType The type of sensor to get.
+ *
+ * @return CVI_S32 Returns 0 on success, or a negative error code on failure.
+ */
+CVI_S32 CVI_SENSOR_GetSnsTypeByName(const char *SnsName, CVI_U32 *SnsType);
+
+/**
  * @brief Sets the RX attributes for the specified video input pipe.
  *
  * This function configures the RX attributes according to the provided settings.

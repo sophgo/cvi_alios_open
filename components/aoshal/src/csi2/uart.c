@@ -37,9 +37,9 @@ typedef struct {
 
 static hal_uart_priv_t uart_list[6];
 
-#ifndef UART_MODE_SYNC
 static void uart_event_cb(csi_uart_t *uart, csi_uart_event_t event, void *arg)
 {
+#ifndef UART_MODE_SYNC
     switch (event) {
     case UART_EVENT_SEND_COMPLETE:
         // aos_event_set(&uart_list[(unsigned int)uart->dev.idx].event_write_read, EVENT_WRITE, AOS_EVENT_OR);
@@ -92,8 +92,8 @@ static void uart_event_cb(csi_uart_t *uart, csi_uart_event_t event, void *arg)
     default:
         break;
     }
-}
 #endif
+}
 
 #ifndef UART_MODE_SYNC
 #if defined(CONFIG_DW_UART) && (CONFIG_DW_UART == 1)
@@ -166,13 +166,13 @@ int32_t hal_uart_init(uart_dev_t *uart)
         return -1;
     }
 
-#ifndef UART_MODE_SYNC
+// #ifndef UART_MODE_SYNC
     /* attach callback to uart device, the type should be the same with csi_uart_callback_t */
     ret = csi_uart_attach_callback(&uart_list[uart->port].handle, uart_event_cb, NULL);
     if (ret < 0) {
         return -1;
     }
-#endif
+// #endif
 
 #ifdef UART_MODE_DMA
     ret = csi_uart_link_dma(&uart_list[uart->port].handle, &uart_list[uart->port].g_dma_ch_tx, &uart_list[uart->port].g_dma_ch_rx);
@@ -360,6 +360,9 @@ int32_t hal_uart_recv_II(uart_dev_t *uart, void *data, uint32_t expect_size,
 
     aos_mutex_lock(&uart_list[uart->port].rx_mutex, AOS_WAIT_FOREVER);
     while (1) {
+    #ifdef UART_MODE_SYNC
+        csi_uart_print_ringbuffer(&uart_list[uart->port].handle);
+    #endif
         if (uart_list[uart->port].recv_buf != NULL) {
             ret = ringbuffer_read(&uart_list[uart->port].read_buffer, (uint8_t *)temp_buf, temp_count);
         } else {

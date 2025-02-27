@@ -19,7 +19,6 @@ extern "C" {
 #include <cvi_common.h>
 #include <cvi_comm_video.h>
 #include "cvi_comm_vb.h"
-#include <cvi_comm_vpss.h>
 
 #define VPSS_INVALID_FRMRATE -1
 #define VPSS_CHN0             0

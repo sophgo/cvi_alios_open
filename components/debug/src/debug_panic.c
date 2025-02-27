@@ -73,6 +73,7 @@ uint32_t g_panic_occur = 0;
 
 void debug_cpu_stop(void)
 {
+    g_panic_occur = 1;
 #if (RHINO_CONFIG_CPU_NUM > 1)
     cpu_freeze_others();
 #endif
@@ -530,6 +531,7 @@ void debug_fatal_error(kstat_t err, char *file, int line)
     cpu_freeze_others();
 #endif
 
+    g_panic_occur = 1;
     krhino_sched_disable();
 
     g_crash_steps = 1;

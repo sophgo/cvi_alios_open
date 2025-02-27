@@ -37,7 +37,7 @@ static int datafifo_init(void)
 		return -1;
 	}
 
-	printf("PhyAddr: %lx\n", phyAddr);
+	printf("PhyAddr: %llx\n", phyAddr);
 
 	s32Ret = CVI_DATAFIFO_CMD(hDataFifo, DATAFIFO_CMD_SET_DATA_RELEASE_CALLBACK, release);
 	if (CVI_SUCCESS != s32Ret) {

@@ -91,6 +91,9 @@ typedef struct _RECT_S {
 typedef struct _VIDEO_REGION_INFO_S {
 	CVI_U32 u32RegionNum; /* W; count of the region */
 	RECT_S *pstRegion; /* W; region attribute */
+#ifdef __arm__
+	CVI_U64 u64RegionPadding;
+#endif
 } VIDEO_REGION_INFO_S;
 
 /*crop information*/

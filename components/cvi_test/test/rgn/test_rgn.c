@@ -19,14 +19,14 @@
 #include "cvi_comm_region.h"
 #include "media_osd.h"
 
-void start_rgn(int32_t argc, char **argv)
+void start_rgn(CVI_S32 argc, char **argv)
 {
 	aos_cli_printf("******start rgn******\n");
 	APP_CHECK_RET(APP_OSD_Init(), "APP_OSD_Init failed!\n");
 }
 ALIOS_CLI_CMD_REGISTER(start_rgn, start_rgn, start rgn on vpss);
 
-void stop_rgn(int32_t argc, char **argv)
+void stop_rgn(CVI_S32 argc, char **argv)
 {
 	APP_CHECK_RET(APP_OSD_DeInit(), "APP_OSD_DeInit failed!\n");
 	aos_cli_printf("******stop rgn******\n");

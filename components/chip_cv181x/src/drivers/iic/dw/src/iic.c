@@ -653,30 +653,34 @@ csi_error_t csi_iic_speed(csi_iic_t *iic, csi_iic_speed_t speed)
     dw_iic_regs_t *iic_base;
     csi_error_t ret = CSI_ERROR;
     iic_base = (dw_iic_regs_t *)HANDLE_REG_BASE(iic);
+	uint32_t ic_clk = IC_CLK;
+	uint32_t tf = 300; //falling time =300ns
 
     dw_iic_disable(iic_base);
 
+	if (HANDLE_REG_BASE(iic) == DW_PWR_IIC_BASE)
+		ic_clk = RTCSYS_CLK;
     /* This register can be written only when the I2C is disabled */
     if (speed == IIC_BUS_SPEED_STANDARD) {
-        dw_iic_set_transfer_speed_standard(iic_base);
-        dw_iic_set_standard_scl_hcnt(iic_base, (((IC_CLK * 4000U) / 1000U) - 7U));
-        dw_iic_set_standard_scl_lcnt(iic_base, (((IC_CLK * 4700) / 1000U) - 1U));
-        ret = CSI_OK;
-    } else if (speed == IIC_BUS_SPEED_FAST) {
-        dw_iic_set_transfer_speed_fast(iic_base);
-        dw_iic_set_fast_scl_hcnt(iic_base, (((IC_CLK * 600U) / 1000U) - 7U));
-        dw_iic_set_fast_scl_lcnt(iic_base, (((IC_CLK * 1300U) / 1000U) - 1U));
-        ret = CSI_OK;
-    } else if (speed == IIC_BUS_SPEED_FAST_PLUS) {
-        ret = CSI_UNSUPPORTED;
-    } else if (speed == IIC_BUS_SPEED_HIGH) {
-        dw_iic_set_transfer_speed_high(iic_base);
-        dw_iic_set_high_scl_hcnt(iic_base, 6U);
-        dw_iic_set_high_scl_lcnt(iic_base, 8U);
-        ret = CSI_OK;
-    }
+		dw_iic_set_transfer_speed_standard(iic_base);
+		dw_iic_set_standard_scl_hcnt(iic_base, ((ic_clk * (4000U + tf) + 500U) / 1000U)-3U);
+		dw_iic_set_standard_scl_lcnt(iic_base, ((ic_clk * (4700U + tf) + 500U) / 1000U)-1U);
+		ret = CSI_OK;
+	} else if (speed == IIC_BUS_SPEED_FAST) {
+		dw_iic_set_transfer_speed_fast(iic_base);
+		dw_iic_set_fast_scl_hcnt(iic_base, ((ic_clk * (600U + tf) + 500U) / 1000U)-3U);
+		dw_iic_set_fast_scl_lcnt(iic_base, ((ic_clk * (1300U + tf) + 500U) / 1000U)-1U);
+		ret = CSI_OK;
+	} else if (speed == IIC_BUS_SPEED_FAST_PLUS) {
+		ret = CSI_UNSUPPORTED;
+	} else if (speed == IIC_BUS_SPEED_HIGH) {
+		dw_iic_set_transfer_speed_high(iic_base);
+		dw_iic_set_high_scl_hcnt(iic_base, ((ic_clk * (160U + tf) + 500U) / 1000U)-3U);
+		dw_iic_set_high_scl_lcnt(iic_base, ((ic_clk * (320U + tf) + 500U) / 1000U)-1U);
+		ret = CSI_OK;
+	}
 
-    return ret;
+	return ret;
 }
 
 /**

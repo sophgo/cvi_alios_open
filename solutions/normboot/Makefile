@@ -17,10 +17,16 @@ all:
 	@echo "Build Solution by $(ALIOS_BOARD) "
 	$(CPRE) if [ -e $(CURDIR)/prebuild.sh ]; then bash $(CURDIR)/prebuild.sh; fi
 	$(CPRE) if [ -e package.yaml ]; then rm -f package.yaml; fi
-	$(CPRE) cp -f package_yamls/package.yaml.$(PROJECT) package.yaml;
+ifeq ($(RELEASE_FLAG),1)
+	$(CPRE) cp -f package_yamls/package.yaml.$(PROJECT).release package.yaml
+else
+	$(CPRE) cp -f package_yamls/package.yaml.$(PROJECT) package.yaml
+endif
 	@/usr/bin/env python ../../scripts/defconfig/defconfig.py
 	@/usr/bin/env python ../../scripts/yaml_update.py
+ifeq ($(RELEASE_FLAG),1)
 	@make -C ../../components/cvi_mpi CHIP_ARCH=$(CHIP_ARCH)
+endif
 	$(CPRE) scons $(VERB) --board=$(ALIOS_BOARD) -j4
 	@cp yoc.bin $(MK_GENERATED_IMGS_PATH)/data/prim
 	@echo YoC SDK Done
@@ -44,7 +50,11 @@ sdk:
 .PHONY:clean
 clean:
 	$(CPRE) if [ -e package.yaml ]; then rm -f package.yaml; fi
-	$(CPRE) cp -f package_yamls/package.yaml.$(PROJECT) package.yaml;
+ifeq ($(RELEASE_FLAG),1)
+	$(CPRE) cp -f package_yamls/package.yaml.$(PROJECT).release package.yaml
+else
+	$(CPRE) cp -f package_yamls/package.yaml.$(PROJECT) package.yaml
+endif
 	@/usr/bin/env python ../../scripts/defconfig/defconfig.py
 	@/usr/bin/env python ../../scripts/yaml_update.py
 	$(CPRE) scons -c

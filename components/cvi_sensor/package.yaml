@@ -94,8 +94,11 @@ build_config:
     - gcore_gc02m1
     - gcore_gc02m1_slave
     - gcore_gc0308
+    - gcore_gc1084
+    - gcore_gc1054
     - gcore_gc2053
     - gcore_gc2053_1L
+    - gcore_gc2083
     - gcore_gc2093
     - gcore_gc2145
     - gcore_gc4023
@@ -140,10 +143,13 @@ source_file:
   - gcore_gc0308/*.c ? <CONFIG_SENSOR_GCORE_GC0308>
   - gcore_gc2053/*.c ? <CONFIG_SENSOR_GCORE_GC2053>
   - gcore_gc2053_1L/*.c ? <CONFIG_SENSOR_GCORE_GC2053_1L>
+  - gcore_gc2083/*.c ? <CONFIG_SENSOR_GCORE_GC2083>
   - gcore_gc2093/*.c ? <CONFIG_SENSOR_GCORE_GC2093>
   - gcore_gc2145/*.c ? <CONFIG_SENSOR_GCORE_GC2145>
   - gcore_gc4023/*.c ? <CONFIG_SENSOR_GCORE_GC4023>
   - gcore_gc4653/*.c ? <CONFIG_SENSOR_GCORE_GC4653>
+  - gcore_gc1054/*.c ? <CONFIG_SENSOR_GCORE_GC1054>
+  - gcore_gc1084/*.c ? <CONFIG_SENSOR_GCORE_GC1084>
   - ov_og01a1b/*.c ? <CONFIG_SENSOR_OV_OG01A1B>
   - ov_og01a10/*.c ? <CONFIG_SENSOR_OV_OG01A10>
   - pixelplus_pr2020/*.c ? <CONFIG_SENSOR_PIXELPLUS_PR2020>

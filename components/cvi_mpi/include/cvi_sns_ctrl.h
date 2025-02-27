@@ -14,9 +14,16 @@
 extern "C" {
 #endif
 #endif /* End of #ifdef __cplusplus */
+#define MAX_SENSOR_NAME_LENGTH	100
 
 typedef struct combo_dev_attr_s SNS_COMBO_DEV_ATTR_S;
 typedef struct mclk_pll_s SNS_MCLK_ATTR_S;
+
+// Structure sensor name and sensor type id.
+typedef struct _SNS_TYPE_S {
+	CVI_U32 SnsType;                        //sensor_type
+	char SnsName[MAX_SENSOR_NAME_LENGTH];   //sensor name
+} SNS_TYPE_S;
 
 // Structure representing the maximum exposure settings for a sensor.
 typedef struct _SNS_EXP_MAX_S {

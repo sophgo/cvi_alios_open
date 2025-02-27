@@ -15,17 +15,29 @@
 struct dw_spi g_dws[MAX_SPI_NUM]= {0};
 static int dw_spi_irq(int irq, void *args);
 
+void spi_set_pin_mux(uint32_t idx)
+{
+#if 0
+	writel(1, (void *)0x030010D0);
+	writel(1, (void *)0x030010DC);
+	writel(1, (void *)0x030010E0);
+	writel(1, (void *)0x030010E4);
+#endif
+}
+
 csi_error_t csi_spi_init(csi_spi_t *spi, uint32_t idx)
 {
-	int ret;
+	csi_error_t ret = CSI_OK;
 	CSI_PARAM_CHK(spi, CSI_ERROR);
 	struct dw_spi *dws = &g_dws[idx];
 	memset(dws, 0x0, sizeof(struct dw_spi));
-
+	/* set cs low when spi idle */
+	writel(0, (void *)0x030001d0);
 	if (target_get(DEV_DW_SPI_TAG, idx, &spi->dev) != CSI_OK) {
 		printf("get dev failed!\n");
 		return CSI_ERROR;
 	}
+	spi_set_pin_mux(idx);
 
 	spi->state.writeable = 1U;
 	spi->state.readable  = 1U;
@@ -54,8 +66,7 @@ csi_error_t csi_spi_init(csi_spi_t *spi, uint32_t idx)
 	spi_reset_chip(dws);
 	spi_hw_init(dws);
 	spi_enable_chip(dws, 0);
-	spi_mask_intr(dws, 0xff);
-	request_irq((uint32_t)spi->dev.irq_num, dw_spi_irq, 0, "SPI_IRQ", (void *)spi);
+	udelay(1000);
 
 	return ret;
 }
@@ -76,6 +87,8 @@ void csi_spi_uninit(csi_spi_t *spi)
 
 	free(spi->rx_dma);
 	free(spi->tx_dma);
+	spi->rx_dma = NULL;
+	spi->tx_dma = NULL;
 }
 
 csi_error_t csi_spi_attach_callback(csi_spi_t *spi, void *callback, void *arg)
@@ -132,8 +145,7 @@ uint32_t csi_spi_baud(csi_spi_t *spi, uint32_t baud)
 	struct dw_spi *dws = (struct dw_spi *)spi->priv;
 
 	/*need to ensure the clk */
-	dw_spi_set_clock(dws, SPI_REF_CLK, baud);
-	return baud;
+	return dw_spi_set_clock(dws, SPI_REF_CLK, baud);
 }
 
 csi_error_t csi_spi_frame_len(csi_spi_t *spi, csi_spi_frame_len_t length)
@@ -160,40 +172,32 @@ static int interrupt_transfer(csi_spi_t *spi)
 	struct dw_spi *dws = (struct dw_spi *)spi->priv;
 	uint16_t irq_status = dw_readl(dws, DW_SPI_ISR);
 
-
 	/* Error handling */
-	if (irq_status & (SPI_INT_TXOI | SPI_INT_RXOI | SPI_INT_RXUI)) {
-		dw_readl(dws, DW_SPI_ICR);
-		spi_reset_chip(dws);
-		printf("interrupt_transfer: fifo overrun/underrun");
+	if (dw_spi_check_status(dws, false))
 		return 0;
-	}
 
 	if (dws->rx) {
 		dw_reader(dws);
-		if (dws->rx_end == dws->rx) {
-			spi_mask_intr(dws, SPI_INT_TXEI);
+		if (!dws->rx_len) {
+			spi_mask_intr(dws, 0xff);
 
-			if (spi->callback && (dws->rx_end == dws->rx))
+			if (spi->callback)
 				spi->callback(spi, SPI_EVENT_RECEIVE_COMPLETE, spi->arg);
-			return 0;
+
+		} else if (dws->rx_len <= dw_readl(dws, DW_SPI_RXFTLR)) {
+			dw_writel(dws, DW_SPI_RXFTLR, dws->rx_len - 1);
 		}
 	}
 
 	if (irq_status & SPI_INT_TXEI) {
 		spi_mask_intr(dws, SPI_INT_TXEI);
 		dw_writer(dws);
-		while (dw_readl(dws, DW_SPI_SR) & 0x1);
-		/* Enable TX irq always, it will be disabled when RX finished */
 		spi_umask_intr(dws, SPI_INT_TXEI);
-
-		if (spi->callback && (dws->tx == dws->tx_end)) {
-			spi->callback(spi, SPI_EVENT_SEND_COMPLETE, spi->arg);
+		if (!dws->tx_len) {
 			spi_mask_intr(dws, SPI_INT_TXEI);
+			if (spi->callback)
+				spi->callback(spi, SPI_EVENT_SEND_COMPLETE, spi->arg);
 		}
-
-		if (dws->tx == dws->tx_end)
-			spi_mask_intr(dws, SPI_INT_TXEI);
 	}
 	return 0;
 }
@@ -212,7 +216,6 @@ static int dw_spi_irq(int irq, void *args)
 
 static int dma_transfer(csi_spi_t *spi)
 {
-	csi_dma_ch_t        *tx_dma_ch, *rx_dma_ch;
 	csi_dma_ch_config_t tx_config, rx_config;
 	uint8_t             dma_data_width;
 
@@ -226,7 +229,6 @@ static int dma_transfer(csi_spi_t *spi)
 		dma_data_width = DMA_DATA_WIDTH_8_BITS;
 
 	if (dws->tx) {
-		tx_dma_ch   = (csi_dma_ch_t *)spi->tx_dma;
 		/* configure tx dma channel */
 		tx_config.src_tw = DMA_DATA_WIDTH_32_BITS;
 		tx_config.dst_tw = dma_data_width;
@@ -235,15 +237,14 @@ static int dma_transfer(csi_spi_t *spi)
 		tx_config.group_len = 8;
 		tx_config.trans_dir = DMA_MEM2PERH;
 		tx_config.handshake = 5; /* dma channel 5 */
-		csi_dma_ch_config(tx_dma_ch, &tx_config);
+		csi_dma_ch_config(spi->tx_dma, &tx_config);
 		dw_writel(dws, DW_SPI_DMATDLR, 8);
 		spi_enable_dma(dws, 1, 1);
-		soc_dcache_clean_invalid_range((unsigned long)dws->tx, dws->len);
+		soc_dcache_clean_invalid_range((unsigned long)dws->tx, dws->tx_len);
 	}
 
 	if (dws->rx) {
 		/* configure rx dma channel */
-		rx_dma_ch   = (csi_dma_ch_t *)spi->rx_dma;
 		rx_config.src_tw = dma_data_width;
 		rx_config.dst_tw = DMA_DATA_WIDTH_32_BITS;
 		rx_config.src_inc = DMA_ADDR_CONSTANT;
@@ -251,52 +252,47 @@ static int dma_transfer(csi_spi_t *spi)
 		rx_config.group_len = 8;
 		rx_config.trans_dir = DMA_PERH2MEM;
 		rx_config.handshake = 4;
-		csi_dma_ch_config(rx_dma_ch, &rx_config);
-		dw_writel(dws, DW_SPI_DMARDLR, 8 - 1);
+		csi_dma_ch_config(spi->rx_dma, &rx_config);
+		dw_writel(dws, DW_SPI_DMARDLR, 7);
 		spi_enable_dma(dws, 0, 1);
-		soc_dcache_clean_invalid_range((unsigned long)dws->rx, dws->len);
+		soc_dcache_clean_invalid_range((unsigned long)dws->rx, dws->rx_len);
 	}
 	/* rx must be started before tx due to spi instinct */
 	if (dws->rx)
-		csi_dma_ch_start(spi->rx_dma, (void *)(dws->regs + DW_SPI_DR), dws->rx, dws->len);
+		csi_dma_ch_start(spi->rx_dma, (void *)(dws->regs + DW_SPI_DR), dws->rx, dws->rx_len);
 
 	if (dws->tx)
-		csi_dma_ch_start(spi->tx_dma, (void *)dws->tx, (void *)(dws->regs + DW_SPI_DR), dws->len);
+		csi_dma_ch_start(spi->tx_dma, (void *)dws->tx, (void *)(dws->regs + DW_SPI_DR), dws->tx_len);
 
 	return 0;
 }
 
 csi_error_t dw_spi_allocate_txrx_td(csi_spi_t *spi)
 {
-	struct dw_spi *dws = spi->priv;
 	csi_error_t ret = CSI_OK;
 
-	if (dws->tx != NULL) {
-		spi->tx_dma = (csi_dma_ch_t *)malloc(sizeof(csi_dma_ch_t));
-		if (spi->tx_dma == NULL) {
-			printf("malloc tx_dma failed!\n");
-			return -1;
-		}
-		spi->tx_dma->parent = spi;
-		ret = csi_dma_ch_alloc(spi->tx_dma, -1, -1);
-		if (ret != CSI_OK) {
-			printf("dma allocate tx channel failed!\n");
-			return ret;
-		}
+	spi->tx_dma = (csi_dma_ch_t *)malloc(sizeof(csi_dma_ch_t));
+	if (spi->tx_dma == NULL) {
+		printf("malloc tx_dma failed!\n");
+		return -1;
+	}
+	spi->tx_dma->parent = spi;
+	ret = csi_dma_ch_alloc(spi->tx_dma, 5, 0);
+	if (ret != CSI_OK) {
+		printf("dma allocate tx channel failed!\n");
+		return ret;
 	}
 
-	if (dws->rx != NULL) {
-		spi->rx_dma = (csi_dma_ch_t *)malloc(sizeof(csi_dma_ch_t));
-		if (spi->rx_dma == NULL) {
-			printf("malloc tx_dma failed!\n");
-			return -1;
-		}
-		spi->rx_dma->parent = spi;
-		ret = csi_dma_ch_alloc(spi->rx_dma, -1, -1);
-		if (ret != CSI_OK) {
-			printf("dma allocate rx channel failed!\n");
-			return ret;
-		}
+	spi->rx_dma = (csi_dma_ch_t *)malloc(sizeof(csi_dma_ch_t));
+	if (spi->rx_dma == NULL) {
+		printf("malloc tx_dma failed!\n");
+		return -1;
+	}
+	spi->rx_dma->parent = spi;
+	ret = csi_dma_ch_alloc(spi->rx_dma, 4, 0);
+	if (ret != CSI_OK) {
+		printf("dma allocate rx channel failed!\n");
+		return ret;
 	}
 	return ret;
 }
@@ -322,7 +318,9 @@ static int dw_spi_transfer_one(csi_spi_t *spi, const void *tx_buf,
 		dws->rx = rx_buf;
 		dws->rx_end = dws->rx + len;
 	}
-	dws->len = len;
+
+	dws->rx_len = len / dws->n_bytes;
+	dws->tx_len = len / dws->n_bytes;
 
 	spi_enable_chip(dws, 0);
 
@@ -331,35 +329,34 @@ static int dw_spi_transfer_one(csi_spi_t *spi, const void *tx_buf,
 
 	/* set tran mode */
 	set_tran_mode(dws);
+	/* cs0 */
+	dw_spi_set_cs(dws, true, 0);
+	/* enable spi */
+	spi_enable_chip(dws, 1);
+	udelay(10);
+
+	if (tran_type == DMA_TRAN) {
+		dma_transfer(spi);
+	}
 
 	if (tran_type == IRQ_TRAN) {
 		/*
 		 * Interrupt mode
 		 * we only need set the TXEI IRQ, as TX/RX always happen syncronizely
 		 */
-		if ((dws->fifo_len / 2) < (dws->len / dws->n_bytes))
-			txlevel = dws->fifo_len / 2 < dws->len;
+		if ((dws->fifo_len / 2) < dws->tx_len)
+			txlevel = dws->fifo_len / 2;
 		else
-			txlevel = dws->len / dws->n_bytes;
+			txlevel = dws->tx_len;
 
 		dw_writel(dws, DW_SPI_TXFTLR, txlevel);
-		/* Set the interrupt umask */
-		imask |= SPI_INT_TXEI | SPI_INT_TXOI | SPI_INT_RXUI | SPI_INT_RXOI;
-		spi_umask_intr(dws, imask);
+		dw_writel(dws, DW_SPI_RXFTLR, txlevel - 1);
 		dws->transfer_handler = interrupt_transfer;
+		request_irq((uint32_t)spi->dev.irq_num, dw_spi_irq, 0, "SPI_IRQ", (void *)spi);
+		/* Set the interrupt umask */
+		imask |= SPI_INT_TXEI | SPI_INT_TXOI | SPI_INT_RXUI | SPI_INT_RXOI | SPI_INT_RXFI;
+		spi_umask_intr(dws, imask);
 	}
-
-	if (tran_type == DMA_TRAN) {
-		/*
-		 * if user use spi by hal interfarce, there is no need to allocate
-		 * dma transfer descriptor because it was done in csi_spi_link_dma.
-		 */
-		//dw_spi_allocate_txrx_td(spi);
-		dma_transfer(spi);
-	}
-
-	/* enable spi */
-	spi_enable_chip(dws, 1);
 	dw_spi_show_regs(dws);
 
 	if (tran_type == POLL_TRAN)
@@ -371,7 +368,7 @@ static int dw_spi_transfer_one(csi_spi_t *spi, const void *tx_buf,
 static csi_error_t wait_ready_until_timeout(csi_spi_t *spi, uint32_t timeout)
 {
 	uint32_t timestart = 0U;
-	int ret;
+	int ret = 0;
 	struct dw_spi *dw = (struct dw_spi *)spi->priv;
 
 	timestart = csi_tick_get_ms();
@@ -434,7 +431,7 @@ int32_t csi_spi_receive_async(csi_spi_t *spi, void *data, uint32_t size)
 	return ret;
 }
 
-int32_t csi_spi_send_dma(csi_spi_t *spi, const void *data, uint32_t size)
+static int32_t csi_spi_send_dma(csi_spi_t *spi, const void *data, uint32_t size)
 {
 	CSI_PARAM_CHK(spi,  CSI_ERROR);
 	CSI_PARAM_CHK(data, CSI_ERROR);
@@ -479,8 +476,8 @@ int32_t csi_spi_send_receive(csi_spi_t *spi, const void *data_out,
 	return ret;
 }
 
-int32_t csi_spi_send_receive_asyn(csi_spi_t *spi, const void *data_out,
-		void *data_in, uint32_t size, uint32_t timeout)
+int32_t csi_spi_send_receive_async(csi_spi_t *spi, const void *data_out,
+		void *data_in, uint32_t size)
 {
 	CSI_PARAM_CHK(spi,  CSI_ERROR);
 	CSI_PARAM_CHK(data_out, CSI_ERROR);
@@ -501,19 +498,21 @@ int32_t csi_spi_send_receive_dma(csi_spi_t *spi, const void *data_out,
 	CSI_PARAM_CHK(data_in, CSI_ERROR);
 	CSI_PARAM_CHK(size, CSI_ERROR);
 	int32_t  ret   = CSI_OK;
-
+#if CONFIG_APP_ESWIN_SPI_WIFI_SUPPORT
+	ret = dw_spi_transfer_one(spi, data_out, data_in, size, DMA_TRAN);
+#else
 	if (size > 16)
 		ret = dw_spi_transfer_one(spi, data_out, data_in, size, DMA_TRAN);
 	else
 		ret = dw_spi_transfer_one(spi, data_out, data_in, size, POLL_TRAN);
-
+#endif
 	return ret;
 }
 
 static void dw_spi_dma_event_cb(csi_dma_ch_t *dma, csi_dma_event_t event, void *arg)
 {
 	csi_spi_t *spi = (csi_spi_t *)dma->parent;
-	uint32_t mode;
+	uint32_t mode, val;
 
 	struct dw_spi *dws = spi->priv;
 	/*  00 -- send and receive ==> SPI_EVENT_SEND_RECEIVE_COMPLETE
@@ -521,19 +520,33 @@ static void dw_spi_dma_event_cb(csi_dma_ch_t *dma, csi_dma_event_t event, void *
 	 *  02 -- receive          ==> SPI_EVENT_RECEIVE_COMPLETE
 	 */
 	mode = (dw_readl(dws, DW_SPI_CTRLR0) >> 8 & 0x3);
-	if (event == DMA_EVENT_TRANSFER_DONE) {
+	val = dw_readl(dws, DW_SPI_DMACR);
+	if (event == DMA_EVENT_TRANSFER_DONE && !strcmp(arg, "TX")) {
 		csi_dma_ch_stop(dma);
+		mode = SPI_EVENT_SEND_COMPLETE;
 		/* process end of transmit */
 		if ((spi->tx_dma != NULL) && (spi->tx_dma->ch_id == dma->ch_id)) {
-			if (wait_ready_until_timeout(spi, 200) != CSI_OK)
+			if (wait_ready_until_timeout(spi, 20000) != CSI_OK)
 				mode = SPI_EVENT_ERROR;
 		}
 
-		/* disable all the dma op */
-		dw_writel(dws, DW_SPI_DMACR, 0);
+		/* disable the dma op for tx 01b */
+		dw_writel(dws, DW_SPI_DMACR, val &~(1 << 1));
+		csi_dma_ch_free(spi->tx_dma);
 		if (spi->callback)
 			spi->callback(spi, mode, spi->arg);
 	}
+
+	if (event == DMA_EVENT_TRANSFER_DONE && !strcmp(arg, "RX")) {
+		csi_dma_ch_stop(dma);
+
+		/* disable the dma op for rx (10b) */
+		dw_writel(dws, DW_SPI_DMACR, val &~(1 << 0));
+		csi_dma_ch_free(spi->rx_dma);
+		if (spi->callback)
+			spi->callback(spi, SPI_EVENT_RECEIVE_COMPLETE, spi->arg);
+	}
+
 }
 
 csi_error_t csi_spi_link_dma(csi_spi_t *spi, csi_dma_ch_t *tx_dma, csi_dma_ch_t *rx_dma)
@@ -549,12 +562,12 @@ csi_error_t csi_spi_link_dma(csi_spi_t *spi, csi_dma_ch_t *tx_dma, csi_dma_ch_t 
 
 	if (spi->tx_dma != NULL) {
 		spi->send = csi_spi_send_dma;
-		csi_dma_ch_attach_callback(spi->tx_dma, dw_spi_dma_event_cb, NULL);
+		csi_dma_ch_attach_callback(spi->tx_dma, dw_spi_dma_event_cb, "TX");
 	}
 
 	if (spi->rx_dma != NULL) {
 		spi->receive = csi_spi_receive_dma;
-		csi_dma_ch_attach_callback(spi->rx_dma, dw_spi_dma_event_cb, NULL);
+		csi_dma_ch_attach_callback(spi->rx_dma, dw_spi_dma_event_cb, "RX");
 	}
 
 	if ((spi->tx_dma != NULL) && (spi->rx_dma != NULL))

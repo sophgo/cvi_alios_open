@@ -530,6 +530,24 @@ CVI_S32 CVI_VPSS_Suspend(void);
 /*vpss resume*/
 CVI_S32 CVI_VPSS_Resume(void);
 
+CVI_S32 CVI_VPSS_BindFb(VPSS_GRP VpssGrp, VPSS_CHN VpssChn);
+
+CVI_S32 CVI_VPSS_UnbindFb(VPSS_GRP VpssGrp, VPSS_CHN VpssChn);
+
+/**
+ * @brief Enable tile mode.
+ *
+ * @return CVI_S32 Return CVI_SUCCESS if succeed.
+ */
+CVI_S32 CVI_VPSS_EnableTileMode();
+
+/**
+ * @brief Disable tile mode.
+ *
+ * @return CVI_S32 Return CVI_SUCCESS if succeed.
+ */
+CVI_S32 CVI_VPSS_DisableTileMode();
+
 #ifdef __cplusplus
 #if __cplusplus
 }

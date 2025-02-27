@@ -48,6 +48,10 @@ const csi_perip_info_t g_soc_info[] = {
     {DW_IIC3_BASE,             DW_IIC3_IRQn,             3,    DEV_DW_IIC_TAG},
     {DW_IIC4_BASE,             DW_IIC4_IRQn,             4,    DEV_DW_IIC_TAG},
 	{DW_PWR_IIC_BASE,          DW_PWR_IIC_IRQn,          5,    DEV_DW_IIC_TAG},
+	{DW_SPI0_BASE,             DW_SPI0_IRQn,             0,    DEV_DW_SPI_TAG},
+	{DW_SPI1_BASE,             DW_SPI1_IRQn,             1,    DEV_DW_SPI_TAG},
+	{DW_SPI2_BASE,             DW_SPI2_IRQn,             2,    DEV_DW_SPI_TAG},
+	{DW_SPI3_BASE,             DW_SPI3_IRQn,             3,    DEV_DW_SPI_TAG},
     {CVI_PWM0_BASE,            0,                        0,    DEV_CVI_PWM_TAG},
     {CVI_PWM1_BASE,            0,                        1,    DEV_CVI_PWM_TAG},
     {CVI_PWM2_BASE,            0,                        2,    DEV_CVI_PWM_TAG},
@@ -145,6 +149,17 @@ const csi_dma_ch_desc_t vad_dma_ch_list[] = {
     {0xff, 0xff}
 };
 
+const csi_dma_ch_desc_t spi3_dma_ch_list[] = {
+    {0, 0}, {0, 1}, {0, 2},  {0, 3},  {0, 4},  {0, 5},  {0, 6},  {0, 7},
+    {0, 8}, {0, 9}, {0, 10},  {0, 11},  {0, 12},  {0, 13},  {0, 14},  {0, 15},
+    {0xff, 0xff}
+};
+
+const csi_dma_ch_desc_t spi0_dma_ch_list[] = {
+    {0, 0}, {0, 1}, {0, 2},  {0, 3},  {0, 4},  {0, 5},  {0, 6},  {0, 7},
+    {0, 8}, {0, 9}, {0, 10},  {0, 11},  {0, 12},  {0, 13},  {0, 14},  {0, 15},
+    {0xff, 0xff}
+};
 
 const csi_dma_ch_spt_list_t dma_spt_list[] = {
     {DEV_DW_UART_TAG,   0, uart0_dma_ch_list},
@@ -158,6 +173,7 @@ const csi_dma_ch_spt_list_t dma_spt_list[] = {
     {DEV_WJ_SPDIF_TAG,  1, spdif1_dma_ch_list},
     {DEV_WJ_TDM_TAG,    0, tdm_dma_ch_list},
     {DEV_WJ_VAD_TAG,    0, vad_dma_ch_list},
+    {DEV_DW_SPI_TAG,    2, spi0_dma_ch_list}, /* spi2 */
     {0xFFFFU,         0xFFU,         NULL},
 };
 

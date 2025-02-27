@@ -66,6 +66,8 @@ typedef enum {
     ADC_IRQn                        =  0U,
     DW_SPI0_IRQn                    =  37U,
     DW_SPI1_IRQn                    =  38U,
+    DW_SPI2_IRQn                    =  0U,
+    DW_SPI3_IRQn                    =  0U,
     SD0_INTR                        =  0U,
     SD1_INTR                        =  0U,
     WDT1_INTR                       =  0U,
@@ -1443,6 +1445,12 @@ typedef struct {
 #define CVI_PWM1_BASE               0x03061000
 #define CVI_PWM2_BASE               0x03062000
 #define CVI_PWM3_BASE               0x03063000
+
+#define DW_SPI_REG_SIZE             (0x10000UL)
+#define DW_SPI0_BASE                (0x04180000UL)
+#define DW_SPI1_BASE                (DW_SPI0_BASE + 1 * DW_SPI_REG_SIZE)
+#define DW_SPI2_BASE                (DW_SPI0_BASE + 2 * DW_SPI_REG_SIZE)
+#define DW_SPI3_BASE                (DW_SPI0_BASE + 3 * DW_SPI_REG_SIZE)
 
 #define PLIC_BASE           (0x70000000UL)
 #define CORET_BASE          (PLIC_BASE + 0x4000000UL)               /*!< CORET Base Address */

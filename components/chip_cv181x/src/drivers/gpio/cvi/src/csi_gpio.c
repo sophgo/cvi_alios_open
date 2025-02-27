@@ -352,3 +352,4 @@ csi_error_t csi_gpio_irq_unregister(csi_gpio_t *gpio, uint32_t pin_mask, void *a
 	csi_gpio_irq_list_del(gpio, &list);
 	return CSI_OK;
 }
+

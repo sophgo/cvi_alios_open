@@ -48,6 +48,7 @@ struct VPSS_CHN_CFG {
 	CVI_U64 bufWrapPhyAddr;
 	CVI_U32 u32BufWrapDepth;
 	struct VPSS_CHN_WORK_STATUS_S stChnWorkStatus;
+	CVI_BOOL bind_fb;
 
 	// hw cfgs;
 	CVI_BOOL is_cfg_changed;

@@ -55,7 +55,7 @@ CVI_VOID *CVI_IPCM_AnonGetUserAddr(CVI_U32 u32Paddr);
 
 // only effect in rtos
 CVI_S32 CVI_IPCM_SetRtosSysBootStat(void);
-
+CVI_S32 CVI_IPCM_SetRtosBootLogoStat(void);
 // only effect in rtos
 CVI_S32 CVI_IPCM_ClrRtosSysBootStat(void);
 

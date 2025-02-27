@@ -22,7 +22,7 @@ extern "C" {
 #endif
 /* IIC clk freq */
 #define IC_CLK 100
-
+#define RTCSYS_CLK 25
 //#define __DEBUG__
 
 #ifdef __DEBUG__

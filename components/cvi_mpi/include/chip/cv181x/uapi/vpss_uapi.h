@@ -238,6 +238,12 @@ struct vpss_bld_cfg {
 #define CVI_VPSS_SUSPEND 0x40
 #define CVI_VPSS_RESUME 0x41
 
+#define CVI_VPSS_BIND_FB 0x42
+#define CVI_VPSS_UNBIND_FB 0x43
+
+#define CVI_VPSS_ENABLE_TILE 0x44
+#define CVI_VPSS_DISABLE_TILE 0x45
+
 /* Internal use */
 #define CVI_VPSS_SET_MODE 0x75
 #define CVI_VPSS_SET_MODE_EX 0x76

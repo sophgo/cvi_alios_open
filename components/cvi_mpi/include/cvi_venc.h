@@ -97,6 +97,16 @@ CVI_S32 CVI_VENC_GetChnAttr(VENC_CHN VeChn, VENC_CHN_ATTR_S *pstChnAttr);
  */
 CVI_S32 CVI_VENC_GetStream(VENC_CHN VeChn, VENC_STREAM_S *pstStream, CVI_S32 S32MilliSec);
 
+/* Get stream Customized
+ *
+ * @param VeChn(In): channel number
+ * @param pstStream(Out): pointer to VENC_STREAM_S
+ * @param S32MilliSec(In): timeout
+ * @param packsCnt(In): num of want to get packs
+ * @return Error code (0 if successful)
+ */
+CVI_S32 CVI_VENC_GetStreamEx(VENC_CHN VeChn, VENC_STREAM_S *pstStream, CVI_S32 S32MilliSec, CVI_U32 packsCnt);
+
 /* Release stream
  *
  * @param VeChn(In): channel number

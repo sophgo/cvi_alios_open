@@ -86,6 +86,8 @@
 
 /* TX RX interrupt level threshold, max can be 256 */
 #define SPI_INT_THRESHOLD               32
+#define BITS_PER_BYTE                       8
+#define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
 
 struct dw_spi {
 	void                    *regs;
@@ -93,13 +95,15 @@ struct dw_spi {
 	int                     index;
 	uint32_t                fifo_len;       /* depth of the FIFO buffer */
 	uint16_t                num_cs;         /* supported slave numbers */
-
+	uint32_t		speed_hz;
 	/* Current message transfer state info */
 	size_t                  len;
 	const void              *tx;
 	const void                    *tx_end;
 	void                    *rx;
 	void                    *rx_end;
+	uint32_t		rx_len;
+	uint32_t		tx_len;
 	uint8_t                 n_bytes;       /* current is a 1/2 bytes op */
 	uint32_t                dma_width;
 	//int             (*transfer_handler)(struct dw_spi *dws);
@@ -107,6 +111,14 @@ struct dw_spi {
 
 	/* Bus interface info */
 	void                    *priv;
+};
+
+struct spi_delay {
+#define SPI_DELAY_UNIT_USECS    0
+#define SPI_DELAY_UNIT_NSECS    1
+#define SPI_DELAY_UNIT_SCK      2
+        uint16_t     value;
+        uint8_t      unit;
 };
 
 #define SPI_CPHA                0x01
@@ -197,6 +209,8 @@ static inline void spi_reset_chip(struct dw_spi *dws)
 {
 	spi_enable_chip(dws, 0);
 	spi_mask_intr(dws, 0xff);
+	dw_readl(dws, DW_SPI_ICR);
+	dw_writel(dws, DW_SPI_SER, 0);
 	spi_enable_chip(dws, 1);
 }
 
@@ -206,7 +220,7 @@ static inline void spi_enable_dma(struct dw_spi *dws, uint8_t is_tx, uint8_t op)
 	uint32_t val = dw_readl(dws, DW_SPI_DMACR);
 
 	if (op)
-		val = 1 << (!!is_tx);
+		val |= 1 << (!!is_tx);
 	else
 		val &= ~(1 << (!!is_tx));
 
@@ -222,7 +236,7 @@ static inline void spi_shutdown_chip(struct dw_spi *dws)
 void spi_hw_init(struct dw_spi *dws);
 void dw_spi_set_controller_mode(struct dw_spi *dws, uint8_t enable_master);
 void dw_spi_set_polarity_and_phase(struct dw_spi *dws, csi_spi_cp_format_t format);
-void dw_spi_set_clock(struct dw_spi *dws, uint32_t clock_in, uint32_t clock_out);
+uint32_t dw_spi_set_clock(struct dw_spi *dws, uint32_t clock_in, uint32_t clock_out);
 int dw_spi_set_data_frame_len(struct dw_spi *dws, uint32_t size);
 void dw_spi_set_cs(struct dw_spi *dws, bool enable, uint32_t index);
 void dw_reader(struct dw_spi *dws);
@@ -230,4 +244,5 @@ void dw_writer(struct dw_spi *dws);
 void set_tran_mode(struct dw_spi *dws);
 void dw_spi_show_regs(struct dw_spi *dws);
 int poll_transfer(struct dw_spi *dws);
+int dw_spi_check_status(struct dw_spi *dws, bool raw);
 #endif

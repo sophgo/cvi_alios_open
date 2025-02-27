@@ -69,7 +69,7 @@ VDEC_ATTR vdec_attr = {
 	.outFile = CONFIG_SD_FATFS_MOUNTPOINT"/out.yuv",
 };
 
-static pthread_t VdecSendStreamTask[VENC_MAX_CHN_NUM];
+static pthread_t VdecSendStreamTask[VDEC_MAX_CHN_NUM];
 
 #if DUMP_YUV
 static void get_chroma_size_shift_factor(PIXEL_FORMAT_E enPixelFormat, CVI_S32 *w_shift, CVI_S32 *h_shift)
@@ -284,7 +284,7 @@ static CVI_VOID* vdec_streamproc(CVI_VOID *pArgs)
 		} else {
 			CVI_VDEC_ERR("cannot support format\n");
 		}
-		
+
 		stStream.u64PTS = u64PTS;
 		stStream.pu8Addr = pu8Buf + u32Start;
 		stStream.u32Len = s32ReadLen;

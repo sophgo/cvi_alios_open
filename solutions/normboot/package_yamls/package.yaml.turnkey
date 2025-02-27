@@ -29,15 +29,47 @@ depends:
   - aoshal: develop
   - libc_stub: develop
   - posix: develop
+  - cvi_link: v0.0.1
+  - cvi_msg: v0.0.1
   - cv181xc_evb: v0.0.1
   - chip_cv181x: v0.0.1
+  - cvi_osdrv_sys: v0.0.1
+  - cvi_osdrv_base: v0.0.1
+  - cvi_osdrv_vi: v0.0.1
+  - cvi_osdrv_vpss: v0.0.1
+  - cvi_osdrv_tpu: v0.0.1
+  - cvi_osdrv_ldc: v0.0.1
+  - cvi_osdrv_rgn: v0.0.1
+  - cvi_osdrv_vcodec: v0.0.1
+  - cvi_osdrv_vo: v0.0.1
+  - cvi_osdrv_cif: v0.0.1
+  - cvi_osdrv_ipcm: v0.0.1
+  - cvi_mw_sys: v0.0.1
+  - cvi_mw_audio: v0.0.1
   - minialsa: v7.5.1
   - drv_snd_cv181x: v7.5.1
+  - cvi_mw_mipi_tx: v0.0.1
+  - cvi_mw_vdec: v0.0.1
+  - cvi_mw_venc: v0.0.1
+  - cvi_mw_gdc: v0.0.1
+  - cvi_mw_ldc: v0.0.1
+  - cvi_mw_rgn: v0.0.1
+  - cvi_mw_vi: v0.0.1
+  - cvi_mw_vo: v0.0.1
+  - cvi_mw_vpss: v0.0.1
   - cvi_sensor: develop
+  - cvi_mw_isp: develop
+  - cvi_mw_isp_algo: develop
+  - cvi_mw_isp_ae: develop
+  - cvi_mw_isp_af: develop
+  - cvi_mw_isp_awb: develop
+  - cvi_mw_isp_bin: develop
+  - cvi_mw_bin: develop
   - cvi_platform: develop
   - cvi_test: develop
+#  - cvi_mw_isp_com_raw_replay: develop
+#  - cvi_mw_isp_daemon: develop
   - mini_ini: develop
-  - cvi_mpi: develop
 ## 第三部分：板级信息
 # hw_info:                                 # 对 solution、board、chip 三个字段的改进，统称为 hw_info 字段
 #   cpu_id: cpu0

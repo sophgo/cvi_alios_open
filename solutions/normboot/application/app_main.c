@@ -30,6 +30,47 @@ extern void ipcm_driver_test_init(void);
 
 #define PQ_DEBUG 1
 
+#define CVI_IPCM_ANON_STRESS_TEST_PORT 63
+
+static int _anon_stress_test_process(CVI_VOID *priv, IPCM_ANON_MSG_S *data)
+{
+	unsigned char port_id, msg_id;
+	unsigned int param;
+	int ret = 0;
+
+	if (data == NULL) {
+		printf("%s fail, handle data is null.\n", __func__);
+		return -1;
+	}
+
+	port_id = data->u8PortID;
+	msg_id = data->u8MsgID;
+	param = data->u32Param;
+
+	if (port_id != CVI_IPCM_ANON_STRESS_TEST_PORT) {
+		printf("%s port_id:%d msg_id:%d not handled.\n", __func__, port_id, msg_id);
+	}
+
+	ret = CVI_IPCM_AnonSendParam(
+		CVI_IPCM_ANON_STRESS_TEST_PORT, msg_id + 1, param + 1);
+	if (ret) {
+		printf("%s CVI_IPCM_AnonSendParam fail:%d.\n", __func__, ret);
+	}
+
+	return ret;
+}
+
+static int ipcm_stress_test_init(void)
+{
+	int ret = 0;
+	ret = CVI_IPCM_RegisterAnonHandle(CVI_IPCM_ANON_STRESS_TEST_PORT, _anon_stress_test_process, NULL);
+	if (ret) {
+		printf("%s CVI_IPCM_RegisterAnonHandle(%d) fail:%d.\n", __func__, CVI_IPCM_ANON_STRESS_TEST_PORT, ret);
+		return ret;
+	}
+	return ret;
+}
+
 static int _anon_vuart_process(CVI_VOID *priv, IPCM_ANON_MSG_S *data)
 {
 	unsigned char port_id, msg_id, data_type;
@@ -161,6 +202,8 @@ int main(int argc, char *argv[])
 	//cli and ulog init
 	YOC_SYSTEM_ToolInit();
 
+	CVI_MSG_Init();
+
 	//Fs init
 	//YOC_SYSTEM_FsVfsInit();
 
@@ -175,9 +218,9 @@ int main(int argc, char *argv[])
 #endif
 	ipcm_driver_test_init();
 
-	CVI_MSG_Init();
-
 	ipcm_anon_init();
+
+	ipcm_stress_test_init();
 
 #ifdef CONFIG_RTOS_PARSE_PARAM
 	APP_PARAM_Parse();
