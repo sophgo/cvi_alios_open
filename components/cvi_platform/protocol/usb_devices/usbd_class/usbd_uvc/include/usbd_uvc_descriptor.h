@@ -690,10 +690,14 @@ void uvc_set_video_format_info(const struct uvc_format_info_st *video_format_inf
 void uvc_get_video_format_info(struct uvc_format_info_st *video_format_info);
 void uvc_set_video_frame_info(const struct uvc_frame_info_st *video_frame_info);
 void uvc_get_video_frame_info(struct uvc_frame_info_st *video_frame_info);
-void uvc_get_trans_size(uint32_t *size_pre_trans, uint32_t *trans_pre_microframe, uint32_t *video_packet_size);
+void uvc_get_trans_size(uint32_t *size_per_trans, uint32_t *trans_per_microframe , uint32_t *video_packet_size);
 
 uint8_t *uvc_build_descriptors(struct uvc_device_info *uvc, uint32_t *desc_len, uint8_t uvc_nums);
 void uvc_destroy_descriptor(uint8_t *desc);
+
+void uvc_get_trans_size_other(uint32_t *size_per_trans, uint32_t *trans_per_microframe , uint32_t *video_packet_size);
+uint8_t *uvc_build_descriptors_other(struct uvc_device_info *uvc, uint32_t *desc_len, uint8_t uvc_nums);
+void uvc_destroy_descriptor_other(uint8_t *desc);
 
 /*-------------------------------------------------------------------------*/
 

@@ -9,6 +9,8 @@
 
 #define USBD_UVC_NUM	CONFIG_USBD_UVC_NUM
 
+#define USBD_UVC_NUM_OTHER	1
+
 #if CONFIG_USB_BULK_UVC
     #define EP_INTERVAL 0x00
 #else
@@ -67,6 +69,7 @@ struct uvc_device_info {
 };
 
 void uvc_desc_register();
+void uvc_desc_other_register();
 int uvc_init(void);
 int uvc_deinit(void);
 

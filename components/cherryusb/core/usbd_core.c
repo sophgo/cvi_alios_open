@@ -55,9 +55,11 @@ USB_NOCACHE_RAM_SECTION struct usbd_core_cfg_priv {
     bool test_mode;
 #endif
     uint8_t intf_offset;
+    uint8_t intf_offset_other;
 } usbd_core_cfg;
 
 usb_slist_t usbd_intf_head = USB_SLIST_OBJECT_INIT(usbd_intf_head);
+usb_slist_t usbd_intf_head_other = USB_SLIST_OBJECT_INIT(usbd_intf_head_other);
 
 static struct usb_msosv1_descriptor *msosv1_desc;
 static struct usb_msosv2_descriptor *msosv2_desc;
@@ -297,7 +299,7 @@ static bool usbd_get_descriptor(uint16_t type_index, uint8_t **data, uint32_t *l
 
     while (p[DESC_bLength] != 0U) {
         if (p[DESC_bDescriptorType] == type) {
-            if (cur_index == index) {
+            if ((cur_index == index) || (cur_index == index-1)) {
                 found = true;
                 break;
             }
@@ -366,7 +368,7 @@ static bool usbd_set_configuration(uint8_t config_index, uint8_t alt_setting)
                 /* remember current configuration index */
                 cur_config = p[CONF_DESC_bConfigurationValue];
 
-                if (cur_config == config_index) {
+                if ((cur_config == config_index) || (cur_config-1 == config_index)){
                     found = true;
                 }
 
@@ -396,6 +398,22 @@ static bool usbd_set_configuration(uint8_t config_index, uint8_t alt_setting)
     }
 
     return found;
+}
+
+/**
+ * @brief get USB interface
+ *
+ * @param [in] iface Interface index
+ * @param [in] alt_setting  Alternate setting number
+ *
+ * @return true if successfully configured false if error or unconfigured
+ */
+static void usbd_get_interface(uint8_t iface, uint8_t *alt_setting)
+{
+    uint16_t data;
+    data = iface;
+    usbd_class_event_notify_handler(USBD_EVENT_GET_INTERFACE, (void *)&data);
+    *alt_setting = data & 0x0F;
 }
 
 /**
@@ -599,6 +617,7 @@ static bool usbd_std_interface_req_handler(struct usb_setup_packet *setup,
             break;
         case USB_REQUEST_GET_INTERFACE:
             (*data)[0] = 0;
+            usbd_get_interface(setup->wIndex&0x0F, *data);
             *len = 1;
             break;
 
@@ -915,6 +934,13 @@ static void usbd_class_event_notify_handler(uint8_t event, void *arg)
             continue;
         }
 
+        if (event == USBD_EVENT_GET_INTERFACE){
+            uint16_t *data = (uint16_t *)arg;
+            uint8_t iface = *data;
+            if(iface != intf->intf_num)
+            continue;
+        }
+
         if (intf->notify_handler) {
             intf->notify_handler(event, arg);
         }
@@ -1118,6 +1144,7 @@ void usbd_desc_register(const uint8_t *desc)
 {
     usbd_core_cfg.descriptors = desc;
     usbd_core_cfg.intf_offset = 0;
+    usbd_core_cfg.intf_offset_other = 0;
 }
 
 /* Register MS OS Descriptors version 1 */
@@ -1143,6 +1170,13 @@ void usbd_add_interface(struct usbd_interface *intf)
     intf->intf_num = usbd_core_cfg.intf_offset;
     usb_slist_add_tail(&usbd_intf_head, &intf->list);
     usbd_core_cfg.intf_offset++;
+}
+
+void usbd_add_interface_other(struct usbd_interface *intf)
+{
+    intf->intf_num = usbd_core_cfg.intf_offset_other;
+    usb_slist_add_tail(&usbd_intf_head_other, &intf->list);
+    usbd_core_cfg.intf_offset_other++;
 }
 
 void usbd_add_endpoint(struct usbd_endpoint *ep)
@@ -1173,6 +1207,7 @@ int usbd_initialize(void)
 int usbd_deinitialize(void)
 {
     usbd_core_cfg.intf_offset = 0;
+    usbd_core_cfg.intf_offset_other = 0;
     usb_slist_init(&usbd_intf_head);
     usb_dc_deinit();
     return 0;

@@ -59,10 +59,12 @@ static int usbd_vc_pu_brightness_request_handler(uint8_t device_id, uint8_t bReq
 	switch (bRequest) {
 		case VIDEO_REQUEST_SET_CUR: {
 			brightness = (uint16_t)(*data)[1] << 8 | (uint16_t)(*data)[0];
+			if(brightness > 100 || brightness < 0)
+				return -1;
 			ret = CVI_VPSS_SetGrpProcAmp(group_id, PROC_AMP_BRIGHTNESS, brightness);
 			if (ret != 0) {
 				USB_LOG_WRN("set vpss grp amp(%d) failed with %#x", PROC_AMP_BRIGHTNESS, ret);
-				break;
+				return -1;
 			}
 			USB_LOG_DBG("Video set brightness:%d\r\n", brightness);
 		} break;
@@ -71,14 +73,14 @@ static int usbd_vc_pu_brightness_request_handler(uint8_t device_id, uint8_t bReq
 			ret = CVI_VPSS_GetGrpProcAmp(group_id, PROC_AMP_BRIGHTNESS, &value);
 			if (ret != 0) {
 				USB_LOG_WRN("get vpss grp amp(%d) failed with %#x", PROC_AMP_BRIGHTNESS, ret);
-				break;
+				return -1;
 			}
 			brightness = value;
 			memcpy(*data, (uint8_t *)&brightness, 2);
 			*len = 2;
 		} break;
 		case VIDEO_REQUEST_GET_MIN: {
-			brightness = 1;
+			brightness = 0;
 			memcpy(*data, (uint8_t *)&brightness, 2);
 			*len = 2;
 		} break;
@@ -101,6 +103,10 @@ static int usbd_vc_pu_brightness_request_handler(uint8_t device_id, uint8_t bReq
 			memcpy(*data, (uint8_t *)&brightness, 2);
 			*len = 2;
 		} break;
+		case VIDEO_REQUEST_GET_LEN: {
+			(*data)[0] = 0x02;
+			*len = 2;
+		} break;
 		default:
 			USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", bRequest);
 			return -1;
@@ -118,10 +124,12 @@ static int usbd_vc_pu_contrast_request_handler(uint8_t device_id, uint8_t bReque
 	switch (bRequest) {
 		case VIDEO_REQUEST_SET_CUR: {
 			wContrast = (uint16_t)(*data)[1] << 8 | (uint16_t)(*data)[0];
+			if(wContrast > 100 || wContrast < 0)
+				return -1;
 			ret = CVI_VPSS_SetGrpProcAmp(group_id, PROC_AMP_CONTRAST, wContrast);
 			if (ret != 0) {
 				USB_LOG_WRN("set vpss grp amp(%d) failed with %#x", PROC_AMP_CONTRAST, ret);
-				break;
+				return -1;
 			}
 			USB_LOG_DBG("Video set Contrast:%d\r\n", wContrast);
 		} break;
@@ -130,14 +138,14 @@ static int usbd_vc_pu_contrast_request_handler(uint8_t device_id, uint8_t bReque
 			ret = CVI_VPSS_GetGrpProcAmp(group_id, PROC_AMP_CONTRAST, &value);
 			if (ret != 0) {
 				USB_LOG_WRN("get vpss grp amp(%d) failed with %#x", PROC_AMP_CONTRAST, ret);
-				break;
+				return -1;
 			}
 			wContrast = value;
 			memcpy(*data, (uint8_t *)&wContrast, 2);
 			*len = 2;
 		} break;
 		case VIDEO_REQUEST_GET_MIN: {
-			wContrast = 1;
+			wContrast = 0;
 			memcpy(*data, (uint8_t *)&wContrast, 2);
 			*len = 2;
 		} break;
@@ -160,6 +168,10 @@ static int usbd_vc_pu_contrast_request_handler(uint8_t device_id, uint8_t bReque
 			memcpy(*data, (uint8_t *)&wContrast, 2);
 			*len = 2;
 		} break;
+		case VIDEO_REQUEST_GET_LEN: {
+			(*data)[1] = 0x02;
+			*len = 2;
+		} break;
 		default:
 			USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", bRequest);
 			return -1;
@@ -172,16 +184,18 @@ static int usbd_vc_pu_hue_request_handler(uint8_t device_id, uint8_t bRequest, u
 	int ret;
 	struct uvc_device_info *uvc = uvc_container_of_device_id(device_id);
 	int group_id = uvc->video.vpss_group;
-	uint16_t wHue;
+	int16_t wHue;
 
 	switch (bRequest) {
 		case VIDEO_REQUEST_SET_CUR: {
 			wHue = (uint16_t)(*data)[1] << 8 | (uint16_t)(*data)[0];
-			wHue = 100 - wHue;
+			if(wHue >50 || wHue < -50)
+				return -1;
+
+			wHue = 50 - wHue;
 			ret = CVI_VPSS_SetGrpProcAmp(group_id, PROC_AMP_HUE, wHue);
 			if (ret != 0) {
 				USB_LOG_WRN("set vpss grp amp(%d) failed with %#x", PROC_AMP_HUE, ret);
-				break;
 			}
 			USB_LOG_DBG("Video set Hue:%d\r\n", wHue);
 		} break;
@@ -190,19 +204,19 @@ static int usbd_vc_pu_hue_request_handler(uint8_t device_id, uint8_t bRequest, u
 			ret = CVI_VPSS_GetGrpProcAmp(group_id, PROC_AMP_HUE, &value);
 			if (ret != 0) {
 				USB_LOG_WRN("get vpss grp amp(%d) failed with %#x", PROC_AMP_HUE, ret);
-				break;
+				return -1;
 			}
-			wHue = 100 - value;
+			wHue = 50 - value;
 			memcpy(*data, (uint8_t *)&wHue, 2);
 			*len = 2;
 		} break;
 		case VIDEO_REQUEST_GET_MIN: {
-			wHue = 1;
+			wHue = -50;
 			memcpy(*data, (uint8_t *)&wHue, 2);
 			*len = 2;
 		} break;
 		case VIDEO_REQUEST_GET_MAX: {
-			wHue = 100;
+			wHue = 50;
 			memcpy(*data, (uint8_t *)&wHue, 2);
 			*len = 2;
 		} break;
@@ -216,8 +230,12 @@ static int usbd_vc_pu_hue_request_handler(uint8_t device_id, uint8_t bRequest, u
 			*len = 1;
 		} break;
 		case VIDEO_REQUEST_GET_DEF: {
-			wHue = 50;
+			wHue = 0;
 			memcpy(*data, (uint8_t *)&wHue, 2);
+			*len = 2;
+		} break;
+		case VIDEO_REQUEST_GET_LEN: {
+			(*data)[0] = 0x02;
 			*len = 2;
 		} break;
 		default:
@@ -237,10 +255,12 @@ static int usbd_vc_pu_saturation_request_handler(uint8_t device_id, uint8_t bReq
 	switch (bRequest) {
 		case VIDEO_REQUEST_SET_CUR: {
 			wSaturation = (uint16_t)(*data)[1] << 8 | (uint16_t)(*data)[0];
+			if(wSaturation > 100 || wSaturation < 0)
+				return -1;
 			ret = CVI_VPSS_SetGrpProcAmp(group_id, PROC_AMP_SATURATION, wSaturation);
 			if (ret != 0) {
 				USB_LOG_WRN("set vpss grp amp(%d) failed with %#x", PROC_AMP_SATURATION, ret);
-				break;
+				return -1;
 			}
 			USB_LOG_DBG("Video set saturation:%d\r\n", wSaturation);
 		} break;
@@ -256,7 +276,7 @@ static int usbd_vc_pu_saturation_request_handler(uint8_t device_id, uint8_t bReq
 			*len = 2;
 		} break;
 		case VIDEO_REQUEST_GET_MIN: {
-			wSaturation = 1;
+			wSaturation = 0;
 			memcpy(*data, (uint8_t *)&wSaturation, 2);
 			*len = 2;
 		} break;
@@ -279,6 +299,10 @@ static int usbd_vc_pu_saturation_request_handler(uint8_t device_id, uint8_t bReq
 			memcpy(*data, (uint8_t *)&wSaturation, 2);
 			*len = 2;
 		} break;
+		case VIDEO_REQUEST_GET_LEN: {
+			(*data)[0] = 0x02;
+			*len = 2;
+		} break;
 		default:
 			USB_LOG_WRN("Unhandled Video Class bRequest 0x%02x\r\n", bRequest);
 			return -1;
@@ -286,21 +310,31 @@ static int usbd_vc_pu_saturation_request_handler(uint8_t device_id, uint8_t bReq
 	return 0;
 }
 
+
 static int usbd_vc_pu_sharpness_request_handler(uint8_t device_id, uint8_t bRequest, uint8_t **data, uint32_t *len)
 {
 	int ret;
 	int vi_pipe = device_id;
 	uint16_t wSharpness = 0;
+	static ISP_SHARPEN_ATTR_S stDRCAttr;
+	uint8_t cnt = 0;
+
+	if(!cnt)
+	{
+		ret = CVI_ISP_GetSharpenAttr(vi_pipe, &stDRCAttr);
+		if (ret != 0) {
+			USB_LOG_WRN("CVI_ISP_GetSharpenAttr failed\n");
+		}
+		cnt = 1;
+	}
 
 	switch (bRequest) {
 		case VIDEO_REQUEST_SET_CUR: {
-			ISP_SHARPEN_ATTR_S stDRCAttr;
 			wSharpness = (uint16_t)(*data)[1] << 8 | (uint16_t)(*data)[0];
-			ret = CVI_ISP_GetSharpenAttr(vi_pipe, &stDRCAttr);
-			if (ret != 0) {
-				USB_LOG_WRN("CVI_ISP_GetSharpenAttr failed\n");
-				break;
-			}
+			if(wSharpness > 0xFF || wSharpness < 0)
+				return -1;
+			if(wSharpness<0 || wSharpness>0xff)
+				return -1;
 			stDRCAttr.Enable = CVI_TRUE;
 			stDRCAttr.enOpType = OP_TYPE_MANUAL;
 			stDRCAttr.stManual.GlobalGain = (CVI_U8)wSharpness;
@@ -308,27 +342,26 @@ static int usbd_vc_pu_sharpness_request_handler(uint8_t device_id, uint8_t bRequ
 			ret = CVI_ISP_SetSharpenAttr(vi_pipe, &stDRCAttr);
 			if (ret != 0) {
 				USB_LOG_WRN("CVI_ISP_SetSharpenAttr failed\n");
-				break;
+				return -1;
 			}
 		} break;
 		case VIDEO_REQUEST_GET_CUR: {
-			ISP_SHARPEN_ATTR_S stDRCAttr;
 			ret = CVI_ISP_GetSharpenAttr(vi_pipe, &stDRCAttr);
 			if (ret != 0) {
 				USB_LOG_WRN("CVI_ISP_GetSharpenAttr failed\n");
-				break;
+				return -1;
 			}
-			wSharpness = (int32_t)stDRCAttr.stManual.GlobalGain;
+			wSharpness = stDRCAttr.stManual.GlobalGain;
 			memcpy(*data, (uint8_t *)&wSharpness, 2);
 			*len = 2;
 		} break;
 		case VIDEO_REQUEST_GET_MIN: {
-			wSharpness = 0x0001;
+			wSharpness = 0;
 			memcpy(*data, (uint8_t *)&wSharpness, 2);
 			*len = 2;
 		} break;
 		case VIDEO_REQUEST_GET_MAX: {
-			wSharpness = 0x00ff;
+			wSharpness = 0xFF;
 			memcpy(*data, (uint8_t *)&wSharpness, 2);
 			*len = 2;
 		} break;
@@ -341,8 +374,12 @@ static int usbd_vc_pu_sharpness_request_handler(uint8_t device_id, uint8_t bRequ
 			(*data)[0] = 0x03; // support set and get
 			*len = 1;
 		} break;
+		case VIDEO_REQUEST_GET_LEN: {
+			(*data)[0] = 0x02;
+			*len = 2;
+		} break;
 		case VIDEO_REQUEST_GET_DEF: {
-			wSharpness = 32;
+			wSharpness = 0x80;
 			memcpy(*data, (uint8_t *)&wSharpness, 2);
 			*len = 2;
 		} break;

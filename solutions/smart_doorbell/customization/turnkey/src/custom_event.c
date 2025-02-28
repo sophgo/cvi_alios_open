@@ -40,7 +40,7 @@ static void* cvi_handle_tcp_server(void* pc_args)
 }
 #endif
 
-
+#if CONFIG_UVC_SWITCH_BY_PIN
 static void* cvi_handle_uvc_server(void* p_args)
 {
     int32_t s32_ret;
@@ -79,7 +79,9 @@ static void* cvi_handle_uvc_server(void* p_args)
     }
     return NULL;
 }
+#endif
 
+#if CONFIG_ALGOKIT_ENABLE 
 static void* cvi_algokit_handler(void* args)
 {
     struct timeval start, end;
@@ -96,6 +98,7 @@ static void* cvi_algokit_handler(void* args)
     pthread_exit(NULL);
     return NULL;
 }
+#endif
 
 
 int32_t APP_CustomEventStart(void)
@@ -107,8 +110,12 @@ int32_t APP_CustomEventStart(void)
 #if (CONFIG_ALGOKIT_ENABLE)
     pthread_attr_t st_thread_attr;
     pthread_t st_algokit_handler_tid;
-
+    struct sched_param param;
+    param.sched_priority = 30;
     pthread_attr_init(&st_thread_attr);
+    pthread_attr_setschedpolicy(&st_thread_attr, SCHED_RR);
+    pthread_attr_setschedparam(&st_thread_attr, &param);
+    pthread_attr_setinheritsched(&st_thread_attr, PTHREAD_EXPLICIT_SCHED);
     pthread_attr_setstacksize(&st_thread_attr, 81920);
     pthread_create(&st_algokit_handler_tid, &st_thread_attr, cvi_algokit_handler, NULL);
     pthread_setname_np(st_algokit_handler_tid, "ALGOKIT");

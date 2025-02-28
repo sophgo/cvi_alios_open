@@ -37,6 +37,7 @@ enum usbd_event_type {
     /* USB DEVICE STATUS */
     USBD_EVENT_CONFIGURED,    /** USB configuration done */
     USBD_EVENT_SET_INTERFACE, /** USB interface selected */
+    USBD_EVENT_GET_INTERFACE, /** USB interface selected */
     USBD_EVENT_UNKNOWN
 };
 
@@ -85,6 +86,7 @@ void usbd_bos_desc_register(struct usb_bos_descriptor *desc);
 
 void usbd_add_interface(struct usbd_interface *intf);
 void usbd_add_endpoint(struct usbd_endpoint *ep);
+void usbd_add_interface_other(struct usbd_interface *intf);
 
 bool usb_device_is_configured(void);
 uint8_t usbd_get_speed(void);

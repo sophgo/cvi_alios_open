@@ -178,7 +178,13 @@ static CVI_S32 cmos_fps_set(VI_PIPE ViPipe, CVI_FLOAT f32Fps, AE_SENSOR_DEFAULT_
 		u32VMAX = (u32VMAX > OV02B10_FULL_LINES_MAX) ? OV02B10_FULL_LINES_MAX : u32VMAX;
 		break;
 	case OV02B10_MODE_800X600P60:
-		u32VMAX = ((u32VMAX >> 1) << 1);
+		if ((f32Fps <= f32MaxFps) && (f32Fps >= f32MinFps)) {
+			u32VMAX = u32Vts * f32MaxFps / DIV_0_TO_1_FLOAT(f32Fps) - u32Vts;
+		} else {
+			CVI_TRACE_SNS(CVI_DBG_ERR, "Not support Fps: %f\n", f32Fps);
+			return CVI_FAILURE;
+		}
+		u32VMAX = (u32VMAX > OV02B10_FULL_LINES_MAX) ? OV02B10_FULL_LINES_MAX : u32VMAX;
 		break;
 	default:
 		CVI_TRACE_SNS(CVI_DBG_ERR, "Not support sensor mode: %d\n", pstSnsState->u8ImgMode);

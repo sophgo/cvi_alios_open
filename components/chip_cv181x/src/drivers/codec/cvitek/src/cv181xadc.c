@@ -68,7 +68,7 @@ static int cv182xadc_hw_params(struct cv182xadc *adc, u32 rate)
 
 	/* ECO function, register naming is not corrected, use ioremap to access register of DAC */
 	dac = (volatile u32 *)(0x0300A000);
-	ana0 = readl(dac + (AUDIO_PHY_TXDAC_ANA0/sizeof(u32))) & ~AUDIO_PHY_REG_ADDI_TXDAC_MASK;
+	ana0 = readl(dac + AUDIO_PHY_TXDAC_ANA0) & ~AUDIO_PHY_REG_ADDI_TXDAC_MASK;
 
 	if (rate >= 8000 && rate <= 48000) {
 		debug("%s, set rate to %d\n", __func__, rate);
@@ -140,7 +140,7 @@ static int cv182xadc_hw_params(struct cv182xadc *adc, u32 rate)
 		//printf("adc_clk:%x\n", adc_read_reg(adc->adc_base, AUDIO_PHY_RXADC_CLK));
 
 		//adc_write_reg(adc->adc_base, AUDIO_PHY_SPARE_0, spare0);
-		writel(ana0, dac + (AUDIO_PHY_TXDAC_ANA0/sizeof(u32)));;
+		writel(ana0, dac + AUDIO_PHY_TXDAC_ANA0);
 	} else {
 		printf("%s, unsupported sample rate\n", __func__);
 		return 0;

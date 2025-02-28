@@ -1,0 +1,1134 @@
+<HTML><HEAD>
+	<META http-equiv="X-UA-Compatible" content="IE=edge" />
+	<META charset="UTF-8" />
+	<STYLE type='text/css'>
+		BODY { background-color: #DFDFDF; }
+		.dm_display
+		{
+		    color: Navy;
+		    font-family: monospace;
+		    background-color: White;
+		    border-width: 3px;
+		    border-style: outset;
+		}
+
+		#suite-output
+		{
+		    background-color: #FFFFDD;
+		    border: ridge 3px #FFFFDD;
+		    border-collapse: collapse;
+		    padding: 0;
+		    margin: 0;
+		    empty-cells: hide
+		}
+
+		#test-header
+		{
+		    font-weight: bold;
+		    font-size: large;
+		    border-top: ridge 2px #FFFFDD;
+		    border-bottom: ridge 2px #FFFFDD;
+		    padding: 0;
+		    margin: 0;
+		}
+
+		.test-pass, .test-fail
+		{
+		    float: right;
+		    border-left: ridge 2px #FFFDD;
+		    min-width: 6em;
+		}
+
+		.test-pass { background-color: #00FF00; }
+		.test-fail { background-color: #FF8888; }
+
+		.test-details
+		{
+		    clear: both;
+		    font-family: monospace;
+		    padding: 0;
+		    margin: 0;
+		    empty-cells: hide;
+		}
+
+		.label
+		{
+		    float: left;
+		    width: 6em;
+		}
+
+		.content
+		{
+		    white-space: pre-wrap;
+		    margin-left: 7em;
+		}
+
+		.err_log, .warn_log
+		{
+		    color: Red;
+		}
+
+		.err_log { font-weight: bold; }
+
+		.unexpected_log
+		{
+		    color: Red;
+		    background-color: Yellow;
+		    font-weight: bold;
+		    font-style: italic;
+		}
+	</STYLE>
+	<TITLE>UVC Functionality Tests - 2025-01-22 14-03-55</TITLE>
+	<META name='Suite-Name' content='UVC Functionality Tests.cvtests' />
+	<META name='Test-Version' content='GuiCV.exe ver 4.1.0.0' />
+	<META name='Test-Version' content='BaseUtilities.dll ver 4.1.0.0' />
+	<META name='Test-Version' content='GuiHelper.dll ver 4.1.0.0' />
+	<META name='Test-Version' content='ComplianceUtilities.dll ver 4.1.0.0' />
+	<META name='Test-Version' content='TestSuiteParser.dll ver 4.1.0.0' />
+	<META name='Test-Version' content='xhci_DevIOCTL.dll ver 2.2.7.0' />
+	<META name='Test-Version' content='xhci_TestServices.dll ver 2.2.7.0' />
+	<META name='Test-Version' content='USBUtilities.dll ver 1.4.5.1' />
+	<META name='Test-Version' content='StackSwitcher.dll ver 1.4.5.1' />
+	<META name='Test-Version' content='xhci_CVServices.dll ver 2.2.7.0' />
+	<META name='Test-Version' content='xhci_UVC.dll ver 3.1.4.0' />
+	<META name='Host-Controller' content='VID=1022,PID=1639' />
+	<META name='Device-Under-Test' content='VID=3346, PID=0001' />
+	<META name='Device-Speed' content='High Speed' />
+	<META name='Topology' content='XHCI HC -- DUT' />
+	<META name='Test-Pass' content=' Scanning Mode Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Auto-Exposure Mode Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Auto-Exposure Priority Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Exposure Time (Absolute) Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Exposure Time (Relative) Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Iris (Absolute) Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Iris (Relative) Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Focus (Absolute) Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Focus (Relative) Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Focus Auto Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Zoom (Absolute) Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Zoom (Relative) Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Roll (Absolute) Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Roll (Relative) Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' PanTilt(Absolute) Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' PanTilt (Relative) Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Privacy Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Backlight Compensation Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Brightness Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Analog Video Standard Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Analog Video Lock Status Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Contrast Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Gain Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Power Line Frequency Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Hue Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Hue Auto Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Saturation Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Sharpness Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Gamma Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' White Balance Temperature Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' White Balance Temperature Auto Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' White Balance Component Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' White Balance Component Auto Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Digital Multiplier Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Digital Multiplier Limit Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Media Transport Terminal: Transport Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Media Transport Terminal: Absolute Track Number Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Media Transport Terminal: Media Information Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Test-Pass' content=' Media Transport Terminal: Time Code Information Control Test Video (Configuration Index 0) [Fails (0); Aborts (0); Warnings (0)]' />
+	<META name='Suite-Result' content='PASS' />
+	<META name='Log-Name' content='UVC Functionality Tests - 2025-01-22 14-03-55.html' />
+	<META name='Test-Count' content='39' />
+</HEAD>
+<BODY><DIV id='suite-summary'>
+	<DIV><STRONG>APPLICATION</STRONG>: USB 3 Gen X Command Verifier<BR></DIV>
+	<DIV><STRONG>TEST SUITE</STRONG>: UVC Functionality Tests.cvtests<BR></DIV>
+	<DIV><STRONG>OPERATING SYSTEM</STRONG>: <BR></DIV>
+	<DIV><STRONG>WORKSTATION</STRONG>: <BR></DIV>
+	<DIV><STRONG>DATE</STRONG>: Wednesday, January 22, 2025<BR></DIV>
+	<DIV><STRONG>TIME</STRONG>: 02:04:53 PM<BR></DIV>
+	<DIV><STRONG>OPERATOR</STRONG>: bruce<BR></DIV>
+	<DIV><STRONG>NUMBER OF TESTS</STRONG>: 39<BR></DIV>
+	<DIV><STRONG>LOG NAME</STRONG>: UVC Functionality Tests - 2025-01-22 14-03-55<BR></DIV>
+	<DIV><STRONG>RESULT</STRONG>: passed<BR></DIV>
+<HR>
+</DIV>
+<BR><BR>
+<DIV id='suite-output'>
+<DIV id='test-header'>Initialize Test Suite</DIV>
+<DIV class='test-details'>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Test log initialized.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Log Level: Normal</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>User Input module initialized</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Windows Version 22H2 (OS Build 19045)</DIV></DIV>
+<DIV style='color:#00005F'><DIV class='label'>INFO</DIV><DIV class='content'>GuiCV.exe ver 4.1.0.0</DIV></DIV>
+<DIV style='color:#00005F'><DIV class='label'>INFO</DIV><DIV class='content'>BaseUtilities.dll ver 4.1.0.0</DIV></DIV>
+<DIV style='color:#00005F'><DIV class='label'>INFO</DIV><DIV class='content'>GuiHelper.dll ver 4.1.0.0</DIV></DIV>
+<DIV style='color:#00005F'><DIV class='label'>INFO</DIV><DIV class='content'>ComplianceUtilities.dll ver 4.1.0.0</DIV></DIV>
+<DIV style='color:#00005F'><DIV class='label'>INFO</DIV><DIV class='content'>TestSuiteParser.dll ver 4.1.0.0</DIV></DIV>
+<DIV style='color:#00005F'><DIV class='label'>INFO</DIV><DIV class='content'>xhci_DevIOCTL.dll ver 2.2.7.0</DIV></DIV>
+<DIV style='color:#00005F'><DIV class='label'>INFO</DIV><DIV class='content'>xhci_TestServices.dll ver 2.2.7.0</DIV></DIV>
+<DIV style='color:#00005F'><DIV class='label'>INFO</DIV><DIV class='content'>USBUtilities.dll ver 1.4.5.1</DIV></DIV>
+<DIV style='color:#00005F'><DIV class='label'>INFO</DIV><DIV class='content'>StackSwitcher.dll ver 1.4.5.1</DIV></DIV>
+<DIV style='color:#00005F'><DIV class='label'>INFO</DIV><DIV class='content'>xhci_CVServices.dll ver 2.2.7.0</DIV></DIV>
+<DIV style='color:#00005F'><DIV class='label'>INFO</DIV><DIV class='content'>xhci_UVC.dll ver 3.1.4.0</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>XHCISpecVersion: 1.10.</DIV></DIV>
+<DIV style='font-weight: 700;color:#00007F'><DIV class='label'>INFO</DIV><DIV class='content'>Host 1 selected: xHCI Host:  VID=0x1022, PID=0x1639 (PCI ;¿ 7¾ 0Ÿý 3)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>User selection from list: &quot;HS  Device (UVC) addr=1:   VID=3346, PID=0001  RouteString 0x00000&quot;</DIV></DIV>
+<DIV style='font-weight: 700;color:#00007F'><DIV class='label'>INFO</DIV><DIV class='content'>Please select UVC Device  to test</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>UVC Device Under Test is operating at High Speed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Topology: XHCI HC -- DUT</DIV></DIV>
+</DIV>
+<DIV id='test-header'>Get Number Of Configurations</DIV>
+<DIV class='test-details'>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Number of configurations: 1.</DIV></DIV>
+</DIV>
+<DIV id='test-header'>Get Number Of Other Speed Configurations</DIV>
+<DIV class='test-details'>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Number of Other Speed configurations: 1.</DIV></DIV>
+</DIV>
+<DIV id='test-header'>Get UVC Version Numbers For All Configurations</DIV>
+<DIV class='test-details'>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor for Configuration 0.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>  Configuration 0: UVC 1.0 or 1.1</DIV></DIV>
+</DIV>
+<DIV id='test-header'>Get UVC Version Numbers For All Configurations</DIV>
+<DIV class='test-details'>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor for Configuration 0.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>  Configuration 0: UVC 1.0 or 1.1</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_6'> Scanning Mode Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:03:58</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Scanning Mode Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:03:59</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Scanning Mode Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_7'> Auto-Exposure Mode Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:03:59</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Auto Exposure Mode Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:00</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Auto-Exposure Mode Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_8'> Auto-Exposure Priority Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:00</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Auto-Exposure Priority Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:02</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  2 seconds.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Auto-Exposure Priority Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_9'> Exposure Time (Absolute) Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:02</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Exposure Time (Absolute) Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:03</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Exposure Time (Absolute) Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_10'> Exposure Time (Relative) Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:03</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Exposure Time (Relative) Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:05</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  2 seconds.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Exposure Time (Relative) Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_11'> Iris (Absolute) Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:05</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Iris (Absolute) Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:06</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Iris (Absolute) Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_12'> Iris (Relative) Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:06</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Iris (Relative) Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:07</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Iris (Relative) Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_13'> Focus (Absolute) Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:07</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Focus (Absolute) Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:09</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  2 seconds.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Focus (Absolute) Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_14'> Focus (Relative) Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:09</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Focus (Relative) Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:10</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Focus (Relative) Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_15'> Focus Auto Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:10</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Focus Auto Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:11</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Focus Auto Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_16'> Zoom (Absolute) Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:11</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Zoom (Absolute) Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:13</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  2 seconds.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Zoom (Absolute) Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_17'> Zoom (Relative) Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:13</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Zoom (Relative) Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:14</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Zoom (Relative) Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_18'> Roll (Absolute) Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:14</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Roll (Absolute) Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:16</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  2 seconds.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Roll (Absolute) Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_19'> Roll (Relative) Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:16</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Focus (Relative) Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:17</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Roll (Relative) Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_20'> PanTilt(Absolute) Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:17</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Pan Tilt (Absolute) Control is supported, so beginning tests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that the control is not disabled due to Automatic Mode.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Pan Tilt (Absolute) Control is effectively supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that the control is not asynchronous.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that the control supports SET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : SET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_MIN.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_MAX.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_RES.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the non-mandatory request : GET_LEN.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_INFO.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_DEF.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The Control supports all mandatory requests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The data returned by the request have the correct size.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that Get Requests are supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that Set Requests are supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO matches supported Requests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control GET_INFO reports that the control is neither Asynchronous nor Auto Update.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0x8CA1 (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0x7FFFFFFF (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0x80000000 (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0xFFFF735F (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0x0 (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0x0 (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0x0 (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0x0 (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:19</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  2 seconds.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  PanTilt(Absolute) Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_21'> PanTilt (Relative) Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:19</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Focus (Relative) Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:20</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  PanTilt (Relative) Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_22'> Privacy Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:20</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Privacy Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:21</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Privacy Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_23'> Backlight Compensation Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:21</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Backlight Compensation Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:23</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  2 seconds.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Backlight Compensation Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_24'> Brightness Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:23</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Brightness Control is supported, so beginning tests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that the control is not disabled due to Automatic Mode.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>BRIGHTNESS Control is effectively supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that the control is not asynchronous.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : SET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_MIN.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_MAX.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_RES.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the non-mandatory request : GET_LEN.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_INFO.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_DEF.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The Control supports all mandatory requests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The data returned by the request have the correct size.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that Get Requests are supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that Set Requests are supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO matches supported Requests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control GET_INFO reports that the control is neither Asynchronous nor Auto Update.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0x65 (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0x7FFF (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0xFFFF8000 (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0xFFFFFFFF (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Calling SET_CUR for valid values within range: min=0x0000, max=0x0064, resolution=0x0001.
+....(100 calls total)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Completed 100 SET Requests.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:24</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Brightness Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_25'> Analog Video Standard Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:24</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>ANALOG_VIDEO_STANDARD_CONTROL Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:26</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  2 seconds.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Analog Video Standard Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_26'> Analog Video Lock Status Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:26</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>ANALOG_LOCK_STATUS_CONTROL Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:27</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Analog Video Lock Status Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_27'> Contrast Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:27</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>CONTRAST Control is supported, so beginning tests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that the control is not disabled due to Automatic Mode.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>CONTRAST Control is effectively supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that the control is not asynchronous.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : SET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_MIN.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_MAX.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_RES.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the non-mandatory request : GET_LEN.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_INFO.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_DEF.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The Control supports all mandatory requests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The data returned by the request have the correct size.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that Get Requests are supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that Set Requests are supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO matches supported Requests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control GET_INFO reports that the control is neither Asynchronous nor Auto Update.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0x65 (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0x7FFF (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0xFFFF8000 (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0xFFFFFFFF (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Calling SET_CUR for valid values within range: min=0x0000, max=0x0064, resolution=0x0001.
+....(100 calls total)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Completed 100 SET Requests.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:29</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  2 seconds.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Contrast Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_28'> Gain Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:29</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Gain Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:30</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Gain Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_29'> Power Line Frequency Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:30</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Power Line Frequency Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:31</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Power Line Frequency Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_30'> Hue Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:31</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Hue Control is supported, so beginning tests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Hue Control is not able to be set in Manual Mode or Auto Mode, Hue Auto Control is not supported</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that the control is not disabled due to Automatic Mode.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Hue Control is effectively supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that the control is not asynchronous.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that the control supports SET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the optional request : SET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_MIN.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_MAX.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_RES.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the non-mandatory request : GET_LEN.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_INFO.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_DEF.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The Control supports all mandatory requests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The data returned by the request have the correct size.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that Get Requests are supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that Set Requests are supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO matches supported Requests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control GET_INFO reports that the control is neither Asynchronous nor Auto Update.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0x33 (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0x7FFF (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0xFFFF8000 (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0xFFFFFFCD (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Calling SET_CUR for valid values within range: min=0xFFFFFFCE, max=0x0032, resolution=0x0001.
+....(100 calls total)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Completed 100 SET Requests.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:33</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  2 seconds.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Hue Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_31'> Hue Auto Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:33</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Hue Auto Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:34</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Hue Auto Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_32'> Saturation Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:34</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>SATURATION Control is supported, so beginning tests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that the control is not disabled due to Automatic Mode.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>SATURATION Control is effectively supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that the control is not asynchronous.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : SET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_MIN.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_MAX.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_RES.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the non-mandatory request : GET_LEN.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_INFO.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_DEF.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The Control supports all mandatory requests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The data returned by the request have the correct size.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that Get Requests are supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that Set Requests are supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO matches supported Requests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control GET_INFO reports that the control is neither Asynchronous nor Auto Update.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0x65 (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0x7FFF (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0xFFFF8000 (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0xFFFFFFFF (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Calling SET_CUR for valid values within range: min=0x0000, max=0x0064, resolution=0x0001.
+....(100 calls total)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Completed 100 SET Requests.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:36</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  2 seconds.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Saturation Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_33'> Sharpness Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:36</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>SHARPNESS Control is supported, so beginning tests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that the control is not disabled due to Automatic Mode.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>SHARPNESS Control is effectively supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that the control is not asynchronous.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : SET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_MIN.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_MAX.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_RES.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the non-mandatory request : GET_LEN.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_INFO.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control supports the mandatory request : GET_DEF.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The Control supports all mandatory requests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The data returned by the request have the correct size.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that Get Requests are supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO reports that Set Requests are supported.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO matches supported Requests.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GET_INFO Request Succeeded.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control GET_INFO reports that the control is neither Asynchronous nor Auto Update.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0x100 (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0x7FFF (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0xFFFF8000 (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control we try to set the value : 0xFFFFFFFF (invalid).</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The SET_CUR Request did not succeed.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'> * Request Error Code Control returned : 0x06. (invalid control)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Calling SET_CUR for valid values within range: min=0x0000, max=0x00FF, resolution=0x0001.
+....(255 calls total)</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Completed 255 SET Requests.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:38</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  2 seconds.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Sharpness Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_34'> Gamma Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:38</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>GAMMA Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:39</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Gamma Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_35'> White Balance Temperature Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:39</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>White Balance Temperature Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:40</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  White Balance Temperature Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_36'> White Balance Temperature Auto Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:41</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The White Balance Temperature Auto Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:42</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  White Balance Temperature Auto Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_37'> White Balance Component Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:42</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>White Balance Component Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:43</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  White Balance Component Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_38'> White Balance Component Auto Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:43</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The White Balance Component Auto Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:45</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  2 seconds.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  White Balance Component Auto Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_39'> Digital Multiplier Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:45</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Digital multiplier Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:46</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Digital Multiplier Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_40'> Digital Multiplier Limit Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:46</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Video Control does not support the request : GET_CUR.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Digital Multiplier Limit Control is not supported.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:47</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Digital Multiplier Limit Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_41'> Media Transport Terminal: Transport Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:48</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>We do not have a Media Transport Terminal Descriptor.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:49</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Media Transport Terminal: Transport Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_42'> Media Transport Terminal: Absolute Track Number Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:49</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>We do not have a Media Transport Terminal Descriptor.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:50</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Media Transport Terminal: Absolute Track Number Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_43'> Media Transport Terminal: Media Information Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:50</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>We do not have a Media Transport Terminal Descriptor.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:52</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  2 seconds.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Media Transport Terminal: Media Information Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'><A  name='anchor_44'> Media Transport Terminal: Time Code Information Control Test Video (Configuration Index 0)</A><DIV class='test-pass'>Passed</DIV></DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#0000AA'><DIV class='label'>INFO</DIV><DIV class='content'>Start time: Jan 22, 2025 - 14:04:52</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuring device, Set Configuration to 1</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Default State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>The device is in its Addressed State.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Getting Full Configuration Descriptor.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Full configuration descriptor total length: 855.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Configuration 0 supports UVC 1.0 or 1.1.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>----------------------------------------</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>We do not have a Media Transport Terminal Descriptor.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>
+Stop time: Jan 22, 2025 - 14:04:53</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Duration:  1 second.</DIV></DIV>
+<DIV style='font-weight: 700;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>Stopping Test [  Media Transport Terminal: Time Code Information Control Test Video (Configuration Index 0):
+     Number of: Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+</DIV>
+<DIV id='test-header'>Release UVC-Specific Resources</DIV>
+<DIV class='test-details'>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Cleaning up Version Number Lists.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Deleting UVC Version Number List.</DIV></DIV>
+<DIV><DIV class='label'>INFO</DIV><DIV class='content'>Deleting Other Speed UVC Version Number List.</DIV></DIV>
+</DIV>
+<DIV id='test-header'>Summary</DIV>
+<DIV class='test-details'>
+<DIV style='font-weight: 700;font-style:italic;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>TEST SUITE SUMMARY:
+    [ Fails (0); Aborts (0); Warnings (0) ]</DIV></DIV>
+<DIV style='font-weight: 700;font-style:italic;color:#007F00'><DIV class='label'>INFO</DIV><DIV class='content'>TEST RESULTS:
+    [ Passed (39); Failed (0) ]</DIV></DIV>
+</DIV>
+</DIV>
+</BODY></HTML>

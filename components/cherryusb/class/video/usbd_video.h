@@ -14,6 +14,7 @@ extern "C" {
 
 // size of array `uvc_fs_control_cls` - 1,  in usbd_uvc_descriptor.c
 #define VIDEO_ENTITY_NUM 4
+#define VIDEO_INTF_NUM 6
 
 struct video_entity_info {
     uint8_t bDescriptorSubtype;
@@ -27,6 +28,7 @@ struct usbd_video_cfg_priv {
     uint8_t power_mode;
     uint8_t error_code;
     struct video_entity_info info[VIDEO_ENTITY_NUM];
+    uint8_t alt_setting[VIDEO_INTF_NUM];
 };
 
 typedef struct uvc_event_callbacks {

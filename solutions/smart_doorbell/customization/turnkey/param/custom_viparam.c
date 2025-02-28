@@ -79,7 +79,7 @@ static PARAM_DEV_CFG_S VIDEVCFG_CTX_VI[] = {
         .switchGpioIdx = -1,
         .switchGpioPin = -1,
         .switchGPioPol = -1,
-        .dstFrm        = 1,
+        .dstFrm        = 5,
         .isFrmCtrl     = true,
 #endif
     },
@@ -95,7 +95,7 @@ static PARAM_DEV_CFG_S VIDEVCFG_CTX_VI[] = {
         .switchGpioIdx = -1,
         .switchGpioPin = -1,
         .switchGPioPol = -1,
-        .dstFrm        = 2,
+        .dstFrm        = 1,
         .isFrmCtrl     = true,
 #endif
     },
@@ -106,6 +106,7 @@ PARAM_VI_CFG_S g_stViCtx = {
     .pstSensorCfg  = PARAM_CLASS(SENSORCFG, CTX, Sensor),
     .pstIspCfg     = PARAM_CLASS(ISPCFG, CTX, ISP),
     .pstDevInfo    = PARAM_CLASS(VIDEVCFG, CTX, VI),
+    .bFastConverge = true,
 };
 
 PARAM_VI_CFG_S* PARAM_GET_VI_CFG(void)

@@ -352,6 +352,8 @@ static int audio_class_interface_request_handler(struct usb_setup_packet *setup,
 
 static void audio_notify_handler(uint8_t event, void *arg)
 {
+    static uint8_t alt_setting[6];
+
     switch (event) {
         case USBD_EVENT_RESET:
 
@@ -359,13 +361,20 @@ static void audio_notify_handler(uint8_t event, void *arg)
 
         case USBD_EVENT_SET_INTERFACE: {
             struct usb_interface_descriptor *intf = (struct usb_interface_descriptor *)arg;
+            alt_setting[intf->bInterfaceNumber] = intf->bAlternateSetting;
             if (intf->bAlternateSetting == 1) {
                 usbd_audio_open(intf->bInterfaceNumber);
             } else {
                 usbd_audio_close(intf->bInterfaceNumber);
             }
         }
+        break;
 
+        case USBD_EVENT_GET_INTERFACE: {
+            uint16_t *data = (uint16_t *)arg;
+            uint8_t iface = *data;
+            *data = alt_setting[iface];
+        }
         break;
 
         default:

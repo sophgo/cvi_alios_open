@@ -50,6 +50,7 @@ build_config:
     - protocol/tcp_server/include
     - gui/littlevGL/include
     - ai/app_tdl/include
+    - ai/facekit_algo_sev3x/include
     - protocol/usb_devices/usbd_class/usbd_uvc/include
     - protocol/usb_devices/usbd_class/usbd_uac/include
     - protocol/usb_devices/usbd_class/usbd_cdc_uart/include
@@ -81,6 +82,7 @@ source_file:
   - protocol/tcp_server/src/*.c ? <CONFIG_TCP_SERVER_SUPPORT>
   - gui/littlevGL/src/*.c ? <CONFIG_APP_GUI_SUPPORT>
   - ai/app_tdl/src/*.c ? <CONFIG_APP_AI_SUPPORT>
+  - ai/facekit_algo_sev3x/src/*.c ? <CONFIG_ALGOKIT_SEV3X_SUPPORT>
   - protocol/usb_devices/usbd_class/usbd_uvc/src/*.c ? <CONFIG_USBD_UVC>
   - protocol/usb_devices/usbd_class/usbd_uac/src/*.c ? <CONFIG_USBD_UAC>
   - protocol/usb_devices/usbd_class/usbd_cdc_uart/src/*.c ? <CONFIG_USBD_CDC_UART>
@@ -102,6 +104,7 @@ def_config:                              # 组件的可配置项
   CONFIG_UVC_H264_H265_BITRATE: 4096       # UVC 推流时，设置视频编码器 H264/H265 的码率，单位 kbps
   CONFIG_UVC_CROP_BEFORE_SCALE: 0          # UVC 推流时，是否对视频进行裁剪，以保证缩放前后长宽比一致（可能会有视野丢失）
   CONFIG_UVC_COMM_FUNC: 1                  # USB camera 使能亮度、色调、对比度等调整功能
+  CONFIG_USB_HS_FS_ADAPT: 0                # USB 高速与全速自适应使能开关
 
 ## 第六部分：安装信息
 # install:

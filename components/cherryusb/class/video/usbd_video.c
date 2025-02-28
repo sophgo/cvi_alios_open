@@ -256,8 +256,8 @@ static int video_class_interface_request_handler(struct usb_setup_packet *setup,
 static int video_control_interface_request_handler(struct usb_setup_packet *setup, uint8_t **data, uint32_t *len)
 {
     USB_LOG_DBG("Video control request: "
-                "bRequest 0x%02x\r\n",
-                setup->bRequest);
+                "bRequest 0x%02x wIndex 0x%02x wValue 0x%02x\r\n",
+                setup->bRequest,setup->wIndex, setup->wValue);
 
     uint8_t entity_id = (uint8_t)(setup->wIndex >> 8);
 
@@ -296,11 +296,18 @@ static void video_notify_handler(uint8_t event, void *arg)
             } else {
                 is_on = 0;
             }
+            usbd_video_cfg.alt_setting[intf->bInterfaceNumber] = intf->bAlternateSetting;
             if (uvc_evt_callbacks
                 && uvc_evt_callbacks->uvc_event_stream_on) {
                 uvc_evt_callbacks->uvc_event_stream_on(intf->bInterfaceNumber, is_on);
             }
 #endif
+        }
+        break;
+        case USBD_EVENT_GET_INTERFACE: {
+            uint16_t *data = (uint16_t *)arg;
+            uint8_t intf_num = LO_BYTE(*data);
+            *data = usbd_video_cfg.alt_setting[intf_num];
         }
         break;
 

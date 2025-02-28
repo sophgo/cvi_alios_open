@@ -9,7 +9,6 @@
 #include "cvi_util.h"
 #include "md5.h"
 
-
 static int32_t s32_image_num     = 0;
 static int32_t s32_image_rgb_num = 0;
 static int32_t s32_image_ir_num  = 0;

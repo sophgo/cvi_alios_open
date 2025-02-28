@@ -72,14 +72,25 @@ static struct usb_qualifier_descriptor comp_qual_descriptor = {
     .bLength             = USB_DT_QUALIFIER_SIZE,
     .bDescriptorType     = USB_DESCRIPTOR_TYPE_DEVICE_QUALIFIER,
     .bcdUSB              = cpu_to_le16(USB_2_0),
-    .bDeviceClass        = 0,
-    .bDeviceSubClass     = 0,
-    .bDeviceProtocol     = 0,
+    .bDeviceClass        = 0xEF,
+    .bDeviceSubClass     = 0x02,
+    .bDeviceProtocol     = 1,
     .bMaxPacketSize0     = 0x40,
     .bNumConfigurations  = 1,
     .bRESERVED           = 0,
 };
-
+#if (CONFIG_USBD_UVC_OTHER == 1)
+static struct usb_config_descriptor comp_other_speed_config_descriptor = {
+    .bLength                = USB_DT_CONFIG_SIZE,
+    .bDescriptorType        = USB_DT_OTHER_SPEED_CONFIG,
+    .wTotalLength           = 0, /* dynamic */
+    .bNumInterfaces         = 0, /* dynamic */
+    .bConfigurationValue    = 1,
+    .iConfiguration         = 0,
+    .bmAttributes           = USB_CONFIG_ATT_ONE,
+    .bMaxPower              = 0xFA,
+};
+#endif
 DECLARE_UVC_STRING_DESCRIPTOR(1);
 static const struct UVC_STRING_DESCRIPTOR(1) comp_string_descriptor_zero = {
     .bLength            = UVC_STRING_DESCRIPTOR_SIZE(1),
@@ -269,6 +280,12 @@ static struct ep_pool_t ep_pool = {
 static uint8_t *comp_descriptor = NULL;
 static volatile uint32_t comp_descriptor_len = 0;
 static volatile uint8_t comp_interfaces_num = 0;
+#if (CONFIG_USBD_UVC_OTHER == 1)
+static struct comp_desc_list_t comp_desc_list_other[MAX_COMP_DEVICE_NUMS];
+static volatile uint8_t comp_desc_list_nums_other;
+static volatile uint32_t comp_descriptor_len_other = 0;
+static volatile uint8_t comp_interfaces_num_other = 0;
+#endif
 
 void usbd_configure_done_callback(void)
 {
@@ -299,6 +316,29 @@ int32_t comp_register_descriptors(enum USBD_TYPE type, uint8_t *desc, uint32_t d
 
 	return 0;
 }
+
+#if (CONFIG_USBD_UVC_OTHER == 1)
+int32_t comp_register_descriptors_other(enum USBD_TYPE type, uint8_t *desc, uint32_t desc_len, uint8_t interfaces_num, void (*cb)(void))
+{
+	if (comp_desc_list_nums_other >= MAX_COMP_DEVICE_NUMS) {
+		return -1;
+	}
+
+    USB_LOG_INFO("comp_desc_list_num[%d] tpye:%d\n",comp_desc_list_nums_other,type);
+
+    comp_desc_list_other[comp_desc_list_nums_other].type = type;
+	comp_desc_list_other[comp_desc_list_nums_other].desc = desc;
+	comp_desc_list_other[comp_desc_list_nums_other].desc_len = desc_len;
+	comp_desc_list_other[comp_desc_list_nums_other].interfaces_num = interfaces_num;
+    comp_desc_list_other[comp_desc_list_nums_other].cb = cb;
+	comp_desc_list_nums_other++;
+
+    comp_interfaces_num_other += interfaces_num;
+    comp_descriptor_len_other += desc_len;
+
+	return 0;
+}
+#endif
 
 int32_t comp_register_cfg_done(enum USBD_TYPE type, void (*cb)(void))
 {
@@ -334,27 +374,42 @@ uint8_t comp_get_interfaces_num(void)
 {
     return comp_interfaces_num;
 }
-
+#if (CONFIG_USBD_UVC_OTHER == 1)
+uint8_t comp_get_interfaces_num_other(void)
+{
+    return comp_interfaces_num_other;
+}
+#endif
 uint8_t usbd_comp_get_speed(void)
 {
+#if(CONFIG_USB_HS_FS_ADAPT == 1)
     return usbd_get_port_speed(0);
+#else
+    return USB_SPEED_HIGH;
+#endif
 }
 
 static uint8_t *comp_build_descriptors(void)
 {
 	uint8_t *comp_desc = NULL;
     uint32_t comp_desc_len = 0;
+#if (CONFIG_USBD_UVC_OTHER == 1)
+    uint32_t comp_desc_len_other = 0;
+#endif
 	uint32_t bytes = 0;
 	uint32_t n_desc = 15;
 	void *mem = NULL;
 	const struct usb_descriptor_header * const *src;
     struct usb_descriptor_header **dst;
     struct usb_config_descriptor *comp_config_header;
-
-    comp_desc_len = comp_descriptor_len;
+#if (CONFIG_USBD_UVC_OTHER == 1)
+    struct usb_config_descriptor *comp_other_speed_config_header;
+#endif
     comp_config_descriptor.bNumInterfaces = comp_interfaces_num;
 
+    comp_desc_len = comp_descriptor_len;
 	comp_desc_len += comp_config_descriptor.bLength;
+
 	bytes += comp_desc_len;
 	bytes += comp_device_descriptor.bLength;
 
@@ -362,10 +417,22 @@ static uint8_t *comp_build_descriptors(void)
         bytes += (*src)->bLength;
     }
 
+#if (CONFIG_USBD_UVC_OTHER == 1)
+    for (src = comp_string_descriptors; *src; ++src) {
+        bytes += (*src)->bLength;
+    }
+#endif
+
     if (usbd_comp_get_speed() == USB_SPEED_HIGH) {
         bytes += comp_qual_descriptor.bLength;
     }
 
+#if (CONFIG_USBD_UVC_OTHER == 1)
+    comp_desc_len_other = comp_descriptor_len_other;
+    comp_other_speed_config_descriptor.bNumInterfaces = comp_interfaces_num_other;
+    comp_desc_len_other += comp_other_speed_config_descriptor.bLength;
+    bytes += comp_desc_len_other;
+#endif
 	comp_desc = malloc(bytes + 1 + n_desc * sizeof(*src));
 	mem = comp_desc;
 	dst = mem + bytes + 1;
@@ -389,7 +456,16 @@ static uint8_t *comp_build_descriptors(void)
     if (usbd_comp_get_speed() == USB_SPEED_HIGH) {
         COMP_COPY_DESCRIPTOR(mem, dst, &comp_qual_descriptor);
     }
+#if (CONFIG_USBD_UVC_OTHER == 1)
+    comp_other_speed_config_header = mem;
+    COMP_COPY_DESCRIPTOR(mem, dst, &comp_other_speed_config_descriptor);
+    comp_other_speed_config_header->wTotalLength = cpu_to_le16(comp_desc_len_other);//这里的长度已经算上了设备描述符
 
+    for(uint8_t i = 0; i < comp_desc_list_nums_other; i ++) {
+        memcpy(mem, comp_desc_list_other[i].desc, comp_desc_list_other[i].desc_len);
+        mem += comp_desc_list_other[i].desc_len;
+    }
+#endif
     ((uint8_t *)mem)[0] = 0x00;
 
     for (uint8_t i = 0; i < comp_desc_list_nums; i++) {
@@ -398,6 +474,14 @@ static uint8_t *comp_build_descriptors(void)
             comp_desc_list[i].cb();
         }
 	}
+#if (CONFIG_USBD_UVC_OTHER == 1)
+    for (uint8_t i = 0; i < comp_desc_list_nums_other; i++) {
+        if (comp_desc_list_other[i].cb) {
+            USB_LOG_INFO("comp_desc_list_nums_other[%d/%d] tpye:%d\n",i,comp_desc_list_nums_other,comp_desc_list_other[i].type);
+            comp_desc_list_other[i].cb();
+        }
+	}
+#endif
 
     return comp_desc;
 }
@@ -411,6 +495,11 @@ static void comp_destroy_descriptors(void)
     comp_descriptor_len = 0;
     comp_interfaces_num = 0;
     comp_desc_list_nums = 0;
+#if (CONFIG_USBD_UVC_OTHER == 1)
+    comp_descriptor_len_other = 0;
+    comp_interfaces_num_other = 0;
+    comp_desc_list_nums_other = 0;
+#endif
     ep_pool.cur_idx = 0;
 }
 
@@ -440,13 +529,20 @@ void usbd_comp_desc_register()
     // Other composite interfaces must be disabled to use winusb
     winusb_desc_register();
 #endif
+#if (CONFIG_USBD_UVC_OTHER == 1)
+    uvc_desc_other_register();
+#endif
     comp_descriptor = comp_build_descriptors();
     usbd_desc_register(comp_descriptor);
 }
 
 uint32_t usbd_comp_init()
 {
+#if(CONFIG_USB_HS_FS_ADAPT == 1)
     usb_dc_register_enum_cb(usbd_comp_desc_register);
+#else
+    usbd_comp_desc_register();
+#endif
     usbd_initialize();
 
 #if CONFIG_USBD_CDC_RNDIS

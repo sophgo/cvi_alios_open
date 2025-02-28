@@ -13,7 +13,7 @@ PARAM_CLASSDEFINE(PARAM_VPSS_CHN_CFG_S, CHNCFG, GRP0, CHN)
         .stVpssChnAttr =
             {
                 .u32Width      = 864,
-                .u32Height     = 460,
+                .u32Height     = 480,
                 .enVideoFormat = VIDEO_FORMAT_LINEAR,
                 .enPixelFormat = PIXEL_FORMAT_YUV_PLANAR_422,
                 .stFrameRate =
@@ -97,7 +97,7 @@ PARAM_CLASSDEFINE(PARAM_VPSS_CHN_CFG_S, CHNCFG, GRP1, CHN)
         .stVpssChnAttr =
             {
                 .u32Width      = 864,
-                .u32Height     = 460,
+                .u32Height     = 480,
                 .enVideoFormat = VIDEO_FORMAT_LINEAR,
                 .enPixelFormat = PIXEL_FORMAT_YUV_PLANAR_422,
                 .stFrameRate =
@@ -121,14 +121,14 @@ PARAM_CLASSDEFINE(PARAM_VPSS_CHN_CFG_S, CHNCFG, GRP1, CHN)
             },
         .stVpssChnCropInfo =
             {
-                .bEnable          = CVI_FALSE,
-                .enCropCoordinate = VPSS_CROP_RATIO_COOR,
+                .bEnable          = CVI_TRUE,
+                .enCropCoordinate = VPSS_CROP_ABS_COOR,
                 .stCropRect =
                     {
                         .s32X      = 0,
-                        .s32Y      = 0,
-                        .u32Height = -1,
-                        .u32Width  = -1,
+                        .s32Y      = 160,
+                        .u32Height = 890,
+                        .u32Width  = 1600,
                     },
             },
     },

@@ -64,6 +64,10 @@ void board_clk_init(void)
 #else
 	// #pragma message("#### UART CLK: 25M ####")
 #endif
+    // Restroe spinor clock to 75M
+    if (mmio_read_32(0x030020B8) != 0x00050009) {
+        mmio_write_32(0x030020B8, 0x00050009);
+    }
 }
 
 void board_init(void)

@@ -209,8 +209,9 @@ struct dwc2_udc {
     struct dwc2_ep_state out_ep[USB_NUM_BIDIR_ENDPOINTS]; /*!< OUT endpoint parameters */
 } g_dwc2_udc;
 
+#if(CONFIG_USB_HS_FS_ADAPT == 1)
 static void (*usb_dc_enum_cb)(void);
-
+#endif
 void USBD_IRQHandler(void);
 
 void usbd_dump_reg_info()
@@ -596,10 +597,12 @@ __WEAK void usb_dc_low_level_deinit(void)
 {
 }
 
+#if(CONFIG_USB_HS_FS_ADAPT == 1)
 void usb_dc_register_enum_cb(void (*cb)(void))
 {
     usb_dc_enum_cb = cb;
 }
+#endif
 
 int usb_dc_init(void)
 {
@@ -1402,9 +1405,11 @@ void USBD_IRQHandler(void)
 
             USB_OTG_DEV->DCTL |= USB_OTG_DCTL_CGINAK;
 
+#if(CONFIG_USB_HS_FS_ADAPT == 1)
             if (usb_dc_enum_cb) {
                 usb_dc_enum_cb();
             }
+#endif
 
             aos_debug_printf("============ enum speed done ============\n");
         }

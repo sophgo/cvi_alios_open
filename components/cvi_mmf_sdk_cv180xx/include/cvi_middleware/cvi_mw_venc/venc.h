@@ -1,4 +1,4 @@
-#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
+#if CONFIG_APP_VENC_SUPPORT
 
 #ifndef __VENC_H__
 #define __VENC_H__
@@ -242,4 +242,4 @@ typedef struct _proc_debug_config_t {
 } proc_debug_config_t;
 #endif
 
-#endif /* (!CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265) */
+#endif /* (CONFIG_APP_VENC_SUPPORT) */

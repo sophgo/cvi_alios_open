@@ -153,15 +153,15 @@ static struct uvc_format_info_st uvc_format_info_chna[] = {
 代码路径：components/cvi_platform/protocol/usb_devices/usbd_class/usbd_uvc/src/usbd_uvc.c
 
 ```c
-void uvc_get_trans_size(uint32_t* size_pre_trans, uint32_t* trans_pre_microframe,uint32_t* video_packet_size)
+void uvc_get_trans_size(uint32_t* size_per_trans, uint32_t* trans_per_microframe ,uint32_t* video_packet_size)
 {
-    uint32_t max_payload_size_pre_transaction = 512;
-    uint32_t transaction_pre_microframe       = 1;
+    uint32_t max_payload_size_per_transaction = 512;
+    uint32_t transaction_per_microframe        = 1;
 
     if (usbd_comp_get_speed() == USB_SPEED_HIGH) {
 #if CONFIG_USB_BULK_UVC
-        max_payload_size_pre_transaction = 512; // BULK模式下 数据包的最大大小
-        transaction_pre_microframe       = 8;  // 数据突发大小
+        max_payload_size_per_transaction = 512; // BULK模式下 数据包的最大大小
+        transaction_per_microframe        = 8;  // 数据突发大小
 #else
     /*...*/
     }

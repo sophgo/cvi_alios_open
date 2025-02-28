@@ -102,6 +102,15 @@ static int usbd_vc_ct_pantilt_absolute_request_handler(uint8_t device_id, uint8_
 	switch (bRequest) {
 		case VIDEO_REQUEST_SET_CUR: {
 			int32_t *arr = (int32_t *)(*data);
+
+			if(arr[0] > CONFIG_UVC_PAN_RANGE * PAN_TILT_STEP
+			|| arr[0] < -CONFIG_UVC_PAN_RANGE * PAN_TILT_STEP)
+				return -1;
+
+			if(arr[1] > CONFIG_UVC_TILT_RANGE * PAN_TILT_STEP
+			|| arr[1] < -CONFIG_UVC_TILT_RANGE * PAN_TILT_STEP)
+				return -1;
+
 			int pan = arr[0] / PAN_TILT_STEP;
 			int tilt = arr[1] / PAN_TILT_STEP;
 
@@ -140,6 +149,11 @@ static int usbd_vc_ct_pantilt_absolute_request_handler(uint8_t device_id, uint8_
 		} break;
 		case VIDEO_REQUEST_GET_DEF: {
 			memset(*data, 0, 8); // default value 0
+			*len = 8;
+		} break;
+		case VIDEO_REQUEST_GET_LEN: {
+			memset(*data, 0, 8);
+			(*data)[0] = 0x08;
 			*len = 8;
 		} break;
 		default:

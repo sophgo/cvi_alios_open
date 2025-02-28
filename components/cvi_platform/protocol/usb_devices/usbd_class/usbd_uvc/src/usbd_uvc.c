@@ -122,6 +122,17 @@ static struct uvc_device_info uvc[USBD_UVC_MAX_NUM] = {
 #endif
 };
 
+#if (CONFIG_USBD_UVC_OTHER == 1)
+static struct uvc_device_info uvc_other[1] = {
+    {
+        // .ep = 0x81,
+        .format_info = uvc_format_info_chna,
+        .formats     = ARRAY_SIZE(uvc_format_info_chna),
+        .video       = {0, 0, 0},
+    },
+};
+#endif
+
 struct uvc_device_info* uvc_container_of_device_id(uint8_t device_id)
 {
     return &uvc[device_id];
@@ -203,13 +214,13 @@ static CVI_S32 is_media_info_update(struct uvc_device_info* info)
 
     if (u8VencInitStatus == 0 && enType != PT_BUTT)
         return CVI_TRUE;
-#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
+#if CONFIG_APP_VENC_SUPPORT
     CVI_VENC_GetChnAttr(info->video.venc_channel, pstVencChnAttr);
     if ((pstVencChnAttr->stVencAttr.enType != enType)
         || (pstVencChnAttr->stVencAttr.u32PicWidth != uvc_frame_info.width)
         || (pstVencChnAttr->stVencAttr.u32PicHeight != uvc_frame_info.height))
         return CVI_TRUE;
-#endif /* (!CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265) */
+#endif /* (CONFIG_APP_VENC_SUPPORT) */
     UNUSED(pstVencChnAttr);
     UNUSED(stVencChnAttr);
     return CVI_FALSE;
@@ -331,7 +342,7 @@ static void uvc_media_update(struct uvc_device_info* info)
     }
 
     if (u8VencInitStatus == 1) {
-#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
+#if CONFIG_APP_VENC_SUPPORT
         MEDAI_VIDEO_VencChnDeinit(pstVencCfg, info->video.venc_channel);
         printf("venc chn %d deinit\n", info->video.venc_channel);
 #endif
@@ -389,7 +400,7 @@ static void uvc_media_update(struct uvc_device_info* info)
     if (MJPEG_FORMAT_INDEX == uvc_format_info.format_index
         || H264_FORMAT_INDEX == uvc_format_info.format_index
         || H265_FORMAT_INDEX == uvc_format_info.format_index) {
-#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
+#if CONFIG_APP_VENC_SUPPORT
         MEDIA_VIDEO_VencChnInit(pstVencCfg, info->video.venc_channel);
         printf("venc chn %d init\n", info->video.venc_channel);
 
@@ -600,7 +611,7 @@ static void video_streaming_send(struct uvc_device_info* uvc, int dev_index)
     case H264_FORMAT_INDEX:
     case H265_FORMAT_INDEX:
     case MJPEG_FORMAT_INDEX:
-#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
+#if CONFIG_APP_VENC_SUPPORT
         ret = MEDIA_VIDEO_VencGetStream(uvc->video.venc_channel, pstStream, 2000);
         if (ret != CVI_SUCCESS) {
             aos_msleep(1);
@@ -623,7 +634,7 @@ static void video_streaming_send(struct uvc_device_info* uvc, int dev_index)
         ret = MEDIA_VIDEO_VencReleaseStream(uvc->video.venc_channel, pstStream);
         if (ret != CVI_SUCCESS)
             printf("MEDIA_VIDEO_VencReleaseStream failed\n");
-#endif /* (!CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265) */
+#endif /* (CONFIG_APP_VENC_SUPPORT) */
         UNUSED(ppack);
         UNUSED(pstStream);
         break;
@@ -749,7 +760,13 @@ static void uvc_desc_register_cb()
 {
     uvc_destroy_descriptor(uvc_descriptor);
 }
-
+#if (CONFIG_USBD_UVC_OTHER == 1)
+static uint8_t* uvc_descriptor_other = NULL;
+static void uvc_desc_register_other_cb()
+{
+    uvc_destroy_descriptor_other(uvc_descriptor_other);
+}
+#endif
 static void fix_frame_info_fps()
 {
     // uint8_t format_cnt = sizeof(uvc_format_info) / sizeof(uvc_format_info[0]);
@@ -769,53 +786,110 @@ static void fix_frame_info_fps()
     }
 }
 
-void uvc_get_trans_size(uint32_t* size_pre_trans, uint32_t* trans_pre_microframe,
+void uvc_get_trans_size(uint32_t* size_per_trans, uint32_t* trans_per_microframe ,
                         uint32_t* video_packet_size)
 {
-    uint32_t max_payload_size_pre_transaction = 512;
-    uint32_t transaction_pre_microframe       = 1;  // the payload number for each URB
+    uint32_t max_payload_size_per_transaction = 512;
+    uint32_t transaction_per_microframe        = 1;  // the payload number for each URB
 
     if (usbd_comp_get_speed() == USB_SPEED_HIGH) {
 #if CONFIG_USB_BULK_UVC
-        max_payload_size_pre_transaction = 512;
-        transaction_pre_microframe       = 8;  // the payload number for each URB
+        max_payload_size_per_transaction = 512;
+        transaction_per_microframe        = 8;  // the payload number for each URB
 #else
-        max_payload_size_pre_transaction = 1024;
+        max_payload_size_per_transaction = 1024;
 #if (USBD_UVC_NUM > 1)
-        transaction_pre_microframe = 2;
+        transaction_per_microframe  = 2;
 #else
-        transaction_pre_microframe = 3;
+        transaction_per_microframe  = 3;
 #endif
 #endif
     } else {
 #if CONFIG_USB_BULK_UVC
-        max_payload_size_pre_transaction = 64;
+        max_payload_size_per_transaction = 64;
 #else
-        max_payload_size_pre_transaction = 1023;
+        max_payload_size_per_transaction = 1023;
 #endif
-        transaction_pre_microframe = 1;
+        transaction_per_microframe  = 1;
     }
 
-    if (size_pre_trans) {
-        *size_pre_trans = max_payload_size_pre_transaction;
+    if (size_per_trans) {
+        *size_per_trans = max_payload_size_per_transaction;
     }
 
-    if (trans_pre_microframe) {
-        *trans_pre_microframe = transaction_pre_microframe;
+    if (trans_per_microframe ) {
+        *trans_per_microframe  = transaction_per_microframe ;
     }
 
     if (video_packet_size) {
         *video_packet_size =
-            ((max_payload_size_pre_transaction) | ((transaction_pre_microframe - 1) << 11));
+            ((max_payload_size_per_transaction) | ((transaction_per_microframe  - 1) << 11));
     }
 }
 
+#if (CONFIG_USBD_UVC_OTHER == 1)
+void uvc_get_trans_size_other(uint32_t* size_per_trans, uint32_t* trans_per_microframe ,
+                        uint32_t* video_packet_size)
+{
+    uint32_t max_payload_size_per_transaction = 512;
+    uint32_t transaction_per_microframe        = 1;  // the payload number for each URB
+
+#if CONFIG_USB_BULK_UVC
+    max_payload_size_per_transaction = 64;
+#else
+    max_payload_size_per_transaction = 1023;
+#endif
+
+    if (size_per_trans) {
+        *size_per_trans = max_payload_size_per_transaction;
+    }
+
+    if (trans_per_microframe ) {
+        *trans_per_microframe  = transaction_per_microframe ;
+    }
+
+    if (video_packet_size) {
+        *video_packet_size =
+            ((max_payload_size_per_transaction) | ((transaction_per_microframe  - 1) << 11));
+    }
+}
+
+void uvc_desc_other_register()
+{
+    uint32_t desc_len;
+    uint32_t size_per_trans;
+    uint32_t trans_per_microframe ;
+
+    for (uint8_t i = 0; i < USBD_UVC_NUM_OTHER; i++) {
+        uvc_other[i].ep             = comp_get_available_ep(1);
+        uvc_other[i].interface_nums = comp_get_interfaces_num_other();
+        USB_LOG_INFO("uvc_other[%d].ep:%#x\n", i, uvc_other[i].ep);
+        USB_LOG_INFO("uvc_other[%d].interface_nums:%d\n", i, uvc_other[i].interface_nums);
+    }
+
+    uvc_descriptor_other = uvc_build_descriptors_other(uvc_other, &desc_len, USBD_UVC_NUM_OTHER);
+    comp_register_descriptors_other(USBD_TYPE_UVC, uvc_descriptor_other, desc_len, 2 * USBD_UVC_NUM_OTHER,
+                              uvc_desc_register_other_cb);
+
+    uvc_get_trans_size_other(&size_per_trans, &trans_per_microframe , NULL);
+
+    for (uint8_t i = 0; i < USBD_UVC_NUM_OTHER; i++) {
+        uvc_other[i].max_payload_size = size_per_trans * trans_per_microframe ;
+        usbd_add_interface_other(usbd_video_control_init_intf(&uvc_other[i].vc_intf, uvc_other[i].interval,
+                                                        MAX_FRAME_SIZE, uvc_other[i].max_payload_size));
+        usbd_add_interface_other(usbd_video_stream_init_intf(&uvc_other[i].vs_intf, uvc_other[i].interval,
+                                                       MAX_FRAME_SIZE, uvc_other[i].max_payload_size));
+        usbd_add_endpoint(usbd_video_init_ep(&uvc_other[i].video_in_ep, uvc_other[i].ep, NULL));
+    }
+}
+#endif
 void uvc_desc_register()
 {
     uint32_t desc_len;
-    uint32_t size_pre_trans;
-    uint32_t trans_pre_microframe;
+    uint32_t size_per_trans;
+    uint32_t trans_per_microframe ;
 
+#if(CONFIG_USB_HS_FS_ADAPT == 1)
     enum_speed = usbd_comp_get_speed();
     if (enum_speed != USB_SPEED_UNKNOWN) {
         USB_LOG_WRN("enum_speed:%d, rebuild descriptor\n", enum_speed);
@@ -823,6 +897,7 @@ void uvc_desc_register()
             uvc[i].streaming_on = 0;
         }
     }
+#endif
 
     fix_frame_info_fps();
 
@@ -839,10 +914,10 @@ void uvc_desc_register()
     comp_register_descriptors(USBD_TYPE_UVC, uvc_descriptor, desc_len, 2 * USBD_UVC_NUM,
                               uvc_desc_register_cb);
 
-    uvc_get_trans_size(&size_pre_trans, &trans_pre_microframe, NULL);
+    uvc_get_trans_size(&size_per_trans, &trans_per_microframe , NULL);
 
     for (uint8_t i = 0; i < USBD_UVC_NUM; i++) {
-        uvc[i].max_payload_size = size_pre_trans * trans_pre_microframe;
+        uvc[i].max_payload_size = size_per_trans * trans_per_microframe ;
         usbd_add_interface(usbd_video_control_init_intf(&uvc[i].vc_intf, uvc[i].interval,
                                                         MAX_FRAME_SIZE, uvc[i].max_payload_size));
         usbd_add_interface(usbd_video_stream_init_intf(&uvc[i].vs_intf, uvc[i].interval,
@@ -952,8 +1027,8 @@ ALIOS_CLI_CMD_REGISTER(uvc_switch, uvc_switch, uvc_switch);
 void _uvc_dbg_proc_show(int32_t argc, char** argv)
 {
     int pos = 0;
-    uint32_t size_pre_trans;
-    uint32_t trans_pre_microframe;
+    uint32_t size_per_trans;
+    uint32_t trans_per_microframe ;
     uint32_t max_payload_size;
     char* buf = NULL;
     buf       = calloc(1, UVC_DBG_BUF_SIZE);
@@ -962,13 +1037,13 @@ void _uvc_dbg_proc_show(int32_t argc, char** argv)
         return;
     }
 
-    uvc_get_trans_size(&size_pre_trans, &trans_pre_microframe, NULL);
-    max_payload_size = size_pre_trans * trans_pre_microframe;
+    uvc_get_trans_size(&size_per_trans, &trans_per_microframe , NULL);
+    max_payload_size = size_per_trans * trans_per_microframe ;
 
     pos += sprintf(buf + pos, "[UVC Debug Info]\n");
     pos += sprintf(buf + pos, "UsbdUvcChnNum\t\t:%d\t\tUsbdUvcTransType\t:%s\n", USBD_UVC_NUM,
                    CONFIG_USB_BULK_UVC == 1 ? "BULK" : "ISOC");
-    pos += sprintf(buf + pos, "StreamingEpMPS\t\t:%d\t\tTransferMPS\t\t:%d\n", size_pre_trans,
+    pos += sprintf(buf + pos, "StreamingEpMPS\t\t:%d\t\tTransferMPS\t\t:%d\n", size_per_trans,
                    max_payload_size);
     pos += sprintf(buf + pos, "[UVC Chn0 Info]\n");
     pos += sprintf(buf + pos, "UvcVencChn\t\t:%d\t\tUvcVpssGrp\t\t:%d\t\tUvcVpssChn\t\t:%d\n",

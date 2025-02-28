@@ -4,6 +4,10 @@
 
 #include <stdint.h>
 
+#ifndef CONFIG_USBD_UVC_OTHER
+#define CONFIG_USBD_UVC_OTHER 0
+#endif
+
 enum USBD_TYPE {
     USBD_TYPE_UVC,
     USBD_TYPE_UAC,
@@ -19,6 +23,9 @@ int32_t comp_register_descriptors(enum USBD_TYPE type, uint8_t* desc, uint32_t d
 int32_t comp_register_cfg_done(enum USBD_TYPE type, void (*cb)(void));
 uint8_t comp_get_available_ep(uint8_t b_in);
 uint8_t comp_get_interfaces_num(void);
+int32_t comp_register_descriptors_other(enum USBD_TYPE type, uint8_t* desc, uint32_t desc_len,
+                                  uint8_t interfaces_num, void (*cb)(void));
+uint8_t comp_get_interfaces_num_other(void);
 uint32_t usbd_comp_init();
 void usbd_comp_deinit();
 

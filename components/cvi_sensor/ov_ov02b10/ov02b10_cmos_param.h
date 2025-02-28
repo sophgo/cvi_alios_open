@@ -77,10 +77,10 @@ static const OV02B10_MODE_S g_astOv02b10_mode[OV02B10_MODE_NUM] = {
 			},
 		},
 
-		.f32MaxFps = 30,
+		.f32MaxFps = 60,
 		.f32MinFps = 0.711, /* 0x4e2 * 30 / 0xFFFF */
 		.u32HtsDef = 448*4,
-		.u32VtsDef = 1104,
+		.u32VtsDef = 545,
 		.stExp[0] = {
 			.u16Min = 4,
 			.u16Max = 545 - 7,

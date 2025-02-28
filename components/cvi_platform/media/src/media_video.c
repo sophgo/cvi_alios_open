@@ -60,7 +60,7 @@
 #include "vfs.h"
 #endif
 
-#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
+#if CONFIG_APP_VENC_SUPPORT
 static PARAM_VENC_CFG_S *g_pstVencCfg = NULL;
 #endif
 
@@ -356,15 +356,27 @@ static  int _media_sensor_deinit()
 //设置开机快速收敛参数 5 个节点，Luma 和Bv 一一对应
 static int setFastConvergeAttr(VI_PIPE ViPipe, CVI_BOOL en)
 {
-    CVI_S16 firstFrLuma[5] = {62, 77, 173, 343, 724};
-	CVI_S16 targetBv[5] = {89, 194, 479, 533, 721};
-    ISP_AE_BOOT_FAST_CONVERGE_S stConvergeAttr;
+    if (ViPipe == 0) {
+        CVI_S16 firstFrLuma[5] = {357, 368, 417, 499, 557};
+        CVI_S16 targetBv[5] = {373, 382, 423, 450, 500};
+        ISP_AE_BOOT_FAST_CONVERGE_S stConvergeAttr;
 
-    stConvergeAttr.bEnable = en;
-    stConvergeAttr.availableNode = 5;
-    memcpy(stConvergeAttr.firstFrLuma, firstFrLuma,sizeof(firstFrLuma));
-    memcpy(stConvergeAttr.targetBv, targetBv, sizeof(targetBv));
-    CVI_ISP_SetFastConvergeAttr(ViPipe, &stConvergeAttr);
+        stConvergeAttr.bEnable = en;
+        stConvergeAttr.availableNode = 5;
+        memcpy(stConvergeAttr.firstFrLuma, firstFrLuma,sizeof(firstFrLuma));
+        memcpy(stConvergeAttr.targetBv, targetBv, sizeof(targetBv));
+        CVI_ISP_SetFastConvergeAttr(ViPipe, &stConvergeAttr);
+    } else {
+        CVI_S16 firstFrLuma[5] = {356, 433, 480, 499, 751};
+        CVI_S16 targetBv[5] = {270, 305, 344, 360, 433};
+        ISP_AE_BOOT_FAST_CONVERGE_S stConvergeAttr;
+
+        stConvergeAttr.bEnable = en;
+        stConvergeAttr.availableNode = 5;
+        memcpy(stConvergeAttr.firstFrLuma, firstFrLuma,sizeof(firstFrLuma));
+        memcpy(stConvergeAttr.targetBv, targetBv, sizeof(targetBv));
+        CVI_ISP_SetFastConvergeAttr(ViPipe, &stConvergeAttr);
+    }
     return CVI_SUCCESS;
 }
 
@@ -1274,7 +1286,7 @@ static int _MEDIA_VIDEO_VoDeinit()
 }
 
 
-#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
+#if CONFIG_APP_VENC_SUPPORT
 int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
 {
     VENC_CHN_ATTR_S stAttr = {0};
@@ -1283,9 +1295,13 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
     VENC_REF_PARAM_S stRefParam = {0};
     VENC_CHN_PARAM_S stChnParam = {0};
     VENC_ROI_ATTR_S stRoiAttr = {0};
+#if !CONFIG_DISABLE_VENC_H265
     VENC_H265_VUI_S stH265Vui = {0};
+#endif
+#if !CONFIG_DISABLE_VENC_H264
     VENC_H264_ENTROPY_S stH264EntropyEnc = {0};
     VENC_H264_VUI_S stH264Vui = {0};
+#endif
     VENC_JPEG_PARAM_S stJpegParam = {0};
 #if !(CONFIG_USBD_UVC)
     VENC_RECV_PIC_PARAM_S stRecvParam = {0};
@@ -1540,7 +1556,7 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
     MEDIA_CHECK_RET(CVI_VENC_SetRoiAttr(VencChn, &stRoiAttr), "CVI_VENC_SetRoiAttr");
 
     if (pstVecncChnCtx->stChnParam.u16EnType == PT_H265) {
-
+#if !CONFIG_DISABLE_VENC_H265
         MEDIA_CHECK_RET(CVI_VENC_GetH265Vui(VencChn, &stH265Vui), "CVI_VENC_GetH265Vui");
         stH265Vui.stVuiTimeInfo.timing_info_present_flag = 0;
         stH265Vui.stVuiAspectRatio.aspect_ratio_info_present_flag = 0;
@@ -1548,9 +1564,9 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
         stH265Vui.stVuiVideoSignal.video_signal_type_present_flag = 0;
 
         MEDIA_CHECK_RET(CVI_VENC_SetH265Vui(VencChn, &stH265Vui), "CVI_VENC_SetH265Vui");
-
+#endif
     } else if (pstVecncChnCtx->stChnParam.u16EnType == PT_H264) {
-
+#if !CONFIG_DISABLE_VENC_H264
         MEDIA_CHECK_RET(CVI_VENC_GetH264Entropy(VencChn, &stH264EntropyEnc), "CVI_VENC_GetH264Entropy");
         stH264EntropyEnc.u32EntropyEncModeI = pstVecncChnCtx->stChnParam.u8EntropyEncModeI;
         stH264EntropyEnc.u32EntropyEncModeP = pstVecncChnCtx->stChnParam.u8EntropyEncModeP;
@@ -1562,6 +1578,7 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
         stH264Vui.stVuiBitstreamRestric.bitstream_restriction_flag = 0;
         stH264Vui.stVuiVideoSignal.video_signal_type_present_flag = 0;
         MEDIA_CHECK_RET(CVI_VENC_SetH264Vui(VencChn, &stH264Vui), "CVI_VENC_SetH264Vui");
+#endif
     } else if (pstVecncChnCtx->stChnParam.u16EnType == PT_JPEG) {
         MEDIA_CHECK_RET(CVI_VENC_GetJpegParam(VencChn, &stJpegParam), "CVI_VENC_GetJpegParam");
         MEDIA_CHECK_RET(CVI_VENC_SetJpegParam(VencChn, &stJpegParam), "CVI_VENC_SetJpegParam");
@@ -1746,7 +1763,7 @@ int MEDIA_VIDEO_VencRequstIDR(int VencChn)
 {
     return CVI_VENC_RequestIDR(VencChn,0);
 }
-#endif /* (!CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265) */
+#endif /* (CONFIG_APP_VENC_SUPPORT) */
 
 #if CONFIG_BOOT_FREQ_HIGHER
 void efuse_bootFreqHigher()
@@ -1820,7 +1837,7 @@ static int _MEDIA_VIDEO_Step2Init()
     GUI_Display_Start();
 #endif
 
-#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
+#if CONFIG_APP_VENC_SUPPORT
     MEDIA_CHECK_RET(_MEDIA_VIDEO_VencInit(),"MEDIA_VIDEO_VencInit failed");
 #endif
 
@@ -1856,7 +1873,7 @@ int MEDIA_VIDEO_Deinit()
     APP_AiStop();
 #endif
 
-#if !CONFIG_DISABLE_VENC_H264 || !CONFIG_DISABLE_VENC_H265
+#if CONFIG_APP_VENC_SUPPORT
     MEDIA_CHECK_RET(_MEDIA_VIDEO_VencDeInit(),"MEDIA_VIDEO_VencDeInit failed");
 #endif
 

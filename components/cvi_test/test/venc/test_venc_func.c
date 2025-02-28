@@ -1,3 +1,5 @@
+#if CONFIG_APP_VENC_SUPPORT
+
 #include "board.h"
 #include <aos/aos.h>
 #include <aos/kernel.h>
@@ -273,11 +275,15 @@ static CVI_S32 venc_init(VENC_CHN VeChn, venChnAttr attr)
 	VENC_FRAMELOST_S stFrmLostParam = {0};
 	VENC_SUPERFRAME_CFG_S stSuperFrmParam = {0};
 	VENC_CU_PREDICTION_S stCuPrediction = {0};
+#if !CONFIG_DISABLE_VENC_H265
 	VENC_H265_TRANS_S stH265Trans = {0};
 	VENC_H265_VUI_S stH265Vui = {0};
+#endif
+#if !CONFIG_DISABLE_VENC_H264
 	VENC_H264_TRANS_S stH264Trans = {0};
 	VENC_H264_ENTROPY_S stH264EntropyEnc = {0};
 	VENC_H264_VUI_S stH264Vui = {0};
+#endif
 	VENC_JPEG_PARAM_S stJpegParam = {0};
 	VENC_RECV_PIC_PARAM_S stRecvParam = {0};
 	VPSS_CHN_ATTR_S stVpssChnAttr = {0};
@@ -530,6 +536,7 @@ static CVI_S32 venc_init(VENC_CHN VeChn, venChnAttr attr)
 	APP_CHECK_RET2(CVI_VENC_SetCuPrediction(VeChn, &stCuPrediction), "CVI_VENC_SetCuPrediction");
 
 	if (attr.enType == PT_H265) {
+#if !CONFIG_DISABLE_VENC_H265
 		APP_CHECK_RET2(CVI_VENC_GetH265Trans(VeChn, &stH265Trans), "CVI_VENC_GetH265Trans");
 		stH265Trans.cb_qp_offset = attr.h265CbQpOffset;
 		stH265Trans.cr_qp_offset = attr.h265CrQpOffset;
@@ -548,7 +555,9 @@ static CVI_S32 venc_init(VENC_CHN VeChn, venChnAttr attr)
 		}
 
 		APP_CHECK_RET2(CVI_VENC_SetH265Vui(VeChn, &stH265Vui), "CVI_VENC_SetH265Vui");
+#endif
 	} else if (attr.enType == PT_H264) {
+#if !CONFIG_DISABLE_VENC_H264
 		APP_CHECK_RET2(CVI_VENC_GetH264Trans(VeChn, &stH264Trans), "CVI_VENC_GetH264Trans");
 		stH264Trans.chroma_qp_index_offset = attr.h264ChromaQpOffset;
 		APP_CHECK_RET2(CVI_VENC_SetH264Trans(VeChn, &stH264Trans), "CVI_VENC_SetH264Trans");
@@ -569,6 +578,7 @@ static CVI_S32 venc_init(VENC_CHN VeChn, venChnAttr attr)
 		}
 
 		APP_CHECK_RET2(CVI_VENC_SetH264Vui(VeChn, &stH264Vui), "CVI_VENC_SetH264Vui");
+#endif
 	} else if (attr.enType == PT_JPEG) {
 		APP_CHECK_RET2(CVI_VENC_GetJpegParam(VeChn, &stJpegParam), "CVI_VENC_GetJpegParam");
 		stJpegParam.u32Qfactor = attr.quality;
@@ -772,3 +782,5 @@ void stop_venc(int32_t argc, char **argv)
 
 ALIOS_CLI_CMD_REGISTER(start_venc, start_venc, start venc);
 ALIOS_CLI_CMD_REGISTER(stop_venc, stop_venc, stop venc);
+
+#endif /* (CONFIG_APP_VENC_SUPPORT) */

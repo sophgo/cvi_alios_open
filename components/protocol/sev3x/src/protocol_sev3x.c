@@ -1339,6 +1339,14 @@ static void do_mid_enroll_itg(void)
     msg_reply_enroll_itg(result, &res_msg);
 }
 
+#define __ASM_STR(x) #x
+#define csr_read()                                                                   \
+    ({                                                                               \
+        register unsigned long __v;                                                  \
+        __asm__ __volatile__("csrr %0, " __ASM_STR(0xc01) : "=r"(__v) : : "memory"); \
+        __v / 25 / 1000;                                                             \
+    })
+
 static void do_mid_verify(void)
 {
     MR_STATUS_E result = MR_FAILED4_UNKNOWNREASON;
@@ -1358,7 +1366,7 @@ static void do_mid_verify(void)
         result = MR_FAILED4_UNKNOWNREASON;
         printf("verify is NULL!\n");
     }
-    printf("is_verify_ok:%d\n", result);
+    printf("is_verify_ok:%d timer %lu \n", result, csr_read());
     msg_reply_verify(result, &res_msg);
 }
 

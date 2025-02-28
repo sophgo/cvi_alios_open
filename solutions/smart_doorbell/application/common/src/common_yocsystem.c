@@ -52,7 +52,12 @@ void YOC_SYSTEM_FsVfsInit()
 static void stduart_init(void)
 {
 	extern void console_init(int idx, uint32_t baud, uint16_t buf_size);
+
+#if CONFIG_ENABLE_FASTBOOT
+    console_init(CONSOLE_UART_IDX, 1500000, 512);
+#else
 	console_init(CONSOLE_UART_IDX, 115200, 512);
+#endif
 }
 
 extern void  cxx_system_init(void);
