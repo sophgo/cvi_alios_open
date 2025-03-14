@@ -457,6 +457,10 @@ typedef struct _VENC_SUPERFRAME_CFG_S {
 	CVI_U32 u32SuperBFrmBitsThr; // RW; Range:[0, 33554432];Indicate the threshold
 	// of the super B frame for enabling the super frame processing mode
 	VENC_RC_PRIORITY_E enRcPriority; /* RW; Rc Priority */
+	// of the reencode times for the super frame
+	CVI_U32 u32ReEncodeTimes;	// RW; Range:[1, 10];Indicate the reencode times
+	// of the quality level of the super frame recode adjust
+	CVI_U32 u32QualityLevel; // RW; Range:[1, 100];Indicate the quality level of the super frame
 } VENC_SUPERFRAME_CFG_S;
 
 #ifdef __cplusplus

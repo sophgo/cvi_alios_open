@@ -149,6 +149,7 @@ typedef struct _VDEC_CHN_ATTR_S {
 		VDEC_ATTR_VIDEO_S
 		stVdecVideoAttr; /* structure with video ( h264/h265) */
 	};
+	CVI_BOOL bUseExternStreamBuf; /* RW; use extern bitstream buffer (jpeg/mjpeg) */
 } VDEC_CHN_ATTR_S;
 
 typedef struct _VDEC_STREAM_S {
