@@ -205,7 +205,6 @@ package.yaml 配置及使用可参考 https://help.aliyun.com/document_detail/30
     -rw-rw-r-- 1 2.6K 12月 31  1979 config.yaml
     -rw-rw-r-- 1  33K 12月 31  1979 fip_fsbl.bin
     -rw-rw-r-- 1 8.0K 12月 31  1979 imtb
-    -rw-rw-r-- 1  404 12月 31  1979 partition_alios_spinor.xml
     -rw-rw-r-- 1 3.0M 12月 31  1979 prim
     -rw-rw-r-- 1 3.0M 12月 31  1979 yoc.bin
   ```

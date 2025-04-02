@@ -142,6 +142,7 @@ build_config:
     - ov_ov9732
     - sms_sc2331_1L
     - sms_sc035hgs_1L
+    - imgds_mis2032
 
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
@@ -204,6 +205,7 @@ source_file:
   - ov_ov9732/*.c ? <CONFIG_SENSOR_OV_OV9732>
   - sms_sc2331_1L/*.c ? <CONFIG_SENSOR_SMS_SC2331_1L>
   - sms_sc035hgs_1L/*.c ? <CONFIG_SENSOR_SMS_SC035HGS>
+  - imgds_mis2032/*.c ? <CONFIG_SENSOR_IMGDS_MIS2032>
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项
 #   CONFIG_DEBUG: y

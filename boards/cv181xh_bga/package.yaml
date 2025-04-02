@@ -183,6 +183,5 @@ export:
        - "bootimgs/boot"
        - "bootimgs/boot0"
        - "configs/config.yaml"
-       - "configs/partition_alios_spinor.xml"
        - "bootimgs/fip_fsbl.bin"
        - "bootimgs/fip.bin"

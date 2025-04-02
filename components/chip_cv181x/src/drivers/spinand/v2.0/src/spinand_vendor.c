@@ -657,6 +657,7 @@ const csi_spinand_manufacturer_t *spinand_manufacturers[] = {
 	&gigadevice_spinand_manufacturer,
 	&winbond_spinand_manufacturer,
 	&fm_spinand_manufacturer,
+	&macronix_spinand_manufacturer,
 	&other_spinand_manufacturer,
 };
 

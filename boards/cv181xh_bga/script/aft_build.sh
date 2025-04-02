@@ -124,6 +124,5 @@ fi
 cp -arf $MK_BOARD_PATH/script/mkflash.sh $BASE_PWD
 if [  -z "$MK_SOLUTION_PARTITION_NAME" ]; then
 [ -f "${MK_BOARD_PATH}/bootimgs/fip_fsbl.bin" ] && cp -arf ${MK_BOARD_PATH}/bootimgs/fip_fsbl.bin ${MK_GENERATED_PATH}/data/
-[ -f "${MK_BOARD_PATH}/configs/partition_alios_spinor.xml" ] && cp -arf ${MK_BOARD_PATH}/configs/partition_alios_spinor.xml ${MK_GENERATED_PATH}/data/
 [ -f yoc.bin ] && cp -arf yoc.bin ${MK_GENERATED_PATH}/data/
 fi
