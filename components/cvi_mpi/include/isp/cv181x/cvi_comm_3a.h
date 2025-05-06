@@ -28,7 +28,7 @@ extern "C" {
 #define MAX_AE_SIZE (MAX_AE_W * MAX_AE_H)
 #define MAX_AE_WIN (2)
 
-#define ENABLE_AF_LIB	(0)
+// #define ENABLE_AF_LIB	(0)
 
 typedef enum _ISP_FSWDR_MODE_E {
 	ISP_FSWDR_NORMAL_MODE = 0x0,
@@ -347,17 +347,42 @@ typedef struct _ISP_AWB_INFO_S {
 	CVI_S16 s16LVx100;
 	CVI_FLOAT fBVstep;
 } ISP_AWB_INFO_S;
+// AF VCM motor Len calibration attr
+typedef struct _ISP_AWB_RATIO_ATTR_S {
+	CVI_BOOL bEnable;
+	CVI_U32 u32RGainRatio;
+	CVI_U32 u32BGainRatio;
+	CVI_U32 u32GGainRatio;
+} ISP_AWB_RATIO_ATTR_S;
+
+typedef struct _ISP_AF_VCM_ATTR_S {
+	CVI_U32 u32InfinitePos;
+	CVI_U32 u32MacroPos;
+	CVI_U32 u32MediumPos;
+} ISP_AF_VCM_ATTR_S;
 
 // AF related structure
 typedef struct _ISP_AF_PARAM_S {
 	SENSOR_ID SensorId;
 	CVI_U8 u8WDRMode;
+	CVI_U8 u8AWBZoneRow;
+	CVI_U8 u8AWBZoneCol;
 	CVI_S32 s32Rsv;
 } ISP_AF_PARAM_S;
 
 typedef struct _ISP_AF_INFO_S {
+	CVI_BOOL bAEStable;
+	CVI_S16 s16CurrentLV;
 	CVI_U32 u32FrameCnt;
+	CVI_U32 u32ExpTime;
+	CVI_U32 u32ISO;
+	CVI_U32 u32IspDgain;
+	CVI_U32 u32Again;
+	CVI_U32 u32Dgain;
+	CVI_U32 u8AvgLum;
+	CVI_U32 u32WDRExpRatio;
 	ISP_AF_STATISTICS_S *pstAfStat;
+	ISP_AWB_STAT_RESULT_S stAfLumaSts[ISP_CHANNEL_MAX_NUM];
 } ISP_AF_INFO_S;
 
 typedef struct _ISP_AF_RESULT_S {
@@ -374,6 +399,44 @@ typedef struct _ISP_BIND_ATTR_S {
 	ALG_LIB_S stAfLib;
 	ALG_LIB_S stAwbLib;
 } ISP_BIND_ATTR_S;
+
+typedef struct _ISP_AF_ZOOM_FOCUS_TAB {
+	CVI_U32 zoom_pos;
+	CVI_U32 focus_pos_min;
+	CVI_U32 focus_pos_max;
+} ISP_AF_ZOOM_FOCUS_TAB;
+
+typedef enum _AF_CALIB_MODE {
+	AF_CALIB_DISABLE,
+	AF_CALIB_RANGE_OFFSET,
+	AF_CALIB_BACK_LASH,
+	AF_CALIB_ONE_STEP_TIME_COST,
+	AF_CALIB_ZOOM_FOCUS_TABLE,
+} AF_CALIB_MODE;
+
+enum AF_MOTOR_TYPE {
+	AF_MOTOR_STEPPER,
+	AF_MOTOR_VCM,
+};
+
+#define ZOOM_FOCUS_TAB_SIZE 9
+
+typedef struct _ISP_AF_LEN_INFO_S {
+	ISP_AF_ZOOM_FOCUS_TAB zoom_focus_table[ZOOM_FOCUS_TAB_SIZE];
+	CVI_U32 focus_range;//range of movement when focusing, unit is step
+	CVI_U32 zoom_range;//range of movement when zooming, unit is step
+	CVI_U32 focus_offset;//there is a distance that is blurred, unit is step
+	CVI_U32 zoom_offset;//there is a distance that is blurred, unit is step
+	CVI_U32 focus_backlash;//motor hw limit, unit is step
+	CVI_U32 zoom_backlash;//motor hw limit, unit is step
+	CVI_U32 focus_max_speed;//this speed use as MOTOR_SPD_4X
+	CVI_U32 zoom_max_speed;//this speed use as MOTOR_SPD_4X
+	CVI_U32 focus_time_cost_one_step;//unit is us
+	CVI_U32 zoom_time_cost_one_step;//unit is us
+	CVI_U32 focus_max_step;
+	CVI_U32 zoom_max_step;
+	enum AF_MOTOR_TYPE motor_type;
+} ISP_AF_LEN_INFO_S;
 
 typedef struct _ISP_AE_EXP_FUNC_S {
 	CVI_S32 (*pfn_ae_init)(VI_PIPE ViPipe, const ISP_AE_PARAM_S *pstAeParam);
@@ -398,6 +461,17 @@ typedef struct _ISP_AF_EXP_FUNC_S {
 	CVI_S32 (*pfn_af_ctrl)(VI_PIPE ViPipe, CVI_U32 u32Cmd, CVI_VOID *pValue);
 	CVI_S32 (*pfn_af_exit)(VI_PIPE ViPipe);
 } ISP_AF_EXP_FUNC_S;
+
+typedef struct _ISP_AF_MOTOR_CTL_FUNC_S {
+	CVI_S32 (*pfn_af_set_zoom_in)(VI_PIPE ViPipe, CVI_U8 step);
+	CVI_S32 (*pfn_af_set_zoom_out)(VI_PIPE ViPipe, CVI_U8 step);
+	CVI_S32 (*pfn_af_set_zoom_speed)(VI_PIPE ViPipe, CVI_U8 speed);
+	CVI_S32 (*pfn_af_set_focus_in)(VI_PIPE ViPipe, CVI_U8 step);
+	CVI_S32 (*pfn_af_set_focus_out)(VI_PIPE ViPipe, CVI_U8 step);
+	CVI_S32 (*pfn_af_set_focus_speed)(VI_PIPE ViPipe, CVI_U8 speed);
+	CVI_S32 (*pfn_af_set_zoom_focus)(VI_PIPE ViPipe, AF_DIRECTION eDirz, AF_DIRECTION eDirf, CVI_U8 zoomStep, CVI_U8 focusStep);
+	CVI_S32 (*pfn_af_get_len_info)(VI_PIPE ViPipe, ISP_AF_LEN_INFO_S *info);
+} ISP_AF_MOTOR_FUNC_S;
 
 typedef struct _ISP_AE_REGISTER_S {
 	ISP_AE_EXP_FUNC_S stAeExpFunc;

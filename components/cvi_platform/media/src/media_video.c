@@ -182,6 +182,7 @@ static int start_isp(ISP_PUB_ATTR_S stPubAttr, ISP_FUNC_FROM_OUT_S stISP_Functio
 	stsCfg.stFocusCfg.stConfig.u8GainHigh = 20;
 	stsCfg.stFocusCfg.stConfig.u8SlopLow = 8;
 	stsCfg.stFocusCfg.stConfig.u8SlopHigh = 15;
+	stsCfg.stFocusCfg.stConfig.u16HighLumaTh = 230;
 	//Register callback & call API
 	ALG_LIB_S stAeLib, stAwbLib;
 	stAeLib.s32Id = stAwbLib.s32Id = ViPipe;

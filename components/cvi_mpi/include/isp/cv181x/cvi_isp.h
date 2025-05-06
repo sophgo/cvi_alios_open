@@ -73,6 +73,9 @@ CVI_S32 CVI_ISP_GetModuleControl(VI_PIPE ViPipe, ISP_MODULE_CTRL_U *punModCtrl);
 CVI_S32 CVI_ISP_SetRegister(VI_PIPE ViPipe, CVI_U32 u32Addr, CVI_U32 u32Value);
 CVI_S32 CVI_ISP_GetRegister(VI_PIPE ViPipe, CVI_U32 u32Addr, CVI_U32 *pu32Value);
 
+CVI_S32 CVI_ISP_SetAWBRatioAttr(VI_PIPE ViPipe, const ISP_AWB_RATIO_ATTR_S *pstAWBRatioAttr);
+CVI_S32 CVI_ISP_GetAWBRatioAttr(VI_PIPE ViPipe, ISP_AWB_RATIO_ATTR_S *pstAWBRatioAttr);
+
 //-----------------------------------------------------------------------------
 //  Black Level Correction(BLC)
 //-----------------------------------------------------------------------------

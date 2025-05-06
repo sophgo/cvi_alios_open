@@ -679,7 +679,8 @@ typedef struct _VENC_ATTR_JPEG_S {
 	CVI_BOOL bSupportDCF;		/* whether to support "Design rule for Camera File system"(DCF) */
 	VENC_MPF_CFG_S stMPFCfg;	/* jpeg MPF configuration */
 	VENC_PIC_RECEIVE_MODE_E enReceiveMode;	/* pic receive mode of venc channel */
-} VENC_ATTR_JPEG_S;     /* Unsupport now */
+	CVI_BOOL bReuseInputBuf;	/* whether to reuse input buffer as bitstream buf when buffer full, not support when esbufferqueue is enabled */
+} VENC_ATTR_JPEG_S;
 
 /*the attribute of h264e*/
 typedef struct _VENC_ATTR_H264_S {

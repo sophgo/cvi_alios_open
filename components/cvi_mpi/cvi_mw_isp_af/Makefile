@@ -7,6 +7,7 @@ INCS	+= -I$(CURDIR)/include
 #
 SRCS_C	:= $(SDIR)/afalgo.c
 SRCS_C	+= $(SDIR)/cvi_af.c
+SRCS_C	+= $(SDIR)/af_buf.c
 ##
 LIB_DIR		?= lib
 TARGET_DIR	:= $(CURDIR)/$(LIB_DIR)
