@@ -72,7 +72,48 @@ static const SC2356_MODE_S g_astSC2356_mode[SC2356_MODE_NUM] = {
 			},
 		},
 		.f32MaxFps = 30,
-		.f32MinFps = 2.28, /* 402 * 93 / 0x7FFF */
+		.f32MinFps = 2.28, /* 1250 * 93 / 0x7FFF */
+		.u32HtsDef = 2560,
+		.u32VtsDef = 1250,
+		.stExp[0] = {
+			.u16Min = 1,
+			.u16Max = 1250 - 6,// vts - 4
+			.u16Def = 100,
+			.u16Step = 1,
+		},
+		.stAgain[0] = {
+			.u16Min = 1024,
+			.u16Max = 64512,
+			.u16Def = 1024,
+			.u16Step = 1,
+		},
+		.stDgain[0] = {
+			.u16Min = 1024,
+			.u16Max = 1024,
+			.u16Def = 1024,
+			.u16Step = 1,
+		},
+	},
+	[SC2356_MODE_800X600P30] = {
+		.name = "800X600P30",
+		.astImg[0] = {
+			.stSnsSize = {
+				.u32Width = 800,
+				.u32Height = 600,
+			},
+			.stWndRect = {
+				.s32X = 0,
+				.s32Y = 0,
+				.u32Width = 800,
+				.u32Height = 600,
+			},
+			.stMaxSize = {
+				.u32Width = 800,
+				.u32Height = 600,
+			},
+		},
+		.f32MaxFps = 30,
+		.f32MinFps = 2.28, /* 1250 * 30 / 0x7FFF */
 		.u32HtsDef = 2560,
 		.u32VtsDef = 1250,
 		.stExp[0] = {

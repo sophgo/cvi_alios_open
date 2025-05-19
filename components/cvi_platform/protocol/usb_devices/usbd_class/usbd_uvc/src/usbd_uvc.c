@@ -302,6 +302,7 @@ static void uvc_media_update(struct uvc_device_info* info)
 {
     PAYLOAD_TYPE_E enType;
     PIXEL_FORMAT_E enPixelFormat;
+    ROTATION_E rotation;
     PARAM_VENC_CFG_S* pstVencCfg = PARAM_getVencCtx();
     VPSS_CHN_ATTR_S stVpssChnAttr;
     CVI_U8 u8VencInitStatus =
@@ -367,8 +368,14 @@ static void uvc_media_update(struct uvc_device_info* info)
 
     CVI_VPSS_GetChnAttr(info->video.vpss_group, info->video.vpss_channel, &stVpssChnAttr);
     stVpssChnAttr.enPixelFormat = enPixelFormat;
-    stVpssChnAttr.u32Width      = uvc_frame_info.width;
-    stVpssChnAttr.u32Height     = uvc_frame_info.height;
+    CVI_VPSS_GetChnRotation(info->video.vpss_group, info->video.vpss_channel, &rotation);
+    if (rotation == ROTATION_90 || rotation == ROTATION_270) {
+        stVpssChnAttr.u32Width      = uvc_frame_info.height;
+        stVpssChnAttr.u32Height     = uvc_frame_info.width;;
+    }else{
+        stVpssChnAttr.u32Width      = uvc_frame_info.width;
+        stVpssChnAttr.u32Height     = uvc_frame_info.height;
+    }
     // stVpssChnAttr.stFrameRate.s32SrcFrameRate = 30;
     // stVpssChnAttr.stFrameRate.s32DstFrameRate = uvc_frame_info.fps;
     CVI_VPSS_SetChnAttr(info->video.vpss_group, info->video.vpss_channel, &stVpssChnAttr);

@@ -66,6 +66,14 @@ void sensor_pinmux_init(void)
 	// _GPIOSetValue(2, 7, 1); // XSHUTDOWN
 	mmio_write_32(0x03022004, 0xc0);
 	mmio_write_32(0x03022000, 0xc0);
-
+#endif
+#if CONFIG_SENSOR_SMS_SC2356
+    mmio_write_32(0x030010f8, 0x4); // PINMUX_CONFIG(PAD_MIPIRX0P, CAM_MCLK0);
+	mmio_write_32(0x030010f0, 0x4); // PINMUX_CONFIG(PAD_MIPIRX1P, IIC1_SDA);
+	mmio_write_32(0x030010f4, 0x4); // PINMUX_CONFIG(PAD_MIPIRX0N, IIC1_SCL);
+	mmio_write_32(0x030010ec, 0x3); // PINMUX_CONFIG(PAD_MIPIRX1N, XGPIOC_8);
+	//_GPIOSetValue(2, 8, 1);// XSHUTDOWN
+	mmio_write_32(0x03022004, 0x100);
+	mmio_write_32(0x03022000, 0x100);
 #endif
 }

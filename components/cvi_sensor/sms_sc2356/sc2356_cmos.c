@@ -63,6 +63,7 @@ static CVI_S32 cmos_get_wdr_size(VI_PIPE ViPipe, ISP_SNS_ISP_INFO_S *pstIspCfg);
 #define SC2356_HOLD_ADDR                     0x3812
 
 #define SC2356_RES_IS_400P(w, h)      		((w) <= 448 && (h) <= 360)
+#define SC2356_RES_IS_800X600P(w, h)        ((w) <= 800 && (h) <= 600)
 #define SC2356_RES_IS_1600X1200P(w, h)      ((w) <= 1600 && (h) <= 1200)
 
 #define SC2356_EXPACCURACY                    (0.5)
@@ -165,6 +166,7 @@ static CVI_S32 cmos_fps_set(VI_PIPE ViPipe, CVI_FLOAT f32Fps, AE_SENSOR_DEFAULT_
 
 	switch (pstSnsState->u8ImgMode) {
 	case SC2356_MODE_496X360P93:
+	case SC2356_MODE_800X600P30:
 	case SC2356_MODE_1600X1200P30:
 		if ((f32Fps <= f32MaxFps) && (f32Fps >= f32MinFps)) {
 			u32VMAX = u32Vts * f32MaxFps / DIV_0_TO_1_FLOAT(f32Fps);
@@ -497,7 +499,9 @@ static CVI_S32 cmos_set_wdr_mode(VI_PIPE ViPipe, CVI_U8 u8Mode)
 
 	switch (u8Mode) {
 	case WDR_MODE_NONE:
-		pstSnsState->u8ImgMode = SC2356_MODE_1600X1200P30;
+		if (pstSnsState->u8ImgMode == SC2356_MODE_496X360P93_WDR) {
+			pstSnsState->u8ImgMode = SC2356_MODE_496X360P93;
+		}
 		pstSnsState->enWDRMode = WDR_MODE_NONE;
 		pstSnsState->u32FLStd = g_astSC2356_mode[pstSnsState->u8ImgMode].u32VtsDef;
 		syslog(LOG_INFO, "linear mode\n");
@@ -661,11 +665,13 @@ static CVI_S32 cmos_set_image_mode(VI_PIPE ViPipe, ISP_CMOS_SENSOR_IMAGE_MODE_S 
 
 	if (pstSensorImageMode->f32Fps <= 93) {
 		if (pstSnsState->enWDRMode == WDR_MODE_NONE) {
-			if (SC2356_RES_IS_400P(pstSensorImageMode->u16Width, pstSensorImageMode->u16Height)) {
+			if (SC2356_RES_IS_400P(pstSensorImageMode->u16Width, pstSensorImageMode->u16Height))
 				u8SensorImageMode = SC2356_MODE_496X360P93;
-			} else if (SC2356_RES_IS_1600X1200P(pstSensorImageMode->u16Width, pstSensorImageMode->u16Height)) {
+			else if (SC2356_RES_IS_800X600P(pstSensorImageMode->u16Width, pstSensorImageMode->u16Height)) 
+				u8SensorImageMode = SC2356_MODE_800X600P30; 
+			else if (SC2356_RES_IS_1600X1200P(pstSensorImageMode->u16Width, pstSensorImageMode->u16Height))
 				u8SensorImageMode = SC2356_MODE_1600X1200P30;
-			} else {
+			else {
 				CVI_TRACE_SNS(CVI_DBG_ERR, "Not support! Width:%d, Height:%d, Fps:%f, WDRMode:%d\n",
 				       pstSensorImageMode->u16Width,
 				       pstSensorImageMode->u16Height,

@@ -33,6 +33,11 @@ extern int gc02m1_multi_probe(uint8_t i2c_addr, uint8_t i2c_dev);
 extern void gc02m1_multi_init(uint8_t ViPipe);
 extern void gc02m1_multi_exit(uint8_t ViPipe);
 #endif
+#if CONFIG_SENSOR_SMS_SC2356
+extern int sc2356_probe(uint8_t i2c_addr, uint8_t i2c_dev);
+extern void sc2356_init(uint8_t ViPipe);
+extern void sc2356_exit(uint8_t ViPipe);
+#endif
 int sensor_init(void)
 {
 	int ret = 0;
@@ -66,6 +71,11 @@ int sensor_init(void)
 	ret = gc02m1_multi_probe(0x10, 1);
 	gc02m1_multi_init(0);
 	gc02m1_multi_exit(0);
+#endif
+#if CONFIG_SENSOR_SMS_SC2356
+	ret = sc2356_probe(0x36, 1);
+	sc2356_init(0);
+	sc2356_exit(0);
 #endif
 	return ret;
 }

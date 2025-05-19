@@ -24,6 +24,7 @@
   - [OTA](#ota)
   - [Peripheral](#peripheral)
   - [ISP](#isp)
+  - [多媒体](#多媒体)
 - [FAQ](#faq)
 - [关于算能](#关于算能)
 
@@ -289,6 +290,10 @@ package.yaml 配置及使用可参考 https://help.aliyun.com/document_detail/30
 
 - [PQtool 使用手册](docs/pqtool_manual.md)
 - [SmartAE 使用指南](docs/smartAE_manual.md)
+- [AliOS 开机 AE 快速收敛指南](docs/fastconverge_manual.md)
+  
+## 多媒体
+- [Sensor 快启配置指南](docs/sensor_quick_startup.md)
 
 <!-- ## Algo
 
