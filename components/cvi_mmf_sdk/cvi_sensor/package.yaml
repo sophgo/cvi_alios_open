@@ -1,0 +1,261 @@
+## 第一部分： 基础信息
+name: cvi_sensor                                   # <必选项> 包名称 （符合C语言变量命名规则），长度少于等于64字节
+version: develop                                    # <必选项> 组件版本号
+description: Cvitek sensor driver SDK library.      # <必选项> 建议至少20字以上
+type: common                                          # <必选项> 组件类型，为：solution, chip, board, common, sdk
+#tag: 核心模块                                       # <可选项> 组件分类，缺省值： ''
+keywords:                                           # <可选项> 标签，会影响到组件被搜索的效果，合理的标签很重要
+  - base
+license: Copyright (C) Cvitek Co., Ltd. 2019-2020. All rights reserved. # <可选项> 源代码的许可证，要确保所有代码、文件的许可证不冲突。如：MIT，Apache license v2.0，BSD
+
+## 第二部分：依赖信息
+#           指定该组件依赖的组件及版本
+# sdk_chip:                                # <可选项> 该组件依赖sdk组件，合理的依赖才能保证组件能编译、使用
+#   - sdk_chip_csky_dummy: v7.4.0
+#   - sdk_chip_riscv_dummy: v7.4.0
+# depends:                                 # <可选项> 该组件依赖其他的组件，合理的依赖才能保证组件能编译、使用
+#   - minilibc: v7.4.0
+#   - aos: v7.4.0
+
+## 第三部分：板级信息
+# hw_info:                                 # 对 solution、board、chip 三个字段的改进，统称为 hw_info 字段
+#   cpu_id: cpu0
+#   cpu_name: CK804EF
+#   vendor_name: t-head
+#   chip_name: chip_light                  # <可选项> 指定芯片组件名,未设置时，使用depends中 chip 第一个组件
+#   board_name: pangu_cpu0_evb             # <可选项> 指定开发板组件名，未设置时，使用depends中 board 第一个组件
+#   ld_script: configs/gcc_eflash.ld       # <可选项> 连接时使用 LD 脚本，当选把未设置时，使用对应的 board 的 LD 脚本
+#   flash_program: bin/flash_program.elf   # <可选项> 芯片全局烧写程序
+#   toolchain_prefix: csky-abiv2-elf       # <可选项> 编译器前缀
+#   cpu0:
+#     cpu_name: CK804EF                    # <必选项> 该芯片使用的 CPU 型号
+#     ld_script: configs/gcc_eflash.ld     # <必选项> 连接时使用 LD 脚本
+#     flash_program: bin/flash_program.elf # <可选项> 该CPU对应烧写程序，未指定时使用全局烧写程序
+#     toolchain_prefix: csky-abiv2-elf     # <可选项> 编译器前缀
+#   cpu1:
+#     cpu_name: CK804EF                    # <必选项> 该芯片使用的 CPU 型号
+#     ld_script: configs/gcc_eflash.ld     # <可选项> 连接时使用 LD 脚本
+#     flash_program: bin/flash_program.elf # <可选项> 该CPU对应烧写程序，未指定时使用全局烧写程序
+#     toolchain_prefix: csky-abiv2-elf     # <可选项> 编译器前缀
+
+## chip component (单处理器)
+# hw_info:
+#   cpu_name: CK804EF
+#   ld_script: configs/gcc_eflash.ld
+#   toolchain_prefix: csky-abiv2-elf
+#   flash_program: bin/flash_program.elf
+
+## chip component(多处理器)
+# hw_info:
+#   cpu0:
+#     cpu_name: CK804EF                    # <必选项> 该芯片使用的 CPU 型号
+#     ld_script: configs/gcc_eflash.ld     # <必选项> 连接时使用 LD 脚本
+#     flash_program: bin/flash_program.elf # <可选项> 该CPU对应烧写程序，未指定时使用全局烧写程序
+#     toolchain_prefix: csky-abiv2-elf     # <可选项> 编译器前缀
+#   cpu:
+#     cpu_name: CK804EF                    # <必选项> 该芯片使用的 CPU 型号
+#     ld_script: configs/gcc_eflash.ld     # <必选项> 连接时使用 LD 脚本
+#     flash_program: bin/flash_program.elf # <可选项> 该CPU对应烧写程序，未指定时使用全局烧写程序
+#     toolchain_prefix: csky-abiv2-elf     # <可选项> 编译器前缀
+#hw_info:
+#  arch_name: arm
+#  cpu_name: cortex-a53
+#  vendor_name: cvitek
+#  ld_script: gcc_csky.ld
+#  toolchain_prefix: aarch64-none-elf
+# flash_program: d1_flash.elf
+
+## 第四部分：编译连接信息
+# build_config:                            # <可选项> 编译配置项
+#   include:                               # <可选项> 编译时，影响编译器的-I 参数 ,全局有效
+#     - src                                #        include 只能是该软件包下的目录，不能使用外部目录
+#   internal_include:                      # <可选项> 编译时，影响编译器的-I 参数 ,组件内有效
+#     - include
+#   cflag: ''                              # <可选项> C 编译器所需要要的编译参数
+#   cxxflag: ''                            # <可选项> CXX 编译器所需要要的编译参数
+#   asmflag: ''                            # <可选项> 汇编器所需要要参数
+#   define:                                # <可选项> 宏定义, 增加编译器的-D 选项,如：
+#     XXX: 1                               #   -DXXX=1
+#     AAA: 1                               #   -DAAA
+#     STR: "abc"                           #   -DSTR="abc"
+#   libs:                                  # 该组件中支持的二进制静态库,如：libxxx.a, libyyy.a
+#     - xxx                                #   -lxxx
+#     - yyy                                #   -lyyy
+#   libpath:                               # 指定静态库所在的路径（相对于该组件路径）
+#     - libs                               #   -Llibs
+build_config:
+  define:
+    - CONFIG_DUAL_OS
+  include:
+    - sensor_cfg
+    - sensor_i2c
+    - brigates_bg0808
+    - cvsens_cv2003
+    - gcore_gc02m1
+    - gcore_gc1054
+    - gcore_gc2053
+    - gcore_gc2053_slave
+    - gcore_gc2053_1L
+    - gcore_gc2093
+    - gcore_gc2145
+    - gcore_gc4023
+    - gcore_gc4653
+    - gcore_gc8613
+    - nextchip_n5
+    - nextchip_n6
+    - nuc_nc021
+    - onsemi_ar2020
+    - ov_os04a10
+    - ov_os04c10
+    - ov_os04e10
+    - ov_os05a20
+    - ov_os08a20
+    - ov_os08b10
+    - ov_ov2736
+    - ov_ov4689
+    - ov_ov6211
+    - ov_ov7251
+    - ov_ov9282
+    - pixelplus_pr2020
+    - pixelplus_pr2100
+    - sms_sc020hgs
+    - sms_sc035gs
+    - sms_sc035gs_1L
+    - sms_sc035hgs
+    - sms_sc233hgs
+    - sms_sc200ai
+    - sms_sc301iot
+    - sms_sc401ai
+    - sms_sc438ai
+    - sms_sc500ai
+    - sms_sc501ai_2L
+    - sms_sc531ai_2L
+    - sms_sc1330
+    - sms_sc3332
+    - sms_sc3335
+    - sms_sc3336
+    - sms_sc2335
+    - sms_sc4336
+    - sms_sc4336p
+    - sms_sc4336p_slave
+    - soi_f23
+    - soi_f35
+    - soi_f37p
+    - soi_k06
+    - soi_q03
+    - sony_imx307
+    - sony_imx307_slave
+    - sony_imx307_2L
+    - sony_imx327
+    - sony_imx327_slave
+    - sony_imx327_2L
+    - sony_imx327_fpga
+    - sony_imx327_sublvds
+    - sony_imx335
+    - sony_imx412
+    - sony_imx415
+    - sony_imx585
+    - sony_imx675
+    - sony_imx900
+    - techpoint_tp2860
+    - lontium_lt6911
+# source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
+#   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
+source_file:
+## middleware
+  - sensor_cfg/*.c
+  - sensor_i2c/*.c
+  - brigates_bg0808/*.c ? <CONFIG_SENSOR_BRIGATES_BG0808>
+  - cvsens_cv2003/*.c ? <CONFIG_SENSOR_CVSENS_CV2003>
+  - gcore_gc02m1/*.c ? <CONFIG_SENSOR_GCORE_GC02M1>
+  - gcore_gc1054/*.c ? <CONFIG_SENSOR_GCORE_GC1054>
+  - gcore_gc2053/*.c ? <CONFIG_SENSOR_GCORE_GC2053>
+  - gcore_gc2053_slave/*.c ? <CONFIG_SENSOR_GCORE_GC2053_SLAVE>
+  - gcore_gc2053_1L/*.c ? <CONFIG_SENSOR_GCORE_GC2053_1L>
+  - gcore_gc2093/*.c ? <CONFIG_SENSOR_GCORE_GC2093>
+  - gcore_gc2145/*.c ? <CONFIG_SENSOR_GCORE_GC2145>
+  - gcore_gc4023/*.c ? <CONFIG_SENSOR_GCORE_GC4023>
+  - gcore_gc4653/*.c ? <CONFIG_SENSOR_GCORE_GC4653>
+  - gcore_gc8613/*.c ? <CONFIG_SENSOR_GCORE_GC8613>
+  - nextchip_n5/*.c ? <CONFIG_SENSOR_NEXTCHIP_N5>
+  - nextchip_n6/*.c ? <CONFIG_SENSOR_NEXTCHIP_N6>
+  - nuc_nc021/*.c ? <CONFIG_SENSOR_NUC_NC021>
+  - onsemi_ar2020/*.c ? <CONFIG_SENSOR_ONSEMI_AR2020>
+  - ov_os04a10/*.c ? <CONFIG_SENSOR_OV_OS04A10>
+  - ov_os04c10/*.c ? <CONFIG_SENSOR_OV_OS04C10>
+  - ov_os04e10/*.c ? <CONFIG_SENSOR_OV_OS04E10>
+  - ov_os05a20/*.c ? <CONFIG_SENSOR_OV_OS05A20>
+  - ov_os08a20/*.c ? <CONFIG_SENSOR_OV_OS08A20>
+  - ov_os08b10/*.c ? <CONFIG_SENSOR_OV_OS08B10>
+  - ov_ov2736/*.c ? <CONFIG_SENSOR_OV_OV2736>
+  - ov_ov4689/*.c ? <CONFIG_SENSOR_OV_OV4689>
+  - ov_ov6211/*.c ? <CONFIG_SENSOR_OV_OV6211>
+  - ov_ov7251/*.c ? <CONFIG_SENSOR_OV_OV7251>
+  - ov_ov9282/*.c ? <CONFIG_SENSOR_OV_OV9282>
+  - pixelplus_pr2020/*.c ? <CONFIG_SENSOR_PIXELPLUS_PR2020>
+  - pixelplus_pr2100/*.c ? <CONFIG_SENSOR_PIXELPLUS_PR2100>
+  - sms_sc020hgs/*.c ? <CONFIG_SENSOR_SMS_SC020HGS>
+  - sms_sc035gs/*.c ? <CONFIG_SENSOR_SMS_SC035GS>
+  - sms_sc035gs_1L/*.c ? <CONFIG_SENSOR_SMS_SC035GS_1L>
+  - sms_sc035hgs/*.c ? <CONFIG_SENSOR_SMS_SC035HGS>
+  - sms_sc233hgs/*.c ? <CONFIG_SENSOR_SMS_SC233HGS>
+  - sms_sc200ai/*.c ? <CONFIG_SENSOR_SMS_SC200AI>
+  - sms_sc301iot/*.c ? <CONFIG_SENSOR_SMS_SC301IOT>
+  - sms_sc401ai/*.c ? <CONFIG_SENSOR_SMS_SC401AI>
+  - sms_sc438ai/*.c ? <CONFIG_SENSOR_SMS_SC438AI>
+  - sms_sc500ai/*.c ? <CONFIG_SENSOR_SMS_SC500AI>
+  - sms_sc501ai_2L/*.c ? <CONFIG_SENSOR_SMS_SC501AI_2L>
+  - sms_sc531ai_2L/*.c ? <CONFIG_SENSOR_SMS_SC531AI_2L>
+  - sms_sc1330/*.c ? <CONFIG_SENSOR_SMS_SC1330>
+  - sms_sc3332/*.c ? <CONFIG_SENSOR_SMS_SC3332>
+  - sms_sc3335/*.c ? <CONFIG_SENSOR_SMS_SC3335>
+  - sms_sc3336/*.c ? <CONFIG_SENSOR_SMS_SC3336>
+  - sms_sc2335/*.c ? <CONFIG_SENSOR_SMS_SC2335>
+  - sms_sc4336/*.c ? <CONFIG_SENSOR_SMS_SC4336>
+  - sms_sc4336p/*.c ? <CONFIG_SENSOR_SMS_SC4336P>
+  - sms_sc4336p_slave/*.c ? <CONFIG_SENSOR_SMS_SC4336P_SLAVE>
+  - soi_f23/*.c ? <CONFIG_SENSOR_SOI_F23>
+  - soi_f35/*.c ? <CONFIG_SENSOR_SOI_F35>
+  - soi_f37p/*.c ? <CONFIG_SENSOR_SOI_F37P>
+  - soi_k06/*.c ? <CONFIG_SENSOR_SOI_K06>
+  - soi_q03/*.c ? <CONFIG_SENSOR_SOI_Q03>
+  - sony_imx307/*.c ? <CONFIG_SENSOR_SONY_IMX307>
+  - sony_imx307_slave/*.c ? <CONFIG_SENSOR_SONY_IMX307_SLAVE>
+  - sony_imx307_2L/*.c ? <CONFIG_SENSOR_SONY_IMX307_2L>
+  - sony_imx327/*.c ? <CONFIG_SENSOR_SONY_IMX327>
+  - sony_imx327_slave/*.c ? <CONFIG_SENSOR_SONY_IMX327_SLAVE>
+  - sony_imx327_2L/*.c ? <CONFIG_SENSOR_SONY_IMX327_2L>
+  - sony_imx327_fpga/*.c ? <CONFIG_SENSOR_SONY_IMX327_FPGA>
+  - sony_imx327_sublvds/*.c ? <CONFIG_SENSOR_SONY_IMX327_SUBLVDS>
+  - sony_imx335/*.c ? <CONFIG_SENSOR_SONY_IMX335>
+  - sony_imx412/*.c ? <CONFIG_SENSOR_SONY_IMX412>
+  - sony_imx415/*.c ? <CONFIG_SENSOR_SONY_IMX415>
+  - sony_imx585/*.c ? <CONFIG_SENSOR_SONY_IMX585>
+  - sony_imx675/*.c ? <CONFIG_SENSOR_SONY_IMX675>
+  - sony_imx900/*.c ? <CONFIG_SENSOR_SONY_IMX900>
+  - techpoint_tp2860/*.c ? <CONFIG_SENSOR_TECHPOINT_TP2860>
+  - lontium_lt6911/*.c ? <CONFIG_SENSOR_LONTIUM_LT6911>
+## 第五部分：配置信息
+# def_config:                              # 组件的可配置项
+#   CONFIG_DEBUG: y
+#   CONFIG_PARAM_NOT_CHECK: y
+#   CONFIG_CLI: y
+def_config:
+
+## 第六部分：安装信息
+# install:
+#   - dest: include/                       # 安装的目的路径 dest是相对路径，通常是相对于YoC SDK 安装目录
+#     source:                              # 安装源列表
+#      - src/*.h                           # 支持通配符，相对路径
+#install:
+install:
+  - dest: "include/"
+    source:
+## 第七部分：导出部分
+# export:
+#   - dest: "<SOLUTION_PATH>/generated/data" # 安装的目的路径 dest是相对路径
+#     source:                                # 安装源列表
+#       - "bootimgs/boot"
+#       - "bootimgs/tee"
+#       - "bootimgs/mtb"
+#       - "configs/config.yaml"

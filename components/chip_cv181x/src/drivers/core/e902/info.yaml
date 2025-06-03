@@ -1,0 +1,11 @@
+name: e902
+vendor: thead
+license: Copyright (C) 2017-2020 Alibaba Group Holding Limited
+description: thead e902 cpu
+type: core
+
+versions:
+    v1.0:
+        drv_path: ./
+        test_path: ''
+        rtl_path: xxxx

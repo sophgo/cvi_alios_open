@@ -1,0 +1,24 @@
+/root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/build/media/SensorSupportList/ov_os04a10/os04a10_sensor_ctl.o: \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/build/media/SensorSupportList/ov_os04a10/os04a10_sensor_ctl.c \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/cvi_comm_video.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/cvi_common.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/cvi_type.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/cvi_defines.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/cvi_sns_ctrl.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/cvi_comm_cif.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/cvi_comm_video.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/cvi_errno.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/cvi_common.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/cvi_type.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/cvi_debug.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/isp/cvi_ae_comm.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/isp/cvi_comm_inc.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/isp/cvi_comm_3a.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/isp/cvi_comm_isp.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/cvi_comm_sns.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/isp/cvi_comm_isp.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/isp/cvi_awb_comm.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/build/media/SensorSupportList/ov_os04a10/os04a10_cmos_ex.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/cvi_comm_cif.h \
+ ../sensor_i2c/sensor_i2c.h \
+ /root/.jenkins/workspace/mars3_dev_daily_build/mars3_source/cvi_mpi/include/cvi_debug.h

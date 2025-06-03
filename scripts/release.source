@@ -1,0 +1,18 @@
+CVI_BOARDNAME_SOURCE=(
+	"cv181xc_evb"
+	"cv181xc_evb"
+	"cv181xh_bga"
+	"cv181xc_evb"
+)
+CVI_SOLUTIONNAME_SOURCE=(
+	"helloworld"
+	"helloworld"
+	"helloworld"
+	"helloworld"
+)
+CVI_PROJECTNAME_SOURCE=(
+	"turnkey"
+	"fc"
+	"turnkey_bga"
+	"doorlock"
+)
