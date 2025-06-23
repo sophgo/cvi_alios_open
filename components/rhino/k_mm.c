@@ -870,7 +870,7 @@ void *krhino_mm_alloc(size_t size)
 
         freesize = g_kmm_head->free_size;
 
-        printf("WARNING, malloc failed!!!! need size:%lu, but free size:%d\r\n", (unsigned long)size, freesize);
+        printf("WARNING, normal malloc failed!!!! need size:%lu, but free size:%d\r\n", (unsigned long)size, freesize);
 
         if (dumped) {
             return tmp;
@@ -954,7 +954,7 @@ void *krhino_mm_alloc_resv(size_t size)
 
         freesize = g_kmm_head_resv->free_size;
 
-        printf("WARNING, malloc failed!!!! need size:%lu, but free size:%d\r\n", (unsigned long)size, freesize);
+        printf("WARNING, resv malloc failed!!!! need size:%lu, but free size:%d\r\n", (unsigned long)size, freesize);
 
         if (dumped) {
             return tmp;

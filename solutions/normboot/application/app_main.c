@@ -137,6 +137,7 @@ static int ipcm_anon_init(void)
 	return ret;
 }
 
+#if !CONFIG_CV1811C_JD9165
 static int start_pwm(void)
 {
     PARAM_SYS_CFG_S * pstSysCtx = PARAM_getSysCtx();
@@ -189,6 +190,7 @@ static int parse_PqParam()
 
     return 0;
 }
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -226,14 +228,17 @@ int main(int argc, char *argv[])
 	APP_PARAM_Parse();
 #endif
 
+#if !CONFIG_CV1811C_JD9165
     parse_PqParam();
+#endif
 #ifdef CONFIG_RTOS_INIT_MEDIA
 	//custom_evenet_pre
 	//media video
 	MEDIA_VIDEO_Init(0);
 #endif
+#if !CONFIG_CV1811C_JD9165
   	start_pwm();
-
+#endif
 #if 0
 	//network
 	#if (CONFIG_APP_ETHERNET_SUPPORT == 1)

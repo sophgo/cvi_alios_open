@@ -7,7 +7,7 @@ static int32_t g_motor_pos = CN3927ELC_MIN_POS;
 static int32_t nr_lsc_mode_init(uint8_t t_src)
 {
     int ret = CSI_OK;
-    uint8_t device_addr = 0x0C;
+    uint8_t device_addr = CN3927ELC_IIC_ADDR;
     uint8_t byte1 = 0x00;
     uint8_t byte2 = 0x00;
     uint8_t i2c_num = g_i2c_num;
@@ -46,7 +46,7 @@ static int32_t nr_lsc_mode_set_step(uint32_t target_step,
         uint8_t code_per_step, uint8_t step_period)
 {
     int ret = CSI_OK;
-    uint8_t device_addr = 0x0C;
+    uint8_t device_addr = CN3927ELC_IIC_ADDR;
     uint8_t i2c_num = g_i2c_num;
     uint8_t byte1 = (target_step >> 4) & 0x3F;
     uint8_t byte2 = ((uint8_t)((target_step & 0x0F) << 4)) | ((code_per_step << 2) & 0x0C) | (step_period & 0x03);

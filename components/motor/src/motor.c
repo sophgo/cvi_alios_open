@@ -3,6 +3,9 @@
 #include <aos/cli.h>
 #include "motor.h"
 #include "cn3927elc.h"
+#include "dw9714v.h"
+
+int32_t g_is_motor_init = 0;
 
 int32_t motor_init(MOTOR_TYPE_S motor_type, uint8_t bus_num){
     int32_t ret = MOTOR_RESULT_SCUCESS;
@@ -15,9 +18,17 @@ int32_t motor_init(MOTOR_TYPE_S motor_type, uint8_t bus_num){
     case MOTOR_TYPE_CN3927ELC:
         ret = cn3927elc_init(bus_num);
         break;
-    
+    case MOTOR_TYPE_DW9714V:
+        ret = dw9714v_init(bus_num);
+        break;
     default:
         break;
+    }
+
+    if(ret == MOTOR_RESULT_SCUCESS){
+        g_is_motor_init = 1;
+    }else{
+        g_is_motor_init = 0;
     }
     return ret;
 }
@@ -33,10 +44,13 @@ int32_t motor_deinit(MOTOR_TYPE_S motor_type, uint8_t bus_num){
     case MOTOR_TYPE_CN3927ELC:
         ret = cn3927elc_deinit(bus_num);
         break;
-    
+    case MOTOR_TYPE_DW9714V:
+        ret = dw9714v_deinit(bus_num);
+        break;
     default:
         break;
     }
+    g_is_motor_init = 0;
     return ret;
 }
 
@@ -47,12 +61,22 @@ int32_t motor_cw(MOTOR_TYPE_S motor_type, uint32_t step){
         printf("[%s] motor_type:%d is not matched\n", __FUNCTION__, motor_type);
     }
 
+    if(g_is_motor_init == 0){
+        ret = motor_init(motor_type, MOTOR_IIC_BUS_ID);
+        if(ret != MOTOR_RESULT_SCUCESS){
+            printf("motor[%d] init failed on i2c %d\n", motor_type, MOTOR_IIC_BUS_ID);
+            return ret;
+        }
+    }
+
     switch (motor_type)
     {
     case MOTOR_TYPE_CN3927ELC:
         ret = cn3927elc_cw(step);
         break;
-    
+    case MOTOR_TYPE_DW9714V:
+        ret = dw9714v_cw(step);
+        break;
     default:
         break;
     }
@@ -70,12 +94,22 @@ int32_t motor_ccw(MOTOR_TYPE_S motor_type, uint32_t step){
         printf("[%s] motor_type:%d is not matched\n", __FUNCTION__, motor_type);
     }
 
+    if(g_is_motor_init == 0){
+        ret = motor_init(motor_type, MOTOR_IIC_BUS_ID);
+        if(ret != MOTOR_RESULT_SCUCESS){
+            printf("motor[%d] init failed on i2c %d\n", motor_type, MOTOR_IIC_BUS_ID);
+            return ret;
+        }
+    }
+
     switch (motor_type)
     {
     case MOTOR_TYPE_CN3927ELC:
         ret = cn3927elc_ccw(step);
         break;
-    
+    case MOTOR_TYPE_DW9714V:
+        ret = dw9714v_ccw(step);
+        break;
     default:
         break;
     }
@@ -92,12 +126,22 @@ int32_t motor_get_pos(MOTOR_TYPE_S motor_type, uint32_t* pos){
         printf("[%s] motor_type:%d is not matched\n", __FUNCTION__, motor_type);
     }
 
+    if(g_is_motor_init == 0){
+        ret = motor_init(motor_type, MOTOR_IIC_BUS_ID);
+        if(ret != MOTOR_RESULT_SCUCESS){
+            printf("motor[%d] init failed on i2c %d\n", motor_type, MOTOR_IIC_BUS_ID);
+            return ret;
+        }
+    }
+
     switch (motor_type)
     {
     case MOTOR_TYPE_CN3927ELC:
         ret = cn3927elc_get_pos(pos);
         break;
-    
+    case MOTOR_TYPE_DW9714V:
+        ret = dw9714v_get_pos(pos);
+        break;
     default:
         break;
     }

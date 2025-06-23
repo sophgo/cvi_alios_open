@@ -19,7 +19,7 @@ extern "C" {
 #endif
 #endif /* End of #ifdef __cplusplus */
 
-#define ENABLE_AF_LIB (1)
+// #define ENABLE_AF_LIB (1)
 //The customer can deisgin the control of the motor by themself,
 //and sophgo also provides the public practice for customer reference
 //please contact sophgo get motor ko source code

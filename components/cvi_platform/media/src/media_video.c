@@ -652,9 +652,11 @@ int MEDIA_VIDEO_SysInit()
     //sys/base init
     sys_core_init();
     //vip init
+#if !CONFIG_CV1811C_JD9165
     cvi_cif_init();
     cvi_snsr_i2c_probe();
     vi_core_init();
+#endif
     vpss_core_init();
 #if (!defined(CONFIG_SUPPORT_VO) || (CONFIG_SUPPORT_VO))
     vo_core_init();
@@ -879,22 +881,32 @@ int _MEDIA_VIDEO_DSIInit(int devno, const struct dsc_instr *cmds, int size)
 }
 
 #if (!defined(CONFIG_SUPPORT_VO) || (CONFIG_SUPPORT_VO))
+void _MEDIA_VIDEO_PanelPreInit(void *data)
+ {
+     int fd = 0;
+     CVI_S32 s32Ret = CVI_SUCCESS;
+     struct panel_desc_s *panel_desc = (struct panel_desc_s *)data;
+
+     s32Ret = CVI_MIPI_TX_Disable(fd);
+     if (s32Ret != CVI_SUCCESS) {
+         MEDIABUG_PRINTF("CVI_MIPI_TX_Disable failed with %#x\n", s32Ret);
+         return;
+     }
+
+     s32Ret = CVI_MIPI_TX_Cfg(fd, panel_desc->dev_cfg);
+     if (s32Ret != CVI_SUCCESS) {
+         MEDIABUG_PRINTF("CVI_MIPI_TX_Cfg failed with %#x\n", s32Ret);
+     }
+
+    return;
+}
+
 void *_MEDIA_VIDEO_PanelInit(void *data)
 {
     int fd = 0;
     CVI_S32 s32Ret = CVI_SUCCESS;
     struct panel_desc_s *panel_desc = (struct panel_desc_s *)data;
 
-    s32Ret = CVI_MIPI_TX_Disable(fd);
-    if (s32Ret != CVI_SUCCESS) {
-        MEDIABUG_PRINTF("CVI_MIPI_TX_Disable failed with %#x\n", s32Ret);
-        return NULL;
-    }
-    s32Ret = CVI_MIPI_TX_Cfg(fd, panel_desc->dev_cfg);
-    if (s32Ret != CVI_SUCCESS) {
-        MEDIABUG_PRINTF("CVI_MIPI_TX_Cfg failed with %#x\n", s32Ret);
-        return NULL;
-    }
     s32Ret = _MEDIA_VIDEO_DSIInit(0, panel_desc->dsi_init_cmds, panel_desc->dsi_init_cmds_size);
     if (s32Ret != CVI_SUCCESS) {
         MEDIABUG_PRINTF("dsi_init failed with %#x\n", s32Ret);
@@ -922,6 +934,8 @@ int MEDIA_VIDEO_PanelInit(void)
     pthread_attr_t attr;
     pthread_condattr_t cattr;
     pthread_t thread;
+
+    _MEDIA_VIDEO_PanelPreInit((void *)&panel_desc);
 
     param.sched_priority = MIPI_TX_RT_PRIO;
     pthread_attr_init(&attr);

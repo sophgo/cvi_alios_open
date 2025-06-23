@@ -1,6 +1,7 @@
 #include "motor_i2c.h"
 
 #define IIC_MAX 5
+#define MOTOR_I2C_DENUG 0
 
 static csi_iic_t iic_adapter;
 
@@ -62,7 +63,6 @@ int32_t motor_i2c_read(uint8_t i2c_num, uint8_t device_addr,
 {
     int32_t ret = CSI_OK;
     uint32_t timeout = 100;
-    uint32_t i = 0;
     csi_iic_t *iic;
 
     if (i2c_num >= IIC_MAX) {
@@ -77,11 +77,14 @@ int32_t motor_i2c_read(uint8_t i2c_num, uint8_t device_addr,
         printf("I2C_READ error!\n");
         return CSI_ERROR;
     }
+#if MOTOR_I2C_DENUG
+    uint32_t i = 0;
     printf("i2c r 0x%x = ", reg_addr);
     for(i = 0; i < data_len; i++){
         printf("0x%2x ", pdata[i]);
     }
     printf("\n");
+#endif
     return ret;
 }
 
@@ -90,10 +93,9 @@ int32_t motor_i2c_write(uint8_t i2c_num, uint8_t device_addr,
             uint8_t *pdata, uint32_t data_len)
 {
     int32_t ret = CSI_OK;
-    uint32_t i = 0;
     uint32_t timeout = 10;
     csi_iic_t *iic;
-    
+
     if (i2c_num >= IIC_MAX) {
         return CSI_ERROR;
     }
@@ -105,10 +107,13 @@ int32_t motor_i2c_write(uint8_t i2c_num, uint8_t device_addr,
         printf("I2C_WRITE error!\n");
         return CSI_ERROR;
     }
+#if MOTOR_I2C_DENUG
+    uint32_t i = 0;
     printf("i2c w 0x%x = ", reg_addr);
     for(i = 0; i < data_len; i++){
         printf("0x%2x ", pdata[i]);
     }
     printf("\n");
+#endif
     return CSI_OK;
 }

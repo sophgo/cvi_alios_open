@@ -2054,22 +2054,16 @@ typedef struct _ISP_CLUT_ATTR_S {
 	CVI_U16 ClutB[ISP_CLUT_LUT_LENGTH]; /*RW; Range:[0x0, 0x3FF]*/
 } ISP_CLUT_ATTR_S;
 
-typedef struct _ISP_CLUT_SATURATION_MANUAL_ATTR_S {
-	CVI_U16 SatIn[4]; /*RW; Range:[0x0, 0x2000]*/
-	CVI_U16 SatOut[4]; /*RW; Range:[0x0, 0x2000]*/
-} ISP_CLUT_SATURATION_MANUAL_ATTR_S;
-
-typedef struct _ISP_CLUT_SATURATION_AUTO_ATTR_S {
-	CVI_U16 SatIn[4][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x2000]*/
-	CVI_U16 SatOut[4][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x2000]*/
-} ISP_CLUT_SATURATION_AUTO_ATTR_S;
-
-typedef struct _ISP_CLUT_SATURATION_ATTR_S {
+#define ISP_CLUT_HUE_LENGTH (37)
+#define ISP_CLUT_SAT_LENGTH (21)
+typedef struct _ISP_CLUT_HSL_ATTR_S {
 	CVI_BOOL Enable;
-	ISP_OP_TYPE_E enOpType;
-	ISP_CLUT_SATURATION_MANUAL_ATTR_S stManual;
-	ISP_CLUT_SATURATION_AUTO_ATTR_S stAuto;
-} ISP_CLUT_SATURATION_ATTR_S;
+	CVI_FLOAT Sigma; /*RW; Range:[0x0, 0x40]*/
+	CVI_S16 HByH[ISP_CLUT_HUE_LENGTH]; /*RW; Range:[-0x1E, 0x1E]*/
+	CVI_U16 SByH[ISP_CLUT_HUE_LENGTH]; /*RW; Range:[0x0, 0x64]*/
+	CVI_U16 LByH[ISP_CLUT_HUE_LENGTH]; /*RW; Range:[0x0, 0x64]*/
+	CVI_U16 SByS[ISP_CLUT_SAT_LENGTH]; /*RW; Range:[0x0, 0x64]*/
+} ISP_CLUT_HSL_ATTR_S;
 
 //-----------------------------------------------------------------------------
 //  DCI

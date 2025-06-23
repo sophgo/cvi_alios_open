@@ -76,6 +76,7 @@ typedef enum _VO_INTF_SYNC_E {
 	VO_OUTPUT_480P60, /* 720  x  480 at 60 Hz. */
 
 	VO_OUTPUT_800x600_60, /* VESA 800 x 600 at 60 Hz (non-interlaced) */
+	VO_OUTPUT_1024x600_60, /* VESA 1024 x 600 at 60 Hz (non-interlaced) */
 	VO_OUTPUT_1024x768_60, /* VESA 1024 x 768 at 60 Hz (non-interlaced) */
 	VO_OUTPUT_1280x1024_60, /* VESA 1280 x 1024 at 60 Hz (non-interlaced) */
 	VO_OUTPUT_1366x768_60, /* VESA 1366 x 768 at 60 Hz (non-interlaced) */

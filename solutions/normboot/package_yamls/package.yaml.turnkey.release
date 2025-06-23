@@ -136,6 +136,8 @@ source_file:
   - customization/cv1811c_cv2003_1l_triple/src/*.c ? <CONFIG_CV1811C_CV2003_1l_TRIPLE>
   - customization/cv180zb_gc2053/pipeline/*.c ? <CONFIG_CV180ZB_GC2053>
   - customization/cv180zb_gc2053/src/*.c ? <CONFIG_CV180ZB_GC2053>
+  - customization/cv1811c_jd9165/pipeline/*.c ? <CONFIG_CV1811C_JD9165>
+  - customization/cv1811c_jd9165/src/*.c ? <CONFIG_CV1811C_JD9165>
 
 
 ## 第五部分：配置信息
@@ -177,6 +179,7 @@ def_config:
   CONFIG_SNS2_TYPE: 0
   CONFIG_PANEL_HX8394: 1
   CONFIG_PANEL_ILI9488: 0
+  CONFIG_PANEL_JD9165: 0
   CONFIG_VENC_TEST_CHN: 2
   CONFIG_PQTOOL_SUPPORT: 0
   CONFIG_PQBIN_USE_JSON: 0

@@ -30,6 +30,15 @@ static struct panel_desc_s panel_desc = {
 	.dsi_init_cmds = dsi_init_cmds_hx8394_720x1280,
 	.dsi_init_cmds_size = ARRAY_SIZE(dsi_init_cmds_hx8394_720x1280)
 };
+#elif CONFIG_PANEL_JD9165
+#include "dsi_jd9165ba.h"
+static struct panel_desc_s panel_desc = {
+	.panel_name = "JD9165BA-1024x600",
+	.dev_cfg = &dev_cfg_jd9165ba_1024x600,
+	.hs_timing_cfg = &hs_timing_cfg_jd9165ba_1024x600,
+	.dsi_init_cmds = dsi_init_cmds_jd9165ba_1024x600,
+	.dsi_init_cmds_size = ARRAY_SIZE(dsi_init_cmds_jd9165ba_1024x600)
+};
 #else
 #include "dsi_hx8394_evb.h"
 static struct panel_desc_s panel_desc = {
