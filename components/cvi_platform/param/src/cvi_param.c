@@ -33,11 +33,6 @@ static void PARAM_Printf(void)
         aos_debug_printf("The pstSysCtx->stVIVPSSMode.aenMode[0] is %d \r\n", pstSysCtx->stVIVPSSMode.aenMode[0]);
         aos_debug_printf("The pstSysCtx->stVIVPSSMode.aenMode[1] is %d \r\n", pstSysCtx->stVIVPSSMode.aenMode[1]);
         aos_debug_printf("The pstSysCtx->stVIVPSSMode.aenMode[3] is %d \r\n", pstSysCtx->stVIVPSSMode.aenMode[3]);
-        aos_debug_printf("The pstSysCtx->stVPSSMode.ViPipe[0] is %d \r\n", pstSysCtx->stVPSSMode.ViPipe[0]);
-        aos_debug_printf("The pstSysCtx->stVPSSMode.ViPipe[1] is %d \r\n", pstSysCtx->stVPSSMode.ViPipe[1]);
-        aos_debug_printf("The pstSysCtx->stVPSSMode.enMode is %d \r\n", pstSysCtx->stVPSSMode.enMode);
-        aos_debug_printf("The pstSysCtx->stVPSSMode.aenInput[0] is %d \r\n", pstSysCtx->stVPSSMode.aenInput[0]);
-        aos_debug_printf("The pstSysCtx->stVPSSMode.aenInput[1] is %d \r\n", pstSysCtx->stVPSSMode.aenInput[1]);
         aos_debug_printf("The pstSysCtx->u8VbPoolCnt is %d \r\n", pstSysCtx->u8VbPoolCnt);
         for (int i = 0 ; i < pstSysCtx->u8VbPoolCnt; i++) {
             aos_debug_printf("pstSysCtx->pstVbPool[%d].u16width %d \r\n", i,pstSysCtx->pstVbPool[i].u16width);
@@ -99,6 +94,9 @@ static void PARAM_Printf(void)
 
     if (PARAM_GET_MANAGER_CFG()->pstModuleCtx->alios_vpss_mode) {
         aos_debug_printf("*********************VPSS***************** \r\n");
+        aos_debug_printf("pstVpssCtx->stVPSSMode.enMode:%d. \r\n", pstVpssCtx->stVPSSMode.enMode);
+        aos_debug_printf("pstVpssCtx->stVPSSMode.aenInput[0]:%d. \r\n", pstVpssCtx->stVPSSMode.aenInput[0]);
+        aos_debug_printf("pstVpssCtx->stVPSSMode.aenInput[1]:%d. \r\n", pstVpssCtx->stVPSSMode.aenInput[1]);
         aos_debug_printf("pstVpssCtx->u8GrpCnt:%d. \r\n", pstVpssCtx->u8GrpCnt);
         for (int i = 0; i < pstVpssCtx->u8GrpCnt; i++) {
             aos_debug_printf("pstVpssCtx->pstVpssGrpCfg[%d].bEnable:%d. \r\n"

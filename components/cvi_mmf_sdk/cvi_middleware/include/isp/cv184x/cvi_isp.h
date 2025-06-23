@@ -289,6 +289,10 @@ CVI_S32 CVI_ISP_IrAutoRunOnce(ISP_DEV IspDev, ISP_IR_AUTO_ATTR_S *pstIrAttr);
 CVI_S32 CVI_ISP_SetSmartInfo(VI_PIPE ViPipe, const ISP_SMART_INFO_S *pstSmartInfo, CVI_U8 TimeOut);
 CVI_S32 CVI_ISP_GetSmartInfo(VI_PIPE ViPipe, ISP_SMART_INFO_S *pstSmartInfo);
 
+CVI_S32 CVI_ISP_SetStitchAttr(VI_PIPE ViPipe, ISP_STITCH_ATTR_S *pstStitchAttr);
+CVI_S32 CVI_ISP_GetStitchAttr(VI_PIPE ViPipe, ISP_STITCH_ATTR_S *pstStitchAttr);
+CVI_S32 CVI_ISP_StitchCalibartion(VI_PIPE ViPipe, ISP_STITCH_ATTR_S *pstAttr, CVI_U8 chnNum);
+
 CVI_S32 CVI_ISP_Register(ISP_FUNC_FROM_OUT_S stFunction);
 CVI_S32 CVI_ISP_MediaVideoInit(CVI_BOOL IsRawReplayMode);
 CVI_S32 CVI_ISP_MediaVideoDeinit(CVI_BOOL IsRawReplayMode);

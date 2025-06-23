@@ -898,6 +898,12 @@ static CVI_S32 sensor_rx_attr(VI_PIPE ViPipe, SNS_COMBO_DEV_ATTR_S *pstRxAttr)
 
 	memcpy(pstRxAttr, pstRxAttrSrc, sizeof(*pstRxAttr));
 
+	if (pstSnsState->u8ImgMode == IMX415_MODE_2M60) {
+		pstRxAttr->mclk.freq = CAMPLL_FREQ_27M;
+	} else if (pstSnsState->u8ImgMode == IMX415_MODE_5M25) {
+		pstRxAttr->mclk.freq = CAMPLL_FREQ_24M;
+	}
+
 	pstRxAttr->img_size.start_x = g_astImx415_mode[pstSnsState->u8ImgMode].astImg[0].stWndRect.s32X;
 	pstRxAttr->img_size.start_y = g_astImx415_mode[pstSnsState->u8ImgMode].astImg[0].stWndRect.s32Y;
 	pstRxAttr->img_size.active_w = g_astImx415_mode[pstSnsState->u8ImgMode].astImg[0].stWndRect.u32Width;

@@ -76,6 +76,7 @@ typedef struct _PARAM_VENCCHN_PARAM_S {
     CVI_U16 u16Width;
     CVI_U16 u16Height;
     CVI_U32 u32BitStreamBufSize;
+    CVI_U8 u8IsoSendFrmEn;
     CVI_U8 u8EsBufQueueEn; ///< Use es buffer queue
     CVI_U8 u8EntropyEncModeI;//encode 编码属性 base/high
     CVI_U8 u8EntropyEncModeP;//encode 编码属性 base/high

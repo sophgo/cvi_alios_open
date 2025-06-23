@@ -122,6 +122,7 @@ int main(int argc, char *argv[])
 {
 	//board pinmux init
 	PLATFORM_IoInit();
+	PLATFORM_PanelInit();
 
     CVI_IPCM_SetRtosSysBootStat();
 
@@ -132,15 +133,18 @@ int main(int argc, char *argv[])
 
 	//Fs init
 	//YOC_SYSTEM_FsVfsInit();
+
 	//load cfg
 	PARAM_LoadCfg();
+
 	//video driver init
-	// MEDIA_VIDEO_SysInit();
 	media_driver_init();
+
 #ifdef CONFIG_AUD_DRV_SEL
 	//audio driver init
 	MEDIA_AUDIO_Init();
 #endif
+
 	ipcm_driver_test_init();
 
 	CVI_MSG_Init();
@@ -149,10 +153,11 @@ int main(int argc, char *argv[])
 #ifdef CONFIG_RTOS_PARSE_PARAM
 	APP_PARAM_Parse();
 #endif
+
   	start_pwm();
+
 #ifdef CONFIG_RTOS_INIT_MEDIA
-	//custom_evenet_pre
-	//media video
+	//start video
 	MEDIA_VIDEO_Init(0);
 #endif
 

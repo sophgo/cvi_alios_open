@@ -201,6 +201,27 @@ void PLATFORM_PowerOff(void)
 
 int PLATFORM_PanelInit(void)
 {
+	u8 pw_port, pw_pin, bl_port, bl_pin, rst_port, rst_pin;
+
+#if (!defined(CONFIG_SUPPORT_VO) || (CONFIG_SUPPORT_VO))
+#if CONFIG_PANEL_HX8394
+	pw_port = 4;
+	pw_pin = 1;
+	bl_port = 4;
+	bl_pin = 0;
+	rst_port = 4;
+	rst_pin = 2;
+	_GPIOSetValue(pw_port, pw_pin, 1);
+	_GPIOSetValue(bl_port, bl_pin, 1);
+	_GPIOSetValue(rst_port, rst_pin, 1);
+	udelay(20 * 1000);
+	_GPIOSetValue(rst_port, rst_pin, 0);
+	udelay(20 * 1000);
+	_GPIOSetValue(rst_port, rst_pin, 1);
+	udelay(20 * 1000);
+#endif
+#endif
+
     return CVI_SUCCESS;
 }
 

@@ -58,6 +58,7 @@ extern "C" {
 #define AF_YOFFSET_MIN (2)
 #define MAX_AWB_LIB_NUM (VI_MAX_PIPE_NUM)
 #define MAX_AE_LIB_NUM (VI_MAX_PIPE_NUM)
+#define MAX_AF_LIB_NUM (VI_MAX_PIPE_NUM)
 #define LTM_DARK_CURVE_NODE_NUM (257)
 #define LTM_BRIGHT_CURVE_NODE_NUM (513)
 #define LTM_GLOBAL_CURVE_NODE_NUM (769)
@@ -572,9 +573,9 @@ typedef struct _ISP_SMART_INFO_S {
 #define WDR_EXP_RATIO_NUM (3)
 typedef struct _ISP_WDR_EXPOSURE_ATTR_S {
 	ISP_OP_TYPE_E enExpRatioType;
-	CVI_U32 au32ExpRatio[WDR_EXP_RATIO_NUM]; /*RW; Range:[0x40, 0x4000]*/
-	CVI_U32 u32ExpRatioMax; /*RW; Range:[0x40, 0x4000]*/
-	CVI_U32 u32ExpRatioMin; /*RW; Range:[0x40, 0x4000]*/
+	CVI_U32 au32ExpRatio[WDR_EXP_RATIO_NUM]; /*RW; Range:[0x80, 0x400]*/
+	CVI_U32 u32ExpRatioMax; /*RW; Range:[0x80, 0x400]*/
+	CVI_U32 u32ExpRatioMin; /*RW; Range:[0x80, 0x400]*/
 	CVI_U16 u16Tolerance; /*RW; Range:[0x0, 0xFF]*/
 	CVI_U16 u16Speed; /*RW; Range:[0x0, 0xFF]*/
 	CVI_U16 u16RatioBias; /*RW; Range:[0x0, 0xFFFF]*/
@@ -727,11 +728,14 @@ typedef struct _ISP_AF_V_PARAM_S {
 	CVI_S8 s8VFltHpCoeff[FIR_V_GAIN_NUM]; /*RW; Range:[0x0, 0x1F]*/
 } ISP_AF_V_PARAM_S;
 
+#define AF_WEIGHT_ZONE_ROW	15
+#define AF_WEIGHT_ZONE_COLUMN	17
 typedef struct _ISP_FOCUS_STATISTICS_CFG_S {
 	ISP_AF_CFG_S stConfig;
 	ISP_AF_H_PARAM_S stHParam_FIR0;
 	ISP_AF_H_PARAM_S stHParam_FIR1;
 	ISP_AF_V_PARAM_S stVParam_FIR;
+	CVI_U8 au8Weight[AF_WEIGHT_ZONE_ROW][AF_WEIGHT_ZONE_COLUMN]; /*RW; Range:[0x0, 0xF]*/
 } ISP_FOCUS_STATISTICS_CFG_S;
 
 typedef struct _ISP_STATISTICS_CFG_S {
@@ -764,14 +768,14 @@ typedef struct _ISP_AWB_GRID_INFO_S {
 } ISP_AWB_GRID_INFO_S;
 
 typedef struct _ISP_WB_STATISTICS_S {
-	CVI_U16 u16GlobalR; /*RW; Range:[0x0, 0x3FF]*/
-	CVI_U16 u16GlobalG; /*RW; Range:[0x0, 0x3FF]*/
-	CVI_U16 u16GlobalB; /*RW; Range:[0x0, 0x3FF]*/
-	CVI_U16 u16CountAll; /*RW; Range:[0x0, 0xFFFF]*/
-	CVI_U16 au16ZoneAvgR[AWB_ZONE_NUM]; /*RW; Range:[0x0, 0x3FF]*/
-	CVI_U16 au16ZoneAvgG[AWB_ZONE_NUM]; /*RW; Range:[0x0, 0x3FF]*/
-	CVI_U16 au16ZoneAvgB[AWB_ZONE_NUM]; /*RW; Range:[0x0, 0x3FF]*/
-	CVI_U16 au16ZoneCountAll[AWB_ZONE_NUM]; /*RW; Range:[0x0, 0xFFFF]*/
+	CVI_U16 u16GlobalR[ISP_CHANNEL_MAX_NUM]; /*RW; Range:[0x0, 0x3FF]*/
+	CVI_U16 u16GlobalG[ISP_CHANNEL_MAX_NUM]; /*RW; Range:[0x0, 0x3FF]*/
+	CVI_U16 u16GlobalB[ISP_CHANNEL_MAX_NUM]; /*RW; Range:[0x0, 0x3FF]*/
+	CVI_U16 u16CountAll[ISP_CHANNEL_MAX_NUM]; /*RW; Range:[0x0, 0xFFFF]*/
+	CVI_U16 au16ZoneAvgR[ISP_CHANNEL_MAX_NUM][AWB_ZONE_NUM]; /*RW; Range:[0x0, 0x3FF]*/
+	CVI_U16 au16ZoneAvgG[ISP_CHANNEL_MAX_NUM][AWB_ZONE_NUM]; /*RW; Range:[0x0, 0x3FF]*/
+	CVI_U16 au16ZoneAvgB[ISP_CHANNEL_MAX_NUM][AWB_ZONE_NUM]; /*RW; Range:[0x0, 0x3FF]*/
+	CVI_U16 au16ZoneCountAll[ISP_CHANNEL_MAX_NUM][AWB_ZONE_NUM]; /*RW; Range:[0x0, 0xFFFF]*/
 	ISP_AWB_GRID_INFO_S stGridInfo;
 } ISP_WB_STATISTICS_S;
 
@@ -1043,6 +1047,105 @@ typedef struct _ISP_WB_INFO_S {
 	ISP_AWB_INDOOR_OUTDOOR_STATUS_E enInOutStatus; /*R;*/
 	CVI_S16 s16Bv; /*R;*/
 } ISP_WB_INFO_S;
+
+//-----------------------------------------------------------------------------
+//  FOCUS Attr
+//-----------------------------------------------------------------------------
+typedef enum _AF_DIRECTION {
+	AF_DIR_NEAR,
+	AF_DIR_FAR,
+} AF_DIRECTION;
+
+typedef enum _AF_CHASINGFOCUS_MODE {
+	AF_CHASINGFOCUS_FAST_MODE,
+	AF_CHASINGFOCUS_NORMAL_MODE,
+} AF_CHASINGFOCUS_MODE;
+
+typedef enum _AF_STATUS {
+	AF_NOT_INIT,
+	AF_INIT_POSITION,
+	AF_INIT,
+	AF_TRIGGER_FOCUS,
+	AF_DETECT_DIRECTION,
+	AF_SERACH_BEST_POS,
+	AF_LOCATE_BEST_POS,
+	AF_FOCUSED,
+	AF_REVERSE_DIRECTION, //for hw limit
+	AF_CHASING_FOCUS
+} AF_STATUS;
+
+typedef enum _AF_MANUAL_TYPE {
+	OP_TYPE_ZOOM,
+	OP_TYPE_FOCUS,
+	OP_TYPE_AUTO_FOCUS,
+	OP_TYPE_ZOOM_POS,
+	OP_TYPE_FOCUS_POS,
+	OP_TYPE_AF_BUTT
+} AF_MANUAL_TYPE;
+
+typedef struct _ISP_FOCUS_MANUAL_ATTR_S {
+	AF_MANUAL_TYPE enOpType;
+	AF_DIRECTION enManualDir;
+	CVI_U16 u16ManualStep; /*RW; Range:[0x0, 0x400]*/
+	CVI_U16 u16ManualPos; /*RW; Range:[0x0, 0x8000]*/
+} ISP_FOCUS_MANUAL_ATTR_S;
+
+typedef struct _ISP_FOCUS_ATTR_S {
+	CVI_BOOL bEnable;
+	CVI_U8 u8DebugMode;
+	ISP_OP_TYPE_E enOpType;
+	CVI_U8 u8RunInterval; /*RW; Range:[0x1, 0x10]*/
+	CVI_BOOL bRealTimeFocus;
+	CVI_BOOL bChasingFocus;
+	CVI_BOOL bReFocus;
+	CVI_BOOL bMixHlc;
+	CVI_U8 u8RtFocusStableFrm; /*RW; Range:[0x1, 0xFF]*/
+	CVI_U16 u16RtMaxDiffFvRatio; /*RW; Range:[0x400, 0x1000]*/
+	CVI_U16 u16MaxDiffFvRatio; /*RW; Range:[0x400, 0x4000]*/
+	CVI_U16 u16MaxDiffLumaRatio; /*RW; Range:[0x400, 0x1000]*/
+	CVI_U16 u16DetectDiffRatio; /*RW; Range:[0x400, 0x1000]*/
+	CVI_U16 u16SearchDiffRatio; /*RW; Range:[0x400, 0x1000]*/
+	CVI_U16 u16LocalDiffRatio; /*RW; Range:[0x400, 0x1000]*/
+	CVI_U8 u8InitStep; /*RW; Range:[0x1, 0xFF]*/
+	CVI_U8 u8FindStep; /*RW; Range:[0x1, 0xFF]*/
+	CVI_U8 u8LocateStep; /*RW; Range:[0x1, 0xFF]*/
+	AF_DIRECTION enInitDir;
+	CVI_U16 u16MaxRotateCnt; /*RW; Range:[0x400, 0x4000]*/
+	AF_CHASINGFOCUS_MODE enChasingFocusMode;
+	ISP_FOCUS_MANUAL_ATTR_S stManual;
+} ISP_FOCUS_ATTR_S;
+
+//-----------------------------------------------------------------------------
+//  FOCUS Info
+//-----------------------------------------------------------------------------
+typedef enum _ISP_AF_MOTOR_SPEED_E {
+	AF_MOTOR_SPEED_4X,
+	AF_MOTOR_SPEED_2X,
+	AF_MOTOR_SPEED_1X,
+	AF_MOTOR_SPEED_HALF,
+} ISP_AF_MOTOR_SPEED_E;
+
+typedef struct _ISP_AF_Q_INFO_S {
+	AF_STATUS eStatus;      /*R;*/
+	CVI_U32 u32PreFv;       /*R;*/
+	CVI_U32 u32CurFv;       /*R;*/
+	CVI_U32 u32MaxFv;       /*R;*/
+	CVI_U8 u8PreLuma;       /*R;*/
+	CVI_U8 u8CurLuma;       /*R;*/
+	AF_DIRECTION eZoomDir;  /*R;*/
+	CVI_U16 u16ZoomStep;    /*R;*/
+	CVI_U16 u16ZoomPos;     /*R;*/
+	AF_DIRECTION eFocusDir; /*R;*/
+	CVI_U16 u16FocusStep;   /*R;*/
+	CVI_U16 u16FocusPos;    /*R;*/
+	CVI_U16 u16MaxFvPos;    /*R;*/
+	CVI_U16 u16ZoomMinPos;    /*R;*/
+	CVI_U16 u16ZoomMaxPos;    /*R;*/
+	CVI_U16 u16FocusMinPos;    /*R;*/
+	CVI_U16 u16FocusMaxPos;    /*R;*/
+	ISP_AF_MOTOR_SPEED_E eZoomSpeed;  /*R;*/
+	ISP_AF_MOTOR_SPEED_E eFocusSpeed; /*R;*/
+} ISP_FOCUS_Q_INFO_S;
 
 typedef struct _ISP_DCF_CONST_INFO_S {
 	CVI_U8 au8ImageDescription[DCF_DRSCRIPTION_LENGTH]; /*Describes image*/
@@ -1866,8 +1969,6 @@ typedef struct _ISP_INNER_STATE_INFO_S {
 	CVI_U32 blcDgainGb;
 	CVI_U32 blcDgainB;
 	CVI_S32 ccm[9];
-	CVI_U16 drc_tone_curve_l_lut[DRC_CURVE_L_LUT_NUM];
-	CVI_U16 drc_tone_curve_r_lut[DRC_CURVE_R_LUT_NUM];
 	CVI_U16 drc_outbld_curve_l_lut[DRC_CURVE_L_LUT_NUM];
 	CVI_U16 drc_outbld_curve_r_lut[DRC_CURVE_R_LUT_NUM];
 	CVI_U32 dci_hist[DCI_HIST_BINS_NUM];
@@ -2003,22 +2104,10 @@ typedef struct _ISP_BNR_FILTER_MANUAL_ATTR_S {
 	CVI_U16 AlphaNlm; /*RW; Range:[0x0, 0x409]*/
 	CVI_U16 SigmaBf; /*RW; Range:[0x0, 0x1ff]*/
 	CVI_U16 AlphaBf; /*RW; Range:[0x0, 0x409]*/
-	CVI_U16 Filter1GaussianCurveR[BNR_BASE_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter1GaussianCurveGR[BNR_BASE_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter1GaussianCurveGB[BNR_BASE_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter1GaussianCurveB[BNR_BASE_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter1LumaOffsetR[BNR_LUMA_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter1LumaOffsetGR[BNR_LUMA_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter1LumaOffsetGB[BNR_LUMA_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter1LumaOffsetB[BNR_LUMA_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter2GaussianCurveR[BNR_BASE_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter2GaussianCurveGR[BNR_BASE_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter2GaussianCurveGB[BNR_BASE_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter2GaussianCurveB[BNR_BASE_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter2LumaOffsetR[BNR_LUMA_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter2LumaOffsetGR[BNR_LUMA_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter2LumaOffsetGB[BNR_LUMA_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter2LumaOffsetB[BNR_LUMA_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
+	CVI_U16 Filter1GaussianCurve[BNR_BASE_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
+	CVI_U16 Filter1LumaOffset[BNR_LUMA_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
+	CVI_U16 Filter2GaussianCurve[BNR_BASE_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
+	CVI_U16 Filter2LumaOffset[BNR_LUMA_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
 } ISP_BNR_FILTER_MANUAL_ATTR_S;
 
 typedef struct _ISP_BNR_FILTER_AUTO_ATTR_S {
@@ -2026,22 +2115,10 @@ typedef struct _ISP_BNR_FILTER_AUTO_ATTR_S {
 	CVI_U16 AlphaNlm[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x409]*/
 	CVI_U16 SigmaBf[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x1ff]*/
 	CVI_U16 AlphaBf[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x409]*/
-	CVI_U16 Filter1GaussianCurveR[BNR_BASE_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter1GaussianCurveGR[BNR_BASE_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter1GaussianCurveGB[BNR_BASE_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter1GaussianCurveB[BNR_BASE_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter1LumaOffsetR[BNR_LUMA_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter1LumaOffsetGR[BNR_LUMA_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter1LumaOffsetGB[BNR_LUMA_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter1LumaOffsetB[BNR_LUMA_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter2GaussianCurveR[BNR_BASE_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter2GaussianCurveGR[BNR_BASE_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter2GaussianCurveGB[BNR_BASE_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter2GaussianCurveB[BNR_BASE_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter2LumaOffsetR[BNR_LUMA_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter2LumaOffsetGR[BNR_LUMA_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter2LumaOffsetGB[BNR_LUMA_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
-	CVI_U16 Filter2LumaOffsetB[BNR_LUMA_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
+	CVI_U16 Filter1GaussianCurve[BNR_BASE_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
+	CVI_U16 Filter1LumaOffset[BNR_LUMA_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
+	CVI_U16 Filter2GaussianCurve[BNR_BASE_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
+	CVI_U16 Filter2LumaOffset[BNR_LUMA_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
 } ISP_BNR_FILTER_AUTO_ATTR_S;
 
 typedef struct _ISP_BNR_FILTER_ATTR_S {
@@ -2076,10 +2153,6 @@ typedef struct _ISP_DRC_ATTR_S {
 	CVI_U16 SaturationHigh; /*RW: Range[0x0, 0xFFF]*/
 	CVI_U16 ContrastLow; /*RW: Range[0x0, 0xFFF]*/
 	CVI_U16 ContrastHigh; /*RW: Range[0x0, 0xFFF]*/
-	// tone curve
-	CVI_BOOL GlobalToneEn; /*RW; Range:[0, 1]*/
-	CVI_U16 TargetYscal; /*RW: Range[0, 0x3E8]*/
-	CVI_U16 LinearTH; /*RW; Range:[0, 0xFFF]*/
 	// scaling down
 	CVI_U8 SubImgWidth; /*RW; Range:[7, 0x2F]*/
 	CVI_U8 SubImgHeight; /*RW; Range:[7, 0x2F]*/
@@ -2185,8 +2258,8 @@ typedef struct _ISP_LDCI_ATTR_S {
 	ISP_OP_TYPE_E enOpType;
 	CVI_U8 UpdateInterval; /*RW; Range:[0x1, 0xFF]*/
 	// LDCI
-	CVI_U8 BlockNumHori; /*Rw; Range:[4, 0x3f]*/
-	CVI_U8 BlockNumVert; /*Rw; Range:[4, 0x3f]*/
+	CVI_U8 BlockNumHori; /*Rw; Range:[4, 0x3E]*/
+	CVI_U8 BlockNumVert; /*Rw; Range:[4, 0x3E]*/
 
 	ISP_LDCI_MANUAL_ATTR_S stManual;
 	ISP_LDCI_AUTO_ATTR_S stAuto;
@@ -2378,7 +2451,7 @@ typedef struct _ISP_TNR_ATTR_S {
 	CVI_BOOL Enable; /*RW; Range:[0, 1]*/
 	ISP_OP_TYPE_E EnOpType;
 	CVI_U8 updateInterval; /*Rw; Range:[0, 0xFF]*/
-	CVI_U8 DbgMode; /*Rw; Range:[0, 0x0F]*/
+	CVI_U8 DbgMode; /*Rw; Range:[0, 0x08]*/
 	CVI_BOOL DyBlurEn; /*Rw; Range:[0, 1]*/
 	CVI_U8 DyBlurYWt[TNR_STATUS_NUM]; /*Rw; Range:[0, 0xF]*/
 	CVI_U8 DyBlurUVWt; /*Rw; Range:[0, 0xF]*/
@@ -2520,36 +2593,6 @@ typedef struct _ISP_CNR_FILTER_ATTR_S {
 	ISP_CNR_FILTER_MANUAL_ATTR_S stManual;
 	ISP_CNR_FILTER_AUTO_ATTR_S stAuto;
 } ISP_CNR_FILTER_ATTR_S;
-
-#ifdef CV184X_FPGA_RAW_REPLAY
-typedef struct _OFFLINE_3A_ALGO_RET {
-	int iso;
-	float lv;
-	int isp_dgain;
-	int color_tmp;
-	// exp informaton
-	int le_exp_time;
-	int se_exp_time;
-	int exp_ratio;
-	int exp_again;
-	int exp_dgain;
-	// wbg
-	int wbg_rgain;
-	int wbg_bgain;
-	int wbg_ggain;
-	// blc
-	int blc_offset_r;
-	int blc_offset_gr;
-	int blc_offset_gb;
-	int blc_offset_b;
-	int blc_gain_r;
-	int blc_gain_gr;
-	int blc_gain_gb;
-	int blc_gain_b;
-	// ccm
-	int ccm[9];
-} OFFLINE_3A_ALGO_RET;
-#endif
 
 #ifdef __cplusplus
 #if __cplusplus

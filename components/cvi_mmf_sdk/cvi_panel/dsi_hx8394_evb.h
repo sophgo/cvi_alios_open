@@ -3,7 +3,7 @@
 
 #include <cvi_comm_mipi_tx.h>
 
-#define FPGA_POTING
+// #define FPGA_POTING
 struct combo_dev_cfg_s dev_cfg_hx8394_720x1280 = {
 	.devno = 0,
 #ifdef MIPI_PANEL_2_LANES

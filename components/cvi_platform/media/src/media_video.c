@@ -224,7 +224,7 @@ CVI_S32 getSnsMode(CVI_S32 dev_id, ISP_CMOS_SENSOR_IMAGE_MODE_S *snsr_mode)
 
 	return CVI_SUCCESS;
 }
-
+#if 0
 static int start_isp(ISP_PUB_ATTR_S stPubAttr, ISP_FUNC_FROM_OUT_S stISP_FunctionFromOut, VI_PIPE ViPipe)
 {
 	//Param init
@@ -344,6 +344,7 @@ static int start_isp(ISP_PUB_ATTR_S stPubAttr, ISP_FUNC_FROM_OUT_S stISP_Functio
 	return CVI_SUCCESS;
 }
 
+
 static int stop_isp(VI_PIPE ViPipe, CVI_U8 devNum)
 {
     //Param init
@@ -379,6 +380,7 @@ static int stop_isp(VI_PIPE ViPipe, CVI_U8 devNum)
 
     return CVI_SUCCESS;
 }
+#endif
 
 static int _meida_sensor_init(PARAM_VI_CFG_S * pstViCtx,CVI_U8 devNum)
 {
@@ -541,11 +543,12 @@ int MEDIA_VIDEO_ViInit(PARAM_VI_CFG_S * pstViCfg)
     VI_DEV ViDev = 0;
     CVI_U8 ViPipe = 0;
     VI_DEV_ATTR_S stViDevAttr[VI_MAX_DEV_NUM];
-    ISP_CMOS_SENSOR_IMAGE_MODE_S stSnsrMode[VI_MAX_DEV_NUM];
+    // ISP_CMOS_SENSOR_IMAGE_MODE_S stSnsrMode[VI_MAX_DEV_NUM];
     CVI_S32 snsr_type[VI_MAX_DEV_NUM];
     ISP_SNS_OBJ_S *pSnsObj[VI_MAX_DEV_NUM];
-    ISP_FUNC_FROM_OUT_S stISP_FunctionFromOut = {0};
+    // ISP_FUNC_FROM_OUT_S stISP_FunctionFromOut = {0};
     PARAM_SYS_CFG_S * pstSysCtx = PARAM_getSysCtx();
+	VI_DEV_BIND_PIPE_S  stViDevBindAttr;
 
     if ((pstViCfg == NULL) || (pstSysCtx == NULL)) {
         MEDIABUG_PRINTF("pstViCfg/pstSysCtx null err\n");
@@ -571,13 +574,16 @@ int MEDIA_VIDEO_ViInit(PARAM_VI_CFG_S * pstViCfg)
         }
         ViDev = ViPipe;
         MEDIA_CHECK_RET(getDevAttr(i, &stViDevAttr[i]), "getDevAttr fail");
+		stViDevBindAttr.PipeId[0]		= pstViCfg->pstSensorCfg[i].MipiDev;
+		stViDevBindAttr.u32Num			= 1;
+		stViDevBindAttr.MipiDev			= pstViCfg->pstSensorCfg[i].MipiDev;
 
         // todo: add mipi_switch config if neend
 
        // todo: add dma buf reserve if neend
 
-        stViDevAttr[i].stWDRAttr.enWDRMode = stSnsrMode[i].u8SnsMode;
         MEDIA_CHECK_RET(CVI_VI_SetDevAttr(ViDev, &stViDevAttr[i]), "CVI_VI_SetDevAttr fail");
+		MEDIA_CHECK_RET(CVI_VI_SetDevBindAttr(ViDev, &stViDevBindAttr), "CVI_VI_SetDevBindAttr fail");
         MEDIA_CHECK_RET(CVI_VI_EnableDev(ViDev), "CVI_VI_EnableDev fail");
     }
 
@@ -635,13 +641,20 @@ int MEDIA_VIDEO_ViInit(PARAM_VI_CFG_S * pstViCfg)
         stPubAttr.enBayer = stViDevAttr[i].enBayerFormat;
         stPubAttr.enWDRMode = stViDevAttr[i].stWDRAttr.enWDRMode;
 
-        stISP_FunctionFromOut.pfnMediaVideoInit = MEDIA_VIDEO_Init;
-        stISP_FunctionFromOut.pfnMediaVideoDeinit = MEDIA_VIDEO_Deinit;
+        // stISP_FunctionFromOut.pfnMediaVideoInit = MEDIA_VIDEO_Init;
+        // stISP_FunctionFromOut.pfnMediaVideoDeinit = MEDIA_VIDEO_Deinit;
         if (pstViCfg->pstIspCfg[i].s8ByPassNum != 0) {
             CVI_ISP_SetBypassFrm(ViDev, pstViCfg->pstIspCfg[i].s8ByPassNum);// set by pass frm
         }
-        MEDIA_CHECK_RET(start_isp(stPubAttr, stISP_FunctionFromOut, ViDev),"start_isp fail");
+        // MEDIA_CHECK_RET(start_isp(stPubAttr, stISP_FunctionFromOut, ViDev),"start_isp fail");
+
     }
+	for (int i = 0; i < devNum; i++) {
+		if (CVI_SNS_SetSnsInit(i) != CVI_SUCCESS) {
+			MEDIABUG_PRINTF(" sensor_%d init failed!\n", i);
+			return -1;
+		}
+	}
 
     VI_CHN_ATTR_S stChnAttr = {0};
 
@@ -712,11 +725,11 @@ int MEDIA_VIDEO_ViDeinit(PARAM_VI_CFG_S * pstViCfg)
     if(pstViCfg == NULL) {
         return CVI_FAILURE;
     }
-    CVI_U8 dev_num = pstViCfg->u32WorkSnsCnt;
+    // CVI_U8 dev_num = pstViCfg->u32WorkSnsCnt;
 
     for (i = 0; i < pstViCfg->u32WorkSnsCnt; i++) {
         ViChn = ViDev = i;
-        MEDIA_CHECK_RET(stop_isp(ViDev, dev_num), "stop_isp fail");
+        // MEDIA_CHECK_RET(stop_isp(ViDev, dev_num), "stop_isp fail");
         ret = CVI_VI_DisableChn(ViDev, ViChn);
         if (ret != CVI_SUCCESS) {
             MEDIABUG_PRINTF("CVI_VI_DisableChn FAIL!\n");
@@ -913,7 +926,6 @@ static int _MEDIA_VIDEO_VpssDeinit()
     return MEDIA_VIDEO_VpssDeinit(pstVpssCtx);
 }
 
-
 int _MEDIA_VIDEO_DSIInit(int devno, const struct dsc_instr *cmds, int size)
 {
     CVI_S32 s32Ret = CVI_SUCCESS;
@@ -941,61 +953,38 @@ int _MEDIA_VIDEO_DSIInit(int devno, const struct dsc_instr *cmds, int size)
 }
 
 #if (!defined(CONFIG_SUPPORT_VO) || (CONFIG_SUPPORT_VO))
-void *_MEDIA_VIDEO_PanelInit(void *data)
+static void _MEDIA_VIDEO_MIPI_TX_Init(void)
 {
     int fd = 0;
     CVI_S32 s32Ret = CVI_SUCCESS;
-    struct panel_desc_s *panel_desc = (struct panel_desc_s *)data;
+    struct panel_desc_s *desc = &panel_desc;
 
     s32Ret = mipi_tx_disable(fd);
     if (s32Ret != CVI_SUCCESS) {
         MEDIABUG_PRINTF("mipi_tx_disable failed with %#x\n", s32Ret);
-        return NULL;
+        return;
     }
-    s32Ret = mipi_tx_cfg(fd, panel_desc->dev_cfg);
+    s32Ret = mipi_tx_cfg(fd, desc->dev_cfg);
     if (s32Ret != CVI_SUCCESS) {
         MEDIABUG_PRINTF("mipi_tx_cfg failed with %#x\n", s32Ret);
-        return NULL;
+        return;
     }
-    s32Ret = _MEDIA_VIDEO_DSIInit(0, panel_desc->dsi_init_cmds, panel_desc->dsi_init_cmds_size);
+    s32Ret = _MEDIA_VIDEO_DSIInit(0, desc->dsi_init_cmds, desc->dsi_init_cmds_size);
     if (s32Ret != CVI_SUCCESS) {
         MEDIABUG_PRINTF("dsi_init failed with %#x\n", s32Ret);
-        return NULL;
+        return;
     }
-    s32Ret = mipi_tx_set_hs_settle(fd, panel_desc->hs_timing_cfg);
+    s32Ret = mipi_tx_set_hs_settle(fd, desc->hs_timing_cfg);
     if (s32Ret != CVI_SUCCESS) {
         MEDIABUG_PRINTF("mipi_tx_set_hs_settle failed with %#x\n", s32Ret);
-        return NULL;
+        return;
     }
     s32Ret = mipi_tx_enable(fd);
     if (s32Ret != CVI_SUCCESS) {
         MEDIABUG_PRINTF("mipi_tx_enable failed with %#x\n", s32Ret);
-        return NULL;
+        return;
     }
-    printf("Init for MIPI-Driver-%s\n", panel_desc->panel_name);
-
-    pthread_exit(NULL);
-    return NULL;
-}
-
-int MEDIA_VIDEO_PanelInit(void)
-{
-    struct sched_param param;
-    pthread_attr_t attr;
-    pthread_condattr_t cattr;
-    pthread_t thread;
-
-    param.sched_priority = 30;
-    pthread_attr_init(&attr);
-    pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
-    pthread_attr_setschedparam(&attr, &param);
-    pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
-    pthread_condattr_init(&cattr);
-    pthread_condattr_setclock(&cattr, CLOCK_MONOTONIC);
-    pthread_create(&thread, &attr, _MEDIA_VIDEO_PanelInit, (void *)&panel_desc);
-    pthread_setname_np(thread, "cvi_mipi_tx");
-    // *(unsigned int *)0x0a088094 = 0x0701000a; //colorbar
-    return 0;
+    printf("Init for MIPI-Driver-%s\n", desc->panel_name);
 }
 
 int MEDIA_VIDEO_VoInit(PARAM_VO_CFG_S * pstVoCtx)
@@ -1014,8 +1003,8 @@ int MEDIA_VIDEO_VoInit(PARAM_VO_CFG_S * pstVoCtx)
     if (pstVoCtx->u8VoCnt == 0) {
         return CVI_SUCCESS;
     }
-    MEDIA_VIDEO_PanelInit();
-    return 0;
+    _MEDIA_VIDEO_MIPI_TX_Init();
+
     for(i = 0 ;i < pstVoCtx->u8VoCnt;i++) {
         pstVoConfig = &pstVoCtx->pstVoCfg[i].stVoConfig;
         pstLayerAttr = &pstVoCtx->pstVoCfg[i].stLayerAttr;
@@ -1145,6 +1134,7 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
     stAttr.stVencAttr.u32PicHeight = pstVecncChnCtx->stChnParam.u16Height;
     stAttr.stVencAttr.bSingleCore = 0;
     stAttr.stVencAttr.bEsBufQueueEn = pstVecncChnCtx->stChnParam.u8EsBufQueueEn;
+    stAttr.stVencAttr.bIsoSendFrmEn = pstVecncChnCtx->stChnParam.u8IsoSendFrmEn;
 
     stAttr.stRcAttr.enRcMode = pstVecncChnCtx->stRcParam.u16RcMode;
     switch (pstVecncChnCtx->stChnParam.u16EnType) {
@@ -1724,7 +1714,6 @@ int MEDIA_VIDEO_Init(CVI_BOOL isRawReplayMode)
     if (pstModuleCtx->alios_venc_mode) {
         MEDIA_CHECK_RET(_MEDIA_VIDEO_VencInit(),"MEDIA_VIDEO_VencInit failed");
     }
-
 #if (CONFIG_APP_AI_SUPPORT == 1)
     if (!isRawReplayMode) {
         APP_AiStart();
@@ -1734,7 +1723,6 @@ int MEDIA_VIDEO_Init(CVI_BOOL isRawReplayMode)
 #if (CONFIG_RTOS_INIT_MEDIA == 1)
     //efuse_fastboot();
 #endif
-
     return CVI_SUCCESS;
 }
 

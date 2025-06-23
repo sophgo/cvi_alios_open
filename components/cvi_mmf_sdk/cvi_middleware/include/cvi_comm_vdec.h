@@ -70,9 +70,21 @@ typedef struct _BUFFER_INFO_S {
 
 typedef struct _VDEC_BUFFER_INFO_S {
 	BUFFER_INFO_S* bitstream_buffer;
+#ifdef __arm__
+	CVI_U32 u32AddrPadding1;
+#endif
 	BUFFER_INFO_S* frame_buffer;
+#ifdef __arm__
+	CVI_U32 u32AddrPadding2;
+#endif
 	BUFFER_INFO_S* Ytable_buffer;
+#ifdef __arm__
+	CVI_U32 u32AddrPadding3;
+#endif
 	BUFFER_INFO_S* Ctable_buffer;
+#ifdef __arm__
+	CVI_U32 u32AddrPadding4;
+#endif
 	CVI_S32 s32numOfDecFbc;
 	CVI_S32 s32numOfDecwtl;
 } VDEC_BUFFER_INFO_S;

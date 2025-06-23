@@ -12,45 +12,47 @@ extern "C" {
 #include "cvi_sns_ctrl.h"
 #include "gc1054_cmos_ex.h"
 
-static const GC1054_MODE_S g_stGc1054_mode = {
-	.name = "1280X720P30",
-	.stImg = {
-		.stSnsSize = {
-			.u32Width = 1288,
-			.u32Height = 724,
+static const GC1054_MODE_S g_stGc1054_mode[GC1054_MODE_NUM] = {
+	[GC1054_MODE_1280X720P30] = {
+		.name = "1280X720P30",
+		.astImg[0] = {
+			.stSnsSize = {
+				.u32Width = 1288,
+				.u32Height = 724,
+			},
+			.stWndRect = {
+				.s32X = 3,
+				.s32Y = 2,
+				.u32Width = 1280,
+				.u32Height = 720,
+			},
+			.stMaxSize = {
+				.u32Width = 1288,
+				.u32Height = 724,
+			},
 		},
-		.stWndRect = {
-			.s32X = 3,
-			.s32Y = 2,
-			.u32Width = 1280,
-			.u32Height = 720,
+		.f32MaxFps = 30,
+		.f32MinFps = 2.63, /* 782 * 30 / 8931*/
+		.u32HtsDef = 1726,
+		.u32VtsDef = 782, /* WIN_H + VB + 16 */
+		.stExp[0] = {
+			.u16Min = 1,
+			.u16Max = 782 - 1, /* VtsDef - 1*/
+			.u16Def = 100,
+			.u16Step = 1,
 		},
-		.stMaxSize = {
-			.u32Width = 1288,
-			.u32Height = 724,
+		.stAgain[0] = {
+			.u32Min = 1024,
+			.u32Max = 16 * 2084,
+			.u32Def = 1024,
+			.u32Step = 1,
 		},
-	},
-	.f32MaxFps = 30,
-	.f32MinFps = 2.63, /* 782 * 30 / 8931*/
-	.u32HtsDef = 1726,
-	.u32VtsDef = 782, /* WIN_H + VB + 16 */
-	.stExp = {
-		.u16Min = 1,
-		.u16Max = 782 - 1, /* VtsDef - 1*/
-		.u16Def = 100,
-		.u16Step = 1,
-	},
-	.stAgain = {
-		.u32Min = 1024,
-		.u32Max = 16 * 2084,
-		.u32Def = 1024,
-		.u32Step = 1,
-	},
-	.stDgain = {
-		.u32Min = 1024,
-		.u32Max = 1024,
-		.u32Def = 1024,
-		.u32Step = 1,
+		.stDgain[0] = {
+			.u32Min = 1024,
+			.u32Max = 1024,
+			.u32Def = 1024,
+			.u32Step = 1,
+		},
 	},
 };
 

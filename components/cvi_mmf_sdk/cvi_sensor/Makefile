@@ -156,6 +156,9 @@ sms_sc3332:
 sms_sc531ai_2L:
 	$(call MAKE_SENSOR, ${@})
 
+sms_sc635ai:
+	$(call MAKE_SENSOR, ${@})
+
 sms_sc1330:
 	$(call MAKE_SENSOR, ${@})
 
@@ -172,9 +175,6 @@ sms_sc4336:
 	$(call MAKE_SENSOR, ${@})
 
 sms_sc4336p:
-	$(call MAKE_SENSOR, ${@})
-
-sms_sc4336p_slave:
 	$(call MAKE_SENSOR, ${@})
 
 soi_f23:
@@ -229,6 +229,9 @@ sony_imx585:
 	$(call MAKE_SENSOR, ${@})
 
 sony_imx675:
+	$(call MAKE_SENSOR, ${@})
+
+sony_imx678:
 	$(call MAKE_SENSOR, ${@})
 
 sony_imx900:

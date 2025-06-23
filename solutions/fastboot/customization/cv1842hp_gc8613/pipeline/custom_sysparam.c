@@ -10,7 +10,7 @@
 
 PARAM_CLASSDEFINE(PARAM_SBM_CFG_S,SBM,CTX,CFG)[] = {
     {
-        .bEnable = 1,
+        .bEnable = 0,
         .s32SbmGrp = 0,
         .s32SbmChn = 0,
         .s32WrapBufLine = 64,
@@ -20,43 +20,51 @@ PARAM_CLASSDEFINE(PARAM_SBM_CFG_S,SBM,CTX,CFG)[] = {
 
 PARAM_CLASSDEFINE(PARAM_VB_CFG_S,VBPOOL,CTX,VB)[] = {
     {
-        .u16width = 720,
-        .u16height = 576,
-        .fmt = PIXEL_FORMAT_NV21,
+        .u16width = 3840,
+        .u16height = 2160,
+        .fmt = PIXEL_FORMAT_NV12,
         .enBitWidth = DATA_BITWIDTH_8,
         .enCmpMode = COMPRESS_MODE_NONE,
-        .u8VbBlkCnt = 4,
+        .u8VbBlkCnt = 3,
     },
     {
-        .u16width = 720,
-        .u16height = 576,
-        .fmt = PIXEL_FORMAT_NV21,
+        .u16width = 768,
+        .u16height = 572,
+        .fmt = PIXEL_FORMAT_NV12,
         .enBitWidth = DATA_BITWIDTH_8,
         .enCmpMode = COMPRESS_MODE_NONE,
-        .u8VbBlkCnt = 4,
+        .u8VbBlkCnt = 3,
     },
+	{
+		.u16width = 960,
+		.u16height = 540,
+		.fmt = PIXEL_FORMAT_NV12,
+		.enBitWidth = DATA_BITWIDTH_8,
+		.enCmpMode = COMPRESS_MODE_NONE,
+		.u8VbBlkCnt = 3,
+	},
     {
-        .u16width = 384,
-        .u16height = 256,
+        .u16width = 640,
+        .u16height = 384,
         .fmt = PIXEL_FORMAT_RGB_888_PLANAR,
         .enBitWidth = DATA_BITWIDTH_8,
         .enCmpMode = COMPRESS_MODE_NONE,
-        .u8VbBlkCnt = 2,
+        .u8VbBlkCnt = 3,
     },
     {
-        .u16width = 640,
-        .u16height = 360,
-        .fmt = PIXEL_FORMAT_YUV_400,
+        .u16width = 768,
+        .u16height = 432,
+        .fmt = PIXEL_FORMAT_RGB_888_PLANAR,
         .enBitWidth = DATA_BITWIDTH_8,
         .enCmpMode = COMPRESS_MODE_NONE,
-        .u8VbBlkCnt = 2,
+        .u8VbBlkCnt = 3,
     }
 };
 
 PARAM_SYS_CFG_S  g_stSysCtx = {
-    .u8SbmCnt = 1,
+    .u8SbmCnt = 0,
     .pstSbmCfg = PARAM_CLASS(SBM,CTX,CFG),
-    .u8VbPoolCnt = 4,
+    .u8VbPoolCnt = 5,
     .pstVbPool = PARAM_CLASS(VBPOOL,CTX,VB),
     .stVIVPSSMode.aenMode[0] = VI_OFFLINE_VPSS_ONLINE,
 };

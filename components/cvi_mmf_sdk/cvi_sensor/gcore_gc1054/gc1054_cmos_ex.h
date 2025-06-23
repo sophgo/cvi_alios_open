@@ -40,14 +40,14 @@ typedef struct _GC1054_STATE_S {
 } GC1054_STATE_S;
 
 typedef struct _GC1054_MODE_S {
-	ISP_WDR_SIZE_S stImg;
+	ISP_WDR_SIZE_S astImg[2];
 	CVI_FLOAT f32MaxFps;
 	CVI_FLOAT f32MinFps;
 	CVI_U32 u32HtsDef;
 	CVI_U32 u32VtsDef;
-	SNS_ATTR_S stExp;
-	SNS_ATTR_LARGE_S stAgain;
-	SNS_ATTR_LARGE_S stDgain;
+	SNS_ATTR_S stExp[2];
+	SNS_ATTR_LARGE_S stAgain[2];
+	SNS_ATTR_LARGE_S stDgain[2];
 	char name[64];
 } GC1054_MODE_S;
 

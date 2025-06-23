@@ -59,6 +59,34 @@ void section_ram_code_copy(void)
  *
  *  Both addresses must be aligned to 4 bytes boundary.
  */
+#ifdef CONFIG_SUSPEND
+#define DATA_SECTION_INIT 0xADADADAD
+#define DATA_SECTION_RESTORE 0xDADADADA
+uint32_t pm_data_restore_flag = DATA_SECTION_INIT;
+
+void section_data_restore(void)
+{
+    extern unsigned long __data_start__;
+    extern unsigned long __pm_data_start__;
+    extern unsigned long __pm_data_end__;
+
+    if (pm_data_restore_flag == DATA_SECTION_INIT) {
+        memcpy((void *)(&__pm_data_start__), \
+               (void *)(&__data_start__), \
+               (unsigned long)(&__pm_data_end__) - (unsigned long)(&__pm_data_start__));
+        pm_data_restore_flag = DATA_SECTION_RESTORE;
+    } else if (pm_data_restore_flag == DATA_SECTION_RESTORE) {
+        memcpy((void *)(&__data_start__),
+               (void *)(&__pm_data_start__), \
+               (unsigned long)(&__pm_data_end__) - (unsigned long)(&__pm_data_start__));
+        pm_data_restore_flag = DATA_SECTION_RESTORE;
+    } else {
+        return;
+    }
+    csi_dcache_clean();
+}
+#endif
+
 void section_bss_clear(void)
 {
     extern unsigned long __bss_start__;

@@ -58,6 +58,9 @@ CVI_S32 CVI_ISP_GetAWBCurve(VI_PIPE ViPipe, ISP_WB_CURVE_S *pshWBCurve);
 CVI_BOOL CVI_ISP_GetAwbRunStatus(VI_PIPE ViPipe);
 void CVI_ISP_SetAwbRunStatus(VI_PIPE ViPipe, CVI_BOOL bState);
 
+/* AF */
+void AF_BufInit(CVI_U8 sID);
+
 #ifdef __cplusplus
 #if __cplusplus
 }

@@ -54,6 +54,88 @@ static const SC4336P_MODE_S g_astSC4336P_mode[SC4336P_MODE_NUM] = {
 			.u32Step = 1,
 		},
 	},
+	[SC4336P_1L_MODE_1440P20] = {
+		.name = "1440p20",
+		.astImg[0] = {
+			.stSnsSize = {
+				.u32Width = 2560,
+				.u32Height = 1440,
+			},
+			.stWndRect = {
+				.s32X = 0,
+				.s32Y = 0,
+				.u32Width = 2560,
+				.u32Height = 1440,
+			},
+			.stMaxSize = {
+				.u32Width = 2560,
+				.u32Height = 1440,
+			},
+		},
+		.f32MaxFps = 20,
+		.f32MinFps = 0.915, /* 1500 * 20 / 0x7FFF*/
+		.u32HtsDef = 2800,
+		.u32VtsDef = 1500,
+		.stExp[0] = {
+			.u32Min = 2,
+			.u32Max = 1500 - 8, //vts - 8
+			.u32Def = 400,
+			.u32Step = 1,
+		},
+		.stAgain[0] = {
+			.u32Min = 1024,
+			.u32Max = 32768,
+			.u32Def = 1024,
+			.u32Step = 1,
+		},
+		.stDgain[0] = {
+			.u32Min = 1024,
+			.u32Max = 16182,
+			.u32Def = 1024,
+			.u32Step = 1,
+		},
+	},
+	[SC4336P_SLAVE_MODE_1440P30] = {
+		.name = "1440p30",
+		.astImg[0] = {
+			.stSnsSize = {
+				.u32Width = 2560,
+				.u32Height = 1440,
+			},
+			.stWndRect = {
+				.s32X = 0,
+				.s32Y = 0,
+				.u32Width = 2560,
+				.u32Height = 1440,
+			},
+			.stMaxSize = {
+				.u32Width = 2560,
+				.u32Height = 1440,
+			},
+		},
+		.f32MaxFps = 30,
+		.f32MinFps = 1.37, /* 1500 * 30 / 0x7FFF*/
+		.u32HtsDef = 2800,
+		.u32VtsDef = 1500,
+		.stExp[0] = {
+			.u32Min = 0,
+			.u32Max = 1500 - 8, //vts - 8
+			.u32Def = 400,
+			.u32Step = 1,
+		},
+		.stAgain[0] = {
+			.u32Min = 1024,
+			.u32Max = 32768,
+			.u32Def = 1024,
+			.u32Step = 1,
+		},
+		.stDgain[0] = {
+			.u32Min = 1024,
+			.u32Max = 16182,
+			.u32Def = 1024,
+			.u32Step = 1,
+		},
+	},
 };
 
 static ISP_CMOS_BLACK_LEVEL_S g_stIspBlcCalibratio = {

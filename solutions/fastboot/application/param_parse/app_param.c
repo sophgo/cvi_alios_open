@@ -912,6 +912,7 @@ static int parse_VencParam(char * buffer)
         pstChnParam->u16Width            = ini_getl(_section, "width", 0, buffer);
         pstChnParam->u16Height           = ini_getl(_section, "height", 0, buffer);
         pstChnParam->u8EsBufQueueEn      = ini_getl(_section, "EsBufQueueEn", 0, buffer);
+        pstChnParam->u8IsoSendFrmEn      = ini_getl(_section, "IsoSendFrmEn", 0, buffer);
 
         memset(_stringPrase, 0, sizeof(_stringPrase));
         ini_gets(_section, "en_type", "", _stringPrase, sizeof(_stringPrase), buffer);
@@ -1017,6 +1018,8 @@ static int parse_VencParam(char * buffer)
             , venc_idx, pstVencCtx->pstVencChnCfg[venc_idx].stChnParam.u16Height);
         aos_debug_printf("pstVencCtx->pstVencChnCfg[%d].stChnParam.u8EsBufQueueEn:%d \r\n"
             , venc_idx, pstVencCtx->pstVencChnCfg[venc_idx].stChnParam.u8EsBufQueueEn);
+        aos_debug_printf("pstVencCtx->pstVencChnCfg[%d].stChnParam.u8IsoSendFrmEn:%d \r\n"
+                , venc_idx, pstVencCtx->pstVencChnCfg[venc_idx].stChnParam.u8IsoSendFrmEn);
         aos_debug_printf("pstVencCtx->pstVencChnCfg[%d].stChnParam.u16EnType:%d \r\n"
             , venc_idx, pstVencCtx->pstVencChnCfg[venc_idx].stChnParam.u16EnType);
         aos_debug_printf("pstVencCtx->pstVencChnCfg[%d].stChnParam.u32BitStreamBufSize:%d \r\n"

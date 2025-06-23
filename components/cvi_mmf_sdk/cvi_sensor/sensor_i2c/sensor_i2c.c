@@ -260,6 +260,11 @@ int sensor_i2c_write(CVI_S32 ViPipe, CVI_U8 i2c_id, CVI_U8 snsr_i2c_addr,
 	if (snsr_data_byte == 1) {
 		buf[idx] = data & 0xff;
 		idx++;
+	} else if (snsr_data_byte == 2) {
+		buf[idx] = (data >> 8) & 0xff;
+		idx++;
+		buf[idx] = data & 0xff;
+		idx++;
 	}
 
 	ret = write(g_fd[ViPipe], buf, snsr_addr_byte + snsr_data_byte);

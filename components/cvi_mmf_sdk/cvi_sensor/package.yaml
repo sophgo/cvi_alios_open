@@ -130,6 +130,7 @@ build_config:
     - sms_sc500ai
     - sms_sc501ai_2L
     - sms_sc531ai_2L
+    - sms_sc635ai
     - sms_sc1330
     - sms_sc3332
     - sms_sc3335
@@ -137,7 +138,6 @@ build_config:
     - sms_sc2335
     - sms_sc4336
     - sms_sc4336p
-    - sms_sc4336p_slave
     - soi_f23
     - soi_f35
     - soi_f37p
@@ -156,6 +156,7 @@ build_config:
     - sony_imx415
     - sony_imx585
     - sony_imx675
+    - sony_imx678
     - sony_imx900
     - techpoint_tp2860
     - lontium_lt6911
@@ -206,6 +207,7 @@ source_file:
   - sms_sc500ai/*.c ? <CONFIG_SENSOR_SMS_SC500AI>
   - sms_sc501ai_2L/*.c ? <CONFIG_SENSOR_SMS_SC501AI_2L>
   - sms_sc531ai_2L/*.c ? <CONFIG_SENSOR_SMS_SC531AI_2L>
+  - sms_sc635ai/*.c ? <CONFIG_SENSOR_SMS_SC635AI>
   - sms_sc1330/*.c ? <CONFIG_SENSOR_SMS_SC1330>
   - sms_sc3332/*.c ? <CONFIG_SENSOR_SMS_SC3332>
   - sms_sc3335/*.c ? <CONFIG_SENSOR_SMS_SC3335>
@@ -213,7 +215,6 @@ source_file:
   - sms_sc2335/*.c ? <CONFIG_SENSOR_SMS_SC2335>
   - sms_sc4336/*.c ? <CONFIG_SENSOR_SMS_SC4336>
   - sms_sc4336p/*.c ? <CONFIG_SENSOR_SMS_SC4336P>
-  - sms_sc4336p_slave/*.c ? <CONFIG_SENSOR_SMS_SC4336P_SLAVE>
   - soi_f23/*.c ? <CONFIG_SENSOR_SOI_F23>
   - soi_f35/*.c ? <CONFIG_SENSOR_SOI_F35>
   - soi_f37p/*.c ? <CONFIG_SENSOR_SOI_F37P>
@@ -232,6 +233,7 @@ source_file:
   - sony_imx415/*.c ? <CONFIG_SENSOR_SONY_IMX415>
   - sony_imx585/*.c ? <CONFIG_SENSOR_SONY_IMX585>
   - sony_imx675/*.c ? <CONFIG_SENSOR_SONY_IMX675>
+  - sony_imx678/*.c ? <CONFIG_SENSOR_SONY_IMX675>
   - sony_imx900/*.c ? <CONFIG_SENSOR_SONY_IMX900>
   - techpoint_tp2860/*.c ? <CONFIG_SENSOR_TECHPOINT_TP2860>
   - lontium_lt6911/*.c ? <CONFIG_SENSOR_LONTIUM_LT6911>

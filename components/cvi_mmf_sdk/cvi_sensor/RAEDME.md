@@ -20,7 +20,7 @@
      ```
      用于把 `cvsens_cv2003` 添加到传感器编译选项，并在编译时定义宏 `SENSOR_CVSENS_CV2003`。
 
-3. **./package.ymal**
+3. **./package.yaml**
    - 用于在alios中添加传感器的编译选项。
    - 例如：
      ```

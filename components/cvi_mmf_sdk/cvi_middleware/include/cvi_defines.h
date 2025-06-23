@@ -329,7 +329,7 @@ enum ENUM_CHIP_ID {
 
 #define VI_CMP_PARAM_SIZE                   152
 
-#define VI_PIXEL_FORMAT                     PIXEL_FORMAT_NV21
+#define VI_PIXEL_FORMAT                     PIXEL_FORMAT_NV12
 
 #define VI_VPSS_EXTRA_BUF 0
 

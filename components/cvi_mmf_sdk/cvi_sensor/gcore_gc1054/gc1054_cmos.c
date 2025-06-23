@@ -92,7 +92,7 @@ static CVI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSns
 	GC1054_SENSOR_GET_CTX(ViPipe, pstSnsState);
 	CMOS_CHECK_POINTER(pstSnsState);
 
-	pstMode = &g_stGc1054_mode;
+	pstMode = &g_stGc1054_mode[pstSnsState->u8ImgMode];
 
 	pstAeSnsDft->u32FullLinesStd = pstSnsState->u32FLStd;
 	pstAeSnsDft->u32FlickerFreq = 50 * 256;
@@ -126,13 +126,13 @@ static CVI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSns
 		pstAeSnsDft->au8HistThresh[2] = 0x60;
 		pstAeSnsDft->au8HistThresh[3] = 0x80;
 
-		pstAeSnsDft->u32MaxAgain = pstMode->stAgain.u32Max;
-		pstAeSnsDft->u32MinAgain = pstMode->stAgain.u32Min;
+		pstAeSnsDft->u32MaxAgain = pstMode->stAgain[0].u32Max;
+		pstAeSnsDft->u32MinAgain = pstMode->stAgain[0].u32Min;
 		pstAeSnsDft->u32MaxAgainTarget = pstAeSnsDft->u32MaxAgain;
 		pstAeSnsDft->u32MinAgainTarget = pstAeSnsDft->u32MinAgain;
 
-		pstAeSnsDft->u32MaxDgain = pstMode->stDgain.u32Max;
-		pstAeSnsDft->u32MinDgain = pstMode->stDgain.u32Min;
+		pstAeSnsDft->u32MaxDgain = pstMode->stDgain[0].u32Max;
+		pstAeSnsDft->u32MinDgain = pstMode->stDgain[0].u32Min;
 		pstAeSnsDft->u32MaxDgainTarget = pstAeSnsDft->u32MaxDgain;
 		pstAeSnsDft->u32MinDgainTarget = pstAeSnsDft->u32MinDgain;
 
@@ -142,10 +142,10 @@ static CVI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSns
 		pstAeSnsDft->u32AEResponseFrame = 4;
 		pstAeSnsDft->enAeExpMode = AE_EXP_HIGHLIGHT_PRIOR;
 		pstAeSnsDft->u32InitExposure = g_au32InitExposure[ViPipe] ? g_au32InitExposure[ViPipe] :
-			pstMode->stExp.u16Def;
+			pstMode->stExp[0].u16Def;
 
-		pstAeSnsDft->u32MaxIntTime = pstMode->stExp.u16Max;
-		pstAeSnsDft->u32MinIntTime = pstMode->stExp.u16Min;
+		pstAeSnsDft->u32MaxIntTime = pstMode->stExp[0].u16Max;
+		pstAeSnsDft->u32MinIntTime = pstMode->stExp[0].u16Min;
 		pstAeSnsDft->u32MaxIntTimeTarget = 65535;
 		pstAeSnsDft->u32MinIntTimeTarget = 1;
 		break;
@@ -171,10 +171,10 @@ static CVI_S32 cmos_fps_set(VI_PIPE ViPipe, CVI_FLOAT f32Fps, AE_SENSOR_DEFAULT_
 	GC1054_SENSOR_GET_CTX(ViPipe, pstSnsState);
 	CMOS_CHECK_POINTER(pstSnsState);
 
-	u32Vts = g_stGc1054_mode.u32VtsDef;
+	u32Vts = g_stGc1054_mode[pstSnsState->u8ImgMode].u32VtsDef;
 	pstSnsRegsInfo = &pstSnsState->astSyncInfo[0].snsCfg;
-	f32MaxFps = g_stGc1054_mode.f32MaxFps;
-	f32MinFps = g_stGc1054_mode.f32MinFps;
+	f32MaxFps = g_stGc1054_mode[pstSnsState->u8ImgMode].f32MaxFps;
+	f32MinFps = g_stGc1054_mode[pstSnsState->u8ImgMode].f32MinFps;
 
 	if (pstSnsState->enWDRMode == WDR_MODE_NONE) {
 		if ((f32Fps <= f32MaxFps) && (f32Fps >= f32MinFps)) {
@@ -382,9 +382,9 @@ static CVI_S32 cmos_get_wdr_size(VI_PIPE ViPipe, ISP_SNS_ISP_INFO_S *pstIspCfg)
 	GC1054_SENSOR_GET_CTX(ViPipe, pstSnsState);
 	CMOS_CHECK_POINTER(pstSnsState);
 
-	pstMode = &g_stGc1054_mode;
+	pstMode = &g_stGc1054_mode[pstSnsState->u8ImgMode];
 	pstIspCfg->frm_num = 1;
-	memcpy(&pstIspCfg->img_size[0], &pstMode->stImg, sizeof(ISP_WDR_SIZE_S));
+	memcpy(&pstIspCfg->img_size[0], &pstMode->astImg[0], sizeof(ISP_WDR_SIZE_S));
 
 	return CVI_SUCCESS;
 }
@@ -402,7 +402,7 @@ static CVI_S32 cmos_set_wdr_mode(VI_PIPE ViPipe, CVI_U8 u8Mode)
 	case WDR_MODE_NONE:
 		pstSnsState->u8ImgMode = GC1054_MODE_1280X720P30;
 		pstSnsState->enWDRMode = WDR_MODE_NONE;
-		pstSnsState->u32FLStd = g_stGc1054_mode.u32VtsDef;
+		pstSnsState->u32FLStd = g_stGc1054_mode[pstSnsState->u8ImgMode].u32VtsDef;
 		CVI_TRACE_SNS(CVI_DBG_INFO, "WDR_MODE_NONE\n");
 		break;
 
@@ -666,9 +666,9 @@ static CVI_VOID sensor_global_init(VI_PIPE ViPipe)
 	pstSnsState->bSyncInit = CVI_FALSE;
 	pstSnsState->u8ImgMode = GC1054_MODE_1280X720P30;
 	pstSnsState->enWDRMode = WDR_MODE_NONE;
-	pstSnsState->u32FLStd  = g_stGc1054_mode.u32VtsDef;
-	pstSnsState->au32FL[0] = g_stGc1054_mode.u32VtsDef;
-	pstSnsState->au32FL[1] = g_stGc1054_mode.u32VtsDef;
+	pstSnsState->u32FLStd  = g_stGc1054_mode[pstSnsState->u8ImgMode].u32VtsDef;
+	pstSnsState->au32FL[0] = g_stGc1054_mode[pstSnsState->u8ImgMode].u32VtsDef;
+	pstSnsState->au32FL[1] = g_stGc1054_mode[pstSnsState->u8ImgMode].u32VtsDef;
 
 	memset(&pstSnsState->astSyncInfo[0], 0, sizeof(ISP_SNS_SYNC_INFO_S));
 	memset(&pstSnsState->astSyncInfo[1], 0, sizeof(ISP_SNS_SYNC_INFO_S));

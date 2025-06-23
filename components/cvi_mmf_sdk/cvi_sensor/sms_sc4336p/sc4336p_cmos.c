@@ -694,7 +694,32 @@ static CVI_S32 cmos_set_image_mode(VI_PIPE ViPipe, ISP_CMOS_SENSOR_IMAGE_MODE_S 
 	if (pstSensorImageMode->f32Fps <= 30) {
 		if (pstSnsState->enWDRMode == WDR_MODE_NONE) {
 			if (SC4336P_RES_IS_1440P(pstSensorImageMode->u16Width, pstSensorImageMode->u16Height)) {
-				u8SensorImageMode = SC4336P_MODE_1440P30;
+				if(pstSensorImageMode->u8LaneNum == 2) {
+					if(pstSensorImageMode->u8EnableMaster == ISP_SNS_NORMAL_MODE) {
+						u8SensorImageMode = SC4336P_MODE_1440P30;
+					} else if (pstSensorImageMode->u8EnableMaster == ISP_SNS_SLAVE_BY_FSYNC) {
+						u8SensorImageMode = SC4336P_SLAVE_MODE_1440P30;
+					} else {
+						CVI_TRACE_SNS(CVI_DBG_ERR, "Not support! Width:%d, Height:%d, Fps:%f, WDRMode:%d\n",
+							pstSensorImageMode->u16Width,
+							pstSensorImageMode->u16Height,
+							pstSensorImageMode->f32Fps,
+							pstSnsState->enWDRMode);
+						return CVI_FAILURE;
+					}
+				} else if(pstSensorImageMode->u8LaneNum == 1) {
+					if(pstSensorImageMode->u8EnableMaster == ISP_SNS_NORMAL_MODE) {
+						u8SensorImageMode = SC4336P_1L_MODE_1440P20;
+					}  else {
+						CVI_TRACE_SNS(CVI_DBG_ERR, "Not support! Width:%d, Height:%d, Fps:%f, WDRMode:%d\n",
+							pstSensorImageMode->u16Width,
+							pstSensorImageMode->u16Height,
+							pstSensorImageMode->f32Fps,
+							pstSnsState->enWDRMode);
+						return CVI_FAILURE;
+					}
+				}
+
 			} else {
 				CVI_TRACE_SNS(CVI_DBG_ERR, "Not support! Width:%d, Height:%d, Fps:%f, WDRMode:%d\n",
 				       pstSensorImageMode->u16Width,
