@@ -60,7 +60,7 @@ PARAM_CLASSDEFINE(PARAM_CHN_CFG_S,CHNCFG,CTX,CHN)[] = {
 
 PARAM_CLASSDEFINE(PARAM_PIPE_CFG_S,PIPECFG,CTX,PIPE)[] = {
     {
-        .pipe = {0, -1, -1, -1, -1, -1},
+        .pipe = {0, -1, -1, -1, -1, -1, -1},
     },
 };
 

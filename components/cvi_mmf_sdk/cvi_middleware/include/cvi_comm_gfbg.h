@@ -2,7 +2,6 @@
 #define _CVI_COMM_GFBG_H_
 
 #include <linux/fb.h>
-#include <linux/ioctl.h>
 #include "cvi_type.h"
 
 #ifdef __cplusplus
@@ -44,6 +43,8 @@ extern "C"{
 #define FBIOGET_CANVAS_BUF		_IOR(IOC_TYPE_GFBG, 22, cvi_fb_buf)
 /* To display multiple surfaces in turn and set the colorkey attributes */
 #define FBIOFLIP_SURFACE		_IOW(IOC_TYPE_GFBG, 23, cvi_fb_surfaceex)
+/* To set the compression function status of an overlay layer */
+#define FBIOPUT_COMPRESSION_GFBG	_IOW(IOC_TYPE_GFBG, 24, CVI_BOOL)
 
 typedef struct {
 	CVI_U32 width;

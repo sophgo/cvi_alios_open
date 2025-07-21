@@ -18,7 +18,7 @@ extern "C" {
 #include <cvi_type.h>
 #include <cvi_common.h>
 #include <cvi_comm_video.h>
-
+#include <cvi_comm_vb.h>
 
 #define FISHEYE_MAX_REGION_NUM 4
 #define AFFINE_MAX_REGION_NUM 32

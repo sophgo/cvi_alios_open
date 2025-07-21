@@ -5,16 +5,17 @@
 #include "cvi_param.h"
 #include "cvi_comm_venc.h"
 
-//#define MEDIABUG_PRINTF(fmt,...) printf(fmt,##__VA_ARGS__)
-#define MEDIABUG_PRINTF(fmt,...)
+#define MEDIABUG_PRINTF(fmt,...) printf("[%s][%d] " fmt, __func__, __LINE__, ##__VA_ARGS__)
+//#define MEDIABUG_PRINTF(fmt,...)
 
 #define MEDIA_CHECK_RET(actual, fmt, arg...)                                   \
 	do {																		 \
 		if ((actual) != 0) {													 \
-			MEDIABUG_PRINTF("[%d]:%s() ret:%#x \n" fmt, __LINE__, __func__, actual, ## arg); \
+			MEDIABUG_PRINTF("ret:%#x \n" fmt, actual, ## arg); \
 			return -1;																\
 		}																		 \
 	} while (0)
+
 int MEDIA_VIDEO_SysVbInit(PARAM_SYS_CFG_S * pstSysCtx);
 int MEDIA_VIDEO_ViInit(PARAM_VI_CFG_S * pstViCfg);
 int MEDIA_VIDEO_VpssInit(PARAM_VPSS_CFG_S * pstVpssCtx);

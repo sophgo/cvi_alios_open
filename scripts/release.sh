@@ -90,8 +90,8 @@ cp -rlf ./components/cvi_mmf_sdk/cvi_msg/include "$INSTALL_FOLDER"/components/cv
 #copy panel
 cp -rlf ./components/cvi_mmf_sdk/cvi_panel "$INSTALL_FOLDER"/components/cvi_mmf_sdk/
 
-#copy sensor
-cp -rlf ./components/cvi_mmf_sdk/cvi_sensor "$INSTALL_FOLDER"/components/cvi_mmf_sdk/
+#copy sensor softlink
+ln -sf ../../../build/media/SensorSupportList "$INSTALL_FOLDER"/components/cvi_mmf_sdk/
 
 #copy ipcm softlink
 mkdir -p "$INSTALL_FOLDER"/components/cvi_mmf_sdk/cvi_osdrv

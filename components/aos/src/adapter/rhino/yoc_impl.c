@@ -54,7 +54,7 @@ __attribute__((weak)) k_mm_region_t g_mm_region[] = {
 __attribute__((weak)) int g_region_num  = sizeof(g_mm_region)/sizeof(k_mm_region_t);
 
 __attribute__((weak)) k_mm_region_t g_mm_region_resv[] = {
-    {(uint8_t *)CVIMMAP_ALIOS_RESV_ADDR, (size_t)CVIMMAP_ALIOS_RESV_SIZE},
+    {(uint8_t *)CVIMMAP_RTOS_ION_ADDR, (size_t)CVIMMAP_RTOS_ION_SIZE},
 };
 __attribute__((weak)) int g_region_num_resv  = sizeof(g_mm_region_resv)/sizeof(k_mm_region_t);
 

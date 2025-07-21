@@ -81,6 +81,11 @@ CVI_S32 CVI_ISP_GetCurrentLvX100(VI_PIPE ViPipe, CVI_S16 *ps16Lv);
 
 CVI_S32 CVI_ISP_SetFastBootExposure(VI_PIPE ViPipe, CVI_U32 expLine, CVI_U32 again, CVI_U32 dgain, CVI_U32 ispdgain);
 
+
+CVI_S32 CVI_ISP_SetFastConvergeAttr(VI_PIPE ViPipe, const ISP_AE_BOOT_FAST_CONVERGE_S *pstFastAttr);
+CVI_S32 CVI_ISP_GetFastConvergeAttr(VI_PIPE ViPipe, ISP_AE_BOOT_FAST_CONVERGE_S *pstFastAttr);
+CVI_S32 CVI_ISP_GetFastConvCalibrationInfo(VI_PIPE ViPipe, CVI_S16 *pFirstFrameLuma, CVI_S16 * pStableBv);
+
 CVI_S32 CVI_ISP_SetIrisAttr(VI_PIPE ViPipe, const ISP_IRIS_ATTR_S *pstIrisAttr);
 CVI_S32 CVI_ISP_GetIrisAttr(VI_PIPE ViPipe, ISP_IRIS_ATTR_S *pstIrisAttr);
 CVI_S32 CVI_ISP_SetDcirisAttr(VI_PIPE ViPipe, const ISP_DCIRIS_ATTR_S *pstDcirisAttr);

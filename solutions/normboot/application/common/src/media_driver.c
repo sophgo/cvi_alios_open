@@ -33,15 +33,19 @@ void media_driver_init(void)
 	driver_vc_init();
 	driver_ldc_init();
 	driver_rgn_init();
+#if (!defined(CONFIG_SUPPORT_VO) || (CONFIG_SUPPORT_VO))
 	driver_vo_init();
 	driver_mipi_tx_init();
+#endif
 }
 
 //Similar to Linux ko rmmod
 void media_driver_exit(void)
 {
+#if (!defined(CONFIG_SUPPORT_VO) || (CONFIG_SUPPORT_VO))
 	driver_mipi_tx_exit();
 	driver_vo_exit();
+#endif
 	driver_rgn_exit();
 	driver_ldc_exit();
 	driver_vc_deinit();

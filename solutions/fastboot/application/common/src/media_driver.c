@@ -1,16 +1,28 @@
-#include "driver_base.h"
-#include "driver_sys.h"
-#include "driver_vpss.h"
-#include "driver_vi.h"
-#include "driver_vc.h"
-#include "driver_ldc.h"
-#include "driver_rgn.h"
-#include "driver_cif.h"
-#include "driver_snsr_i2c.h"
-#include "driver_vo.h"
-#include "driver_mipi_tx.h"
+extern void driver_base_init(void);
+extern void driver_sys_init();
+extern void driver_cif_init();
+extern void driver_snsr_i2c_init();
+extern void driver_vi_init();
+extern void driver_vpss_init();
+extern void driver_vc_init();
+extern void driver_ldc_init();
+extern void driver_rgn_init();
+extern void driver_vo_init();
+extern void driver_mipi_tx_init();
+extern void driver_mipi_tx_exit();
+extern void driver_vo_exit();
+extern void driver_rgn_exit();
+extern void driver_ldc_exit();
+extern void driver_vc_deinit();
+extern void driver_vpss_exit();
+extern void driver_vi_exit();
+extern void driver_snsr_i2c_exit();
+extern void driver_cif_exit();
+extern void driver_sys_exit();
+extern void driver_base_exit();
 
 
+//Similar to Linux ko insmod
 void media_driver_init(void)
 {
 	driver_base_init();
@@ -22,14 +34,19 @@ void media_driver_init(void)
 	driver_vc_init();
 	driver_ldc_init();
 	driver_rgn_init();
+#if (!defined(CONFIG_SUPPORT_VO) || (CONFIG_SUPPORT_VO))
 	driver_vo_init();
 	driver_mipi_tx_init();
+#endif
 }
 
+//Similar to Linux ko rmmod
 void media_driver_exit(void)
 {
+#if (!defined(CONFIG_SUPPORT_VO) || (CONFIG_SUPPORT_VO))
 	driver_mipi_tx_exit();
 	driver_vo_exit();
+#endif
 	driver_rgn_exit();
 	driver_ldc_exit();
 	driver_vc_deinit();

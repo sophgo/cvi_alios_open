@@ -137,6 +137,20 @@ CVI_S32 CVI_GDC_Suspend(void);
  */
 CVI_S32 CVI_GDC_Resume(void);
 
+/* attach vb pool for specific gdc callback, It only works with internal mode.
+ *
+ * @param pChn(In): chn which to call gdc
+ * @param u32VbPool(In): vb pool to attach
+ * @return Error code (0 if successful)
+ */
+CVI_S32 CVI_GDC_AttachVbPool(MMF_CHN_S *pChn, VB_POOL u32VbPool);
+
+/* detach vb pool for specific gdc callback, It only works with internal mode.
+ *
+ * @param pChn(In): chn which to call gdc
+ * @return Error code (0 if successful)
+ */
+CVI_S32 CVI_GDC_DetachVbPool(MMF_CHN_S *pChn);
 
 CVI_S32 CVI_GDC_GenLDCMesh(CVI_U32 u32Width, CVI_U32 u32Height, const LDC_ATTR_S *pstLDCAttr,
 			const char *name, CVI_U64 *pu64PhyAddr, CVI_VOID **ppVirAddr);

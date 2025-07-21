@@ -8,6 +8,8 @@
 #include "custom_param.h"
 #include "board_config.h"
 #include "cvi_buffer.h"
+
+
 PARAM_CLASSDEFINE(PARAM_VPSS_CHN_CFG_S,CHNCFG,GRP0,CHN)[] = {
     { //grp0 chn0
         .abChnEnable = 1,
@@ -49,11 +51,16 @@ PARAM_CLASSDEFINE(PARAM_VPSS_CHN_CFG_S,CHNCFG,GRP0,CHN)[] = {
                 .u32Height = 0,
             },
         },
+        .stVpssChnBufWrap = {
+            .bEnable = 1,
+            .u32BufLine = 64,
+            .u32WrapBufferSize = 5,
+        },
         .u8VpssAttachEnable = 0,
         .u8VpssAttachId = 0,
         .u8Rotation = ROTATION_0,
     },
-	//grp0 chn1
+    //grp0 chn1
     {
         .abChnEnable = 1,
         .stVpssChnAttr = {
@@ -94,55 +101,61 @@ PARAM_CLASSDEFINE(PARAM_VPSS_CHN_CFG_S,CHNCFG,GRP0,CHN)[] = {
                 .u32Height = 0,
             },
         },
+        .stVpssChnBufWrap = {
+            .bEnable = 0,
+        },
         .u8VpssAttachEnable = 0,
         .u8VpssAttachId = 0,
         .u8Rotation = ROTATION_0,
     },
-	//grp0 chn2
-	{
-		.abChnEnable = 1,
-		.stVpssChnAttr = {
-			.u32Width = 960,
-			.u32Height = 540,
-			.enVideoFormat = VIDEO_FORMAT_LINEAR,
-			.enPixelFormat = PIXEL_FORMAT_NV12,
-			.stFrameRate = {
-				.s32SrcFrameRate = -1,
-				.s32DstFrameRate = -1,
-			},
-			.u32Depth = 0,
-			.bMirror = 0,
-			.bFlip = 0,
-			.stAspectRatio = {
-				.enMode = ASPECT_RATIO_NONE,
-				.stVideoRect = {
-					.s32X = 0,
-					.s32Y = 0,
-					.u32Width = 960,
-					.u32Height = 540,
-				},
-				.bEnableBgColor = 0,
-				.u32BgColor = 0,
+    //grp0 chn2
+    {
+        .abChnEnable = 1,
+        .stVpssChnAttr = {
+            .u32Width = 960,
+            .u32Height = 540,
+            .enVideoFormat = VIDEO_FORMAT_LINEAR,
+            .enPixelFormat = PIXEL_FORMAT_NV12,
+            .stFrameRate = {
+                .s32SrcFrameRate = -1,
+                .s32DstFrameRate = -1,
+            },
+            .u32Depth = 0,
+            .bMirror = 0,
+            .bFlip = 0,
+            .stAspectRatio = {
+                .enMode = ASPECT_RATIO_NONE,
+                .stVideoRect = {
+                    .s32X = 0,
+                    .s32Y = 0,
+                    .u32Width = 960,
+                    .u32Height = 540,
+                },
+                .bEnableBgColor = 0,
+                .u32BgColor = 0,
 
-			},
-			.stNormalize = {
-				.bEnable = 0,
-			},
-		},
-		.stVpssChnCropInfo = {
-			.bEnable = 0,
-			.enCropCoordinate = VPSS_CROP_RATIO_COOR,
-			.stCropRect = {
-				.s32X = 0,
-				.s32Y = 0,
-				.u32Width = 0,
-				.u32Height = 0,
-			},
-		},
-		.u8VpssAttachEnable = 0,
-		.u8VpssAttachId = 0,
-		.u8Rotation = ROTATION_0,
-	}
+            },
+            .stNormalize = {
+                .bEnable = 0,
+            },
+        },
+        .stVpssChnCropInfo = {
+            .bEnable = 0,
+            .enCropCoordinate = VPSS_CROP_RATIO_COOR,
+            .stCropRect = {
+                .s32X = 0,
+                .s32Y = 0,
+                .u32Width = 0,
+                .u32Height = 0,
+            },
+        },
+        .stVpssChnBufWrap = {
+            .bEnable = 0,
+        },
+        .u8VpssAttachEnable = 0,
+        .u8VpssAttachId = 0,
+        .u8Rotation = ROTATION_0,
+    }
 };
 
 PARAM_CLASSDEFINE(PARAM_VPSS_CHN_CFG_S,CHNCFG,GRP2,CHN)[] = {
@@ -186,6 +199,9 @@ PARAM_CLASSDEFINE(PARAM_VPSS_CHN_CFG_S,CHNCFG,GRP2,CHN)[] = {
                 .u32Width = 0,
                 .u32Height = 0,
             },
+        },
+        .stVpssChnBufWrap = {
+            .bEnable = 0,
         },
         .u8VpssAttachEnable = 0,
         .u8VpssAttachId = 0,
@@ -234,6 +250,9 @@ PARAM_CLASSDEFINE(PARAM_VPSS_CHN_CFG_S,CHNCFG,GRP3,CHN)[] = {
                 .u32Width = 0,
                 .u32Height = 0,
             },
+        },
+        .stVpssChnBufWrap = {
+            .bEnable = 0,
         },
         .u8VpssAttachEnable = 0,
         .u8VpssAttachId = 0,

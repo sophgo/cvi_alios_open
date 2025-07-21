@@ -37,6 +37,15 @@ static struct panel_desc_s panel_desc = {
 	.dsi_init_cmds = dsi_init_cmds_st7701_480x800,
 	.dsi_init_cmds_size = ARRAY_SIZE(dsi_init_cmds_st7701_480x800)
 };
+#elif CONFIG_PANEL_ST7703
+#include "dsi_st7703.h"
+static struct panel_desc_s panel_desc = {
+	.panel_name = "ST7703-640x480",
+	.dev_cfg = &dev_cfg_st7703_640x480,
+	.hs_timing_cfg = &hs_timing_cfg_st7703_640x480,
+	.dsi_init_cmds = dsi_init_cmds_st7703_640x480,
+	.dsi_init_cmds_size = ARRAY_SIZE(dsi_init_cmds_st7703_640x480)
+};
 #elif CONFIG_PANEL_HX8394
 #include "dsi_hx8394_evb.h"
 static struct panel_desc_s panel_desc = {
@@ -45,6 +54,15 @@ static struct panel_desc_s panel_desc = {
 	.hs_timing_cfg = &hs_timing_cfg_hx8394_720x1280,
 	.dsi_init_cmds = dsi_init_cmds_hx8394_720x1280,
 	.dsi_init_cmds_size = ARRAY_SIZE(dsi_init_cmds_hx8394_720x1280)
+};
+#elif CONFIG_PANEL_OTA7290B
+#include "dsi_ota7290b_1920.h"
+static struct panel_desc_s panel_desc = {
+	.panel_name = "OTA7290B-440x1920",
+	.dev_cfg = &dev_cfg_ota7290b_440x1920,
+	.hs_timing_cfg = &hs_timing_cfg_ota7290b_440x1920,
+	.dsi_init_cmds = dsi_init_cmds_ota7290b_440x1920,
+	.dsi_init_cmds_size = ARRAY_SIZE(dsi_init_cmds_ota7290b_440x1920)
 };
 #else
 #include "dsi_hx8394_evb.h"

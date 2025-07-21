@@ -62,7 +62,7 @@ if __name__ == "__main__":
         'CONFIG_VI_SUPPORT_PROC': 1,
         'CONFIG_VO_SUPPORT_PROC': 1,
         'CONFIG_VPSS_SUPPORT_PROC': 1,
-        'CONFIG_LOG_SUPPORT_PROC': 1
+        'CONFIG_MIPI_TX_SUPPORT_PROC': 1
     }
 
     update_yaml(file_path, changes)

@@ -400,6 +400,14 @@ typedef struct _ISP_AE_STATISTICS_CFG_S {
 	CVI_U8 au8Weight[AE_WEIGHT_ZONE_ROW][AE_WEIGHT_ZONE_COLUMN]; /*RW; Range:[0x0, 0xF]*/
 } ISP_AE_STATISTICS_CFG_S;
 
+#define FAST_CONVERGE_NODES	 (5)
+typedef struct _ISP_AE_BOOT_FAST_CONVERGE_S {
+	CVI_BOOL bEnable;
+	CVI_U8  availableNode;
+	CVI_S16 firstFrLuma[FAST_CONVERGE_NODES];
+	CVI_S16 targetBv[FAST_CONVERGE_NODES];
+} ISP_AE_BOOT_FAST_CONVERGE_S;
+
 //-----------------------------------------------------------------------------
 //  IRIS
 //-----------------------------------------------------------------------------
@@ -1893,22 +1901,21 @@ typedef enum _ISP_EE_WEIGHT_SRC_TYPE_E {
 } ISP_EE_WEIGHT_SRC_TYPE_E;
 
 typedef struct _ISP_SHARPEN_MANUAL_ATTR_S {
-	CVI_U8 WgtCoringThr; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 WgtGain; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 NoiseLevel; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 BlendDegamma; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 SharpStr; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 CoringThr; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE1CoringThr; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 NoiseBase; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE2BalanceRatio; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE2SharpStr; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE2CoringThr; /*RW; Range:[0x0, 0xff]*/
 	CVI_U8 OverShootRatio; /*RW; Range:[0x0, 0xff]*/
 	CVI_U8 UnderShootRatio; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 ContrastEEnergyWgt; /*RW; Range:[0x0, 0x8]*/
-	CVI_U16 FlatRegionThr; /*RW; Range:[0x0, 0x7ff]*/
-	CVI_U16 EdgeRegionThr; /*RW; Range:[0x0, 0x7ff]*/
-	CVI_U8 FlatRegionStr; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 EdgeRegionStr; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 MotionWgtStr; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 StaticWgtStr; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 TransWgtStr; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE1BlendWgt; /*RW; Range:[0x0, 0x8]*/
+	CVI_U16 EE1FlatThr; /*RW; Range:[0x0, 0x7ff]*/
+	CVI_U16 EE1EdgeThr; /*RW; Range:[0x0, 0x7ff]*/
+	CVI_U8 EE1FlatRegionStr; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE1EdgeRegionStr; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE1MotionStr; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE1StaticStr; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE1TransStr; /*RW; Range:[0x0, 0xff]*/
 	CVI_U8 NoiseLut[EE_NOISE_LUT_NUM]; /*RW; Range:[0x0, 0xff]*/
 	CVI_U8 HueShtCtrl[SHARPEN_LUT_NUM]; /*RW; Range:[0x0, 0x3f]*/
 	CVI_U8 SatShtGainIn[EE_LUT_NODE]; /*RW; Range:[0x0, 0xff]*/
@@ -1916,22 +1923,21 @@ typedef struct _ISP_SHARPEN_MANUAL_ATTR_S {
 } ISP_SHARPEN_MANUAL_ATTR_S;
 
 typedef struct _ISP_SHARPEN_AUTO_ATTR_S {
-	CVI_U8 WgtCoringThr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 WgtGain[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 NoiseLevel[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 BlendDegamma[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 SharpStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 CoringThr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE1CoringThr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 NoiseBase[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE2BalanceRatio[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE2SharpStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE2CoringThr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
 	CVI_U8 OverShootRatio[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
 	CVI_U8 UnderShootRatio[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 ContrastEEnergyWgt[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x8]*/
-	CVI_U16 FlatRegionThr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x7ff]*/
-	CVI_U16 EdgeRegionThr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x7ff]*/
-	CVI_U8 FlatRegionStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 EdgeRegionStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 MotionWgtStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 StaticWgtStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
-	CVI_U8 TransWgtStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE1BlendWgt[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x8]*/
+	CVI_U16 EE1FlatThr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x7ff]*/
+	CVI_U16 EE1EdgeThr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x7ff]*/
+	CVI_U8 EE1FlatRegionStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE1EdgeRegionStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE1MotionStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE1StaticStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
+	CVI_U8 EE1TransStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
 	CVI_U8 NoiseLut[EE_NOISE_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
 	CVI_U8 HueShtCtrl[SHARPEN_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3f]*/
 	CVI_U8 SatShtGainIn[EE_LUT_NODE][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff]*/
@@ -1946,7 +1952,7 @@ typedef struct _ISP_SHARPEN_ATTR_S {
 	CVI_BOOL MotionEn; /*RW; Range:[0x0, 0x1]*/
 	CVI_BOOL SatShtCtrlEn; /*RW; Range:[0, 1]*/
 	ISP_EE_FILTER_SIZE_TYPE_E enFilterType;
-	ISP_EE_WEIGHT_SRC_TYPE_E enWeightSrcType;
+	ISP_EE_WEIGHT_SRC_TYPE_E EE1SrcType;
 	ISP_SHARPEN_MANUAL_ATTR_S stManual;
 	ISP_SHARPEN_AUTO_ATTR_S stAuto;
 } ISP_SHARPEN_ATTR_S;
@@ -1994,44 +2000,51 @@ typedef struct _ISP_VC_ATTR_S {
 //-----------------------------------------------------------------------------
 #define FS_DIFF_DW_LENGTH 16
 #define FS_FLUMW_LUT_LENGTH 17
+typedef enum _ISP_MCURVE_MODE_E {
+	MCURVE_DEFAULT = 0,
+	MCURVE_AUTO,
+	MCURVE_MANUAL_SEMAX,
+	MCURVE_MODE_MAX
+} ISP_MCURVE_MODE_E;
+
 typedef struct _ISP_FSHDR_ATTR_S {
 	ISP_OP_TYPE_E enOpType;
 	CVI_U8 UpdateInterval; /*RW; Range:[0x1, 0xFF]*/
 	// fusion
-	CVI_BOOL FSEnable; /*RW; Range:[0, 1]*/
-	CVI_U8 FSMode; /*RW; Range:[0, 2]*/
-	CVI_U8 FSDbgMode; /*RW; Range:[0, 4]*/
-	CVI_U8 FSYsel; /*RW; Range:[0, 3]*/
-	CVI_U8 FSNsel; /*RW; Range:[0, 2]*/
-	CVI_U8 FSDsel; /*RW; Range:[0, 2]*/
-	CVI_U16 FSDS1Th; /*RW; Range:[0, 0xFFF]*/
-	CVI_U8 FSDS1Step; /*RW; Range:[0, 0xFF]*/
-	CVI_U8 FSDS1Lb; /*RW; Range:[0, 0xFF]*/
-	CVI_U16 FSDS2Th; /*RW; Range:[0, 0xFFF]*/
-	CVI_U8 FSDS2Step; /*RW; Range:[0, 0xFF]*/
-	CVI_U8 FSDS2Lb; /*RW; Range:[0, 0xFF]*/
-	CVI_U16 FSBcnlRange; /*RW; Range:[0, 0xFFF]*/
-	CVI_U16 FSBcnlP0; /*RW; Range:[0, 0xFFF]*/
-	CVI_U16 FSBcnsRange; /*RW; Range:[0, 0xFFF]*/
-	CVI_U16 FSBcnsP0; /*RW; Range:[0, 0xFFF]*/
-	CVI_U16 FSBcdlRange; /*RW; Range:[0, 0xFFF]*/
-	CVI_U16 FSBcdlP0; /*RW; Range:[0, 0xFFF]*/
-	CVI_U16 FSBcdsRange; /*RW; Range:[0, 0xFFF]*/
-	CVI_U16 FSBcdsP0; /*RW; Range:[0, 0xFFF]*/
-	CVI_U16 FSDiffLumTh; /*RW; Range:[0, 0x100]*/
-	CVI_U8 FSDiffDwD; /*RW; Range:[0, 0x10]*/
-	CVI_U8 FSDiffDw16[FS_DIFF_DW_LENGTH]; /*RW; Range:[0, 0x10]*/
+	CVI_BOOL FusionEnable; /*RW; Range:[0, 1]*/
+	CVI_U8 FusionMode; /*RW; Range:[0, 2]*/
+	CVI_U8 FusionDbgMode; /*RW; Range:[0, 4]*/
+	CVI_U8 FusionYsel; /*RW; Range:[0, 3]*/
+	CVI_U8 FusionBldNsel; /*RW; Range:[0, 2]*/
+	CVI_U8 FusionBldDsel; /*RW; Range:[0, 2]*/
+	CVI_U16 FusionDS1Th; /*RW; Range:[0, 0xFFF]*/
+	CVI_U8 FusionDS1Step; /*RW; Range:[0, 0xFF]*/
+	CVI_U8 FusionDS1Lb; /*RW; Range:[0, 0xFF]*/
+	CVI_U16 FusionDS2Th; /*RW; Range:[0, 0xFFF]*/
+	CVI_U8 FusionDS2Step; /*RW; Range:[0, 0xFF]*/
+	CVI_U8 FusionDS2Lb; /*RW; Range:[0, 0xFF]*/
+	CVI_U16 LENormBldRange; /*RW; Range:[0, 0xFFF]*/
+	CVI_U16 LENormBldP0; /*RW; Range:[0, 0xFFF]*/
+	CVI_U16 SENormBldRange; /*RW; Range:[0, 0xFFF]*/
+	CVI_U16 SENormBldP0; /*RW; Range:[0, 0xFFF]*/
+	CVI_U16 LEDynmBldRange; /*RW; Range:[0, 0xFFF]*/
+	CVI_U16 LEDynmBldP0; /*RW; Range:[0, 0xFFF]*/
+	CVI_U16 SEDynmBldRange; /*RW; Range:[0, 0xFFF]*/
+	CVI_U16 SEDynmBldP0; /*RW; Range:[0, 0xFFF]*/
+	CVI_U16 NDBldLumTh; /*RW; Range:[0, 0x100]*/
+	CVI_U8 NDBldDarkWt; /*RW; Range:[0, 0x10]*/
+	CVI_U8 NDBldDiffLut[FS_DIFF_DW_LENGTH]; /*RW; Range:[0, 0x10]*/
 	// map curve
-	CVI_BOOL FCurveEnable; /*RW; Range:[0, 1]*/
-	CVI_BOOL FCurveAutoEnable; /*RW; Range:[0, 1]*/
-	CVI_U16 FCurveManualSEMax; /*RW: Range[0, 0xFFF]*/
-	CVI_U16 FCurveDelta; /*RW: Range[0, 0x2710]*/
-	CVI_U16 FCurveX1; /*RW: Range[0, 0xFFFF]*/
-	CVI_U8 FCurveBldRatio; /*RW: Range[0, 0xa]*/
-	CVI_U16 FCurveXMaxRatio; /*RW: Range[0, 0x100]*/
-	CVI_U8 FCurveYsel; /*RW: Range[0, 0x02]*/
-	CVI_U8 FCurveYvWet; /*RW: Range[0, 0x08]*/
-	CVI_U8 FCurveFlumWet[FS_FLUMW_LUT_LENGTH];/*RW: Range[0, 0xFF]*/
+	CVI_BOOL MCurveEnable; /*RW; Range:[0, 1]*/
+	ISP_MCURVE_MODE_E MCurveMode; /*RW; Range:[0, 2]*/
+	CVI_U16 MCurveManualSEMax; /*RW: Range[0, 0xFFF]*/
+	CVI_U16 MCurveDelta; /*RW: Range[0, 0x2710]*/
+	CVI_U16 MCurveX1; /*RW: Range[0, 0xFFFF]*/
+	CVI_U8 MCurveBldRatio; /*RW: Range[0, 0xa]*/
+	CVI_U16 MCurveXMaxRatio; /*RW: Range[0, 0x100]*/
+	CVI_U8 MCurveYsel; /*RW: Range[0, 0x02]*/
+	CVI_U8 MCurveYvWet; /*RW: Range[0, 0x08]*/
+	CVI_U8 MCurveFlumWet[FS_FLUMW_LUT_LENGTH];/*RW: Range[0, 0xFF]*/
 } ISP_FSHDR_ATTR_S;
 
 //-----------------------------------------------------------------------------
@@ -2100,10 +2113,6 @@ typedef struct _ISP_BNR_ATTR_S {
 } ISP_BNR_ATTR_S;
 
 typedef struct _ISP_BNR_FILTER_MANUAL_ATTR_S {
-	CVI_U16 SigmaNlm; /*RW; Range:[0x0, 0x1ff]*/
-	CVI_U16 AlphaNlm; /*RW; Range:[0x0, 0x409]*/
-	CVI_U16 SigmaBf; /*RW; Range:[0x0, 0x1ff]*/
-	CVI_U16 AlphaBf; /*RW; Range:[0x0, 0x409]*/
 	CVI_U16 Filter1GaussianCurve[BNR_BASE_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
 	CVI_U16 Filter1LumaOffset[BNR_LUMA_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
 	CVI_U16 Filter2GaussianCurve[BNR_BASE_LUT_NUM]; /*RW; Range:[0x0, 0x3ff]*/
@@ -2111,10 +2120,6 @@ typedef struct _ISP_BNR_FILTER_MANUAL_ATTR_S {
 } ISP_BNR_FILTER_MANUAL_ATTR_S;
 
 typedef struct _ISP_BNR_FILTER_AUTO_ATTR_S {
-	CVI_U16 SigmaNlm[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x1ff]*/
-	CVI_U16 AlphaNlm[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x409]*/
-	CVI_U16 SigmaBf[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x1ff]*/
-	CVI_U16 AlphaBf[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x409]*/
 	CVI_U16 Filter1GaussianCurve[BNR_BASE_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
 	CVI_U16 Filter1LumaOffset[BNR_LUMA_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
 	CVI_U16 Filter2GaussianCurve[BNR_BASE_LUT_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0x3ff]*/
@@ -2123,7 +2128,6 @@ typedef struct _ISP_BNR_FILTER_AUTO_ATTR_S {
 
 typedef struct _ISP_BNR_FILTER_ATTR_S {
 	CVI_U8 DebugMode; /*RW; Range:[0x0, 0x3]*/
-	CVI_BOOL AutoLutEn; /*RW; Range:[0, 1]*/
 	ISP_BNR_FILTER_MANUAL_ATTR_S stManual;
 	ISP_BNR_FILTER_AUTO_ATTR_S stAuto;
 } ISP_BNR_FILTER_ATTR_S;
@@ -2154,18 +2158,19 @@ typedef struct _ISP_DRC_ATTR_S {
 	CVI_U16 ContrastLow; /*RW: Range[0x0, 0xFFF]*/
 	CVI_U16 ContrastHigh; /*RW: Range[0x0, 0xFFF]*/
 	// scaling down
-	CVI_U8 SubImgWidth; /*RW; Range:[7, 0x2F]*/
-	CVI_U8 SubImgHeight; /*RW; Range:[7, 0x2F]*/
-	// tone mapping
+	CVI_U8 BlockNumW; /*RW; Range:[7, 0x2F]*/
 	CVI_U8 GainUB; /*RW: Range[0x0, 0xFF]*/
 	CVI_U8 GainLB; /*RW: Range[0x0, 0xFF]*/
+	CVI_U8 GainProtStr; /*RW: Range[0x0, 0xFF]*/
 	CVI_U8 FSBPstr; /*RW: Range[0x0, 0xFF]*/
-	CVI_U8 SSBPstr; /*RW: Range[0x0, 0xFF]*/
-	CVI_U8 SSBPgain; /*RW: Range[0x0, 0xFF]*/
+	CVI_U8 DeFlareMode; /*RW: Range[0x0, 0x2]*/
+	CVI_U8 DeFlareRatio; /*RW: Range[0x0, 0xFF]*/
+	CVI_U8 DeFlareSlope; /*RW: Range[0x0, 0xFF]*/
 	CVI_U16 AdaptiveLowStr; /*RW: Range[0x0, 0xFFF]*/
 	CVI_U16 AdaptiveHighStr; /*RW: Range[0x0, 0xFFF]*/
 	CVI_U16 AdaptiveRatio; /*RW: Range[0, 0x3e8]*/
-	CVI_U16 ColorSuppressStr; /*RW: Range[0x0, 0xFFF]*/
+	CVI_U8 ColorProtStr; /*RW: Range[0x0, 0xFF]*/
+	CVI_U16 ColorProtThr; /*RW: Range[0x0, 0xFFF]*/
 	// manual and the auto
 	ISP_DRC_MANUAL_ATTR_S stManual;
 	ISP_DRC_AUTO_ATTR_S stAuto;
@@ -2179,30 +2184,16 @@ typedef struct _ISP_DRC_ATTR_S {
 #define PFR_COLOR_LUT_NUM 5
 #define PFR_EDGE_LUT_NUM 4
 
-typedef enum _ISP_PFR_FCS_K_SIZSE_E {
-	FCS_K_SMALL,
-	FCS_K_BIG,
-	FCS_KERNEL_NUM
-} ISP_PFR_FCS_K_SIZS_E;
-
 typedef struct _ISP_PFR_MANUAL_ATTR_S {
 	CVI_U8 LumaIniVal; /*RW: Range[0, 0xFF]*/
 	CVI_U8 LumLevelTh; /*RW: Range[0, 0xFF]*/
 	CVI_U8 LumLevelLut[PFR_LUMA_LEVEL]; /*RW: Range[0, 0xFF]*/
-
-	CVI_U8 FcsEdgeTh; /*RW: Range[0x0, 0x7F]*/
-	CVI_U8 FcsBlendStr; /*RW: Range[0x0, 0xFF]*/
-
 } ISP_PFR_MANUAL_ATTR_S;
 
 typedef struct _ISP_PFR_AUTO_ATTR_S {
 	CVI_U8 LumaIniVal[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW: Range[0, 0xFF]*/
 	CVI_U8 LumLevelTh[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW: Range[0, 0xFF]*/
 	CVI_U8 LumLevelLut[PFR_LUMA_LEVEL][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW: Range[0, 0xFF]*/
-
-	CVI_U8 FcsEdgeTh[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW: Range[0x0, 0xFF]*/
-	CVI_U8 FcsBlendStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW: Range[0x0, 0xFF]*/
-
 } ISP_PFR_AUTO_ATTR_S;
 
 typedef struct _ISP_PFR_ATTR_S {
@@ -2213,8 +2204,6 @@ typedef struct _ISP_PFR_ATTR_S {
 	CVI_BOOL LumaEN; /*RW; Range:[0, 1]*/
 	CVI_BOOL UVENLut[PFR_COLOR_NUM]; /*RW; Range:[0, 1]*/
 	CVI_BOOL HueENLut[PFR_COLOR_NUM]; /*RW; Range:[0, 1]*/
-	CVI_BOOL FcsEN; /*RW; Range:[0, 1]*/
-	ISP_PFR_FCS_K_SIZS_E FcsKsize;
 
 	CVI_U8 ULut[PFR_COLOR_NUM]; /*RW: Range[0x0, 0xFF]*/
 	CVI_U8 VLut[PFR_COLOR_NUM]; /*RW: Range[0x0, 0xFF]*/
@@ -2258,8 +2247,7 @@ typedef struct _ISP_LDCI_ATTR_S {
 	ISP_OP_TYPE_E enOpType;
 	CVI_U8 UpdateInterval; /*RW; Range:[0x1, 0xFF]*/
 	// LDCI
-	CVI_U8 BlockNumHori; /*Rw; Range:[4, 0x3E]*/
-	CVI_U8 BlockNumVert; /*Rw; Range:[4, 0x3E]*/
+	CVI_U8 BlockNum; /*Rw; Range:[4, 0x3E]*/
 
 	ISP_LDCI_MANUAL_ATTR_S stManual;
 	ISP_LDCI_AUTO_ATTR_S stAuto;
@@ -2321,7 +2309,6 @@ typedef struct _ISP_TNR_MV_MANUAL_ATTR_S {
 	CVI_U8 L0YPSSBlur; /*Rw; Range:[0, 0xFF]*/
 	CVI_U16 AcbdSadAdj[TNR_ACBD_RANK]; /*Rw; Range:[0, 0x3FF]*/
 	CVI_U8 AcbdEdgeAdj[TNR_ACBD_RANK]; /*Rw; Range:[0, 0x10]*/
-	CVI_U16 EdgeTh; /*Rw; Range:[0, 0x3FFF]*/
 	CVI_U8 LumaJndTh[TNR_LUMA_RANK]; /*Rw; Range:[0, 0xFF]*/
 	CVI_U8 LumaJndRatio; /*Rw; Range:[0, 0xFF]*/
 	CVI_U8 JndSadWt; /*Rw; Range:[0, 0xF]*/
@@ -2338,7 +2325,6 @@ typedef struct _ISP_TNR_MV_AUTO_ATTR_S {
 	CVI_U8 L0YPSSBlur[ISP_AUTO_ISO_STRENGTH_NUM]; /*Rw; Range:[0, 0xFF]*/
 	CVI_U16 AcbdSadAdj[TNR_ACBD_RANK][ISP_AUTO_ISO_STRENGTH_NUM]; /*Rw; Range:[0, 0x3FF]*/
 	CVI_U8 AcbdEdgeAdj[TNR_ACBD_RANK][ISP_AUTO_ISO_STRENGTH_NUM]; /*Rw; Range:[0, 0x10]*/
-	CVI_U16 EdgeTh[ISP_AUTO_ISO_STRENGTH_NUM]; /*Rw; Range:[0, 0x3FFF]*/
 	CVI_U8 LumaJndTh[TNR_LUMA_RANK][ISP_AUTO_ISO_STRENGTH_NUM]; /*Rw; Range:[0, 0xFF]*/
 	CVI_U8 LumaJndRatio[ISP_AUTO_ISO_STRENGTH_NUM]; /*Rw; Range:[0, 0xFF]*/
 	CVI_U8 JndSadWt[ISP_AUTO_ISO_STRENGTH_NUM]; /*Rw; Range:[0, 0xF]*/
@@ -2438,21 +2424,18 @@ typedef struct _ISP_TNR_NR_ATTR_S {
 } ISP_TNR_NR_ATTR_S;
 
 typedef struct _ISP_TNR_MANUAL_ATTR_S {
-	CVI_U8 DyBlurSt; /*Rw; Range:[0, 0xF]*/
-	CVI_U8 DyBlurStep; /*Rw; Range:[0, 0xF]*/
+	CVI_U8 DyBlurStr; /*Rw; Range:[0, 0x3]*/
 } ISP_TNR_MANUAL_ATTR_S;
 
 typedef struct _ISP_TNR_AUTO_ATTR_S {
-	CVI_U8 DyBlurSt[ISP_AUTO_ISO_STRENGTH_NUM]; /*Rw; Range:[0, 0xF]*/
-	CVI_U8 DyBlurStep[ISP_AUTO_ISO_STRENGTH_NUM]; /*Rw; Range:[0, 0xF]*/
+	CVI_U8 DyBlurStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*Rw; Range:[0, 0x3]*/
 } ISP_TNR_AUTO_ATTR_S;
 
 typedef struct _ISP_TNR_ATTR_S {
 	CVI_BOOL Enable; /*RW; Range:[0, 1]*/
-	ISP_OP_TYPE_E EnOpType;
+	ISP_OP_TYPE_E enOpType;
 	CVI_U8 updateInterval; /*Rw; Range:[0, 0xFF]*/
 	CVI_U8 DbgMode; /*Rw; Range:[0, 0x08]*/
-	CVI_BOOL DyBlurEn; /*Rw; Range:[0, 1]*/
 	CVI_U8 DyBlurYWt[TNR_STATUS_NUM]; /*Rw; Range:[0, 0xF]*/
 	CVI_U8 DyBlurUVWt; /*Rw; Range:[0, 0xF]*/
 	CVI_U8 DyBlurJndTh; /*Rw; Range:[0, 0x1F]*/

@@ -68,7 +68,7 @@ depends:
   - cvi_mw_vi: v0.0.1
   - cvi_mw_vo: v0.0.1
   - cvi_mw_vpss: v0.0.1
-  - cvi_sensor: develop
+  - SensorSupportList: develop
   - rtsp: develop
 #  - cvi_mw_tpu: v0.0.1
   - cvi_mw_isp: develop

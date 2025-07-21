@@ -4,6 +4,7 @@
 #include <aos/cli.h>
 #include <yoc/init.h>
 #include <drv/dma.h>
+#include <drv/tick.h>
 #include "board.h"
 #include "debug/debug_cli_cmd.h"
 
@@ -72,7 +73,7 @@ void YOC_SYSTEM_Init(void)
     cxx_system_init();
     board_init();
     stduart_init();
-    printf("###YoC###[%s,%s]\n", __DATE__, __TIME__);
+    printf("###YoC###[build:%s,%s], [start:%ldus]\n", __DATE__, __TIME__, csi_tick_get_us());
     //printf("cpu clock is %dHz\n", soc_get_cpu_freq(0));
 #ifdef CONFIG_C906L_DMA_ENABLE
     csi_dma_init(&dma, 0);

@@ -466,6 +466,7 @@ typedef struct _VENC_ATTR_S {
 	CVI_U32 u32PicHeight;		///< height of a picture to be encoded
 	CVI_BOOL bSingleCore;		///< Use single HW core
 	CVI_BOOL bEsBufQueueEn;		///< Use es buffer queue
+	CVI_U8   u8EsBufQueueDepth;     ///< Use es buffer queue default depth is 10,limte is [5~128]
 	CVI_BOOL bIsoSendFrmEn;		///< Isolating SendFrame/GetStream pairing
 	union {
 		VENC_ATTR_H264_S stAttrH264e;	///< TODO VENC

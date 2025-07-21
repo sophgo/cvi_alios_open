@@ -291,6 +291,16 @@ CVI_S32 CVI_VO_QueryChnStatus(VO_LAYER VoLayer, VO_CHN VoChn, VO_QUERY_STATUS_S 
  */
 CVI_S32 CVI_VO_SendFrame(VO_LAYER VoLayer, VO_CHN VoChn, VIDEO_FRAME_INFO_S *pstVideoFrame, CVI_S32 s32MilliSec);
 
+/* CVI_VO_SendLogoFromIon: send vdec bootlogo frame to vo
+ *
+ * @param VoLayer: Video layer
+ * @param VoChn: Video chn
+ * @param pstVideoFrame: frame info
+ * @param s32MilliSec: timeout
+ * @return: status of operation. CVI_SUCCESS if OK.
+ */
+CVI_S32 CVI_VO_SendLogoFromIon(VO_LAYER VoLayer, VO_CHN VoChn, VIDEO_FRAME_INFO_S *pstVideoFrame, CVI_S32 s32MilliSec);
+
 /* CVI_VO_ClearChnBuf: clear chn buffer
  *
  * @param VoLayer: Video layer

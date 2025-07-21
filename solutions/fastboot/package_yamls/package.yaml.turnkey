@@ -33,7 +33,7 @@ depends:
   - chip_cv181x: v0.0.1
   - minialsa: v7.5.1
   - drv_snd_cv181x: v7.5.1
-  - cvi_sensor: develop
+  - SensorSupportList: develop
   - ipcm: v0.0.1
   - cv181xc_evb: v0.0.1
   - chip_cv181x: v0.0.1
@@ -123,7 +123,7 @@ build_config:
     - application/annon_msg/
     - application/param_parse/
 
-  cflag: ""
+  cflag: "-Wno-unused-but-set-variable -Wno-unused-variable"
   cxxflag: ""
   asmflag: ""
   define:
@@ -170,7 +170,8 @@ source_file:
 #  - application/annon_msg/*.c ? <CONFIG_RTOS_ANNON_MSG>
   - customization/cv1842hp_gc8613/pipeline/*.c ? <CONFIG_CV1842HP_GC8613>
   - customization/cv1842hp_gc8613/src/*.c ? <CONFIG_CV1842HP_GC8613>
-
+  - customization/cv1842cp_gc8613/pipeline/*.c ? <CONFIG_CV1842CP_GC8613>
+  - customization/cv1842cp_gc8613/src/*.c ? <CONFIG_CV1842CP_GC8613>
 
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项
@@ -216,24 +217,27 @@ def_config:
   CONFIG_PQBIN_USE_JSON: 0
   CONFIG_ISP_SUPPORT_PROC: 0
   CONFIG_ENABLE_FASTBOOT: 1
-  CONFIG_CV1842HP_GC8613: 1
+  CONFIG_CV1842HP_GC8613: 0
+  CONFIG_CV1842CP_GC8613: 1
 
   CONFIG_LOG: 1 #osdrv log
+  CONFIG_LOG_TO_DMESG: 1     # 0: console, 1: dmesg
+  CONFIG_DMESG_BUF_SHIFT: 18 # 256k, buffer len = (1 << CONFIG_DMESG_BUF_SHIFT)
 
   CONFIG_SYS_SUPPORT_PROC: 1
   CONFIG_VB_SUPPORT_PROC: 1
-  CONFIG_ICPM_SUPPORT_PROC: 1
   CONFIG_LDC_SUPPORT_PROC: 1
   CONFIG_RGN_SUPPORT_PROC: 1
   CONFIG_VC_SUPPORT_PROC: 1
   CONFIG_VI_SUPPORT_PROC: 1
   CONFIG_VO_SUPPORT_PROC: 1
   CONFIG_VPSS_SUPPORT_PROC: 1
-  CONFIG_LOG_SUPPORT_PROC: 1
+  CONFIG_MIPI_TX_SUPPORT_PROC: 1
+  CONFIG_ICPM_SUPPORT_PROC: 1
 
   CONFIG_DUALOS_NO_CROP: 0 # 1 不裁剪 0 裁剪
   CONFIG_SUPPORT_VDEC: 0 # 1 支持 0 不支持
-  CONFIG_SUPPORT_VO: 1 # 1 支持 0 不支持
+  CONFIG_SUPPORT_VO: 0 # 1 支持 0 不支持
 
 
 ## 第六部分：安装信息

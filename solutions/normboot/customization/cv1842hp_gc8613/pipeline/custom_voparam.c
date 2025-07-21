@@ -26,16 +26,17 @@ PARAM_CLASSDEFINE(PARAM_VODEV_S,VOCFG,CTX,VO)[] = {
             .stVoPubAttr.u32BgColor = COLOR_10_RGB_BLACK,
             .stDispRect = {0, 0, PANEL_WIDTH, PANEL_HEIGHT},
             .stImageSize = {PANEL_WIDTH, PANEL_HEIGHT},
-            .enPixFormat = PIXEL_FORMAT_NV21,
+            .enPixFormat = PIXEL_FORMAT_NV12,
         },
         .stLayerAttr = {
             .stDispRect = {0, 0, PANEL_WIDTH, PANEL_HEIGHT},
             .u32DispFrmRt = 60,
             .stImageSize = {PANEL_WIDTH, PANEL_HEIGHT},
-            .enPixFormat = PIXEL_FORMAT_NV21,
+            .enPixFormat = PIXEL_FORMAT_NV12,
         },
         .u8ChnCnt = 1,
         .pstVOChnAttr = PARAM_CLASS(VOCHN,VO,CHN),
+        .u8Bindmode = true,
         .stSrcChn = {
             .enModId = CVI_ID_VPSS,
             .s32ChnId = 1,
@@ -51,7 +52,7 @@ PARAM_CLASSDEFINE(PARAM_VODEV_S,VOCFG,CTX,VO)[] = {
 };
 
 PARAM_VO_CFG_S g_stVoCtx = {
-#if (CONFIG_PANEL_HX8394 == 1 || CONFIG_PANEL_ILI9488 == 1)
+#if (CONFIG_PANEL_HX8394 == 1 || CONFIG_PANEL_ILI9488 == 1 || CONFIG_PANEL_OTA7290B == 1)
     .u8VoCnt = 1,
 #else
     .u8VoCnt = 0,

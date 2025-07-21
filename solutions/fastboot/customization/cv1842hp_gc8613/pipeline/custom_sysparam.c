@@ -8,15 +8,6 @@
 #include "custom_param.h"
 #include "board_config.h"
 
-PARAM_CLASSDEFINE(PARAM_SBM_CFG_S,SBM,CTX,CFG)[] = {
-    {
-        .bEnable = 0,
-        .s32SbmGrp = 0,
-        .s32SbmChn = 0,
-        .s32WrapBufLine = 64,
-        .s32WrapBufSize = 5,
-    },
-};
 
 PARAM_CLASSDEFINE(PARAM_VB_CFG_S,VBPOOL,CTX,VB)[] = {
     {
@@ -62,8 +53,6 @@ PARAM_CLASSDEFINE(PARAM_VB_CFG_S,VBPOOL,CTX,VB)[] = {
 };
 
 PARAM_SYS_CFG_S  g_stSysCtx = {
-    .u8SbmCnt = 0,
-    .pstSbmCfg = PARAM_CLASS(SBM,CTX,CFG),
     .u8VbPoolCnt = 5,
     .pstVbPool = PARAM_CLASS(VBPOOL,CTX,VB),
     .stVIVPSSMode.aenMode[0] = VI_OFFLINE_VPSS_ONLINE,

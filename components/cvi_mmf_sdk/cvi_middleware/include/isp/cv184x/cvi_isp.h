@@ -301,6 +301,8 @@ CVI_S32 CVI_ISP_GetIonInfo(CVI_S32 *ptotal, CVI_S32 *pused, CVI_S32 *pmfree, CVI
 CVI_S32 CVI_ISP_SetBypassFrm(VI_PIPE ViPipe, CVI_U8 bypassNum);
 CVI_S32 CVI_ISP_GetBypassFrm(VI_PIPE ViPipe, CVI_U8 *pbypassNum);
 
+CVI_S32 CVI_ISP_GetIspRunState(VI_PIPE ViPipe, CVI_BOOL *bIspRun);
+
 #ifdef __cplusplus
 #if __cplusplus
 }

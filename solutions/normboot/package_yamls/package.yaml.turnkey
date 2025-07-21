@@ -33,7 +33,7 @@ depends:
   - chip_cv181x: v0.0.1
   - minialsa: v7.5.1
   - drv_snd_cv181x: v7.5.1
-  - cvi_sensor: develop
+  - SensorSupportList: develop
   - ipcm: v0.0.1
   - cv181xc_evb: v0.0.1
   - chip_cv181x: v0.0.1
@@ -219,22 +219,23 @@ def_config:
   CONFIG_CV1842HP_GC8613: 1
 
   CONFIG_LOG: 1 #osdrv log
+  CONFIG_LOG_TO_DMESG: 1     # 0: console, 1: dmesg
+  CONFIG_DMESG_BUF_SHIFT: 18 # 256k, buffer len = (1 << CONFIG_DMESG_BUF_SHIFT)
 
   CONFIG_SYS_SUPPORT_PROC: 1
   CONFIG_VB_SUPPORT_PROC: 1
-  CONFIG_ICPM_SUPPORT_PROC: 1
   CONFIG_LDC_SUPPORT_PROC: 1
   CONFIG_RGN_SUPPORT_PROC: 1
   CONFIG_VC_SUPPORT_PROC: 1
   CONFIG_VI_SUPPORT_PROC: 1
   CONFIG_VO_SUPPORT_PROC: 1
   CONFIG_VPSS_SUPPORT_PROC: 1
-  CONFIG_LOG_SUPPORT_PROC: 1
+  CONFIG_MIPI_TX_SUPPORT_PROC: 1
+  CONFIG_ICPM_SUPPORT_PROC: 1
 
   CONFIG_DUALOS_NO_CROP: 0 # 1 不裁剪 0 裁剪
   CONFIG_SUPPORT_VDEC: 1 # 1 支持 0 不支持
   CONFIG_SUPPORT_VO: 1 # 1 支持 0 不支持
-  FPGA_PORTING: 1
 
 
 ## 第六部分：安装信息

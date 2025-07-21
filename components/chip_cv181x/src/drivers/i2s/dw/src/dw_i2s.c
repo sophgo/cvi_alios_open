@@ -216,8 +216,9 @@ void i2s0_set_clk_sample_rate(struct i2s_tdm_regs *i2s_reg, unsigned int sample_
 
 	if(sample_rate == 48000){
 		aud_div = 0x00140009;
-	}
-	else{
+	} else if (sample_rate == 44100) {
+		aud_div = 0x00160009;
+	} else {
 		aud_div = 0x001e0009;
 	}
 	mmio_write_32((uintptr_t)(CLK_BASE_ADDRESS+CLK_AUD0_DIV), aud_div);
@@ -267,6 +268,7 @@ void i2s_set_sample_rate(struct i2s_tdm_regs *i2s_reg, unsigned int sample_rate,
 	if ((sample_rate == 8000 || sample_rate == 16000 || sample_rate == 32000)) {
 		audio_clk = 16384000;
 	}
+
 	switch (sample_rate) {
 	case 8000:
 	case 16000:
@@ -275,6 +277,7 @@ void i2s_set_sample_rate(struct i2s_tdm_regs *i2s_reg, unsigned int sample_rate,
 		clk_ctrl1 |= MCLK_DIV(1);
 		mclk_div = 1;
 		break;
+	case 44100:
 	case 48000:
 		clk_ctrl1 |= MCLK_DIV(2);
 		mclk_div = 2;
@@ -354,7 +357,7 @@ void i2s_set_sample_rate(struct i2s_tdm_regs *i2s_reg, unsigned int sample_rate,
 		    bclk_div = (audio_clk / 1000) / (WSS_16_CLKCYCLE * (sample_rate / 1000) * mclk_div);
 		    clk_ctrl1 |= BCLK_DIV(bclk_div);
 		    break;
-
+		case 44100:
 		case 48000:
 		    frame_setting |= FRAME_LENGTH(64);
 		    slot_setting |= SLOT_SIZE(32) | DATA_SIZE(32);

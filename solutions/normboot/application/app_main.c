@@ -15,6 +15,7 @@
 #include "ipcm_custom.h"
 #include "media_driver.h"
 #include "cvi_msg_server.h"
+#include "media_video.h"
 #ifdef CONFIG_AUD_DRV_SEL
 #include "media_audio.h"
 #endif
@@ -30,6 +31,7 @@ int main(int argc, char *argv[])
 	PoolConfig *cust_config;
 	//board pinmux init
 	PLATFORM_IoInit();
+	PLATFORM_PanelInit();
 
 	CVI_IPCM_SetRtosSysBootStat();
 

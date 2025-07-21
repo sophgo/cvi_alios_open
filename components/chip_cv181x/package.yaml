@@ -142,6 +142,7 @@ source_file:
   - src/sys/tick.c
   - src/sys/trap_c.c
   - src/sys/weak.c
+  - src/sys/dmesg.c ? <CONFIG_LOG_TO_DMESG>
   - src/sys/startup.S
   - src/sys/vectors.S
 
