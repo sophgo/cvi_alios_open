@@ -19,7 +19,9 @@ typedef struct _PARTITION_CHECK_HAED_S
 CVI_S32 PARAM_LoadCfg(CVI_VOID);
 PARAM_MODULE_CFG_S *PARAM_getModuleCtx(void);
 PARAM_SYS_CFG_S *PARAM_getSysCtx(void);
+#if CONFIG_SUPPORT_VI
 PARAM_VI_CFG_S *PARAM_getViCtx(void);
+#endif
 PARAM_VPSS_CFG_S *PARAM_getVpssCtx(void);
 PARAM_VENC_CFG_S *PARAM_getVencCtx(void);
 PARAM_VO_CFG_S *PARAM_getVoCtx(void);

@@ -224,6 +224,7 @@ def_config:
   CONFIG_DUALOS_NO_CROP: 0 # 1 不裁剪 0 裁剪
   CONFIG_SUPPORT_VDEC: 0 # 1 支持 0 不支持
   CONFIG_SUPPORT_VO: 0 # 1 支持 0 不支持
+  CONFIG_SUPPORT_VI: 1 # 1 支持 0 不支持
 
 
 ## 第六部分：安装信息

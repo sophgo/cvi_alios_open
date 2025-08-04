@@ -3,8 +3,6 @@
 
 #define PARAM_DEBUG 0
 
-static int s_scene_mode = 0;
-
 #if PARAM_DEBUG
 static void PARAM_Printf(void)
 {
@@ -356,11 +354,13 @@ PARAM_SYS_CFG_S *PARAM_getSysCtx(void)
     }
     return PARAM_GET_MANAGER_CFG()->pstSysCtx;
 }
+#if CONFIG_SUPPORT_VI
 //VI
 PARAM_VI_CFG_S *PARAM_getViCtx(void)
 {
     return PARAM_GET_MANAGER_CFG()->pstViCtx;
 }
+#endif
 //VPSS
 PARAM_VPSS_CFG_S *PARAM_getVpssCtx(void)
 {
@@ -395,6 +395,8 @@ int PARAM_getPipeline(void)
 {
     return PARAM_GET_MANAGER_CFG_PIPE();
 }
+#if CONFIG_SUPPORT_VI
+static int s_scene_mode = 0;
 
 void PARAM_setSceneMode(int mode)
 {
@@ -440,7 +442,7 @@ int PARAM_Reinit_RawReplay(void)
     PARAM_getVencCtx()->pstVencChnCfg[0].stChnParam.u8VencChn = 0;
     return 0;
 }
-
+#endif
 
 int _param_check_head(unsigned char * buffer)
 {

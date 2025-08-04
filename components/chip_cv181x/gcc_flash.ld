@@ -148,7 +148,7 @@ SECTIONS
   *(.data)
   *(.data*)
   *(.data1)
-  . = ALIGN(((DEFINED(fw_h265) || DEFINED(fw_h265))  ? 4096 : 0x0)) ;
+  . = ALIGN(((DEFINED(fw_h265) || DEFINED(fw_h264))  ? 4096 : 0x0)) ;
 
   __h265_start_addr = . ;
   *(.fw_h265)

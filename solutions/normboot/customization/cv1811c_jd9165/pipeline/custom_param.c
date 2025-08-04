@@ -6,7 +6,6 @@
 PARAM_MANAGER_CFG_S  g_stManagerCtx = {
     .pstModuleCtx = NULL,
     .pstSysCtx = NULL,
-    .pstViCtx = NULL,
     .pstVpssCfg = NULL,
     .pstVoCfg = NULL,
     .pstVencCfg = NULL,
@@ -22,7 +21,6 @@ void PARAM_SET_MANAGER_CFG_PIPE(int pipeline)
     //这里进行pipeline切换预处理
     g_stManagerCtx.pstModuleCtx = PARAM_GET_MODULE_CFG();
     g_stManagerCtx.pstSysCtx = PARAM_GET_SYS_CFG();
-    g_stManagerCtx.pstViCtx = PARAM_GET_VI_CFG();
     g_stManagerCtx.pstVpssCfg = PARAM_GET_VPSS_CFG();
     g_stManagerCtx.pstVencCfg = PARAM_GET_VENC_CFG();
     g_stManagerCtx.pstVoCfg = PARAM_GET_VO_CFG();

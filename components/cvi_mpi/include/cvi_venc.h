@@ -115,6 +115,14 @@ CVI_S32 CVI_VENC_GetStreamEx(VENC_CHN VeChn, VENC_STREAM_S *pstStream, CVI_S32 S
  */
 CVI_S32 CVI_VENC_ReleaseStream(VENC_CHN VeChn, VENC_STREAM_S *pstStream);
 
+/* Release stream for CVI_VENC_GetStreamEx
+ *
+ * @param VeChn(In): channel number
+ * @param pstStream(In): pointer to VENC_STREAM_S
+ * @return Error code (0 if successful)
+ */
+CVI_S32 CVI_VENC_ReleaseStreamEx(VENC_CHN VeChn, VENC_STREAM_S *pstStream);
+
 /* Insert User Data
  *
  * @param VeChn(In): channel number

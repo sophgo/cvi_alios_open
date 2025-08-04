@@ -16,11 +16,14 @@
 		}																		 \
 	} while (0)
 int MEDIA_VIDEO_SysVbInit(PARAM_SYS_CFG_S * pstSysCtx);
+#if CONFIG_SUPPORT_VI
 int MEDIA_VIDEO_ViInit(PARAM_VI_CFG_S * pstViCfg);
+int MEDIA_VIDEO_ViDeinit(PARAM_VI_CFG_S * pstViCfg);
+int MEDIA_VIDEO_ViSetImageMono(VI_PIPE ViPipe);
+#endif
 int MEDIA_VIDEO_VpssInit(PARAM_VPSS_CFG_S * pstVpssCtx);
 int MEDIA_VIDEO_VencInit(PARAM_VENC_CFG_S *pstVencCfg);
 int MEDIA_VIDEO_SysVbDeinit();
-int MEDIA_VIDEO_ViDeinit(PARAM_VI_CFG_S * pstViCfg);
 int MEDIA_VIDEO_VpssDeinit(PARAM_VPSS_CFG_S * pstVpssCtx);
 int MEDIA_VIDEO_VencDeInit(PARAM_VENC_CFG_S *pstVencCfg);
 int MEDIA_VIDEO_VoDeinit(PARAM_VO_CFG_S * pstVoCtx);
@@ -29,7 +32,6 @@ int MEDIA_VIDEO_Init(CVI_BOOL isRawReplayMode);
 int MEDIA_VIDEO_VencGetStream(int VencChn,VENC_STREAM_S *pstStreamFrame,unsigned int blocktimeMs);
 int MEDIA_VIDEO_VencReleaseStream(int VencChn,VENC_STREAM_S *pstStreamFrame);
 int MEDIA_VIDEO_VencRequstIDR(int VencChn);
-int MEDIA_VIDEO_ViSetImageMono(VI_PIPE ViPipe);
 int MEDIA_VIDEO_VoInit(PARAM_VO_CFG_S * pstVoCtx);
 int MEDIA_VIDEO_VoDeinit(PARAM_VO_CFG_S * pstVoCtx);
 

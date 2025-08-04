@@ -14,19 +14,26 @@
 #include "vo_uapi.h"
 #include "rgn_uapi.h"
 #include "ldc_uapi.h"
+#if CONFIG_SUPPORT_VI
 #include "sensor_cfg.h"
+#include "cvi_vi.h"
+#include "cvi_isp.h"
+#include "cvi_comm_cif.h"
+#include "cvi_sns_ctrl.h"
+#include "vi_isp.h"
+#include "vi_snsr_i2c.h"
+#include "cvi_ae_comm.h"
+#include "cvi_awb_comm.h"
+#include "cvi_awb.h"
+#include "cvi_ae.h"
+#endif
 #include "cvi_type.h"
 #include "cvi_param.h"
 #include "cvi_vb.h"
 #include "cvi_sys.h"
-#include "cvi_vi.h"
 #include "cvi_vpss.h"
-#include "cvi_isp.h"
 #include "cvi_buffer.h"
 #include "cvi_math.h"
-#include "cvi_comm_cif.h"
-#include "cvi_sns_ctrl.h"
-#include "vi_isp.h"
 #include "cvi_mipi_tx.h"
 #if (!defined(CONFIG_SUPPORT_VO) || (CONFIG_SUPPORT_VO))
 #include "dsi_panels.h"
@@ -35,13 +42,7 @@
 #include "cvi_gdc.h"
 #include "cvi_vo.h"
 #include "cvi_venc.h"
-#include "vi_snsr_i2c.h"
 #include "cvi_region.h"
-
-#include "cvi_ae_comm.h"
-#include "cvi_awb_comm.h"
-#include "cvi_awb.h"
-#include "cvi_ae.h"
 #include "cvi_bin.h"
 #include "drv/common.h"
 
@@ -121,6 +122,7 @@ ERROR_HANDLER:
 	return 0;
 }
 #endif
+#if CONFIG_SUPPORT_VI
 static int start_isp(ISP_PUB_ATTR_S stPubAttr, ISP_FUNC_FROM_OUT_S stISP_FunctionFromOut, VI_PIPE ViPipe)
 {
 	//Param init
@@ -646,13 +648,14 @@ static int _MEDIA_VIDEO_ViDeInit()
     PARAM_VI_CFG_S * pstViCfg = PARAM_getViCtx();
     return MEDIA_VIDEO_ViDeinit(pstViCfg);
 }
+#endif
 
 int MEDIA_VIDEO_SysInit()
 {
     //sys/base init
     sys_core_init();
     //vip init
-#if !CONFIG_CV1811C_JD9165
+#if CONFIG_SUPPORT_VI
     cvi_cif_init();
     cvi_snsr_i2c_probe();
     vi_core_init();
@@ -742,7 +745,10 @@ int MEDIA_VIDEO_VpssInit(PARAM_VPSS_CFG_S * pstVpssCtx)
     VPSS_GRP VpssGrp = 0;
     VPSS_GRP_ATTR_S * pstVpssGrp = NULL;
     VPSS_CHN_ATTR_S * pstVpssChn = NULL;
+    #if CONFIG_SUPPORT_VI
     VI_DEV_ATTR_S stViDevAttr = {0};
+    #endif
+
     CVI_U8 i = 0;
     CVI_U8 j = 0;
     PARAM_SYS_CFG_S * pstSysCtx = PARAM_getSysCtx();
@@ -757,6 +763,7 @@ int MEDIA_VIDEO_VpssInit(PARAM_VPSS_CFG_S * pstVpssCtx)
         }
         pstVpssGrp = &pstVpssCtx->pstVpssGrpCfg[i].stVpssGrpAttr;
         VpssGrp = pstVpssCtx->pstVpssGrpCfg[i].VpssGrp;
+        #if CONFIG_SUPPORT_VI
         if (pstVpssCtx->pstVpssGrpCfg[i].s32BindVidev != -1) {
             MEDIA_CHECK_RET(getDevAttr(pstVpssCtx->pstVpssGrpCfg[i].s32BindVidev, &stViDevAttr), "getDevAttr fail");
             if(pstVpssCtx->pstVpssGrpCfg[i].u8ViRotation == 90) {
@@ -767,6 +774,7 @@ int MEDIA_VIDEO_VpssInit(PARAM_VPSS_CFG_S * pstVpssCtx)
                 pstVpssGrp->u32MaxH = stViDevAttr.stSize.u32Height;
             }
         }
+        #endif
         MEDIA_CHECK_RET(CVI_VPSS_CreateGrp(VpssGrp, pstVpssGrp), "CVI_VPSS_CreateGrp failed\n");
         for(j = 0; j < pstVpssCtx->pstVpssGrpCfg[i].u8ChnCnt; j++) {
             pstVpssChn = &pstVpssCtx->pstVpssGrpCfg[i].pstChnCfg[j].stVpssChnAttr;
@@ -1649,20 +1657,20 @@ int MEDIA_VIDEO_Init(CVI_BOOL isRawReplayMode)
         MEDIABUG_PRINTF("pstModuleCtx null err\n");
         return CVI_FAILURE;
     }
-
+#if CONFIG_SUPPORT_VI
     if (isRawReplayMode) {
         PARAM_Reinit_RawReplay();
     }
-
+#endif
     //calling sys init after deinit when raw replay
     if (!isRawReplayMode && pstModuleCtx->alios_sys_mode) {
         MEDIA_CHECK_RET(_MEDIA_VIDEO_SysVbInit(),"MEDIA_VIDEO_SysVbInit failed");
     }
-
+#if CONFIG_SUPPORT_VI
     if (pstModuleCtx->alios_vi_mode) {
         MEDIA_CHECK_RET(_MEDIA_VIDEO_ViInit(),"MEDIA_VIDEO_ViInit failed");
     }
-
+#endif
     if (pstModuleCtx->alios_vpss_mode) {
         MEDIA_CHECK_RET(_MEDIA_VIDEO_VpssInit(),"MEDIA_VIDEO_VpssInit failed");
     }
@@ -1715,22 +1723,22 @@ int MEDIA_VIDEO_Deinit(CVI_BOOL isRawReplayMode)
     if (pstModuleCtx->alios_vpss_mode) {
         MEDIA_CHECK_RET(_MEDIA_VIDEO_VpssDeinit(),"MEDIA_VIDEO_VpssDeinit failed");
     }
-
+#if CONFIG_SUPPORT_VI
     if (pstModuleCtx->alios_vi_mode) {
         MEDIA_CHECK_RET(_MEDIA_VIDEO_ViDeInit(),"MEDIA_VIDEO_ViDeInit failed");
     }
-
+#endif
     if (pstModuleCtx->alios_sys_mode) {
         MEDIA_CHECK_RET(MEDIA_VIDEO_SysVbDeinit(),"MEDIA_VIDEO_SysVbDeinit failed");
     }
-
+#if CONFIG_SUPPORT_VI
     if (isRawReplayMode) {//calling sys init after deinit for that mallocing vb for raw
         PARAM_Reinit_RawReplay();
         if (pstModuleCtx->alios_sys_mode) {
             MEDIA_CHECK_RET(_MEDIA_VIDEO_SysVbInit(),"MEDIA_VIDEO_SysVbInit failed");
         }
     }
-
+#endif
     return CVI_SUCCESS;
 }
 
