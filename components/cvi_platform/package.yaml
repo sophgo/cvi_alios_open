@@ -49,6 +49,7 @@ build_config:
 source_file:
   - media/src/*.c
   - param/src/*.c
+  - media/utils/md5sum.c ? <CONFIG_CV184X_SLT>
 
 # - ./hichannel_test/
 ## 第五部分：配置信息

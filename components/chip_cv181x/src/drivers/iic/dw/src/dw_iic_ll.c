@@ -48,20 +48,31 @@ void dw_iic_set_target_address(dw_iic_regs_t *iic_base, uint32_t address)
 int32_t dw_iic_xfer_init(dw_iic_regs_t *iic_base, uint32_t dev_addr,
                          uint16_t reg_addr, uint8_t reg_addr_len)
 {
-    if (dw_iic_wait_for_bb(iic_base)) {
-        return CSI_ERROR;
-    }
+    csi_error_t ret = CSI_OK;
 
     dw_iic_set_target_address(iic_base, dev_addr);
     dw_iic_enable(iic_base);
     dw_iic_set_reg_address(iic_base, reg_addr, reg_addr_len);
 
-    return CSI_OK;
+    // Check for NACK errors
+    if ((iic_base->IC_TX_ABRT_SOURCE & DW_IIC_TX_ABRT_7B_ADDR_NOACK) ||
+        (iic_base->IC_TX_ABRT_SOURCE & DW_IIC_TX_ABRT_10ADDR1_NOACK) ||
+        (iic_base->IC_TX_ABRT_SOURCE & DW_IIC_TX_ABRT_10ADDR2_NOACK)){
+        printf("nonack:%#x\r\n", iic_base->IC_TX_ABRT_SOURCE);
+
+        // Clear abort status in preparation for possible recovery
+        iic_base->IC_CLR_TX_ABRT;
+
+        ret = CSI_ERROR;
+    }
+
+    return ret;
 }
 
 int32_t dw_iic_xfer_finish(dw_iic_regs_t *iic_base)
 {
     uint16_t timeout = 0;
+    csi_error_t ret = CSI_OK;
 	while (1) {
 		if (iic_base->IC_RAW_INTR_STAT & DW_IIC_RAW_STOP_DET) {
 			iic_base->IC_CLR_STOP_DET;
@@ -70,19 +81,16 @@ int32_t dw_iic_xfer_finish(dw_iic_regs_t *iic_base)
             timeout++;
 			udelay(5);
             if (timeout > 10000) {
-				log("xfer finish tiemout\n");
+				printf("xfer finish timeout:%#x\r\n", iic_base->IC_RAW_INTR_STAT);
+                ret = CSI_TIMEOUT;
 			    break;
 			}
 		}
 	}
 
-	if (dw_iic_wait_for_bb(iic_base)) {
-		return CSI_ERROR;
-	}
-
 	dw_iic_flush_rxfifo(iic_base);
 
-	return CSI_OK;
+	return ret;
 }
 
 void dw_iic_set_transfer_speed_high(dw_iic_regs_t *iic_base)

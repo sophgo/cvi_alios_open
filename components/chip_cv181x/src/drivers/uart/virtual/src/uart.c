@@ -121,6 +121,11 @@ static uint32_t push_string_to_buffer(csi_uart_t *uart, const uint8_t *data, uin
 
 csi_error_t csi_uart_init(csi_uart_t *uart, uint32_t idx)
 {
+    // clear sharebuff
+    for (int i = 0; i < UART_SHARE_BUFFER_SIZE; i+=4) {
+        mmio_write_32(UART_SHARE_BUFFER + i, 0xffffffff);
+    }
+
     CSI_PARAM_CHK(uart, CSI_ERROR);
 
     csi_error_t ret = CSI_OK;

@@ -389,6 +389,15 @@ typedef struct _ISP_AF_RESULT_S {
 	CVI_S32 s32Rsv;
 } ISP_AF_RESULT_S;
 
+typedef struct _ISP_AF_ZONE_FOCUS_ATTR_S {
+	CVI_BOOL enable;
+	CVI_U8 u8ZoneWeight;
+	CVI_U32 u32ZoneX;
+	CVI_U32 u32ZoneY;
+	CVI_U32 u32ZoneWidth;
+	CVI_U32 u32ZoneHeight;
+} ISP_AF_ZONE_FOCUS_ATTR_S;
+
 typedef struct _ISP_AE_STITCH_STATISTICS_S {
 	CVI_U32 enable;
 } ISP_AE_STITCH_STATISTICS_S;

@@ -32,5 +32,5 @@ int MEDIA_VIDEO_VencRequstIDR(int VencChn);
 int MEDIA_VIDEO_ViSetImageMono(VI_PIPE ViPipe);
 int MEDIA_VIDEO_VoInit(PARAM_VO_CFG_S * pstVoCtx);
 int MEDIA_VIDEO_VoDeinit(PARAM_VO_CFG_S * pstVoCtx);
-
+int MEDIA_VIO_VCODEC_SLT(CVI_S32 frmNum);
 #endif

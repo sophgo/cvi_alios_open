@@ -14,6 +14,7 @@
 #include "cvi_msg_server.h"
 #include "app_param.h"
 #include <drv/pwm.h>
+#include <drv/tick.h>
 
 #include "media_driver.h"
 #if CONFIG_PQTOOL_SUPPORT == 1
@@ -120,6 +121,9 @@ static int start_pwm(void)
 
 int main(int argc, char *argv[])
 {
+	uint64_t t1, t2, t3, t4, t5, t6, t7, t8;
+
+	t1 = csi_tick_get_us();
 	//board pinmux init
 	PLATFORM_IoInit();
 	PLATFORM_PanelInit();
@@ -134,20 +138,24 @@ int main(int argc, char *argv[])
 	//Fs init
 	//YOC_SYSTEM_FsVfsInit();
 
+	t2 = csi_tick_get_us();
 	//load cfg
 	PARAM_LoadCfg();
-
+	t3 = csi_tick_get_us();
 	//video driver init
 	media_driver_init();
+	t4 = csi_tick_get_us();
 
 #ifdef CONFIG_AUD_DRV_SEL
 	//audio driver init
 	MEDIA_AUDIO_Init();
 #endif
+	t5 = csi_tick_get_us();
 
-	ipcm_driver_test_init();
+	//ipcm_driver_test_init();
 
 	CVI_MSG_Init();
+	t6 = csi_tick_get_us();
 
 	// ipcm_anon_init();
 #ifdef CONFIG_RTOS_PARSE_PARAM
@@ -155,11 +163,28 @@ int main(int argc, char *argv[])
 #endif
 
   	start_pwm();
+	t7 = csi_tick_get_us();
 
 #ifdef CONFIG_RTOS_INIT_MEDIA
 	//start video
 	MEDIA_VIDEO_Init(0);
+	t8 = csi_tick_get_us();
 #endif
+
+#if (CONFIG_CV184X_SLT)
+	MEDIA_VIO_VCODEC_SLT(1);
+#endif
+
+	printf("bootup timestamp: %ld(us)\n", t1);
+	printf("media init done timestamp: %ld(us)\n", t8);
+	printf("\n===The duration of each stage===\n");
+	printf("yoc system init: %ld(us)\n", t2 - t1);
+	printf("PARAM_LoadCfg: %ld(us)\n", t3 - t2);
+	printf("media_driver_init: %ld(us)\n", t4 - t3);
+	printf("MEDIA_AUDIO_Init: %ld(us)\n", t5 - t4);
+	printf("CVI_MSG_Init: %ld(us)\n", t6 - t5);
+	printf("start_pwm: %ld(us)\n", t7 - t6);
+	printf("MEDIA_VIDEO_Init: %ld(us)\n", t8 - t7);
 
 #if 0
 	//network

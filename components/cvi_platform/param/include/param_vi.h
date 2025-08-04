@@ -43,10 +43,15 @@ typedef struct _PARAM_SNS_CFG_S {
 typedef struct _PARAM_DEV_CFG_S {
     void			*pViDmaBuf;
     CVI_U32			u32ViDmaBufSize;
+    CVI_U32			u32Width;
+    CVI_U32			u32Height;
+    CVI_U32			u32Fps;
 } PARAM_DEV_CFG_S;
 
 typedef struct _PARAM_PIPE_CFG_S {
     CVI_S32			pipe[VI_MAX_PIPE_NUM];
+    CVI_U32			u32Width;
+    CVI_U32			u32Height;
 } PARAM_PIPE_CFG_S;
 
 typedef struct _PARAM_CHN_CFG_S {
@@ -91,6 +96,7 @@ typedef struct _PARAM_VI_CFG_S {
     CVI_U32			u32WorkSnsCnt;
     CVI_U32			u32IspSceneNum;
     CVI_BOOL		bFastConverge;
+    CVI_BOOL		bPatgen;
     //CVI_U32		u32Depth;
     //SIZE_S		stSize;
     PARAM_SNS_CFG_S	*pstSensorCfg;

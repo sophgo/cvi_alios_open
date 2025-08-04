@@ -199,6 +199,25 @@ CVI_S32 CVI_ISP_SetAFVcmAttr(VI_PIPE ViPipe, const ISP_AF_VCM_ATTR_S *pstVCMAttr
  * return: Function run success or not
  */
 CVI_S32 CVI_ISP_GetAFVcmAttr(VI_PIPE ViPipe, ISP_AF_VCM_ATTR_S *pstVCMAttr);
+/* CVI_ISP_SetAFFocusZone:
+ *    set zone focus attr
+ * [in]
+ *    ViPipe: pipe id
+ * [out]
+ *	  pstAfZoneFocusAttr: zone focus attr
+ * return: Function run success or not
+ */
+CVI_S32 CVI_ISP_SetAFZoneFocusAttr(VI_PIPE ViPipe, const ISP_AF_ZONE_FOCUS_ATTR_S *pstAfZoneFocusAttr);
+/* CVI_ISP_GetAFFocusZone:
+ *    get zone focus attr
+ * [in]
+ *    ViPipe: pipe id
+ * [out]
+ *	  pstAfZoneFocusAttr: zone focus attr
+ * return: Function run success or not
+ */
+CVI_S32 CVI_ISP_GetAFZoneFocusAttr(VI_PIPE ViPipe, ISP_AF_ZONE_FOCUS_ATTR_S *pstAfZoneFocusAttr);
+
 #ifdef __cplusplus
 #if __cplusplus
 }

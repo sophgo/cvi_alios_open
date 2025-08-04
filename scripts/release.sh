@@ -37,37 +37,13 @@ fi
 LOCAL_DIR=${TOP_DIR}/"cvi_alios"
 
 LIB_RLS_LIST=(
-	"libosal.a"
-	"libbase.a"
-	"libsys.a"
-	"libsnsr_i2c.a"
-	"libcif.a"
-	"libvi.a"
-	"libvpss.a"
-	"librgn.a"
 	"libvc_drv.a"
-	"libldc.a"
-	"libmipi_tx.a"
-	"libvo.a"
-	"libcvi_mw_sys.a"
-	"libcvi_mw_cif.a"
-	"libcvi_mw_sensor.a"
-	"libcvi_mw_vi.a"
 	"libcvi_mw_isp_ae.a"
 	"libcvi_mw_isp_af.a"
 	"libcvi_mw_isp_awb.a"
 	"libcvi_mw_isp_algo.a"
 	"libcvi_mw_isp.a"
-	"libcvi_mw_vpss.a"
-	"libcvi_mw_mipi_tx.a"
-	"libcvi_mw_vo.a"
-	"libcvi_mw_rgn.a"
-	"libcvi_mw_gdc.a"
-	"libcvi_mw_venc.a"
-	"libcvi_mw_vdec.a"
 	"libcvi_mw_audio.a"
-	"libcvi_link.a"
-	"libcvi_msg.a"
 )
 
 pushd $LOCAL_DIR &>/dev/null
@@ -79,29 +55,20 @@ do
 	find ./ -name "$lib" -type f -exec cp -lf {} "$INSTALL_FOLDER"/components/cvi_mmf_sdk/lib/ \;
 done
 
-#copy mw include
-mkdir -p "$INSTALL_FOLDER"/components/cvi_mmf_sdk/cvi_middleware
-cp -rlf ./components/cvi_mmf_sdk/cvi_middleware/include "$INSTALL_FOLDER"/components/cvi_mmf_sdk/cvi_middleware/
+#copy isp include
+mkdir -p "$INSTALL_FOLDER"/components/cvi_mmf_sdk/cvi_middleware/include/isp
+cp -rf ${TOP_DIR}/cvi_mpi/modules/isp/include/cv184x  "$INSTALL_FOLDER"/components/cvi_mmf_sdk/cvi_middleware/include/isp/
+cp -f ${TOP_DIR}/cvi_mpi/modules/isp/algo/3A_internal.h  "$INSTALL_FOLDER"/components/cvi_mmf_sdk/cvi_middleware/include/isp/cv184x/
 
-#copy msg include
-mkdir -p "$INSTALL_FOLDER"/components/cvi_mmf_sdk/cvi_msg
-cp -rlf ./components/cvi_mmf_sdk/cvi_msg/include "$INSTALL_FOLDER"/components/cvi_mmf_sdk/cvi_msg/
-
-#copy panel
-cp -rlf ./components/cvi_mmf_sdk/cvi_panel "$INSTALL_FOLDER"/components/cvi_mmf_sdk/
-
-#copy sensor softlink
-ln -sf ../../../build/media/SensorSupportList "$INSTALL_FOLDER"/components/cvi_mmf_sdk/
-
-#copy ipcm softlink
-mkdir -p "$INSTALL_FOLDER"/components/cvi_mmf_sdk/cvi_osdrv
-ln -sf ../../../../osdrv/interdrv/ipcm "$INSTALL_FOLDER"/components/cvi_mmf_sdk/cvi_osdrv/
+#copy audio include
+mkdir -p "$INSTALL_FOLDER"/components/cvi_mmf_sdk/cvi_middleware/cvi_mw_audio
+cp -rf ./components/cvi_mmf_sdk/cvi_middleware/cvi_mw_audio/include "$INSTALL_FOLDER"/components/cvi_mmf_sdk/cvi_middleware/cvi_mw_audio/
 
 if [ -f "./solutions/fastboot/package_yamls/package.yaml.turnkey.release" ]; then
 cp ./solutions/fastboot/package_yamls/package.yaml.turnkey.release "$INSTALL_FOLDER"/solutions/fastboot/package_yamls/package.yaml.turnkey
 fi
 if [ -f "./solutions/normboot/package_yamls/package.yaml.turnkey.release" ]; then
-mv ./solutions/normboot/package_yamls/package.yaml.turnkey.release "$INSTALL_FOLDER"/solutions/normboot/package_yamls/package.yaml.turnkey
+cp ./solutions/normboot/package_yamls/package.yaml.turnkey.release "$INSTALL_FOLDER"/solutions/normboot/package_yamls/package.yaml.turnkey
 fi
 
 popd &>/dev/null

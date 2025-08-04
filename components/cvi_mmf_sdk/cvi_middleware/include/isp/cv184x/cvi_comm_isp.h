@@ -2425,10 +2425,12 @@ typedef struct _ISP_TNR_NR_ATTR_S {
 
 typedef struct _ISP_TNR_MANUAL_ATTR_S {
 	CVI_U8 DyBlurStr; /*Rw; Range:[0, 0x3]*/
+	CVI_U8 DyBlurYWt[TNR_STATUS_NUM]; /*Rw; Range:[0, 0xF]*/
 } ISP_TNR_MANUAL_ATTR_S;
 
 typedef struct _ISP_TNR_AUTO_ATTR_S {
 	CVI_U8 DyBlurStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*Rw; Range:[0, 0x3]*/
+	CVI_U8 DyBlurYWt[TNR_STATUS_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*Rw; Range:[0, 0xF]*/
 } ISP_TNR_AUTO_ATTR_S;
 
 typedef struct _ISP_TNR_ATTR_S {
@@ -2436,7 +2438,6 @@ typedef struct _ISP_TNR_ATTR_S {
 	ISP_OP_TYPE_E enOpType;
 	CVI_U8 updateInterval; /*Rw; Range:[0, 0xFF]*/
 	CVI_U8 DbgMode; /*Rw; Range:[0, 0x08]*/
-	CVI_U8 DyBlurYWt[TNR_STATUS_NUM]; /*Rw; Range:[0, 0xF]*/
 	CVI_U8 DyBlurUVWt; /*Rw; Range:[0, 0xF]*/
 	CVI_U8 DyBlurJndTh; /*Rw; Range:[0, 0x1F]*/
 	ISP_TNR_MANUAL_ATTR_S stManual;

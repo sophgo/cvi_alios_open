@@ -11,6 +11,9 @@
 #include <drv/porting.h>
 #include <aos/cli.h>
 //#include <timer.h>
+#include <drv/pin.h>
+#include <pinctrl-mars.h>
+#include <unistd.h>
 
 #include "dw_iic_ll.h"
 
@@ -1028,6 +1031,195 @@ csi_error_t csi_iic_master_receive_async(csi_iic_t  *iic, uint32_t devaddr, void
     return ret;
 }
 
+#define GPIO_PIN_MASK(_gpio_num) (1 << _gpio_num)
+void _gpio_set_val(uint8_t gpio_grp, uint8_t gpio_num, uint8_t level)
+{
+    csi_error_t ret;
+    csi_gpio_t gpio = {0};
+
+    ret = csi_gpio_init(&gpio, gpio_grp);
+    if(ret != CSI_OK) {
+        printf("csi_gpio_init failed\r\n");
+        return;
+    }
+    // gpio write
+    ret = csi_gpio_dir(&gpio , GPIO_PIN_MASK(gpio_num), GPIO_DIRECTION_OUTPUT);
+
+    if(ret != CSI_OK) {
+        printf("csi_gpio_dir failed\r\n");
+        return;
+    }
+    csi_gpio_write(&gpio , GPIO_PIN_MASK(gpio_num), level);
+}
+
+int32_t _gpio_get_val(uint8_t gpio_grp, uint8_t gpio_num)
+{
+    csi_error_t ret;
+    csi_gpio_t gpio = {0};
+    uint32_t level = 0;
+
+    ret = csi_gpio_init(&gpio, gpio_grp);
+    if(ret != CSI_OK) {
+        printf("csi_gpio_init failed\r\n");
+        return -1;
+    }
+    // gpio write
+    ret = csi_gpio_dir(&gpio , GPIO_PIN_MASK(gpio_num), GPIO_DIRECTION_INPUT);
+
+    if(ret != CSI_OK) {
+        printf("csi_gpio_dir failed\r\n");
+        return -1;
+    }
+    level = csi_gpio_read(&gpio , GPIO_PIN_MASK(gpio_num));
+    return (level & GPIO_PIN_MASK(gpio_num)) >> gpio_num;
+}
+
+#define RECOVERY_UDELAY     20
+#define RECOVERY_CLK_CNT    9
+#define set_scl(val)        _gpio_set_val(0, 5, val)
+#define set_sda(val)        _gpio_set_val(0, 6, val)
+#define get_scl()           _gpio_get_val(0, 5)
+#define get_sda()           _gpio_get_val(0, 6)
+
+/**
+  \brief       recover bus when busy: csi_iic_uninit-->pinmux-->io-->soft reset-->pinmux->csi_iic_init
+  \param[in]   iic            handle to operate.
+  \return      0 if success, -1 if failed
+*/
+int i2c_recover_bus(csi_iic_t *iic)
+{
+    int32_t i = 0;
+    uint32_t i2c_soft_rst_reg_val = 0;
+    dw_iic_regs_t *iic_base = (dw_iic_regs_t *)HANDLE_REG_BASE(iic);
+    uint8_t iic_idx = HANDLE_DEV_IDX(iic);
+
+    /* TODO:only for i2c3 */
+    if(iic_idx != 3){
+        printf("i2c_recover_bus only support i2c3\r\n");
+        return -1;
+    }
+
+    // iic_dump_register(iic_base);
+    /* prepare_recovery */
+    /* csi_iic_uninit(iic) start */
+    dw_iic_clear_all_irq(iic_base);
+    dw_iic_disable_all_irq(iic_base);
+    dw_iic_disable(iic_base);
+    csi_irq_disable((uint32_t)iic->dev.irq_num);
+    csi_irq_detach((uint32_t)iic->dev.irq_num);
+    /* csi_iic_uninit(iic) end */
+    PINMUX_CONFIG(IIC3_SCL, XGPIOA_5);
+    PINMUX_CONFIG(IIC3_SDA, XGPIOA_6);
+    printf("scl:%d sda:%d\r\n", get_scl(), get_sda());
+    printf("Starting I2C bus recovery...\r\n");
+
+    // Step 1: Ensure SDA is high. Recovery operation requires SDA to be high.
+    // set_sda(1) will automatically set SDA pin as output and pull it high.
+    set_sda(1);
+    udelay(RECOVERY_UDELAY);
+
+    // Step 2: Generate 9 clock pulses on SCL to force slave devices to release the bus.
+    // During this clock sequence, SDA must remain high.
+    printf("Generating 9 clock pulses on SCL...\r\n");
+    for (i = 0; i < RECOVERY_CLK_CNT; i++) {
+        // Check if SCL is stuck low
+        if (get_scl() == 0) {
+            printf("SCL is stuck low, cannot recover.\n");
+            // Restore pinmux configuration
+            PINMUX_CONFIG(IIC3_SCL, IIC3_SCL);
+            PINMUX_CONFIG(IIC3_SDA, IIC3_SDA);
+            return -1; // Recovery failed
+        }
+
+        set_scl(0);
+        udelay(RECOVERY_UDELAY);
+        set_scl(1);
+        udelay(RECOVERY_UDELAY);
+
+        // Check if SDA has been released
+        if (get_sda() == 1) {
+            printf("SDA released after %d clock pulses\r\n", i + 1);
+            break;
+        }
+    }
+
+    // Step 3: Generate a standard I2C STOP signal.
+    // STOP signal is defined as: SDA rising edge while SCL is high.
+    printf("Generating a STOP condition...\r\n");
+    set_scl(1); // Ensure SCL is high
+    udelay(RECOVERY_UDELAY / 2);
+    set_sda(0); // Pull SDA low first
+    udelay(RECOVERY_UDELAY);
+    set_sda(1); // Pull SDA high to complete STOP signal
+    udelay(RECOVERY_UDELAY);
+
+    // Check bus state again
+    printf("Recovery sequence finished. Final state -> scl:%d sda:%d\r\n", get_scl(), get_sda());
+
+    // Verify if bus is really idle
+    if (get_scl() == 0 || get_sda() == 0) {
+        printf("Warning: Bus may not be fully recovered. SCL:%d SDA:%d\r\n", get_scl(), get_sda());
+    }
+
+    /* soft reset iic ip*/
+    i2c_soft_rst_reg_val = mmio_read_32(0x03003000);
+    printf("i2c%d_soft_rst_reg_val:%#x\r\n", iic_idx, i2c_soft_rst_reg_val);
+    mmio_write_32(0x03003000, i2c_soft_rst_reg_val & (~(1 << (27 + iic_idx))));
+    udelay(100);  // Add delay to ensure reset takes full effect
+    mmio_write_32(0x03003000, i2c_soft_rst_reg_val | (1 << (27 + iic_idx)));
+    udelay(100);  // Wait for hardware to stabilize after reset release
+
+    /* unprepare_recovery */
+    PINMUX_CONFIG(IIC3_SCL, IIC3_SCL);
+    PINMUX_CONFIG(IIC3_SDA, IIC3_SDA);
+    udelay(50);   // Wait for pinmux configuration to take effect
+
+    /* csi_iic_init(iic, idx) start */
+    // Ensure I2C controller is fully disabled
+    dw_iic_disable(iic_base);
+    udelay(10);
+
+    // Clear all interrupt and error states
+    dw_iic_clear_all_irq(iic_base);
+    dw_iic_disable_all_irq(iic_base);
+
+    // Clear TX_ABRT state - this is critical!
+    iic_base->IC_CLR_TX_ABRT;
+
+    // Reset software state
+    iic_base->IC_SAR = 0;
+    iic->state.writeable = 1U;
+    iic->state.readable  = 1U;
+    iic->state.error     = 0U;
+    iic->send = NULL;
+    iic->receive = NULL;
+    iic->rx_dma = NULL;
+    iic->tx_dma = NULL;
+    iic->callback = NULL;
+
+    // Reconfigure I2C controller
+    dw_iic_set_receive_fifo_threshold(iic_base, 0x1);
+    dw_iic_set_transmit_fifo_threshold(iic_base, 0x0);
+    dw_iic_set_sda_hold_time(iic_base, 0x1e);
+    csi_iic_mode(iic, IIC_MODE_MASTER);
+    dw_iic_enable_restart(iic_base);
+    /* csi_iic_init(iic, idx) end */
+
+    csi_iic_addr_mode(iic, IIC_ADDRESS_7BIT);
+    csi_iic_speed(iic, IIC_BUS_SPEED_FAST);
+
+    // Final wait to ensure all configurations take effect
+    udelay(100);
+
+    // Clear possible abort state again
+    iic_base->IC_CLR_TX_ABRT;
+
+    printf("I2C recovery completed successfully\r\n");
+    // iic_dump_register(iic_base);
+
+    return 0;  // Recovery successful
+}
+
 /**
   \brief       Start transmitting data as IIC Master.
                This function is blocking
@@ -1065,8 +1257,19 @@ int32_t csi_iic_mem_send(csi_iic_t *iic, uint32_t devaddr, uint16_t memaddr, csi
     }
 
     if (dw_iic_xfer_init(iic_base, devaddr, memaddr, memaddr_len)) {
-        ret = CSI_ERROR;
-        goto SEND_ERROR;
+        printf("I2C transfer init failed, starting recovery...\r\n");
+        if (i2c_recover_bus(iic) == 0) {
+            // Recovery successful, try initialization again
+            if (dw_iic_xfer_init(iic_base, devaddr, memaddr, memaddr_len)) {
+                printf("I2C transfer init failed again after recovery\r\n");
+                ret = CSI_ERROR;
+                goto SEND_ERROR;
+            }
+        } else {
+            printf("I2C bus recovery failed\r\n");
+            ret = CSI_ERROR;
+            goto SEND_ERROR;
+        }
     }
 
     timecount = timeout + csi_tick_get_ms();
@@ -1089,10 +1292,12 @@ int32_t csi_iic_mem_send(csi_iic_t *iic, uint32_t devaddr, uint16_t memaddr, csi
 
     if (dw_iic_xfer_finish(iic_base)) {
         ret = CSI_ERROR;
+        i2c_recover_bus(iic);  // No need to check return value here since error already occurred
         goto SEND_ERROR;
     }
 
 SEND_ERROR:
+    dw_iic_clear_all_irq(iic_base);
     dw_iic_disable(iic_base);
     aos_mutex_unlock(&iic_list[iic_idx].tx_mutex);
     return (ret == CSI_OK) ? size : ret;
@@ -1136,8 +1341,19 @@ int32_t csi_iic_mem_receive(csi_iic_t *iic, uint32_t devaddr, uint16_t memaddr, 
     }
 
     if (dw_iic_xfer_init(iic_base, devaddr, memaddr, memaddr_len)) {
-        ret = CSI_ERROR;
-        goto RECV_ERROR;
+        printf("I2C transfer init failed, starting recovery...\r\n");
+        if (i2c_recover_bus(iic) == 0) {
+            // Recovery successful, try initialization again
+            if (dw_iic_xfer_init(iic_base, devaddr, memaddr, memaddr_len)) {
+                printf("I2C transfer init failed again after recovery\r\n");
+                ret = CSI_ERROR;
+                goto RECV_ERROR;
+            }
+        } else {
+            printf("I2C bus recovery failed\r\n");
+            ret = CSI_ERROR;
+            goto RECV_ERROR;
+        }
     }
 
     timecount = timeout + csi_tick_get_ms();
@@ -1170,10 +1386,12 @@ int32_t csi_iic_mem_receive(csi_iic_t *iic, uint32_t devaddr, uint16_t memaddr, 
 
     if (dw_iic_xfer_finish(iic_base)) {
         ret = CSI_ERROR;
+        i2c_recover_bus(iic);  // No need to check return value here since error already occurred
         goto RECV_ERROR;
     }
 
 RECV_ERROR:
+    dw_iic_clear_all_irq(iic_base);
     dw_iic_disable(iic_base);
     aos_mutex_unlock(&iic_list[iic_idx].rx_mutex);
     return (ret == CSI_OK) ? size : ret;
