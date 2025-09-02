@@ -101,7 +101,7 @@ build_config:
     - src/drivers/uart/dw/v1.0/include
     - src/drivers/iic/dw/include
     - src/drivers/adc/cvi/include
-    - src/drivers/pwm/cvi/v1.0/include
+    - src/drivers/pwm/cvi/v2.0/include
     - src/drivers/sha/cvi/include
     - src/drivers/net/ethernet/dw/include
     - src/drivers/net/phy/include
@@ -151,7 +151,7 @@ source_file:
   # - src/drivers/pin/cvi/src/*.c
   # - src/drivers/gpio/cvi/src/*.c
   # - src/drivers/adc/cvi/src/*.c
-  - src/drivers/pwm/cvi/v1.0/src/*.c
+  - src/drivers/pwm/cvi/v2.0/src/*.c
   - src/drivers/wdt/cvi/src/*.c
   - src/drivers/dma/cvi/src/cvi_dma.c
   - src/drivers/dma/cvi/src/csi_dma.c

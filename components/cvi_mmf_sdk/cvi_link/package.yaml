@@ -1,7 +1,7 @@
 ## 第一部分： 基础信息
 name: cvi_link                                  # <必选项> 包名称 （符合C语言变量命名规则），长度少于等于64字节
 version: v0.0.1                                     # <必选项> 组件版本号
-description: cv181x MMF library.                    # <必选项> 建议至少20字以上
+description: cv184x MMF library.                    # <必选项> 建议至少20字以上
 type: common                                          # <必选项> 组件类型，为：solution, chip, board, common, sdk
 tag: 核心模块                                       # <可选项> 组件分类，缺省值： ''
 keywords:                                           # <可选项> 标签，会影响到组件被搜索的效果，合理的标签很重要

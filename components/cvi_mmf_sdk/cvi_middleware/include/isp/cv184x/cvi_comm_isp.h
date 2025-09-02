@@ -1870,6 +1870,8 @@ typedef struct _ISP_PRESHARPEN_ATTR_S {
 	CVI_BOOL ParamAutoEn; /*RW; Range:[0x0, 0x1]*/
 	CVI_BOOL SatShtCtrlEn; /*RW; Range:[0, 1]*/
 	CVI_BOOL EdgeOutFormat; /*RW; Range:[0x0, 0x1]*/
+	CVI_U8 ReduceByEvRatioThr; /*RW; Range:[0x40, 0xff]*/
+	CVI_U8 ReduceByEvRatioStr; /*RW; Range:[0x0, 0xff]*/
 	ISP_PRESHARPEN_MANUAL_ATTR_S stManual;
 	ISP_PRESHARPEN_AUTO_ATTR_S stAuto;
 } ISP_PRESHARPEN_ATTR_S;
@@ -2001,7 +2003,6 @@ typedef struct _ISP_VC_ATTR_S {
 #define FS_DIFF_DW_LENGTH 16
 #define FS_FLUMW_LUT_LENGTH 17
 typedef enum _ISP_MCURVE_MODE_E {
-	MCURVE_DEFAULT = 0,
 	MCURVE_AUTO,
 	MCURVE_MANUAL_SEMAX,
 	MCURVE_MODE_MAX
@@ -2036,8 +2037,10 @@ typedef struct _ISP_FSHDR_ATTR_S {
 	CVI_U8 NDBldDiffLut[FS_DIFF_DW_LENGTH]; /*RW; Range:[0, 0x10]*/
 	// map curve
 	CVI_BOOL MCurveEnable; /*RW; Range:[0, 1]*/
-	ISP_MCURVE_MODE_E MCurveMode; /*RW; Range:[0, 2]*/
+	ISP_MCURVE_MODE_E MCurveMode;
+	CVI_U16 MCurveAutoSEMin; /*RW: Range[0, 0xFFF]*/
 	CVI_U16 MCurveManualSEMax; /*RW: Range[0, 0xFFF]*/
+	CVI_U8 MCurveSmooth; /*RW: Range[0, 0xFF]*/
 	CVI_U16 MCurveDelta; /*RW: Range[0, 0x2710]*/
 	CVI_U16 MCurveX1; /*RW: Range[0, 0xFFFF]*/
 	CVI_U8 MCurveBldRatio; /*RW: Range[0, 0xa]*/
@@ -2046,6 +2049,13 @@ typedef struct _ISP_FSHDR_ATTR_S {
 	CVI_U8 MCurveYvWet; /*RW: Range[0, 0x08]*/
 	CVI_U8 MCurveFlumWet[FS_FLUMW_LUT_LENGTH];/*RW: Range[0, 0xFF]*/
 } ISP_FSHDR_ATTR_S;
+
+typedef struct _ISP_FSHDR_MAP_CURVE_INFO_S {
+	CVI_U8 EV_FMT;
+	CVI_U32 MapCurveL[65];
+	CVI_U32 MapCurveR[17];
+	CVI_U32 MapCurveEnd[17];
+} ISP_FSHDR_MAP_CURVE_INFO_S;
 
 //-----------------------------------------------------------------------------
 //  DPC
@@ -2200,6 +2210,7 @@ typedef struct _ISP_PFR_ATTR_S {
 	CVI_BOOL Enable; /*RW; Range:[0, 1]*/
 	ISP_OP_TYPE_E enOpType;
 	CVI_U8 UpdateInterval; /*RW: Range[0x0, 0xFF]*/
+	CVI_BOOL TuningMode; /*RW; Range:[0, 1]*/
 
 	CVI_BOOL LumaEN; /*RW; Range:[0, 1]*/
 	CVI_BOOL UVENLut[PFR_COLOR_NUM]; /*RW; Range:[0, 1]*/
@@ -2577,6 +2588,34 @@ typedef struct _ISP_CNR_FILTER_ATTR_S {
 	ISP_CNR_FILTER_MANUAL_ATTR_S stManual;
 	ISP_CNR_FILTER_AUTO_ATTR_S stAuto;
 } ISP_CNR_FILTER_ATTR_S;
+
+typedef struct _ISP_ModuleEn_ATTR_S {
+	CVI_BOOL Mlsc;
+	CVI_BOOL Fusion;
+	CVI_BOOL MapCurve;
+	CVI_BOOL Dpc;
+	CVI_BOOL CrossTalk;
+	CVI_BOOL Bnr;
+	CVI_BOOL Blc;
+	CVI_BOOL Rlsc;
+	CVI_BOOL Drc;
+	CVI_BOOL Demosaic;
+	CVI_BOOL Pfr;
+	CVI_BOOL Ccm;
+	CVI_BOOL Gamma;
+	CVI_BOOL Clut;
+	CVI_BOOL Csc;
+	CVI_BOOL Ldci;
+	CVI_BOOL Dci;
+	CVI_BOOL PreSharpen;
+	CVI_BOOL Tnr;
+	CVI_BOOL Cnr;
+	CVI_BOOL Sharpen;
+	CVI_BOOL Ca;
+	CVI_BOOL Ca2;
+	CVI_BOOL YContrast;
+	CVI_BOOL Mono;
+} ISP_ModuleEn_ATTR_S;
 
 #ifdef __cplusplus
 #if __cplusplus

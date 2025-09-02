@@ -3,7 +3,7 @@
 #include <ulog/ulog.h>
 #include <unistd.h>
 
-#include "cv181x_snd.h"
+#include "cvi_snd.h"
 #include "cvi_sys.h"
 #include "cvi_vb.h"
 #include "cvi_vdec.h"

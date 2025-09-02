@@ -157,6 +157,7 @@ CVI_S32 CVI_ISP_GetColorToneAttr(VI_PIPE ViPipe, ISP_COLOR_TONE_ATTR_S *pstColor
 //-----------------------------------------------------------------------------
 CVI_S32 CVI_ISP_SetFSHDRAttr(VI_PIPE ViPipe, const ISP_FSHDR_ATTR_S *pstFSHDRAttr);
 CVI_S32 CVI_ISP_GetFSHDRAttr(VI_PIPE ViPipe, ISP_FSHDR_ATTR_S *pstFSHDRAttr);
+CVI_S32 CVI_ISP_GetFSHDRMapCurveInfo(VI_PIPE ViPipe, ISP_FSHDR_MAP_CURVE_INFO_S *pstFSHDRMapCurveInfo);
 
 //-----------------------------------------------------------------------------
 //  DRC
@@ -302,6 +303,9 @@ CVI_S32 CVI_ISP_SetBypassFrm(VI_PIPE ViPipe, CVI_U8 bypassNum);
 CVI_S32 CVI_ISP_GetBypassFrm(VI_PIPE ViPipe, CVI_U8 *pbypassNum);
 
 CVI_S32 CVI_ISP_GetIspRunState(VI_PIPE ViPipe, CVI_BOOL *bIspRun);
+
+CVI_S32 CVI_ISP_SetModuleEnAttr(VI_PIPE ViPipe, const ISP_ModuleEn_ATTR_S *pstModuleEnAttr);
+CVI_S32 CVI_ISP_GetModuleEnAttr(VI_PIPE ViPipe, ISP_ModuleEn_ATTR_S *pstModuleEnAttr);
 
 #ifdef __cplusplus
 #if __cplusplus

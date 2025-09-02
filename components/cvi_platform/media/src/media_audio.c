@@ -1,5 +1,5 @@
 #include "media_audio.h"
-#include "cv181x_snd.h"
+#include "cvi_snd.h"
 #include "cvi_type.h"
 #include <stddef.h>
 

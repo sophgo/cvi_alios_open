@@ -5,6 +5,9 @@
 #include "driver_base.h"
 #include "driver_sys.h"
 #include "driver_vi.h"
+#include "driver_vpss.h"
+#include "driver_vc.h"
+#include "driver_vo.h"
 #include "osal.h"
 
 #define MMF_VERSION  (CVI_CHIP_NAME MMF_VER_PRIX MK_VERSION(VER_X, VER_Y, VER_Z) VER_D)
@@ -135,7 +138,12 @@ CVI_S32 platform_sys_exit(CVI_VOID)
 	}
 
 	//exit
+	driver_base_release();
 	driver_vi_release();
+	driver_vpss_release();
+	driver_venc_release();
+	driver_vdec_release();
+	driver_vo_release();
 
 	CVI_TRACE_SYS(CVI_DBG_INFO, "[%d]-\n", osal_atomic_read(&sys_init_count));
 

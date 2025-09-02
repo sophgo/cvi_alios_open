@@ -8,6 +8,7 @@
 #include <sys_clk.h>
 #include <drv/codec.h>
 #include <drv/rtc.h>
+#include <pinctrl-mars.h>
 #include <soc.h>
 #include "mmio.h"
 
@@ -25,9 +26,10 @@ static void board_pinmux_config(void)
     //csi_pin_set_mux(PG9, PG9_UART1_CTS);
 
     //csi_pin_set_mux(PG18, PIN_FUNC_GPIO);
-
-    mmio_write_32(0x03001000 + 0x64, 0x6); // uart1 rx
-    mmio_write_32(0x03001000 + 0x68, 0x6); // uart1 tx
+#if defined(CONFIG_DW_UART) && (CONFIG_DW_UART == 1)
+    PINMUX_CONFIG(JTAG_CPU_TMS, UART1_TX);
+    PINMUX_CONFIG(JTAG_CPU_TCK, UART1_RX);
+#endif
 }
 
 void board_sound_init(void)

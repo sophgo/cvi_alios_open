@@ -64,6 +64,9 @@ cp -f ${TOP_DIR}/cvi_mpi/modules/isp/algo/3A_internal.h  "$INSTALL_FOLDER"/compo
 mkdir -p "$INSTALL_FOLDER"/components/cvi_mmf_sdk/cvi_middleware/cvi_mw_audio
 cp -rf ./components/cvi_mmf_sdk/cvi_middleware/cvi_mw_audio/include "$INSTALL_FOLDER"/components/cvi_mmf_sdk/cvi_middleware/cvi_mw_audio/
 
+#copy vc include
+cp components/cvi_mmf_sdk/cvi_osdrv/vc_drv/platform/alios/driver_vc.h "$INSTALL_FOLDER"/components/cvi_mmf_sdk/cvi_middleware/cvi_mw_venc/include/
+
 if [ -f "./solutions/fastboot/package_yamls/package.yaml.turnkey.release" ]; then
 cp ./solutions/fastboot/package_yamls/package.yaml.turnkey.release "$INSTALL_FOLDER"/solutions/fastboot/package_yamls/package.yaml.turnkey
 fi

@@ -14,14 +14,21 @@
 #include <drv/pin.h>
 #include <pinctrl-mars.h>
 #include <unistd.h>
+#include "platform.h"
 
 #include "dw_iic_ll.h"
+#include "iic_recovery.h"
 
 extern uint16_t iic_tx_hs_num[];
 extern uint16_t iic_rx_hs_num[];
 #define VOID_P_DEC(p, val) do{ uint8_t *temp = (uint8_t *)p; temp -= val; p = (void *)temp; }while(0);
 
 static struct iic_drv_priv iic_list[6] = {0};
+
+#define MAX_IIC_RECOVERY_CONFIGS 6
+
+/* Internal recovery configuration storage */
+static iic_recovery_config_t iic_recovery_configs[MAX_IIC_RECOVERY_CONFIGS];
 
 /**
   \brief       wait_iic_transmit
@@ -1031,6 +1038,85 @@ csi_error_t csi_iic_master_receive_async(csi_iic_t  *iic, uint32_t devaddr, void
     return ret;
 }
 
+/* Internal function to find recovery configuration by IIC index */
+static iic_recovery_config_t* _get_recovery_config(uint8_t iic_idx)
+{
+    if (iic_idx >= MAX_IIC_RECOVERY_CONFIGS) {
+        return NULL;
+    }
+
+    /* Check if this index is configured and enabled */
+    if (iic_recovery_configs[iic_idx].enable) {
+        return &iic_recovery_configs[iic_idx];
+    }
+
+    return NULL;
+}
+
+/* Public API implementations */
+int csi_iic_set_recovery_config(uint8_t iic_idx, const iic_recovery_config_t *config)
+{
+    if (!config || iic_idx >= MAX_IIC_RECOVERY_CONFIGS) {
+        return -1;
+    }
+
+    /* Copy configuration directly to the corresponding index */
+    if (memcmp(&iic_recovery_configs[iic_idx], config, sizeof(iic_recovery_config_t)) != 0) {
+        memcpy(&iic_recovery_configs[iic_idx], config, sizeof(iic_recovery_config_t));
+        // printf("IIC%d recovery config %s\r\n", iic_idx, config->enable ? "enabled" : "disabled");
+    }
+
+    return 0;
+}
+
+int csi_iic_get_recovery_config(uint8_t iic_idx, iic_recovery_config_t *config)
+{
+    if (!config || iic_idx >= MAX_IIC_RECOVERY_CONFIGS) {
+        return -1;
+    }
+
+    /* Check if this index has been configured (non-zero structure) */
+    if (iic_recovery_configs[iic_idx].config_gpio_mode != NULL &&
+        iic_recovery_configs[iic_idx].config_iic_mode != NULL) {
+        memcpy(config, &iic_recovery_configs[iic_idx], sizeof(iic_recovery_config_t));
+        return 0;
+    }
+
+    return -1; /* Config not found */
+}
+
+int csi_iic_recovery_enable(uint8_t iic_idx, uint8_t enable)
+{
+    if (iic_idx >= MAX_IIC_RECOVERY_CONFIGS) {
+        return -1;
+    }
+
+    /* Check if this index has been configured */
+    if (iic_recovery_configs[iic_idx].config_gpio_mode != NULL &&
+        iic_recovery_configs[iic_idx].config_iic_mode != NULL) {
+        iic_recovery_configs[iic_idx].enable = enable ? 1 : 0;
+        printf("IIC%d recovery %s\r\n", iic_idx, enable ? "enabled" : "disabled");
+        return 0;
+    }
+
+    return -1; /* Config not found */
+}
+
+int csi_iic_recovery_is_enabled(uint8_t iic_idx)
+{
+    if (iic_idx >= MAX_IIC_RECOVERY_CONFIGS) {
+        return -1;
+    }
+
+    /* Check if this index has been configured */
+    if (iic_recovery_configs[iic_idx].config_gpio_mode != NULL &&
+        iic_recovery_configs[iic_idx].config_iic_mode != NULL) {
+        return iic_recovery_configs[iic_idx].enable ? 1 : 0;
+    }
+
+    return 0; /* Not configured, treated as disabled */
+}
+
 #define GPIO_PIN_MASK(_gpio_num) (1 << _gpio_num)
 void _gpio_set_val(uint8_t gpio_grp, uint8_t gpio_num, uint8_t level)
 {
@@ -1076,10 +1162,43 @@ int32_t _gpio_get_val(uint8_t gpio_grp, uint8_t gpio_num)
 
 #define RECOVERY_UDELAY     20
 #define RECOVERY_CLK_CNT    9
-#define set_scl(val)        _gpio_set_val(0, 5, val)
-#define set_sda(val)        _gpio_set_val(0, 6, val)
-#define get_scl()           _gpio_get_val(0, 5)
-#define get_sda()           _gpio_get_val(0, 6)
+
+/* Dynamic GPIO operations based on specific IIC configuration */
+static inline void _set_scl_by_config(iic_recovery_config_t *config, uint8_t val)
+{
+    if (config) {
+        _gpio_set_val(config->scl_gpio_grp, config->scl_gpio_num, val);
+    }
+}
+
+static inline void _set_sda_by_config(iic_recovery_config_t *config, uint8_t val)
+{
+    if (config) {
+        _gpio_set_val(config->sda_gpio_grp, config->sda_gpio_num, val);
+    }
+}
+
+static inline int32_t _get_scl_by_config(iic_recovery_config_t *config)
+{
+    if (config) {
+        return _gpio_get_val(config->scl_gpio_grp, config->scl_gpio_num);
+    }
+    return -1;
+}
+
+static inline int32_t _get_sda_by_config(iic_recovery_config_t *config)
+{
+    if (config) {
+        return _gpio_get_val(config->sda_gpio_grp, config->sda_gpio_num);
+    }
+    return -1;
+}
+
+/* Macros for GPIO operations with specific config */
+#define set_scl(config, val)        _set_scl_by_config(config, val)
+#define set_sda(config, val)        _set_sda_by_config(config, val)
+#define get_scl(config)             _get_scl_by_config(config)
+#define get_sda(config)             _get_sda_by_config(config)
 
 /**
   \brief       recover bus when busy: csi_iic_uninit-->pinmux-->io-->soft reset-->pinmux->csi_iic_init
@@ -1092,98 +1211,90 @@ int i2c_recover_bus(csi_iic_t *iic)
     uint32_t i2c_soft_rst_reg_val = 0;
     dw_iic_regs_t *iic_base = (dw_iic_regs_t *)HANDLE_REG_BASE(iic);
     uint8_t iic_idx = HANDLE_DEV_IDX(iic);
+    iic_recovery_config_t *config = _get_recovery_config(iic_idx);
 
-    /* TODO:only for i2c3 */
-    if(iic_idx != 3){
-        printf("i2c_recover_bus only support i2c3\r\n");
+    /* Check if this IIC index supports recovery */
+    if (!config) {
+        printf("i2c_recover_bus: IIC%d recovery not configured or disabled\r\n", iic_idx);
         return -1;
     }
 
-    // iic_dump_register(iic_base);
+    printf("Starting IIC%d bus recovery...\r\n", iic_idx);
+
+    // Same recovery logic as before...
     /* prepare_recovery */
-    /* csi_iic_uninit(iic) start */
     dw_iic_clear_all_irq(iic_base);
     dw_iic_disable_all_irq(iic_base);
     dw_iic_disable(iic_base);
     csi_irq_disable((uint32_t)iic->dev.irq_num);
     csi_irq_detach((uint32_t)iic->dev.irq_num);
-    /* csi_iic_uninit(iic) end */
-    PINMUX_CONFIG(IIC3_SCL, XGPIOA_5);
-    PINMUX_CONFIG(IIC3_SDA, XGPIOA_6);
-    printf("scl:%d sda:%d\r\n", get_scl(), get_sda());
-    printf("Starting I2C bus recovery...\r\n");
 
-    // Step 1: Ensure SDA is high. Recovery operation requires SDA to be high.
-    // set_sda(1) will automatically set SDA pin as output and pull it high.
-    set_sda(1);
+    /* Configure pins as GPIO using platform configuration */
+    if (config->config_gpio_mode) {
+        config->config_gpio_mode();
+    }
+    printf("IIC%d initial state -> scl:%d sda:%d\r\n", iic_idx, get_scl(config), get_sda(config));
+
+    // Step 1: Ensure SDA is high
+    set_sda(config, 1);
     udelay(RECOVERY_UDELAY);
 
-    // Step 2: Generate 9 clock pulses on SCL to force slave devices to release the bus.
-    // During this clock sequence, SDA must remain high.
+    // Step 2: Generate 9 clock pulses
     printf("Generating 9 clock pulses on SCL...\r\n");
     for (i = 0; i < RECOVERY_CLK_CNT; i++) {
-        // Check if SCL is stuck low
-        if (get_scl() == 0) {
+        if (get_scl(config) == 0) {
             printf("SCL is stuck low, cannot recover.\n");
-            // Restore pinmux configuration
-            PINMUX_CONFIG(IIC3_SCL, IIC3_SCL);
-            PINMUX_CONFIG(IIC3_SDA, IIC3_SDA);
-            return -1; // Recovery failed
+            if (config->config_iic_mode) {
+                config->config_iic_mode();
+            }
+            return -1;
         }
 
-        set_scl(0);
+        set_scl(config, 0);
         udelay(RECOVERY_UDELAY);
-        set_scl(1);
+        set_scl(config, 1);
         udelay(RECOVERY_UDELAY);
 
-        // Check if SDA has been released
-        if (get_sda() == 1) {
+        if (get_sda(config) == 1) {
             printf("SDA released after %d clock pulses\r\n", i + 1);
             break;
         }
     }
 
-    // Step 3: Generate a standard I2C STOP signal.
-    // STOP signal is defined as: SDA rising edge while SCL is high.
+    // Step 3: Generate STOP condition
     printf("Generating a STOP condition...\r\n");
-    set_scl(1); // Ensure SCL is high
+    set_scl(config, 1);
     udelay(RECOVERY_UDELAY / 2);
-    set_sda(0); // Pull SDA low first
+    set_sda(config, 0);
     udelay(RECOVERY_UDELAY);
-    set_sda(1); // Pull SDA high to complete STOP signal
+    set_sda(config, 1);
     udelay(RECOVERY_UDELAY);
 
-    // Check bus state again
-    printf("Recovery sequence finished. Final state -> scl:%d sda:%d\r\n", get_scl(), get_sda());
+    printf("Recovery sequence finished. Final state -> scl:%d sda:%d\r\n", get_scl(config), get_sda(config));
 
-    // Verify if bus is really idle
-    if (get_scl() == 0 || get_sda() == 0) {
-        printf("Warning: Bus may not be fully recovered. SCL:%d SDA:%d\r\n", get_scl(), get_sda());
+    if (get_scl(config) == 0 || get_sda(config) == 0) {
+        printf("Warning: IIC%d bus may not be fully recovered. SCL:%d SDA:%d\r\n", iic_idx, get_scl(config), get_sda(config));
     }
 
     /* soft reset iic ip*/
-    i2c_soft_rst_reg_val = mmio_read_32(0x03003000);
+    i2c_soft_rst_reg_val = mmio_read_32(0x03003004);
     printf("i2c%d_soft_rst_reg_val:%#x\r\n", iic_idx, i2c_soft_rst_reg_val);
-    mmio_write_32(0x03003000, i2c_soft_rst_reg_val & (~(1 << (27 + iic_idx))));
-    udelay(100);  // Add delay to ensure reset takes full effect
-    mmio_write_32(0x03003000, i2c_soft_rst_reg_val | (1 << (27 + iic_idx)));
-    udelay(100);  // Wait for hardware to stabilize after reset release
+    mmio_write_32(0x03003004, i2c_soft_rst_reg_val & (~(1 << (7 + iic_idx))));
+    udelay(100);
+    mmio_write_32(0x03003004, i2c_soft_rst_reg_val | (1 << (7 + iic_idx)));
+    udelay(100);
 
-    /* unprepare_recovery */
-    PINMUX_CONFIG(IIC3_SCL, IIC3_SCL);
-    PINMUX_CONFIG(IIC3_SDA, IIC3_SDA);
-    udelay(50);   // Wait for pinmux configuration to take effect
+    /* Restore pinmux configuration */
+    if (config->config_iic_mode) {
+        config->config_iic_mode();
+    }
+    udelay(50);
 
-    /* csi_iic_init(iic, idx) start */
-    // Ensure I2C controller is fully disabled
+    /* Reinitialize I2C controller */
     dw_iic_disable(iic_base);
     udelay(10);
-
-    // Clear all interrupt and error states
     dw_iic_clear_all_irq(iic_base);
     dw_iic_disable_all_irq(iic_base);
-
-    // Clear TX_ABRT state - this is critical!
     iic_base->IC_CLR_TX_ABRT;
 
     // Reset software state
@@ -1191,33 +1302,20 @@ int i2c_recover_bus(csi_iic_t *iic)
     iic->state.writeable = 1U;
     iic->state.readable  = 1U;
     iic->state.error     = 0U;
-    iic->send = NULL;
-    iic->receive = NULL;
-    iic->rx_dma = NULL;
-    iic->tx_dma = NULL;
-    iic->callback = NULL;
 
-    // Reconfigure I2C controller
     dw_iic_set_receive_fifo_threshold(iic_base, 0x1);
     dw_iic_set_transmit_fifo_threshold(iic_base, 0x0);
     dw_iic_set_sda_hold_time(iic_base, 0x1e);
     csi_iic_mode(iic, IIC_MODE_MASTER);
     dw_iic_enable_restart(iic_base);
-    /* csi_iic_init(iic, idx) end */
-
     csi_iic_addr_mode(iic, IIC_ADDRESS_7BIT);
     csi_iic_speed(iic, IIC_BUS_SPEED_FAST);
 
-    // Final wait to ensure all configurations take effect
     udelay(100);
-
-    // Clear possible abort state again
     iic_base->IC_CLR_TX_ABRT;
 
-    printf("I2C recovery completed successfully\r\n");
-    // iic_dump_register(iic_base);
-
-    return 0;  // Recovery successful
+    printf("IIC%d recovery completed successfully\r\n", iic_idx);
+    return 0;
 }
 
 /**

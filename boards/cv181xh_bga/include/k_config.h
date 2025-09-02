@@ -121,7 +121,7 @@
 #endif
 
 #define RHINO_CONFIG_TIMER_RATE              1
-#define RHINO_CONFIG_TIMER_TASK_PRI          30
+#define RHINO_CONFIG_TIMER_TASK_PRI          5
 
 #ifdef CONFIG_KERNEL_TIMER_MSG_NUM
 #define RHINO_CONFIG_TIMER_MSG_NUM CONFIG_KERNEL_TIMER_MSG_NUM
@@ -149,7 +149,7 @@
 /* kernel hook conf */
 #define RHINO_CONFIG_USER_HOOK               1
 /* kernel lwip hook conf for LWIP_NETCONN_SEM_PER_THREAD */
-#ifdef CONFIG_KERNEL_LWIP_HOOK               
+#ifdef CONFIG_KERNEL_LWIP_HOOK
 #define RHINO_CONFIG_USER_HOOK_FOR_LWIP      CONFIG_KERNEL_LWIP_HOOK
 #else
 #define RHINO_CONFIG_USER_HOOK_FOR_LWIP      0

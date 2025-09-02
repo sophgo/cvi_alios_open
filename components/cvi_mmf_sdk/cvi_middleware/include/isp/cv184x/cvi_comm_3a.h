@@ -463,6 +463,8 @@ typedef struct _ISP_AF_EXP_FUNC_S {
 } ISP_AF_EXP_FUNC_S;
 
 typedef struct _ISP_AF_MOTOR_CTL_FUNC_S {
+	CVI_S32 (*pfn_af_motor_init)(VI_PIPE ViPipe);
+	CVI_S32 (*pfn_af_motor_deinit)(VI_PIPE ViPipe);
 	CVI_S32 (*pfn_af_set_zoom_in)(VI_PIPE ViPipe, CVI_U8 step);
 	CVI_S32 (*pfn_af_set_zoom_out)(VI_PIPE ViPipe, CVI_U8 step);
 	CVI_S32 (*pfn_af_set_zoom_speed)(VI_PIPE ViPipe, CVI_U8 speed);

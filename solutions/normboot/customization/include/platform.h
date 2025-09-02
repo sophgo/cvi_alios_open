@@ -15,4 +15,9 @@ void PLATFORM_PanelBacklightCtl(int level);
 void PLATFORM_SpkMute(int value);
 void PLATFORM_SpkUnMute(int value);
 int PLATFORM_IrCutCtl(int duty);
+
+/* Platform-specific pinmux configuration functions for different IIC buses */
+void PLATFORM_IIC3_ConfigGpioMode(void);
+void PLATFORM_IIC3_ConfigIicMode(void);
+
 #endif

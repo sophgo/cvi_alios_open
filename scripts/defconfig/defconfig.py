@@ -118,6 +118,8 @@ def create_yaml(yaml_file=None, output=None):
     print("config: ")
     print(config)
     define = get_yaml_define(yaml_file)
+    if "CONFIG_VIRTUAL_UART" in config:
+        define.pop("UART_MODE_SYNC", None)
     # print("define: ")
     # print(define)
     dischange_define(config, define)

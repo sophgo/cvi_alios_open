@@ -5,6 +5,16 @@
 #include "motor.h"
 
 
+CVI_S32 SAMPLE_COMM_ISP_Motor_InitCb(VI_PIPE ViPipe)
+{
+	return motor_init(MOTOR_TYPE, MOTOR_IIC_BUS_ID);
+}
+
+CVI_S32 SAMPLE_COMM_ISP_Motor_DeInitCb(VI_PIPE ViPipe)
+{
+	return motor_deinit(MOTOR_TYPE, MOTOR_IIC_BUS_ID);
+}
+
 CVI_S32 SAMPLE_COMM_ISP_Motor_SetFocusInCb(VI_PIPE ViPipe, CVI_U8 step)
 {
 	return motor_cw(MOTOR_TYPE, step);

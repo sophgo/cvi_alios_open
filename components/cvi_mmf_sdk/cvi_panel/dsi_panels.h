@@ -37,6 +37,15 @@ static struct panel_desc_s panel_desc = {
 	.dsi_init_cmds = dsi_init_cmds_st7701_480x800,
 	.dsi_init_cmds_size = ARRAY_SIZE(dsi_init_cmds_st7701_480x800)
 };
+#elif CONFIG_PANEL_ST7701_480x640
+#include "dsi_st7701_480x640.h"
+static struct panel_desc_s panel_desc = {
+	.panel_name = "ST7701-480x640",
+	.dev_cfg = &dev_cfg_st7701_480x640,
+	.hs_timing_cfg = &hs_timing_cfg_st7701_480x640,
+	.dsi_init_cmds = dsi_init_cmds_st7701_480x640,
+	.dsi_init_cmds_size = ARRAY_SIZE(dsi_init_cmds_st7701_480x640)
+};
 #elif CONFIG_PANEL_ST7703
 #include "dsi_st7703.h"
 static struct panel_desc_s panel_desc = {

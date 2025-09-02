@@ -25,6 +25,8 @@ extern "C" {
 //please contact sophgo get motor ko source code
 //design it please flow cb func format
 //cb sample start
+CVI_S32 SAMPLE_COMM_ISP_Motor_InitCb(VI_PIPE ViPipe);
+CVI_S32 SAMPLE_COMM_ISP_Motor_DeInitCb(VI_PIPE ViPipe);
 CVI_S32 SAMPLE_COMM_ISP_Motor_SetFocusInCb(VI_PIPE ViPipe, CVI_U8 step);
 CVI_S32 SAMPLE_COMM_ISP_Motor_SetFocusOutCb(VI_PIPE ViPipe, CVI_U8 step);
 CVI_S32 SAMPLE_COMM_ISP_Motor_SetZoomSpeedCb(VI_PIPE ViPipe, CVI_U8 speed);

@@ -170,6 +170,8 @@ static int pcmp_param_set(aos_pcm_t *pcm, aos_pcm_hw_params_t *params)
     playback_free(playback);
 
     csi_codec_output_config_t output_config;
+
+    
     csi_codec_output_t *codec = aos_zalloc(sizeof(csi_codec_output_t));
     codec->ring_buf = aos_zalloc(sizeof(dev_ringbuf_t));
 

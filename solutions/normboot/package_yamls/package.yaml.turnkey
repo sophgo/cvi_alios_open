@@ -32,7 +32,7 @@ depends:
   - cv181xc_evb: v0.0.1
   - chip_cv181x: v0.0.1
   - minialsa: v7.5.1
-  - drv_snd_cv181x: v7.5.1
+  - cvi_snd: v7.5.1
   - osal: v0.0.1
   - base: v0.0.1
   - sys: v0.0.1
@@ -60,7 +60,7 @@ depends:
   - cv181xc_evb: v0.0.1
   - chip_cv181x: v0.0.1
   - minialsa: v7.5.1
-  - drv_snd_cv181x: v7.5.1
+  - cvi_snd: v7.5.1
   - cvi_platform: develop
   - cvi_test: develop
   - cvi_mw_sensor: v0.0.1

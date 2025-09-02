@@ -90,6 +90,8 @@ static int start_isp(VI_PIPE ViPipe)
 		//register control motor cb func if you use sophgo af algo
 		//you can implement control motor cb func by yourself
 		//use sophgo cb func for example
+		motorCb.pfn_af_motor_init = SAMPLE_COMM_ISP_Motor_InitCb;
+		motorCb.pfn_af_motor_deinit = SAMPLE_COMM_ISP_Motor_DeInitCb;
 		motorCb.pfn_af_set_zoom_in = SAMPLE_COMM_ISP_Motor_SetZoomInCb;
 		motorCb.pfn_af_set_zoom_out = SAMPLE_COMM_ISP_Motor_SetZoomOutCb;
 		motorCb.pfn_af_set_zoom_speed = SAMPLE_COMM_ISP_Motor_SetZoomSpeedCb;

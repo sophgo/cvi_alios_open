@@ -249,3 +249,16 @@ int PLATFORM_IrCutCtl(int duty)
 {
     return 0;
 }
+
+/* Platform-specific pinmux configuration functions for IIC3 */
+void PLATFORM_IIC3_ConfigGpioMode(void)
+{
+	PINMUX_CONFIG(IIC3_SCL, XGPIOA_5);
+	PINMUX_CONFIG(IIC3_SDA, XGPIOA_6);
+}
+
+void PLATFORM_IIC3_ConfigIicMode(void)
+{
+	PINMUX_CONFIG(IIC3_SCL, IIC3_SCL);
+	PINMUX_CONFIG(IIC3_SDA, IIC3_SDA);
+}
