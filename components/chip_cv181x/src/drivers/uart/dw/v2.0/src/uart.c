@@ -767,6 +767,7 @@ static void dw_uart_dma_event_cb(csi_dma_ch_t *dma, csi_dma_event_t event, void 
     } else if (event == DMA_EVENT_TRANSFER_DONE) {/* DMA transfer complete */
         if ((uart->tx_dma != NULL) && (uart->tx_dma->ch_id == dma->ch_id)) {
 
+            mdelay(1);
             csi_dma_ch_stop(dma);
             dw_uart_fifo_init(uart_base);
 
@@ -776,6 +777,7 @@ static void dw_uart_dma_event_cb(csi_dma_ch_t *dma, csi_dma_event_t event, void 
                 uart->callback(uart, UART_EVENT_SEND_COMPLETE, uart->arg);
             }
         } else {
+            mdelay(1);
             csi_dma_ch_stop(dma);
             dw_uart_fifo_init(uart_base);
             /* enable received data available */
@@ -794,7 +796,7 @@ csi_error_t dw_uart_send_dma(csi_uart_t *uart, const void *data, uint32_t num)
 {
     csi_dma_ch_config_t config;
     memset(&config, 0, sizeof(csi_dma_ch_config_t));
-    uint32_t fcr_reg = UART_FIFO_INIT_CONFIG;
+    uint32_t fcr_reg = DW_UART_FCR_FIFOE_EN | DW_UART_FCR_XFIFOR_RESET;
     dw_uart_regs_t *uart_base = (dw_uart_regs_t *)HANDLE_REG_BASE(uart);
     csi_dma_ch_t *dma_ch = (csi_dma_ch_t *)uart->tx_dma;
 
@@ -840,7 +842,7 @@ csi_error_t dw_uart_receive_dma(csi_uart_t *uart, void *data, uint32_t num)
     csi_dma_ch_config_t config;
     memset(&config, 0, sizeof(csi_dma_ch_config_t));
     csi_error_t ret = CSI_OK;
-    uint32_t fcr_reg = UART_FIFO_INIT_CONFIG;
+    uint32_t fcr_reg = DW_UART_FCR_FIFOE_EN | DW_UART_FCR_RFIFOR_RESET;
     dw_uart_regs_t *uart_base = (dw_uart_regs_t *)HANDLE_REG_BASE(uart);
     csi_dma_ch_t *dma = (csi_dma_ch_t *)uart->rx_dma;
 
@@ -1047,4 +1049,42 @@ void csi_uart_disable_pm(csi_uart_t *uart)
 void csi_uart_flush_cache(csi_uart_t *uart)
 {
 
+}
+
+/**
+ * @brief Dump UART registers for debugging.
+ */
+void csi_uart_dump_registers(csi_uart_t *uart)
+{
+    if (!uart) {
+        printf("  [UART REG DUMP] Error: UART handle is NULL.\n");
+        return;
+    }
+    dw_uart_regs_t *uart_base = (dw_uart_regs_t *)HANDLE_REG_BASE(uart);
+    if (!uart_base) {
+        printf("  [UART REG DUMP] Error: UART reg_base is NULL.\n");
+        return;
+    }
+
+    // Note: FCR is write-only, we read IIR to check the interrupt status.
+    // Read and print the values of key registers
+    uint32_t ier = uart_base->IER;
+    uint32_t iir = uart_base->IIR;
+    uint32_t lcr = uart_base->LCR;
+    uint32_t lsr = uart_base->LSR;
+    uint32_t usr = uart_base->USR;
+
+    printf("  [UART REG DUMP] IER=0x%02x, IIR=0x%02x, LCR=0x%02x, LSR=0x%02x, USR=0x%02x\n",
+           ier, iir, lcr, lsr, usr);
+
+    // Decode the key bits of LSR (Line Status Register)
+    printf("    - LSR Decode: DR(DataReady)=%d, OE(Overrun)=%d, PE(Parity)=%d, FE(Framing)=%d, BI(Break)=%d, THRE(TXEmpty)=%d, TEMT(TXAllEmpty)=%d\n",
+           (lsr & 0x01) ? 1 : 0, (lsr & 0x02) ? 1 : 0, (lsr & 0x04) ? 1 : 0,
+           (lsr & 0x08) ? 1 : 0, (lsr & 0x10) ? 1 : 0, (lsr & 0x20) ? 1 : 0,
+           (lsr & 0x40) ? 1 : 0);
+
+    // Decode the key bits of USR (UART Status Register)
+    printf("    - USR Decode: BUSY=%d, TFNF(TXNotFull)=%d, TFE(TXEmpty)=%d, RFNE(RXNotEmpty)=%d, RFF(RXFull)=%d\n",
+           (usr & 0x01) ? 1 : 0, (usr & 0x02) ? 1 : 0, (usr & 0x04) ? 1 : 0,
+           (usr & 0x08) ? 1 : 0, (usr & 0x10) ? 1 : 0);
 }

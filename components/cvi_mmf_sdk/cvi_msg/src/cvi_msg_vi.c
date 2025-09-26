@@ -1466,6 +1466,33 @@ static CVI_S32 MSG_VI_RESUME(CVI_S32 siId, CVI_IPCMSG_MESSAGE_S *pstMsg)
 	return CVI_SUCCESS;
 }
 
+static CVI_S32 MSG_VI_SetBypassFrm(CVI_S32 siId, CVI_IPCMSG_MESSAGE_S *pstMsg)
+{
+	CVI_S32 s32Ret;
+	CVI_IPCMSG_MESSAGE_S *respMsg = CVI_NULL;
+	VI_PIPE ViPipe = GET_DEV_ID(pstMsg->u32Module);
+
+	s32Ret = CVI_VI_SetBypassFrm(ViPipe, *(CVI_U8 *)pstMsg->pBody);
+	if (s32Ret != CVI_SUCCESS) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "CVI_VI_Resume Failed : %#x!\n", s32Ret);
+	}
+
+	respMsg = CVI_IPCMSG_CreateRespMessage(pstMsg, s32Ret, NULL, 0);
+	if (respMsg == CVI_NULL) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "call CVI_IPCMSG_CreateRespMessage fail\n");
+	}
+
+	s32Ret = CVI_IPCMSG_SendOnly(siId, respMsg);
+	if (s32Ret != CVI_SUCCESS) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "call CVI_IPCMSG_SendOnly fail,ret:%x\n", s32Ret);
+		CVI_IPCMSG_DestroyMessage(respMsg);
+		return s32Ret;
+	}
+
+	CVI_IPCMSG_DestroyMessage(respMsg);
+	return CVI_SUCCESS;
+}
+
 static CVI_S32 MSG_VI_SetChnLDCAttr(CVI_S32 siId, CVI_IPCMSG_MESSAGE_S *pstMsg)
 {
 	CVI_S32 s32Ret;
@@ -1663,6 +1690,7 @@ static MSG_MODULE_CMD_S g_stViCmdTable[] = {
 	{ MSG_CMD_VI_GET_CHN_STATUS,		MSG_VI_QueryChnStatus},
 	{ MSG_CMD_VI_SUSPEND,			MSG_VI_SUSPEND},
 	{ MSG_CMD_VI_RESUME,			MSG_VI_RESUME},
+	{ MSG_CMD_VI_SET_BYPASS_FRM,		MSG_VI_SetBypassFrm},
 	{ MSG_CMD_VI_SET_CHN_LDC_ATTR,		MSG_VI_SetChnLDCAttr},
 	{ MSG_CMD_VI_GET_CHN_LDC_ATTR,		MSG_VI_GetChnLDCAttr},
 	{ MSG_CMD_VI_DBG_SET_TUNING_DIS,	MSG_VI_DbgSetTuningDis},

@@ -82,6 +82,14 @@ CVI_S32 CVI_ISP_SetBlackLevelAttr(VI_PIPE ViPipe, const ISP_BLACK_LEVEL_ATTR_S *
 CVI_S32 CVI_ISP_GetBlackLevelAttr(VI_PIPE ViPipe, ISP_BLACK_LEVEL_ATTR_S *pstBlackLevelAttr);
 
 //-----------------------------------------------------------------------------
+//  Local Black Level Correction(LBLC)
+//-----------------------------------------------------------------------------
+CVI_S32 CVI_ISP_SetLblcAttr(VI_PIPE ViPipe, const ISP_LBLC_ATTR_S *pstLblcAttr);
+CVI_S32 CVI_ISP_GetLblcAttr(VI_PIPE ViPipe, ISP_LBLC_ATTR_S *pstLblcAttr);
+CVI_S32 CVI_ISP_SetLblcLutAttr(VI_PIPE ViPipe, const ISP_LBLC_LUT_ATTR_S *pstLblcLutAttr);
+CVI_S32 CVI_ISP_GetLblcLutAttr(VI_PIPE ViPipe, ISP_LBLC_LUT_ATTR_S *pstLblcLutAttr);
+
+//-----------------------------------------------------------------------------
 //  Dead pixel correction(DPC)
 //-----------------------------------------------------------------------------
 CVI_S32 CVI_ISP_SetDPDynamicAttr(VI_PIPE ViPipe, const ISP_DP_DYNAMIC_ATTR_S *pstDPCDynamicAttr);
@@ -261,6 +269,20 @@ CVI_S32 CVI_ISP_GetSharpenAttr(VI_PIPE ViPipe, ISP_SHARPEN_ATTR_S *pstSharpenAtt
 //-----------------------------------------------------------------------------
 CVI_S32 CVI_ISP_SetMonoAttr(VI_PIPE ViPipe, const ISP_MONO_ATTR_S *pstMonoAttr);
 CVI_S32 CVI_ISP_GetMonoAttr(VI_PIPE ViPipe, ISP_MONO_ATTR_S *pstMonoAttr);
+
+//-----------------------------------------------------------------------------
+//  TEAISP
+//-----------------------------------------------------------------------------
+CVI_S32 CVI_TEAISP_Init(VI_PIPE ViPipe, CVI_S32 maxDev);
+
+//-----------------------------------------------------------------------------
+//  TEAISP BNR
+//-----------------------------------------------------------------------------
+CVI_S32 CVI_TEAISP_BNR_SetModel(VI_PIPE ViPipe, const TEAISP_BNR_MODEL_INFO_S *pstModelInfo);
+CVI_S32 CVI_TEAISP_BNR_SetAttr(VI_PIPE ViPipe, const TEAISP_BNR_ATTR_S *pstTEAISPBNRAttr);
+CVI_S32 CVI_TEAISP_BNR_GetAttr(VI_PIPE ViPipe, TEAISP_BNR_ATTR_S *pstTEAISPBNRAttr);
+CVI_S32 CVI_TEAISP_BNR_SetNoiseProfileAttr(VI_PIPE ViPipe, const TEAISP_BNR_NP_S *np);
+CVI_S32 CVI_TEAISP_BNR_GetNoiseProfileAttr(VI_PIPE ViPipe, TEAISP_BNR_NP_S *np);
 
 
 CVI_S32 CVI_ISP_SetStatisticsConfig(VI_PIPE ViPipe, const ISP_STATISTICS_CFG_S *pstStatCfg);

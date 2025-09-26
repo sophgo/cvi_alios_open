@@ -642,7 +642,7 @@ CVI_S32 CVI_VI_GetExtChnAttr(VI_PIPE ViPipe, VI_CHN ViChn, VI_EXT_CHN_ATTR_S *ps
 	return platform_vi_getextchnattr(ViPipe, ViChn, pstExtChnAttr);
 }
 
-CVI_S32 CVI_VI_SetBypassFrm(CVI_U32 snr_num, CVI_U8 bypass_num)
+CVI_S32 CVI_VI_SetBypassFrm(VI_PIPE ViPipe, CVI_U8 bypass_num)
 {
-	return platform_vi_setbypassfrm(snr_num, bypass_num);
+	return platform_vi_setbypassfrm(ViPipe, bypass_num);
 }

@@ -535,6 +535,7 @@ static CVI_S32 _stitch_proc(struct cvi_stitch_ctx *pStitchCtx)
 
 	pthread_mutex_lock(&pStitchCtx->lock);
 	memcpy(pstStitchAttr, &pStitchCtx->stStitchAttr, sizeof(stStitchAttr));
+	pthread_mutex_unlock(&pStitchCtx->lock);
 
 	for (i = 0; i < pstStitchAttr->u8ChnNum; i++) {
 		pstStitchChn = &pstStitchAttr->astStitchChn[i];
@@ -552,6 +553,7 @@ static CVI_S32 _stitch_proc(struct cvi_stitch_ctx *pStitchCtx)
 			break;
 		}
 
+		pthread_mutex_lock(&pStitchCtx->lock);
 		if (pStitchCtx->DropFrame > 0) {
 			platform_vpss_releasechnframe(pstStitchChn->stStitchSrc.VpssGrp,
 				pstStitchChn->stStitchSrc.VpssChn, &stFrame_src);
@@ -559,6 +561,7 @@ static CVI_S32 _stitch_proc(struct cvi_stitch_ctx *pStitchCtx)
 			pthread_mutex_unlock(&pStitchCtx->lock);
 			return CVI_SUCCESS;
 		}
+		pthread_mutex_unlock(&pStitchCtx->lock);
 
 		s32Ret = platform_vpss_getchnattr(pstStitchChn->stStitchSrc.VpssGrp,
 			pstStitchChn->stStitchSrc.VpssChn, &CurChnAttr[i]);
@@ -594,7 +597,6 @@ static CVI_S32 _stitch_proc(struct cvi_stitch_ctx *pStitchCtx)
 #endif
 			platform_vpss_releasechnframe(pstStitchChn->stStitchSrc.VpssGrp,
 				pstStitchChn->stStitchSrc.VpssChn, &stFrame_src);
-			pthread_mutex_unlock(&pStitchCtx->lock);
 			return CVI_SUCCESS;
 		}
 
@@ -643,7 +645,6 @@ static CVI_S32 _stitch_proc(struct cvi_stitch_ctx *pStitchCtx)
 		platform_vpss_releasechnframe(VpssGrp, 0, &stFrame_out);
 	}
 
-	pthread_mutex_unlock(&pStitchCtx->lock);
 	return s32Ret;
 }
 

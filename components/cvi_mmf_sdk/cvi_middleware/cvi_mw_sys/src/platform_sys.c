@@ -8,6 +8,7 @@
 #include "driver_vpss.h"
 #include "driver_vc.h"
 #include "driver_vo.h"
+#include "driver_rgn.h"
 #include "osal.h"
 
 #define MMF_VERSION  (CVI_CHIP_NAME MMF_VER_PRIX MK_VERSION(VER_X, VER_Y, VER_Z) VER_D)
@@ -143,7 +144,10 @@ CVI_S32 platform_sys_exit(CVI_VOID)
 	driver_vpss_release();
 	driver_venc_release();
 	driver_vdec_release();
+#if (!defined(CONFIG_SUPPORT_VO) || (CONFIG_SUPPORT_VO))
 	driver_vo_release();
+#endif
+	driver_rgn_release();
 
 	CVI_TRACE_SYS(CVI_DBG_INFO, "[%d]-\n", osal_atomic_read(&sys_init_count));
 

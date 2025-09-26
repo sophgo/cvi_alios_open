@@ -244,6 +244,12 @@ void csi_uart_disable_pm(csi_uart_t *uart);
 */
 void csi_uart_flush_cache(csi_uart_t *uart);
 
+/**
+ * @brief     Dump UART registers for debugging.
+ * @param[in] uart  UART handle to operate.
+ */
+void csi_uart_dump_registers(csi_uart_t *uart);
+
 #ifdef __cplusplus
 }
 #endif

@@ -67,11 +67,11 @@ cp -rf ./components/cvi_mmf_sdk/cvi_middleware/cvi_mw_audio/include "$INSTALL_FO
 #copy vc include
 cp components/cvi_mmf_sdk/cvi_osdrv/vc_drv/platform/alios/driver_vc.h "$INSTALL_FOLDER"/components/cvi_mmf_sdk/cvi_middleware/cvi_mw_venc/include/
 
-if [ -f "./solutions/fastboot/package_yamls/package.yaml.turnkey.release" ]; then
-cp ./solutions/fastboot/package_yamls/package.yaml.turnkey.release "$INSTALL_FOLDER"/solutions/fastboot/package_yamls/package.yaml.turnkey
-fi
-if [ -f "./solutions/normboot/package_yamls/package.yaml.turnkey.release" ]; then
-cp ./solutions/normboot/package_yamls/package.yaml.turnkey.release "$INSTALL_FOLDER"/solutions/normboot/package_yamls/package.yaml.turnkey
-fi
+PACKAGE_YAMLS=$(find solutions -name "package.yaml.turnkey.release" -type f)
+for package_yaml in ${PACKAGE_YAMLS[@]}; do
+	package_yaml_base=$(dirname "$package_yaml")
+	tar_dir="$INSTALL_FOLDER/$package_yaml_base"
+	cp -f "$package_yaml" "$tar_dir/package.yaml.turnkey"
+done
 
 popd &>/dev/null
