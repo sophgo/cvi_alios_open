@@ -9,7 +9,7 @@ hw_info:
   cpu_name: ""
   vendor_name: ""
   chip_name: ""
-  board_name: cv181xc_evb
+  board_name: cv184x_evb
   ld_script: ""
   flash_program: ""
 ## 第二部分：依赖信息
@@ -29,8 +29,8 @@ depends:
   - aoshal: develop
   - libc_stub: develop
   - posix: develop
-  - cv181xc_evb: v0.0.1
-  - chip_cv181x: v0.0.1
+  - cv184x_evb: v0.0.1
+  - chip_cv184x: v0.0.1
   - minialsa: v7.5.1
   - cvi_snd: v7.5.1
   - osal: v0.0.1
@@ -57,10 +57,6 @@ depends:
   - cvi_mw_vo: v0.0.1
   - cvi_link: v0.0.1
   - cvi_msg: v0.0.1
-  - cv181xc_evb: v0.0.1
-  - chip_cv181x: v0.0.1
-  - minialsa: v7.5.1
-  - cvi_snd: v7.5.1
   - cvi_platform: develop
   - cvi_test: develop
   - cvi_mw_sensor: v0.0.1
@@ -195,8 +191,7 @@ def_config:
   CONFIG_DEBUG_HOSTMCU_EMU_SUPPORT: 0
   CONFIG_APP_AI_SUPPORT: 0
   UART_MODE_SYNC: 1
-  CONFIG_BOARD_CV181XC: 1
-  CONFIG_BOARD_CV181XH: 0
+  CONFIG_BOARD_CV184X: 1
 #  CONFIG_SD_FATFS_MOUNTPOINT: "/mnt/sd"
   CLI_CONFIG_STACK_SIZE : 8192
   #ULOG_CONFIG_POP_FS: 1

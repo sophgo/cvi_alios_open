@@ -7,7 +7,7 @@ ISP_PQTOOLJSON_FILE=${ISP_EXECSH_DIR}/pqtool_definition.json
 OUTPUT=pqtool_definition.json
 
 pushd ${ISP_EXECSH_DIR}
-source generate_toolJson.sh cv181x
+source generate_toolJson.sh cv184x
 popd
 pushd ${ISP_BIN_EXECSH_DIR}
 source CalPqBinMD5.sh

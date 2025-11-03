@@ -301,9 +301,6 @@ CVI_S32 CVI_ISP_GetVDTimeOut(VI_PIPE ViPipe, ISP_VD_TYPE_E enIspVDType, CVI_U32 
 //CVI_S32 CVI_ISP_GetMGStatistics(VI_PIPE ViPipe, ISP_MG_STATISTICS_S *pstMgStat);
 //CVI_S32 CVI_ISP_GetWBStitchStatistics(VI_PIPE ViPipe, ISP_WB_STITCH_STATISTICS_S *pstStitchWBStat);
 
-CVI_S32 CVI_ISP_SetVCAttr(VI_PIPE ViPipe, const ISP_VC_ATTR_S *pstVCAttr);
-CVI_S32 CVI_ISP_GetVCAttr(VI_PIPE ViPipe, ISP_VC_ATTR_S *pstVCAttr);
-
 CVI_S32 CVI_ISP_DumpHwRegisterToFile(VI_PIPE ViPipe, FILE *fp);
 CVI_S32 CVI_ISP_DumpFrameRawInfoToFile(VI_PIPE ViPipe, FILE *fp);
 

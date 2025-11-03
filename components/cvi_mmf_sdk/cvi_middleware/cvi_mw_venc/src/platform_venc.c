@@ -463,5 +463,13 @@ CVI_S32 venc_resmue(void)
 	return venc_clk_enable();
 }
 
+CVI_S32 venc_set_debreath_effect(VENC_CHN VeChn, const VENC_DEBREATHEFFECT_S *pstDebreathEffect)
+{
+	return venc_ioctl(VeChn, CVI_VC_VENC_SET_DEBREATH_EFFECT, (void *)pstDebreathEffect);
+}
 
+CVI_S32 venc_get_debreath_effect(VENC_CHN VeChn, VENC_DEBREATHEFFECT_S *pstDebreathEffect)
+{
+	return venc_ioctl(VeChn, CVI_VC_VENC_GET_DEBREATH_EFFECT, pstDebreathEffect);
+}
 

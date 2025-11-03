@@ -97,7 +97,6 @@ typedef struct _ISP_AE_ATTR_S {
 	ISP_AE_RANGE_S stDGainRange; /*RW; Range:[0x400, 0x7FFFFFFF]*/
 	ISP_AE_RANGE_S stISPDGainRange; /*RW; Range:[0x400, 0x40000]*/
 	ISP_AE_RANGE_S stSysGainRange; /*RW; Range:[0x400, 0x7FFFFFFF]*/
-	CVI_U32 u32GainThreshold; /*RW; Range:[0x400, 0x7FFFFFFF]*/
 	CVI_U8 u8Speed; // 1 means 0.1 ev
 	CVI_U16 u16BlackSpeedBias;
 	CVI_U8 u8Tolerance; /*RW; Range:[0, 0x50]*/

@@ -2140,6 +2140,79 @@ static CVI_S32 MSG_VENC_GetCuPediction(CVI_S32 siId, CVI_IPCMSG_MESSAGE_S *pstMs
 
 	return CVI_SUCCESS;
 }
+static CVI_S32 MSG_VENC_SetDebreathEffect(CVI_S32 siId, CVI_IPCMSG_MESSAGE_S *pstMsg)
+{
+	CVI_S32 s32Ret;
+	VENC_CHN VeChn = GET_CHN_ID(pstMsg->u32Module);
+	CVI_IPCMSG_MESSAGE_S *respMsg = CVI_NULL;
+	VENC_DEBREATHEFFECT_S *pstDebreathEffect = (VENC_DEBREATHEFFECT_S *)pstMsg->pBody;
+
+	CVI_MSG_VENC_API_IN;
+
+	DATA_DUMP(pstDebreathEffect, sizeof(VENC_DEBREATHEFFECT_S));
+
+	s32Ret = CVI_VENC_SetDebreathEffect(VeChn, pstDebreathEffect);
+	if (s32Ret != CVI_SUCCESS) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "SetDebreathEffect fail, Chn:%d ret:0x%x\n", VeChn, s32Ret);
+		// don't return, send s32Ret to client
+	}
+
+	respMsg = CVI_IPCMSG_CreateRespMessage(pstMsg, s32Ret, NULL, 0);
+	if (!respMsg) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "CreateRespMessage fail, Chn:%d\n", VeChn);
+		return CVI_FAILURE;
+	}
+
+	s32Ret = CVI_IPCMSG_SendOnly(siId, respMsg);
+	if (s32Ret != CVI_SUCCESS) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "IPCMSG_SendOnly fail, Chn:%d\n", VeChn);
+		CVI_IPCMSG_DestroyMessage(respMsg);
+		return CVI_FAILURE;
+	}
+
+	CVI_IPCMSG_DestroyMessage(respMsg);
+
+	CVI_MSG_VENC_API_OUT;
+
+	return CVI_SUCCESS;
+}
+
+static CVI_S32 MSG_VENC_GetDebreathEffect(CVI_S32 siId, CVI_IPCMSG_MESSAGE_S *pstMsg)
+{
+	CVI_S32 s32Ret;
+	VENC_CHN VeChn = GET_CHN_ID(pstMsg->u32Module);
+	CVI_IPCMSG_MESSAGE_S *respMsg = CVI_NULL;
+	VENC_DEBREATHEFFECT_S stDebreathEffect = {0};
+
+	CVI_MSG_VENC_API_IN;
+
+	DATA_DUMP(&stDebreathEffect, sizeof(VENC_DEBREATHEFFECT_S));
+	s32Ret = CVI_VENC_GetDebreathEffect(VeChn, &stDebreathEffect);
+	if (s32Ret != CVI_SUCCESS) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "GetDebreathEffect fail, Chn:%d ret:0x%x\n", VeChn, s32Ret);
+		// don't return, send s32Ret to client
+	}
+	DATA_DUMP(&stDebreathEffect, sizeof(VENC_DEBREATHEFFECT_S));
+
+	respMsg = CVI_IPCMSG_CreateRespMessage(pstMsg, s32Ret, &stDebreathEffect, sizeof(VENC_DEBREATHEFFECT_S));
+	if (!respMsg) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "CreateRespMessage fail, Chn:%d\n", VeChn);
+		return CVI_FAILURE;
+	}
+
+	s32Ret = CVI_IPCMSG_SendOnly(siId, respMsg);
+	if (s32Ret != CVI_SUCCESS) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "IPCMSG_SendOnly fail, Chn:%d\n", VeChn);
+		CVI_IPCMSG_DestroyMessage(respMsg);
+		return CVI_FAILURE;
+	}
+
+	CVI_IPCMSG_DestroyMessage(respMsg);
+
+	CVI_MSG_VENC_API_OUT;
+
+	return CVI_SUCCESS;
+}
 static MSG_MODULE_CMD_S g_stVencCmdTable[] = {
 	{ MSG_CMD_VENC_CREATE_CHN,        MSG_VENC_CreateChn      },
 	{ MSG_CMD_VENC_DESTROY_CHN,       MSG_VENC_DestroyChn     },
@@ -2198,6 +2271,8 @@ static MSG_MODULE_CMD_S g_stVencCmdTable[] = {
 	{ MSG_CMD_VENC_GET_CUPREDICTION,    MSG_VENC_GetCuPediction},
 	{ MSG_CMD_VENC_SET_SUPERFRAME_STRATEGY,    MSG_VENC_SetSuperFrameStrategy},
 	{ MSG_CMD_VENC_GET_SUPERFRAME_STRATEGY,    MSG_VENC_GetSuperFrameStrategy},
+	{ MSG_CMD_VENC_SET_DEBREATH_EFFECT,    MSG_VENC_SetDebreathEffect},
+	{ MSG_CMD_VENC_GET_DEBREATH_EFFECT,    MSG_VENC_GetDebreathEffect},
 };
 
 MSG_SERVER_MODULE_S g_stModuleVenc = {

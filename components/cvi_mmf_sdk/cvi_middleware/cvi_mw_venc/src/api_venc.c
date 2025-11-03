@@ -381,3 +381,13 @@ CVI_S32 CVI_VENC_GetDataFifoAddr(VENC_CHN VeChn, CVI_U64 *pu64PhyAddr)
 	return venc_get_data_fifo_addr(VeChn, pu64PhyAddr);
 }
 
+CVI_S32 CVI_VENC_SetDebreathEffect(VENC_CHN VeChn, const VENC_DEBREATHEFFECT_S *pstDebreathEffect)
+{
+	return venc_set_debreath_effect(VeChn, pstDebreathEffect);
+}
+
+CVI_S32 CVI_VENC_GetDebreathEffect(VENC_CHN VeChn, VENC_DEBREATHEFFECT_S *pstDebreathEffect)
+{
+	return venc_get_debreath_effect(VeChn, pstDebreathEffect);
+
+}

@@ -19,7 +19,6 @@ extern "C" {
 #endif /* End of #ifdef __cplusplus */
 
 /* AE */
-void AE_BufInit(CVI_U8 sID);
 void CVI_AE_GenNewRaw(void *pDstOri, void *pSrcOri, CVI_U32 sizeBk, CVI_U32 mode,
 	CVI_U32 w, CVI_U32 h, CVI_U32 nRawBlc);
 void CVI_AE_SetAeSimMode(CVI_BOOL bMode);
@@ -44,7 +43,6 @@ CVI_S32 CVI_ISP_AESetRawReplayExposure(VI_PIPE ViPipe, const ISP_EXP_INFO_S *pst
 
 
 /* AWB */
-void AWB_BufInit(CVI_U8 sID);
 void CVI_ISP_SetAwbSimMode(CVI_BOOL bMode);
 CVI_BOOL CVI_ISP_GetAwbSimMode(void);
 CVI_S32 CVI_ISP_GetAWBSnapLogBuf(VI_PIPE ViPipe, CVI_U8 *buf, CVI_U32 bufSize);
@@ -55,7 +53,6 @@ CVI_BOOL CVI_ISP_GetAwbRunStatus(VI_PIPE ViPipe);
 void CVI_ISP_SetAwbRunStatus(VI_PIPE ViPipe, CVI_BOOL bState);
 
 /* AF */
-void AF_BufInit(CVI_U8 sID);
 
 #ifdef __cplusplus
 #if __cplusplus

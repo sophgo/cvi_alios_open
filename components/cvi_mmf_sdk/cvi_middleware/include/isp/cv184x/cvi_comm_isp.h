@@ -528,6 +528,8 @@ typedef struct _ISP_EXP_INFO_S {
 	CVI_U32 u32ISPDGain; /*R;*/
 	CVI_U32 u32Exposure; /*R;*/
 	CVI_BOOL bExposureIsMAX; /*R;*/
+	CVI_BOOL bIsOverExpRange; /*R;*/
+	CVI_BOOL bIsStable; /*R;*/
 	CVI_S16 s16HistError; /*R;*/
 	CVI_U32 au32AE_Hist256Value[HIST_NUM]; /*R;*/
 	CVI_U8 u8AveLum; /*R;*/
@@ -553,6 +555,13 @@ typedef struct _ISP_EXP_INFO_S {
 	ISP_AE_ROUTE_EX_S stAERouteSFEx; /*R;*/
 	CVI_BOOL bGainSepStatus; /*R;*/
 } ISP_EXP_INFO_S;
+
+typedef struct _ISP_AE_CONVERGE_INFO_S {
+	CVI_BOOL bIsStable; /*R;*/
+	CVI_BOOL bIsOverExpRange; /*R;*/
+	CVI_S16 s16HistErrorWithTolerance; /*R;*/
+	CVI_U8 u8Tolerance; /*R;*/
+} ISP_AE_CONVERGE_INFO_S;
 
 #define SMART_MAX_NUM (3)
 typedef struct _ISP_SMART_ROI_S {
@@ -1210,11 +1219,6 @@ typedef struct _ISP_FSHDR_MAP_CURVE_INFO_S {
 	CVI_U32 MapCurveEnd[17];
 } ISP_FSHDR_MAP_CURVE_INFO_S;
 
-typedef struct _ISP_VC_ATTR_S {
-	CVI_U8 UpdateInterval; /*RW; Range:[0x1, 0xFF]*/
-	CVI_U8 MotionThreshold[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xff] */
-} ISP_VC_ATTR_S;
-
 //-----------------------------------------------------------------------------
 //  Local Black Level Correction(LBLC)
 //-----------------------------------------------------------------------------
@@ -1284,6 +1288,7 @@ typedef struct _TEAISP_BNR_ATTR_S {
 	CVI_BOOL enable; /*RW; Range:[0x0, 0x1]*/
 	ISP_OP_TYPE_E enOpType;
 	CVI_U8 UpdateInterval; /*RW; Range:[0x1, 0xFF]*/
+	CVI_U8 DebugMode; /*RW; Range:[0x0, 0x6]*/
 	TEAISP_BNR_MANUAL_ATTR_S stManual;
 	TEAISP_BNR_AUTO_ATTR_S stAuto;
 } TEAISP_BNR_ATTR_S;

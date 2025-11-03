@@ -89,4 +89,6 @@ CVI_S32 venc_get_data_fifo_len(VENC_CHN VeChn, CVI_U32 *pu32Len);
 CVI_S32 venc_get_data_fifo_addr(VENC_CHN VeChn, CVI_U64 *pu64PhyAddr);
 CVI_S32 venc_suspend(void);
 CVI_S32 venc_resmue(void);
+CVI_S32 venc_set_debreath_effect(VENC_CHN VeChn, const VENC_DEBREATHEFFECT_S *pstDebreathEffect);
+CVI_S32 venc_get_debreath_effect(VENC_CHN VeChn, VENC_DEBREATHEFFECT_S *pstDebreathEffect);
 #endif
