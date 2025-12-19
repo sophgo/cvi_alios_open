@@ -250,6 +250,8 @@ typedef struct _ISP_AE_STAT_RESULT_S {
 	CVI_U32		u32BlcIsoSF;
 	CVI_FLOAT	fEvRatio[2];
 	CVI_U16 u16SEMaxLuma;
+
+	CVI_BOOL bIsBootFinish;
 } ISP_AE_RESULT_S;
 
 typedef struct _ISP_BE_AE_STAT_1_S {

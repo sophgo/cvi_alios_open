@@ -75,7 +75,34 @@ typedef struct _ISP_BLACK_LEVEL_ATTR_S {
 typedef enum _ISP_MCURVE_MODE_E {
 	MCURVE_AUTO,
 	MCURVE_MANUAL_SEMAX,
+	MCURVE_MODE_BUTT,
 } ISP_MCURVE_MODE_E;
+
+typedef struct _ISP_FSHDR_MANUAL_ATTR_S {
+	CVI_U16 LENormBldRange; /*RW; Range: [0x0, 0xfff]*/
+	CVI_U16 LENormBldP0; /*RW; Range: [0x0, 0xfff]*/
+	CVI_U16 SENormBldRange; /*RW; Range: [0x0, 0xfff]*/
+	CVI_U16 SENormBldP0; /*RW; Range: [0x0, 0xfff]*/
+	CVI_U16 LEDynmBldRange; /*RW; Range: [0x0, 0xfff]*/
+	CVI_U16 LEDynmBldP0; /*RW; Range: [0x0, 0xfff]*/
+	CVI_U16 SEDynmBldRange; /*RW; Range: [0x0, 0xfff]*/
+	CVI_U16 SEDynmBldP0; /*RW; Range: [0x0, 0xfff]*/
+	CVI_U16 MCurveDelta; /*RW; Range: [0x0, 0x2170]*/
+	CVI_U16 MCurveX1; /*RW; Range: [0x0, 0xffff]*/
+} ISP_FSHDR_MANUAL_ATTR_S;
+
+typedef struct _ISP_FSHDR_AUTO_ATTR_S {
+	CVI_U16 LENormBldRange[ISP_AUTO_LV_NUM]; /*RW; Range: [0x0, 0xfff]*/
+	CVI_U16 LENormBldP0[ISP_AUTO_LV_NUM]; /*RW; Range: [0x0, 0xfff]*/
+	CVI_U16 SENormBldRange[ISP_AUTO_LV_NUM]; /*RW; Range: [0x0, 0xfff]*/
+	CVI_U16 SENormBldP0[ISP_AUTO_LV_NUM]; /*RW; Range: [0x0, 0xfff]*/
+	CVI_U16 LEDynmBldRange[ISP_AUTO_LV_NUM]; /*RW; Range: [0x0, 0xfff]*/
+	CVI_U16 LEDynmBldP0[ISP_AUTO_LV_NUM]; /*RW; Range: [0x0, 0xfff]*/
+	CVI_U16 SEDynmBldRange[ISP_AUTO_LV_NUM]; /*RW; Range: [0x0, 0xfff]*/
+	CVI_U16 SEDynmBldP0[ISP_AUTO_LV_NUM]; /*RW; Range: [0x0, 0xfff]*/
+	CVI_U16 MCurveDelta[ISP_AUTO_LV_NUM]; /*RW; Range: [0x0, 0x2170]*/
+	CVI_U16 MCurveX1[ISP_AUTO_LV_NUM]; /*RW; Range: [0x0, 0xffff]*/
+} ISP_FSHDR_AUTO_ATTR_S;
 
 typedef struct _ISP_FSHDR_ATTR_S {
 	ISP_OP_TYPE_E enOpType; /*RW; Range: [0x0, 0x1]*/
@@ -92,29 +119,21 @@ typedef struct _ISP_FSHDR_ATTR_S {
 	CVI_U16 FusionDS2Th; /*RW; Range: [0x0, 0xfff]*/
 	CVI_U8 FusionDS2Step; /*RW; Range: [0x0, 0xff]*/
 	CVI_U8 FusionDS2Lb; /*RW; Range: [0x0, 0xff]*/
-	CVI_U16 LENormBldRange; /*RW; Range: [0x0, 0xfff]*/
-	CVI_U16 LENormBldP0; /*RW; Range: [0x0, 0xfff]*/
-	CVI_U16 SENormBldRange; /*RW; Range: [0x0, 0xfff]*/
-	CVI_U16 SENormBldP0; /*RW; Range: [0x0, 0xfff]*/
-	CVI_U16 LEDynmBldRange; /*RW; Range: [0x0, 0xfff]*/
-	CVI_U16 LEDynmBldP0; /*RW; Range: [0x0, 0xfff]*/
-	CVI_U16 SEDynmBldRange; /*RW; Range: [0x0, 0xfff]*/
-	CVI_U16 SEDynmBldP0; /*RW; Range: [0x0, 0xfff]*/
 	CVI_U16 NDBldLumTh; /*RW; Range: [0x0, 0x100]*/
 	CVI_U8 NDBldDarkWt; /*RW; Range: [0x0, 0x10]*/
 	CVI_U8 NDBldDiffLut[FS_DIFF_DW_LENGTH]; /*RW; Range: [0x0, 0x10]*/
 	CVI_BOOL MCurveEnable; /*RW; Range: [0x0, 0x1]*/
-	ISP_MCURVE_MODE_E MCurveMode; /*RW; Range: [0x0, 0x1]*/
+	ISP_MCURVE_MODE_E MCurveMode; /*RW; Range: [0x0, 0x2]*/
 	CVI_U16 MCurveAutoSEMin; /*RW; Range: [0x0, 0xfff]*/
 	CVI_U16 MCurveManualSEMax; /*RW; Range: [0x0, 0xfff]*/
 	CVI_U8 MCurveSmooth; /*RW; Range: [0x0, 0xff]*/
-	CVI_U16 MCurveDelta; /*RW; Range: [0x0, 0x2170]*/
-	CVI_U16 MCurveX1; /*RW; Range: [0x0, 0xffff]*/
 	CVI_U8 MCurveBldRatio; /*RW; Range: [0x0, 0xa]*/
 	CVI_U16 MCurveXMaxRatio; /*RW; Range: [0x0, 0x100]*/
 	CVI_U8 MCurveYsel; /*RW; Range: [0x0, 0x2]*/
 	CVI_U8 MCurveYvWet; /*RW; Range: [0x0, 0x8]*/
 	CVI_U8 MCurveFlumWet[FS_FLUMW_LUT_LENGTH]; /*RW; Range: [0x0, 0xff]*/
+	ISP_FSHDR_MANUAL_ATTR_S stManual;
+	ISP_FSHDR_AUTO_ATTR_S stAuto;
 } ISP_FSHDR_ATTR_S;
 //--------------------------------------------------------------------------------
 // FSHDR >>>>>>>>

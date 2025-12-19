@@ -121,11 +121,12 @@ static CVI_S32 MSG_SYS_GetBindbySrc(CVI_S32 siId, CVI_IPCMSG_MESSAGE_S *pstMsg)
 
 	s32Ret = CVI_SYS_GetBindbySrc((MMF_CHN_S *)pstMsg->pBody, &stBindDest);
 	if (s32Ret != CVI_SUCCESS) {
-		CVI_TRACE_MSG(CVI_DBG_ERR, "CVI_SYS_GetBindbySrc Failed : %#x!\n", s32Ret);
+		CVI_TRACE_MSG(CVI_DBG_NOTICE, "CVI_SYS_GetBindbySrc Failed : %#x!\n", s32Ret);
 	}
 
-	respMsg = CVI_IPCMSG_CreateRespMessage(pstMsg, s32Ret, stBindDest.astMmfChn,
-				sizeof(MMF_CHN_S) * stBindDest.u32Num);
+	respMsg = CVI_IPCMSG_CreateRespMessage(pstMsg, s32Ret,
+				s32Ret ? NULL : stBindDest.astMmfChn,
+				s32Ret ? 0 : sizeof(MMF_CHN_S) * stBindDest.u32Num);
 	if (respMsg == CVI_NULL) {
 		CVI_TRACE_MSG(CVI_DBG_ERR, "CreateGrp call CVI_IPCMSG_CreateRespMessage fail\n");
 	}

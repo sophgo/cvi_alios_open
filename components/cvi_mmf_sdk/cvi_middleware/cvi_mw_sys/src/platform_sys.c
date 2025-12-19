@@ -197,11 +197,12 @@ CVI_S32 platform_sys_getbindbysrc(const MMF_CHN_S *pstSrcChn, MMF_BIND_DEST_S *p
 	ret = driver_base_ioctl(BASE_GET_BINDCFG, (unsigned long)&bind_cfg);
 
 	if (ret) {
-		CVI_TRACE_SYS(CVI_DBG_ERR, "CVI_SYS_GetBindbySrc() failed\n");
+		CVI_TRACE_SYS(CVI_DBG_NOTICE, "CVI_SYS_GetBindbySrc() failed\n");
+		osal_memset(pstBindDest, 0, sizeof(MMF_BIND_DEST_S));
 		return ret;
 	}
-
 	osal_memcpy(pstBindDest, &bind_cfg.bind_dst, sizeof(MMF_BIND_DEST_S));
+
 	return CVI_SUCCESS;
 }
 

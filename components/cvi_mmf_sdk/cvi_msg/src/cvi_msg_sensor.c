@@ -242,7 +242,6 @@ static CVI_S32 MSG_SENSOR_EnableAhdThread(CVI_S32 siId, CVI_IPCMSG_MESSAGE_S *ps
 	CVI_IPCMSG_MESSAGE_S *respMsg = CVI_NULL;
 	CVI_S32 ViPipe = pstMsg->as32PrivData[0];
 	CVI_U8 *arg = malloc(sizeof(*arg));
-	CHECK_MSG_SIZE(CVI_S32, pstMsg->u32BodyLen);
 
 	*arg = ViPipe;
 	s32Ret = pthread_create(&g_sensorDet_thid[ViPipe], NULL, device_auto_detect, arg);

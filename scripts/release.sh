@@ -67,10 +67,12 @@ cp -rf ./components/cvi_mmf_sdk/cvi_middleware/cvi_mw_audio/include "$INSTALL_FO
 #copy vc include
 cp components/cvi_mmf_sdk/cvi_osdrv/vc_drv/platform/alios/driver_vc.h "$INSTALL_FOLDER"/components/cvi_mmf_sdk/cvi_middleware/cvi_mw_venc/include/
 
+#copy package.yaml.turnkey.release to package.yaml.turnkey
 PACKAGE_YAMLS=$(find solutions -name "package.yaml.turnkey.release" -type f)
 for package_yaml in ${PACKAGE_YAMLS[@]}; do
 	package_yaml_base=$(dirname "$package_yaml")
 	tar_dir="$INSTALL_FOLDER/$package_yaml_base"
+	rm -rf "$tar_dir/package.yaml.turnkey" "$tar_dir/package.yaml.turnkey.release"
 	cp -f "$package_yaml" "$tar_dir/package.yaml.turnkey"
 done
 
