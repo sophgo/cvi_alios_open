@@ -333,27 +333,6 @@ static CVI_S32 MSG_RGN_UpdateCanvas(CVI_S32 s32Id, CVI_IPCMSG_MESSAGE_S *pstMsg)
 	CVI_S32 s32Ret;
 	CVI_IPCMSG_MESSAGE_S *respMsg = CVI_NULL;
 	RGN_HANDLE Handle = pstMsg->as32PrivData[0];
-	// CVI_U32 u32Width = pstMsg->as32PrivData[1];
-	// CVI_U32 u32Height = pstMsg->as32PrivData[2];
-	// struct cvi_rgn_ctx *pCtx;
-
-	// // Driver control
-	// s32Ret = rgn_get_ctx_pointer(Handle, &pCtx);
-	// if (s32Ret != CVI_SUCCESS) {
-	// 	CVI_TRACE_RGN(CVI_DBG_ERR, "rgn_get_ctx_pointer failed with s32Ret:%x\n", s32Ret);
-	// 	goto ERROR;
-	// }
-	// if (pCtx->stRegion.unAttr.stOverlay.stCompressInfo.enOSDCompressMode !=
-	// 	OSD_COMPRESS_MODE_NONE) {
-	// 	inv_dcache_range((uintptr_t)pCtx->stCanvasInfo[pCtx->canvas_idx].u64PhyAddr, 8);
-	// 	pCtx->stCanvasInfo[pCtx->canvas_idx].u32CompressedSize =
-	// 			*((CVI_U32 *)pCtx->stCanvasInfo[pCtx->canvas_idx].pu8VirtAddr + 1);
-	// 	// restore bitstream header to origin format
-	// 	*((CVI_U32 *)pCtx->stCanvasInfo[pCtx->canvas_idx].pu8VirtAddr + 1) =
-	// 	((((u32Width - 1) >> 1) & 0x7FFF) |
-	// 	(((u32Height - 1) << 15) & 0x7FFF8000));
-	// 	flush_dcache_range((uintptr_t)pCtx->stCanvasInfo[pCtx->canvas_idx].u64PhyAddr, 8);
-	// }
 
 	s32Ret = CVI_RGN_UpdateCanvas(Handle);
 	if (s32Ret != CVI_SUCCESS) {

@@ -58,7 +58,7 @@ source_file:
 #  - test/gdc/*.c ? <CONFIG_APP_TEST>
 #  - test/vo/*.c ? <CONFIG_APP_TEST>
 #  - test/rgn/*.c ? <CONFIG_APP_TEST>
-#  - test/dma/*.c ? <CONFIG_APP_TEST>
+  - test/dma/*.c ? <CONFIG_APP_TEST>
 #  - test/sys/*.c ? <CONFIG_APP_TEST>
 #  - test/audio/*.c ? <CONFIG_APP_TEST>
 #  - test/flash/*.c ? <CONFIG_APP_TEST>
@@ -79,6 +79,8 @@ source_file:
   - test/ipcmsg/*.c ? <CONFIG_APP_TEST>
   - test/datafifo/*.c ? <CONFIG_APP_TEST>
   - test/spi/*.c ? <CONFIG_APP_TEST>
+  - test/uart/*.c ? <CONFIG_APP_TEST>
+  - test/rtc/*.c ? <CONFIG_APP_TEST>
 # - ./hichannel_test/
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项

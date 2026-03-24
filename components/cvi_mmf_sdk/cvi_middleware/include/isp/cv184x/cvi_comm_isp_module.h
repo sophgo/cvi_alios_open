@@ -9,10 +9,26 @@
 #define ISP_MLSC_COLOR_TEMPERATURE_SIZE (7)
 #define CVI_ISP_LSC_GRID_POINTS (1369)
 
+typedef enum _MESH_MODE {
+	MESH_CHROMA_MODE,
+	MESH_CHROMA_LUMA_MODE,
+} MESH_MODE;
+
+typedef struct _ISP_MESH_SHADING_MANUAL_ATTR_S {
+	CVI_U16 LumaStrength; /*RW; Range: [0x0, 0xfff]*/
+} ISP_MESH_SHADING_MANUAL_ATTR_S;
+
+typedef struct _ISP_MESH_SHADING_AUTO_ATTR_S {
+	CVI_U16 LumaStrength[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range: [0x0, 0xfff]*/
+} ISP_MESH_SHADING_AUTO_ATTR_S;
+
 typedef struct _ISP_MESH_SHADING_ATTR_S {
 	CVI_BOOL Enable; /*RW; Range: [0x0, 0x1]*/
 	ISP_OP_TYPE_E enOpType; /*RW; Range: [0x0, 0x1]*/
+	MESH_MODE MeshCorrectMode; /*RW; Range: [0x0, 0x1]*/
 	CVI_U8 UpdateInterval; /*RW; Range: [0x0, 0xff]*/
+	ISP_MESH_SHADING_MANUAL_ATTR_S stManual;
+	ISP_MESH_SHADING_AUTO_ATTR_S stAuto;
 } ISP_MESH_SHADING_ATTR_S;
 
 typedef struct _ISP_MESH_SHADING_GAIN_LUT_S {

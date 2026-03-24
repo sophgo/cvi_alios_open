@@ -249,15 +249,11 @@ typedef struct _ISP_PUB_ATTR_S {
 } ISP_PUB_ATTR_S;
 
 typedef struct _ISP_CTRL_PARAM_S {
-	CVI_U32 u32AEStatIntvl;
-	CVI_U32 u32AWBStatIntvl;
-	CVI_U32 u32AFStatIntvl;
-	CVI_U32 u32ProcParam;
-	CVI_U32 u32ProcLevel;
-	CVI_U32 u32UpdatePos;
-	CVI_U32 u32IntTimeOut;
-	CVI_U32 u32PwmNumber;
-	CVI_U32 u32PortIntDelay;
+	CVI_U32 u32AEStatIntvl; /*RW; Range:[0x0, 0xFF]*/
+	CVI_U32 u32AWBStatIntvl; /*RW; Range:[0x0, 0xFF]*/
+	CVI_U32 u32AFStatIntvl; /*RW; Range:[0x0, 0xFF]*/
+	CVI_U32 u32PwmNumber; /*RW; Range:[0x0, 0xFF]*/
+	CVI_U32 u32DebugMode; /*RW; Range:[0x0, 0xFFFFFFFF]*/
 } ISP_CTRL_PARAM_S;
 
 typedef union _ISP_MODULE_CTRL_U {
@@ -343,6 +339,12 @@ typedef enum _ISP_AE_ANTIFLICKER_FREQUENCE_E {
 	AE_FREQUENCE_60HZ = 0,
 	AE_FREQUENCE_50HZ,
 } ISP_AE_ANTIFLICKER_FREQUENCE_E;
+
+typedef enum _AE_FLICKER_STATUS_E {
+	AE_FLICKER_NONE,
+	AE_FLICKER_YES,
+	AE_FLICKER_NO,
+} AE_FLICKER_STATUS_E;
 
 typedef enum _ISP_AE_GAIN_TYPE_E {
 	AE_TYPE_GAIN = 0,
@@ -554,6 +556,7 @@ typedef struct _ISP_EXP_INFO_S {
 	ISP_AE_ROUTE_S stAERouteSF; /*R;*/
 	ISP_AE_ROUTE_EX_S stAERouteSFEx; /*R;*/
 	CVI_BOOL bGainSepStatus; /*R;*/
+	AE_FLICKER_STATUS_E enFlickerStatus; /*R;*/
 } ISP_EXP_INFO_S;
 
 typedef struct _ISP_AE_CONVERGE_INFO_S {
@@ -1100,7 +1103,7 @@ typedef enum _AF_MANUAL_TYPE {
 } AF_MANUAL_TYPE;
 
 typedef struct _ISP_FOCUS_MANUAL_ATTR_S {
-	AF_MANUAL_TYPE enOpType;
+	AF_MANUAL_TYPE enManualOpType;
 	AF_DIRECTION enManualDir;
 	CVI_U16 u16ManualStep; /*RW; Range:[0x0, 0x400]*/
 	CVI_U16 u16ManualPos; /*RW; Range:[0x0, 0x8000]*/

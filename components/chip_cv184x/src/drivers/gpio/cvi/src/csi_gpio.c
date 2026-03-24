@@ -331,7 +331,8 @@ csi_error_t csi_gpio_irq_register(csi_gpio_t *gpio, uint32_t pin_mask, void *cal
 	if (!head) {
 		if (csi_gpio_irq_list_init(gpio))
 			return CSI_ERROR;
-		list = head;
+		if (csi_gpio_irq_list_add(gpio, &list))
+			return CSI_ERROR;
 	} else {
 		if (csi_gpio_irq_list_add(gpio, &list))
 			return CSI_ERROR;

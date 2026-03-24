@@ -41,4 +41,4 @@ static void log_proc_show(int32_t argc, char **argv)
 }
 
 
-ALIOS_CLI_CMD_REGISTER(log_proc_show, proc_log, log level info);
+ALIOS_CLI_CMD_REGISTER(log_proc_show, show_mv_loglv, log level info);

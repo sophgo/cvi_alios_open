@@ -46,39 +46,74 @@
 //         }
 //     }
 // }
-static inline void __iomem *get_top_domain_adc(void)
-{
-	return (void __iomem *)0x030F0000;
-}
 
-static inline void __iomem *get_rtc_domain_adc(void)
-{
-	return (void __iomem *)0x0502C000;
-}
+#define SARADC0_BASE_ADDR (void __iomem *)0x030F0000
+#define SARADC1_BASE_ADDR (void __iomem *)0x030F1000
+#define SARADC2_BASE_ADDR (void __iomem *)0x030F2000
+#define RTCSYS_SARADC0_BASE_ADDR (void __iomem *)0x0502C000
+#define RTCSYS_SARADC1_BASE_ADDR (void __iomem *)0x0502F000
+
+#define EFUSE_CLK_CONTROL_REG (void __iomem *)0x030020ec
+#define ADC_CLK_CONTROL_REG (void __iomem *)0x030020f8
+#define RTC_SYS_CLK_CONTROL_REG (void __iomem *)0x05025034
+
 
 void cvi_adc_trim(cvi_adc_t *adc)
 {
-	u32 top_trim, rtc_trim;
-	u32 efuse_value;
+    u32 top_trim, rtc_trim;
+    u32 efuse_value;
+    u32 trim_val;
+    unsigned long reg_base = GET_DEV_REG_BASE(adc);
+    printf("cvi_adc_trim reg_base: 0x%lx\n", reg_base);
+    u32 efuse_clk_val, adc_clk_val;
+    int efuse_clk_enabled = 0;
+    int adc_clk_enabled = 0;
 
-	//unsigned reg_base = GET_DEV_REG_BASE(adc);
+    writel(0xFBFFF28F, EFUSE_CLK_CONTROL_REG); // enable efuse clock
+    // Check and enable EFUSE clock if needed
+    efuse_clk_val = readl(EFUSE_CLK_CONTROL_REG);
+    if (!(efuse_clk_val & (1 << 29))) {
+        writel(efuse_clk_val | (1 << 29), EFUSE_CLK_CONTROL_REG);
+        efuse_clk_enabled = 1;
+    }
 
-	efuse_value = mmio_read_32(EFUSE_BASE + EFUSE_FTSN0 + (EFUSE_ADC_TRIM_REG));
-	printf("0x%x\n", efuse_value);
+    efuse_value = mmio_read_32(EFUSE_BASE + EFUSE_FTSN0 + (EFUSE_ADC_TRIM_REG));
+    printf("0x%x\n", efuse_value);
 
-	top_trim = (efuse_value & TOP_ADC_TRIM_MASK) >> TOP_ADC_TRIM_OFFSET;
-	rtc_trim = (efuse_value & RTC_ADC_TRIM_MASK) >> RTC_ADC_TRIM_OFFSET;
+    // Restore EFUSE clock state
+    if (efuse_clk_enabled) {
+        writel(efuse_clk_val, EFUSE_CLK_CONTROL_REG);
+    }
 
-	printf("Setting top_trim: 0x%x, rtc_trim: 0x%x\n", top_trim,
-		 rtc_trim);
+    top_trim = (efuse_value & TOP_ADC_TRIM_MASK) >> TOP_ADC_TRIM_OFFSET;
+    rtc_trim = (efuse_value & RTC_ADC_TRIM_MASK) >> RTC_ADC_TRIM_OFFSET;
 
-	writel(top_trim, get_top_domain_adc() + TRIM);
-	writel(rtc_trim, get_rtc_domain_adc() + TRIM);
-	printf("Getting top_trim: 0x%x, rtc_trim: 0x%x\n",
-		 readl(get_top_domain_adc() + TRIM) & 0xf,
-		 readl(get_rtc_domain_adc() + TRIM) & 0xf);
+    // printf("Setting top_trim: 0x%x, rtc_trim: 0x%x\n", top_trim, rtc_trim);
 
-	pr_err("adc trim ok!\n");
+    writel(0xA00C3FFF, ADC_CLK_CONTROL_REG); // enable ADC clock
+    // Check and enable ADC clock if needed
+    adc_clk_val = readl(ADC_CLK_CONTROL_REG);
+    if (!(adc_clk_val & (1 << 29))) {
+        writel(adc_clk_val | (1 << 29), ADC_CLK_CONTROL_REG);
+        adc_clk_enabled = 1;
+    }
+
+    // Determine domain based on address (RTC domain starts at 0x05xxxxxx)
+    if (reg_base >= 0x05000000) {
+        trim_val = rtc_trim;
+    } else {
+        trim_val = top_trim;
+    }
+
+    writel(trim_val, (void __iomem *)reg_base + TRIM);
+    printf("Writing trim: 0x%x\n", readl((void __iomem *)reg_base + TRIM) & 0xf);
+
+    // Restore ADC clock state
+    if (adc_clk_enabled) {
+        writel(adc_clk_val, ADC_CLK_CONTROL_REG);
+    }
+
+    // printf("adc trim ok!\n");
 }
 
 static void cvi_adc_irqhandler(unsigned int irqn, void *args)
@@ -144,34 +179,53 @@ static cvi_error_t cvi_adc_stop_intr(cvi_adc_t *adc)
 
 cvi_error_t cvi_adc_init(cvi_adc_t *adc)
 {
-	unsigned long reg_base = GET_DEV_REG_BASE(adc);
-	uint8_t irqn = GET_DEV_IRQ_NUM(adc);
+    unsigned long reg_base = GET_DEV_REG_BASE(adc);
+    uint8_t irqn = GET_DEV_IRQ_NUM(adc);
+    u32 adc_clk_val;
 
-	adc->state.writeable = 1U;
-	adc->state.readable  = 1U;
-	adc->state.error     = 0U;
-	adc->num             = 0U;
-	adc->callback        = NULL;
-	adc->arg             = NULL;
-	adc->data            = NULL;
-	// adc->dma             = NULL;
-	adc->start           = NULL;
-	adc->stop            = NULL;
+    adc->state.writeable = 1U;
+    adc->state.readable  = 1U;
+    adc->state.error     = 0U;
+    adc->num             = 0U;
+    adc->callback        = NULL;
+    adc->arg             = NULL;
+    adc->data            = NULL;
+    // adc->dma             = NULL;
+    adc->start           = NULL;
+    adc->stop            = NULL;
     adc->ch_id           = 0;
 
-	if (reg_base)
-	{
-		pr_err("adc init ok! reg_base: 0x%x, bank: %d, irq_num: %d\n", reg_base, GET_DEV_IDX(adc), irqn);
-        cvi_adc_sampling_time(adc, 0xf); // set smpling cycle 640ns
-		return CVI_OK;
-	}
-	else
-	{
-		pr_err("adc init failed! reg_base: 0x%x, bank: %d, irq_num: %d\n", reg_base, GET_DEV_IDX(adc), irqn);
-		return CVI_ERROR;
-	}
+    if (reg_base)
+    {
+        // Check and enable TOP ADC clock bit 29 if needed
+        adc_clk_val = readl(ADC_CLK_CONTROL_REG);
+        if (!(adc_clk_val & (1 << 29))) {
+            writel(adc_clk_val | (1 << 29), ADC_CLK_CONTROL_REG);
+        }
 
-	return CVI_OK;
+        // Check and enable RTC ADC0 clock bit 21
+        adc_clk_val = readl(RTC_SYS_CLK_CONTROL_REG);
+        if (!(adc_clk_val & (1 << 21))) {
+            writel(adc_clk_val | (1 << 21), RTC_SYS_CLK_CONTROL_REG);
+        }
+
+        // Check and enable RTC ADC1 clock bit 24
+        adc_clk_val = readl(RTC_SYS_CLK_CONTROL_REG);
+        if (!(adc_clk_val & (1 << 24))) {
+            writel(adc_clk_val | (1 << 24), RTC_SYS_CLK_CONTROL_REG);
+        }
+
+        printf("adc init ok! reg_base: 0x%lx, bank: %d, irq_num: %d\n", reg_base, GET_DEV_IDX(adc), irqn);
+        cvi_adc_sampling_time(adc, 0xf); // set smpling cycle 640ns
+        return CVI_OK;
+    }
+    else
+    {
+        printf("adc init failed! reg_base: 0x%lx, bank: %d, irq_num: %d\n", reg_base, GET_DEV_IDX(adc), irqn);
+        return CVI_ERROR;
+    }
+
+    return CVI_OK;
 }
 
 void cvi_adc_uninit(cvi_adc_t *adc)
@@ -290,7 +344,7 @@ cvi_error_t cvi_adc_channel_enable(cvi_adc_t *adc, uint8_t ch_id, bool is_enable
 #if 0
     #if CONFIG_BOARD_CV181XC || CONFIG_BOARD_CV184X
     if (adc->dev.idx == 0 && ch_id != 1) {
-        pr_err("invalid ch_id\n");
+        printf("invalid ch_id\n");
         return CVI_ERROR;
     }
     #endif
@@ -299,14 +353,14 @@ cvi_error_t cvi_adc_channel_enable(cvi_adc_t *adc, uint8_t ch_id, bool is_enable
     // channel is used by linux
     if ((adc_get_sel_channel(reg_base) & ((uint32_t)ch_id << (ADC_CTRL_ADC_SEL_Pos + 1)))
         && (ch_id != adc->ch_id)) {
-        pr_err("adc chip: %d, ch: %d is used!", adc->dev.idx, ch_id);
+        printf("adc chip: %d, ch: %d is used!", adc->dev.idx, ch_id);
         // ignore rtc adc channel
         if (adc->dev.idx != 1)
             return CVI_ERROR;
     }
 
     if (ch_id < 1 || ch_id > 3 || (adc->dev.idx == 1 && ch_id > 2)) {
-        pr_err("invalid ch_id\n");
+        printf("invalid ch_id\n");
         ret = CVI_ERROR;
     } else {
         adc->ch_id = ch_id;

@@ -72,6 +72,7 @@ typedef enum {
     SD1_INTR         = 0U,
     WDT1_INTR        = 0U,
     WDT2_INTR        = 56U,
+    DW_RTC_ADC_IRQn  = 33U,
 } irqn_type_t;
 
 typedef enum {
@@ -1439,8 +1440,11 @@ typedef struct {
 #define DW_MAC_BASE                0x04070000UL
 #define DW_MAC_SIZE                0x10000U
 
-#define ADC_BASE                    0x030F0000
-#define RTC_ADC_BASE                0x0502C000
+#define ADC0_BASE                    0x030F0000
+#define ADC1_BASE                    0x030F1000
+#define ADC2_BASE                    0x030F2000
+#define RTC_ADC0_BASE               0x0502C000
+#define RTC_ADC1_BASE               0x0502F000
 #define ADC_SIZE                    0x1000
 
 #define CVI_PWM0_BASE               0x03060000

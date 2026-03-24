@@ -498,10 +498,7 @@ static void dump_adc_reg(struct codec_adc *adc)
 int codec_adc_init(u32 rate)
 {
     u32 ctrl1;
-	struct cvi_vol_ctrl vol;
 
-	vol.vol_ctrl = 0;
-	vol.vol_ctrl_mute = 0;
 	debug("%s,%d start\n", __func__, __LINE__);
     adc = &g_adc;
     adc->adc_base = (volatile u32 *)(0x0300A100);
@@ -511,7 +508,7 @@ int codec_adc_init(u32 rate)
     adc_write_reg(adc->adc_base, AUDIO_PHY_RXADC_CTRL1, ctrl1 | AUDIO_ADC_IGR_INIT_EN);
 	codec_adc_on(adc);
 	codec_adc_hw_params(adc, rate);
-	codec_adc_ioctl(ACODEC_SET_ADCL_VOL, vol, 12);
+//	codec_adc_ioctl(ACODEC_SET_ADCL_VOL, vol, 12);
 	dump_adc_reg(adc);
 
     return 0;

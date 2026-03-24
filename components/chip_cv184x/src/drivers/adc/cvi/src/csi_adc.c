@@ -135,12 +135,3 @@ void csi_adc_detach_callback(csi_adc_t *adc)
 	cvi_adc_configure_irq(adc->priv, NULL, NULL);
 }
 
-#define ADC_IRQ_TEST 0
-
-#if ADC_IRQ_TEST
-static void adc_irq_test(csi_adc_t *adc)
-{
-	aos_cli_printf("goto %s() get result: 0x%x\n", __func__, adc->data);
-    cvi_adc_start(adc);
-}
-#endif

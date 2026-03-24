@@ -1242,6 +1242,7 @@ void usr_cli_register_init(void)
         ret = cli_register_command(cmd);
         if (ret != CLI_OK) {
             cli_printf("usr cli register fail\n");
+            cli_free(cmd);
             return;
         }
     }

@@ -73,15 +73,15 @@ CVI_S32 CVI_ISP_GetAERouteSFAttrEx(VI_PIPE ViPipe, ISP_AE_ROUTE_EX_S *pstAERoute
 CVI_S32 CVI_ISP_SetAntiFlicker(VI_PIPE ViPipe, CVI_BOOL enable, CVI_U8 frequency);
 CVI_S32 CVI_ISP_GetAntiFlicker(VI_PIPE ViPipe, CVI_BOOL *pEnable, CVI_U8 *pFrequency);
 
+CVI_S32 CVI_ISP_SetFlickerDetectAttr(VI_PIPE ViPipe, const ISP_FLICKER_DETECT_S *pstFlickerDetectAttr);
+CVI_S32 CVI_ISP_GetFlickerDetectAttr(VI_PIPE ViPipe, ISP_FLICKER_DETECT_S *pstFlickerDetectAttr);
+CVI_S32 CVI_ISP_GetFlickerDetectStatus(VI_PIPE ViPipe, AE_FLICKER_STATUS_E *pFlickerStatus);
+
 CVI_S32 CVI_ISP_SetWDRLEOnly(VI_PIPE ViPipe, CVI_BOOL wdrLEOnly);
 CVI_S32 CVI_ISP_GetFrameID(VI_PIPE ViPipe, CVI_U32 *frameID);
 CVI_S32 CVI_ISP_QueryFps(VI_PIPE ViPipe, CVI_FLOAT *pFps);
-
-
 CVI_S32 CVI_ISP_GetCurrentLvX100(VI_PIPE ViPipe, CVI_S16 *ps16Lv);
-
 CVI_S32 CVI_ISP_SetFastBootExposure(VI_PIPE ViPipe, CVI_U32 expLine, CVI_U32 again, CVI_U32 dgain, CVI_U32 ispdgain);
-
 
 CVI_S32 CVI_ISP_SetFastConvergeAttr(VI_PIPE ViPipe, const ISP_AE_BOOT_FAST_CONVERGE_S *pstFastAttr);
 CVI_S32 CVI_ISP_GetFastConvergeAttr(VI_PIPE ViPipe, ISP_AE_BOOT_FAST_CONVERGE_S *pstFastAttr);

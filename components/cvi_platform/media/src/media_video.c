@@ -294,7 +294,7 @@ static int start_isp(ISP_PUB_ATTR_S stPubAttr, ISP_FUNC_FROM_OUT_S stISP_Functio
 		return s32Ret;
 	}
 
-	MEDIABUG_PRINTF("******start isp******\n");
+	//MEDIABUG_PRINTF("******start isp******\n");
 	return CVI_SUCCESS;
 }
 
@@ -670,8 +670,8 @@ int MEDIA_VIDEO_ViInit(PARAM_VI_CFG_S * pstViCfg)
 
 	int scene_mode = PARAM_getSceneMode();
 	//TODO:need fix complie error
-	// CVI_BIN_ImportBinData(pstViCfg->pstIspCfg[scene_mode].stPQBinDes[scene_mode].pIspBinData,
-	// pstViCfg->pstIspCfg[scene_mode].stPQBinDes[scene_mode].u32IspBinDataLen);
+	CVI_BIN_ImportBinData(pstViCfg->pstIspCfg[scene_mode].stPQBinDes[scene_mode].pIspBinData,
+	pstViCfg->pstIspCfg[scene_mode].stPQBinDes[scene_mode].u32IspBinDataLen);
 
 	for (int i = 0; i < devNum; i++) {
 		for (j = 0; j < VI_MAX_PIPE_NUM; j++) {

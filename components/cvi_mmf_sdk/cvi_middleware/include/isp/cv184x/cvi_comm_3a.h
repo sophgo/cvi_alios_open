@@ -59,7 +59,6 @@ typedef enum _ISP_ANTIFLICKER_MODE_E {
 	ISP_ANTIFLICKER_MODE_BUTT
 } ISP_ANTIFLICKER_MODE_E;
 
-
 typedef struct _ISP_ANTIFLICKER_S {
 	CVI_BOOL bEnable;
 	ISP_AE_ANTIFLICKER_FREQUENCE_E enFrequency;
@@ -70,6 +69,14 @@ typedef struct _ISP_SUBFLICKER_S {
 	CVI_BOOL bEnable;
 	CVI_U8 u8LumaDiff; /*RW; Range:[0x0, 0x64]*/
 } ISP_SUBFLICKER_S;
+
+typedef struct _ISP_FLICKER_DETECT_S {
+	CVI_BOOL bEnable;
+	// thr_120, thr_60, thr_30
+	CVI_U8 u8DetectThr[3]; /*RW; Range:[0x0, 0xFF]*/
+	CVI_U8 u8LumaStableThr; /*RW; Range:[0x0, 0xFF]*/
+	CVI_U16 u16DarkThr; /*RW; Range:[0x0, 0xFFFF]*/
+} ISP_FLICKER_DETECT_S;
 
 typedef struct _ISP_AE_DELAY_S {
 	CVI_U16 u16BlackDelayFrame;

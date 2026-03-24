@@ -401,9 +401,6 @@ static int pcmc_param_set(aos_pcm_t *pcm, struct aos_pcm_hw_params *params)
         goto pcmc_err1;
     }
 
-    csi_codec_input_analog_gain(codec, 12);
-    csi_codec_input_digital_gain(codec, 12);
-
     csi_dma_ch_t *dma_hdl = aos_zalloc_check(sizeof(csi_dma_ch_t));
     csi_codec_input_link_dma(codec, dma_hdl);
 

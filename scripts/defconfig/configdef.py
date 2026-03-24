@@ -18,6 +18,7 @@ defconfig = [
     "CONFIG_H264_FW",
     "CONFIG_H265_FW",
     "CONFIG_SUSPEND",
+    "CONFIG_OSDC_DUAL_906",
 ]
 
 

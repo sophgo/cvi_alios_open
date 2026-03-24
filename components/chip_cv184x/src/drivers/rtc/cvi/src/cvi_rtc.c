@@ -27,16 +27,6 @@ int cvi_rtc_get_chipsn(uint64_t *sn)
 	return 1;
 }
 
-static void rtc_clk_enable()
-{
-	hal_cvi_rtc_clk_set(1);
-}
-
-static void rtc_clk_disable()
-{
-	hal_cvi_rtc_clk_set(0);
-}
-
 int cvi_rtc_init(struct cvi_rtc *rtc, uintptr_t reg_base, uint32_t irq_num)
 {
 	CVI_PARAM_CHK(rtc, -EINVAL);
@@ -44,7 +34,6 @@ int cvi_rtc_init(struct cvi_rtc *rtc, uintptr_t reg_base, uint32_t irq_num)
 	rtc->reg_base = reg_base;
 	rtc->irq_num = irq_num;
 
-	rtc_clk_enable();
 #if defined(CV_RTC_FINE_CALIB)
 	hal_cvi_rtc_32k_coarse_value_calib(rtc->reg_base);
 	hal_cvi_rtc_32k_fine_value_calib(rtc->reg_base);
@@ -56,7 +45,7 @@ int cvi_rtc_init(struct cvi_rtc *rtc, uintptr_t reg_base, uint32_t irq_num)
 
 void cvi_rtc_uninit(void)
 {
-    rtc_clk_disable();
+
 }
 
 static int __rtc_set_time(struct cvi_rtc *rtc, const cvi_rtc_time_t *tm, unsigned long *ret_sec)

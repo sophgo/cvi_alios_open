@@ -42,7 +42,7 @@ static void uart_event_cb(csi_uart_t *uart, csi_uart_event_t event, void *arg)
 {
     switch (event) {
     case UART_EVENT_SEND_COMPLETE:
-        // aos_event_set(&uart_list[(unsigned int)uart->dev.idx].event_write_read, EVENT_WRITE, AOS_EVENT_OR);
+        aos_event_set(&uart_list[(unsigned int)uart->dev.idx].event_write_read, EVENT_WRITE, AOS_EVENT_OR);
         break;
     case UART_EVENT_RECEIVE_COMPLETE: {
         aos_event_set(&uart_list[(unsigned int)uart->dev.idx].event_write_read, EVENT_READ, AOS_EVENT_OR);
@@ -95,18 +95,6 @@ static void uart_event_cb(csi_uart_t *uart, csi_uart_event_t event, void *arg)
 }
 #endif
 
-#ifndef UART_MODE_SYNC
-#if defined(CONFIG_DW_UART) && (CONFIG_DW_UART == 1)
-static void uart_write_task(void *arg)
-{
-    while(1) {
-        csi_uart_print_ringbuffer((csi_uart_t *)arg);
-        aos_msleep(1);
-    };
-}
-#endif
-#endif
-
 int32_t hal_uart_init(uart_dev_t *uart)
 {
     int32_t ret;
@@ -116,10 +104,6 @@ int32_t hal_uart_init(uart_dev_t *uart)
     }
 
 #ifndef UART_MODE_SYNC
-#if defined(CONFIG_DW_UART) && (CONFIG_DW_UART == 1)
-    aos_task_t uw_task;
-#endif
-
     ret = aos_event_new(&uart_list[uart->port].event_write_read, 0);
     if (ret != 0U) {
         return -1;
@@ -131,11 +115,6 @@ int32_t hal_uart_init(uart_dev_t *uart)
     }
 
     ringbuffer_create(&uart_list[uart->port].read_buffer, uart_list[uart->port].recv_buf, UART_RB_SIZE);
-
-#if defined(CONFIG_DW_UART) && (CONFIG_DW_UART == 1)
-    ret = aos_task_new_ext(&uw_task, "uart_write", uart_write_task, &uart_list[uart->port].handle, 1024, CONFIG_TASK_UART_POLL_PRI);
-#endif
-
 #endif
 
     ret = aos_mutex_new(&uart_list[uart->port].tx_mutex);
@@ -224,12 +203,13 @@ int32_t hal_uart_send(uart_dev_t *uart, const void *data, uint32_t size, uint32_
     if (ret < 0) {
         goto send_fail;
     }
-
-    // unsigned int actl_flags = 0;
-    // ret = aos_event_get(&uart_list[uart->port].event_write_read, EVENT_WRITE, AOS_EVENT_OR_CLEAR, &actl_flags, timeout);
-    // if (ret != 0) {
-    //     goto send_fail;
-    // }
+#if defined(CONFIG_DW_UART) && (CONFIG_DW_UART == 1)
+    unsigned int actl_flags = 0;
+    ret = aos_event_get(&uart_list[uart->port].event_write_read, EVENT_WRITE, AOS_EVENT_OR_CLEAR, &actl_flags, timeout);
+    if (ret != 0) {
+        goto send_fail;
+    }
+#endif
 #endif
     aos_mutex_unlock(&uart_list[uart->port].tx_mutex);
 

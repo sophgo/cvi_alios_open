@@ -8,9 +8,14 @@
 void test_pwm(int32_t argc, char **argv)
 {
 	/* test pwm 命令实现
+	 * CV184X: 3 PWM IPs
+	 *   bank 0 (pwmchip0 ): ch0~ch5 → pwm0~pwm5
+	 *   bank 1 (pwmchip6 ): ch0~ch5 → pwm6~pwm11
+	 *   bank 2 (pwmchip12): ch0~ch3 → pwm12~pwm15
+	 *
 	 * for example:
-	 * testpwm bank(0~3) channel(0~3) o period_ns duty_ns polarity
-     * testpwm bank(0~3) channel(0~3) i
+	 * testpwm bank(0~2) channel(0~5) o period_ns duty_ns polarity
+     * testpwm bank(0~2) channel(0~5) i
 	 */
 
     // csi_error_t ret;
@@ -20,8 +25,8 @@ void test_pwm(int32_t argc, char **argv)
 
 	if (argc < 4) {
 		aos_cli_printf("please run(example): \n"
-                        "\ttestpwm bank(0~3) channel(0~3) o period_ns duty_ns polarity\n"
-                        "\ttestpwm bank(0~3) channel(0~3) i\n");
+                        "\ttestpwm bank(0~2) channel(0~5) o period_ns duty_ns polarity\n"
+                        "\ttestpwm bank(0~2) channel(0~5) i\n");
 		return;
 	}
 
@@ -66,13 +71,13 @@ void test_pwm(int32_t argc, char **argv)
             csi_pwm_capture_config(&pwm, channel, 0, 0);
             csi_pwm_capture_start(&pwm, channel);
 
-            #define PWM_CLK_HZ  (100*1000*1000UL)  /* pwm clock default 100 MHz */
+            #define PWM_CLK_HZ  (250*1000*1000UL)  /* pwm clock 250 MHz (v2.0) */
 
             while(timeout--)
             {
                 sleep(1);
-                value = *((uint32_t *)(pwm.dev.reg_base + 0x24 + 3 * 8));
-                printf("test read reg %p value: %ld\n", ((uint32_t *)(pwm.dev.reg_base + 0x24 + 3 * 8)), PWM_CLK_HZ/value);
+                value = *((uint32_t *)(pwm.dev.reg_base + 0x24 + channel * 8));
+                printf("test read reg %p value: %ld\n", ((uint32_t *)(pwm.dev.reg_base + 0x24 + channel * 8)), PWM_CLK_HZ/value);
             }
 
             // aos_cli_printf("pwm test success\n");

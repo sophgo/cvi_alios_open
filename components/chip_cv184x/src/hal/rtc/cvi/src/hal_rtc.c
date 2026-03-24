@@ -7,16 +7,7 @@
 
 void hal_cvi_rtc_clk_set(int enable)
 {
-	uint32_t clk_state;
-
-	clk_state = mmio_read_32((long unsigned int)CLK_EN_0);
-
-	if(enable)
-		clk_state |= CLK_RTC_25M_BIT;
-	else
-		clk_state &= ~(CLK_RTC_25M_BIT);
-
-	mmio_write_32((long unsigned int)CLK_EN_0, clk_state);
+	//dont close mars3 rtc clk
 }
 
 void hal_cvi_rtc_enable_sec_counter(uintptr_t rtc_base)

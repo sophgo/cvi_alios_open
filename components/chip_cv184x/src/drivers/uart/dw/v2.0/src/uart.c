@@ -62,20 +62,20 @@ static void dw_uart_clear_send_fifo(dw_uart_regs_t *uart_base)
 #endif
 }
 
-static uint8_t find_max_prime_num(uint32_t num)
-{
-    uint8_t ret;
+// static uint8_t find_max_prime_num(uint32_t num)
+// {
+//     uint8_t ret;
 
-    if (!(num % 8U)) {
-        ret = 8U;
-    } else if (!(num % 4U)) {
-        ret = 4U;
-    } else {
-        ret = 1U;
-    }
+//     if (!(num % 8U)) {
+//         ret = 8U;
+//     } else if (!(num % 4U)) {
+//         ret = 4U;
+//     } else {
+//         ret = 1U;
+//     }
 
-    return ret;
-}
+//     return ret;
+// }
 
 static void dw_uart_intr_recv_data(csi_uart_t *uart)
 {
@@ -108,7 +108,6 @@ static void dw_uart_intr_recv_data(csi_uart_t *uart)
     }
 }
 
-#if 0
 static void uart_intr_send_data(csi_uart_t *uart)
 {
     uint32_t i = 0U, ret = 0;
@@ -147,7 +146,6 @@ static void uart_intr_send_data(csi_uart_t *uart)
 
     }
 }
-#endif
 
 static void uart_intr_line_error(csi_uart_t *uart)
 {
@@ -191,7 +189,7 @@ void dw_uart_irq_handler(unsigned int irqn, void *arg)
             break;
 
         case DW_UART_IIR_IID_THR_EMPTY:         /* interrupt source:sendter holding register empty */
-            // uart_intr_send_data(uart);
+            uart_intr_send_data(uart);
             break;
 
         case DW_UART_IIR_IID_RECV_DATA_AVAIL:   /* interrupt source:receiver data available or receiver fifo trigger level reached */
@@ -616,7 +614,7 @@ int32_t csi_uart_print_ringbuffer(csi_uart_t *uart)
 
 csi_error_t dw_uart_send_intr(csi_uart_t *uart, const void *data, uint32_t size)
 {
-    // dw_uart_regs_t *uart_base = (dw_uart_regs_t *)HANDLE_REG_BASE(uart);
+    dw_uart_regs_t *uart_base = (dw_uart_regs_t *)HANDLE_REG_BASE(uart);
     int32_t ret = 0;
     struct ringbuf *tx_ringbuf = (struct ringbuf *)uart->priv;
 
@@ -631,7 +629,7 @@ csi_error_t dw_uart_send_intr(csi_uart_t *uart, const void *data, uint32_t size)
         return CSI_ERROR;
     }
 
-    // dw_uart_enable_trans_irq(uart_base);
+    dw_uart_enable_trans_irq(uart_base);
 
     return CSI_OK;
 }
@@ -810,7 +808,8 @@ csi_error_t dw_uart_send_dma(csi_uart_t *uart, const void *data, uint32_t num)
     config.dst_tw = DMA_DATA_WIDTH_8_BITS;
 
     /* config for wj_dma */
-    config.group_len = find_max_prime_num(num);
+    // 强制使用单次传输，避免 FIFO 欠载/过载问题
+    config.group_len = 1; // find_max_prime_num(num);
     config.trans_dir = DMA_MEM2PERH;
 
     /* config for etb */
@@ -854,7 +853,8 @@ csi_error_t dw_uart_receive_dma(csi_uart_t *uart, void *data, uint32_t num)
     config.dst_inc = DMA_ADDR_INC;
     config.src_tw = DMA_DATA_WIDTH_8_BITS;
     config.dst_tw = DMA_DATA_WIDTH_8_BITS;
-    config.group_len = find_max_prime_num(num);
+    // 强制使用单次传输，修复 RX 数据错位问题 (1字节正确+7字节错误)
+    config.group_len = 1; // find_max_prime_num(num);
     config.trans_dir = DMA_PERH2MEM;
     config.handshake = uart_rx_hs_num[uart->dev.idx];
 

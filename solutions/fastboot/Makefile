@@ -15,7 +15,7 @@ startup: all
 
 all:
 	@echo "Build Solution by $(ALIOS_BOARD) "
-	#$(CPRE) if [ -e $(CURDIR)/prebuild.sh ]; then bash $(CURDIR)/prebuild.sh; fi
+	$(CPRE) if [ -e $(CURDIR)/prebuild.sh ]; then bash $(CURDIR)/prebuild.sh; fi
 	$(CPRE) if [ -e package.yaml ]; then rm -f package.yaml; fi
 	$(CPRE) cp -f package_yamls/package.yaml.$(PROJECT) package.yaml;
 	@/usr/bin/env python ../../scripts/defconfig/defconfig.py
