@@ -70,6 +70,34 @@ void section_bss_clear(void)
 
 }
 
+#ifdef CONFIG_SUSPEND
+#define DATA_SECTION_INIT 0xADADADAD
+#define DATA_SECTION_RESTORE 0xDADADADA
+uint32_t pm_data_restore_flag = DATA_SECTION_INIT;
+
+void section_data_restore(void)
+{
+    extern unsigned long __data_start__;
+    extern unsigned long __pm_data_start__;
+    extern unsigned long __pm_data_end__;
+
+    if (pm_data_restore_flag == DATA_SECTION_INIT) {
+        memcpy((void *)(&__pm_data_start__), \
+               (void *)(&__data_start__), \
+               (unsigned long)(&__pm_data_end__) - (unsigned long)(&__pm_data_start__));
+        pm_data_restore_flag = DATA_SECTION_RESTORE;
+    } else if (pm_data_restore_flag == DATA_SECTION_RESTORE) {
+        memcpy((void *)(&__data_start__),
+               (void *)(&__pm_data_start__), \
+               (unsigned long)(&__pm_data_end__) - (unsigned long)(&__pm_data_start__));
+        pm_data_restore_flag = DATA_SECTION_RESTORE;
+    } else {
+        return;
+    }
+    csi_dcache_clean();
+}
+#endif
+
 __attribute__((weak)) void pre_main(void)
 {
 #if  (!defined(CONFIG_KERNEL_RHINO))  &&  (!defined(CONFIG_NUTTXMM_NONE))  &&  (!defined(CONFIG_KERNEL_FREERTOS))

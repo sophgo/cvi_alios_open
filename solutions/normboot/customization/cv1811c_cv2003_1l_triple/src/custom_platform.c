@@ -84,6 +84,13 @@ static void _UartPinmux()
 
 static void _SensorPinmux()
 {
+	PINMUX_CONFIG(VIVO_D1, IIC4_SCL);
+    PINMUX_CONFIG(VIVO_D0, IIC4_SDA);
+
+    PINMUX_CONFIG(VIVO_D10, XGPIOB_11);
+    _GPIOSetValue(1, 11, 1);
+    PINMUX_CONFIG(USB_VBUS_EN, XGPIOB_5);
+    _GPIOSetValue(1, 5, 1);
 	//Sensor Pinmux
 #if defined (CONFIG_CHIP_cv1811c) || defined (CONFIG_CHIP_cv1801c) || defined (CONFIG_CHIP_cv1812cp)
 	PINMUX_CONFIG(PAD_MIPI_TXP1, IIC2_SCL);
@@ -205,4 +212,30 @@ void PLATFORM_PanelBacklightCtl(int level)
 int PLATFORM_IrCutCtl(int duty)
 {
     return 0;
+}
+
+/* Platform-specific pinmux configuration functions for IIC2 */
+void PLATFORM_IIC2_ConfigGpioMode(void)
+{
+    PINMUX_CONFIG(IIC2_SCL, PWR_GPIO_12);  /* IIC2_SCL -> PWR_GPIO_12 */
+    PINMUX_CONFIG(IIC2_SDA, PWR_GPIO_13);  /* IIC2_SDA -> PWR_GPIO_13 */
+}
+
+void PLATFORM_IIC2_ConfigIicMode(void)
+{
+    PINMUX_CONFIG(IIC2_SCL, IIC2_SCL);
+    PINMUX_CONFIG(IIC2_SDA, IIC2_SDA);
+}
+
+/* Platform-specific pinmux configuration functions for IIC3 */
+void PLATFORM_IIC3_ConfigGpioMode(void)
+{
+    PINMUX_CONFIG(IIC3_SCL, XGPIOA_5);
+    PINMUX_CONFIG(IIC3_SDA, XGPIOA_6);
+}
+
+void PLATFORM_IIC3_ConfigIicMode(void)
+{
+    PINMUX_CONFIG(IIC3_SCL, IIC3_SCL);
+    PINMUX_CONFIG(IIC3_SDA, IIC3_SDA);
 }

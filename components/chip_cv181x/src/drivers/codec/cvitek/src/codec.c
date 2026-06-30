@@ -24,7 +24,7 @@ static csi_i2s_t i2s_codec_input;
 #define INPUT_I2S_IDX       0U
 #define OUTPUT_I2S_IDX      3U
 
-__attribute__((section(".ram.code"))) static void cvitek_codec_irq(csi_i2s_t *i2s, csi_i2s_event_t event, void *arg)
+static void cvitek_codec_irq(csi_i2s_t *i2s, csi_i2s_event_t event, void *arg)
 {
     csi_codec_t *codec_cb = (csi_codec_t *) arg;
 

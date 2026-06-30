@@ -122,6 +122,7 @@ int main(int argc, char *argv[])
 {
 	//board pinmux init
 	PLATFORM_IoInit();
+	PLATFORM_PanelInit();
 
     CVI_IPCM_SetRtosSysBootStat();
 

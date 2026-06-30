@@ -160,16 +160,8 @@ source_file:
   - application/common/src/*.c
   - application/param_parse/*.c ? <CONFIG_RTOS_PARSE_PARAM>
   - application/annon_msg/*.c ? <CONFIG_RTOS_ANNON_MSG>
-  - customization/cv180zb_2003_2003_1l_switch/pipeline/*.c ? <CONFIG_CV180ZB_SC2003_SC2003_1l_SWITCH>
-  - customization/cv180zb_2003_2003_1l_switch/src/*.c ? <CONFIG_CV180ZB_SC2003_SC2003_1l_SWITCH>
-  - customization/cv180zb_2331_2331_1l_switch/pipeline/*.c ? <CONFIG_CV180ZB_SC2331_SC2331_1l_SWITCH>
-  - customization/cv180zb_2331_2331_1l_switch/src/*.c ? <CONFIG_CV180ZB_SC2331_SC2331_1l_SWITCH>
-  - customization/cv1811c_cv2003_1l_triple/pipeline/*.c ? <CONFIG_CV1811C_CV2003_1l_TRIPLE>
-  - customization/cv1811c_cv2003_1l_triple/src/*.c ? <CONFIG_CV1811C_CV2003_1l_TRIPLE>
-  - customization/cv180zb_gc2053/pipeline/*.c ? <CONFIG_CV180ZB_GC2053>
-  - customization/cv180zb_gc2053/src/*.c ? <CONFIG_CV180ZB_GC2053>
-  - customization/cv1811c_jd9165/pipeline/*.c ? <CONFIG_CV1811C_JD9165>
-  - customization/cv1811c_jd9165/src/*.c ? <CONFIG_CV1811C_JD9165>
+  - customization/cv180zb_2003_2003_1l_switch/pipeline/*.c
+  - customization/cv180zb_2003_2003_1l_switch/src/*.c
 
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项

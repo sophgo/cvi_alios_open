@@ -181,6 +181,14 @@ SECTIONS
   *(__libc_subinit)
   *(__libc_subfreeres)
   *(.note.ABI-tag)
+
+  . = ALIGN(8) ;
+  __pm_data_start__ = .;
+  *(.pm.data)
+  __pm_data_end__ = __pm_data_start__ + __pm_data_start__ - __data_start__;
+  . = __pm_data_end__;
+  . = ALIGN(8) ;
+
   __edata = .;
   __data_end__ = .;
   . = ALIGN(0x8) ;

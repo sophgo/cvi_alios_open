@@ -83,8 +83,7 @@ static CVI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSns
 	CMOS_CHECK_POINTER(pstSnsState);
 
 	pstMode = &g_astSC1346_1L_mode[pstSnsState->u8ImgMode];
-	if ((pstSnsState->u8ImgMode == SC1346_1L_MODE_720P60) ||
-	    (pstSnsState->u8ImgMode == SC1346_1L_MODE_720P60_WDR))
+	if ((pstSnsState->u8ImgMode == SC1346_1L_MODE_720P60))
 		fps = 60;
 #if 0
 	memset(&pstAeSnsDft->stAERouteAttr, 0, sizeof(ISP_AE_ROUTE_S));
@@ -217,9 +216,7 @@ static CVI_S32 cmos_fps_set(VI_PIPE ViPipe, CVI_FLOAT f32Fps, AE_SENSOR_DEFAULT_
 
 	switch (pstSnsState->u8ImgMode) {
 	case SC1346_1L_MODE_720P30:
-	case SC1346_1L_MODE_720P30_WDR:
 	case SC1346_1L_MODE_720P60:
-	case SC1346_1L_MODE_720P60_WDR:
 	{
 		if ((f32Fps <= f32MaxFps) && (f32Fps >= f32MinFps)) {
 			u32VMAX = u32Vts * f32MaxFps / DIV_0_TO_1_FLOAT(f32Fps);
@@ -791,22 +788,9 @@ static CVI_S32 cmos_set_wdr_mode(VI_PIPE ViPipe, CVI_U8 u8Mode)
 
 	switch (u8Mode) {
 	case WDR_MODE_NONE:
-		if (pstSnsState->u8ImgMode == SC1346_1L_MODE_720P30_WDR)
-			pstSnsState->u8ImgMode = SC1346_1L_MODE_720P30;
-		else if (pstSnsState->u8ImgMode == SC1346_1L_MODE_720P60_WDR)
-			pstSnsState->u8ImgMode = SC1346_1L_MODE_720P60;
 		pstSnsState->enWDRMode = WDR_MODE_NONE;
 		pstSnsState->u32FLStd = g_astSC1346_1L_mode[pstSnsState->u8ImgMode].u32VtsDef;
 		syslog(LOG_INFO, "linear mode\n");
-		break;
-	case WDR_MODE_2To1_LINE:
-		if (pstSnsState->u8ImgMode == SC1346_1L_MODE_720P30)
-			pstSnsState->u8ImgMode = SC1346_1L_MODE_720P30_WDR;
-		else if (pstSnsState->u8ImgMode == SC1346_1L_MODE_720P60)
-			pstSnsState->u8ImgMode = SC1346_1L_MODE_720P60_WDR;
-		pstSnsState->enWDRMode = WDR_MODE_2To1_LINE;
-		pstSnsState->u32FLStd = g_astSC1346_1L_mode[pstSnsState->u8ImgMode].u32VtsDef;
-		syslog(LOG_INFO, "2to1 line WDR mode\n");
 		break;
 	default:
 		CVI_TRACE_SNS(CVI_DBG_ERR, "NOT support this mode!\n");
@@ -993,17 +977,6 @@ static CVI_S32 cmos_set_image_mode(VI_PIPE ViPipe, ISP_CMOS_SENSOR_IMAGE_MODE_S 
 				       pstSnsState->enWDRMode);
 				return CVI_FAILURE;
 			}
-		} else if (pstSnsState->enWDRMode == WDR_MODE_2To1_LINE) {
-			if (SC1346_1L_RES_IS_720P(pstSensorImageMode->u16Width, pstSensorImageMode->u16Height)) {
-				u8SensorImageMode = SC1346_1L_MODE_720P30_WDR;
-			} else {
-				CVI_TRACE_SNS(CVI_DBG_ERR, "Not support! Width:%d, Height:%d, Fps:%f, WDRMode:%d\n",
-				       pstSensorImageMode->u16Width,
-				       pstSensorImageMode->u16Height,
-				       pstSensorImageMode->f32Fps,
-				       pstSnsState->enWDRMode);
-				return CVI_FAILURE;
-			}
 		} else {
 			CVI_TRACE_SNS(CVI_DBG_ERR, "Not support! Width:%d, Height:%d, Fps:%f, WDRMode:%d\n",
 			       pstSensorImageMode->u16Width,
@@ -1016,17 +989,6 @@ static CVI_S32 cmos_set_image_mode(VI_PIPE ViPipe, ISP_CMOS_SENSOR_IMAGE_MODE_S 
 		if (pstSnsState->enWDRMode == WDR_MODE_NONE) {
 			if (SC1346_1L_RES_IS_720P(pstSensorImageMode->u16Width, pstSensorImageMode->u16Height)){
 				u8SensorImageMode = SC1346_1L_MODE_720P60;
-			} else {
-				CVI_TRACE_SNS(CVI_DBG_ERR, "Not support! Width:%d, Height:%d, Fps:%f, WDRMode:%d\n",
-				       pstSensorImageMode->u16Width,
-				       pstSensorImageMode->u16Height,
-				       pstSensorImageMode->f32Fps,
-				       pstSnsState->enWDRMode);
-				return CVI_FAILURE;
-			}
-		} else if (pstSnsState->enWDRMode == WDR_MODE_2To1_LINE) {
-			if (SC1346_1L_RES_IS_720P(pstSensorImageMode->u16Width, pstSensorImageMode->u16Height)) {
-				u8SensorImageMode = SC1346_1L_MODE_720P60_WDR;
 			} else {
 				CVI_TRACE_SNS(CVI_DBG_ERR, "Not support! Width:%d, Height:%d, Fps:%f, WDRMode:%d\n",
 				       pstSensorImageMode->u16Width,
@@ -1237,6 +1199,7 @@ static CVI_VOID sensor_ctx_exit(VI_PIPE ViPipe)
 	SC1346_1L_SENSOR_GET_CTX(ViPipe, pastSnsStateCtx);
 	SENSOR_FREE(pastSnsStateCtx);
 	SC1346_1L_SENSOR_RESET_CTX(ViPipe);
+	g_aeSc1346_MirrorFip[ViPipe] = ISP_SNS_NORMAL;
 }
 
 static CVI_S32 sensor_register_callback(VI_PIPE ViPipe, ALG_LIB_S *pstAeLib, ALG_LIB_S *pstAwbLib)

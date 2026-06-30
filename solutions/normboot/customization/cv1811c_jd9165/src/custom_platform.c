@@ -240,3 +240,29 @@ int PLATFORM_IrCutCtl(int duty)
 {
     return 0;
 }
+
+/* Platform-specific pinmux configuration functions for IIC2 */
+void PLATFORM_IIC2_ConfigGpioMode(void)
+{
+    PINMUX_CONFIG(IIC2_SCL, PWR_GPIO_12);  /* IIC2_SCL -> PWR_GPIO_12 */
+    PINMUX_CONFIG(IIC2_SDA, PWR_GPIO_13);  /* IIC2_SDA -> PWR_GPIO_13 */
+}
+
+void PLATFORM_IIC2_ConfigIicMode(void)
+{
+    PINMUX_CONFIG(IIC2_SCL, IIC2_SCL);
+    PINMUX_CONFIG(IIC2_SDA, IIC2_SDA);
+}
+
+/* Platform-specific pinmux configuration functions for IIC3 */
+void PLATFORM_IIC3_ConfigGpioMode(void)
+{
+    PINMUX_CONFIG(IIC3_SCL, XGPIOA_5);
+    PINMUX_CONFIG(IIC3_SDA, XGPIOA_6);
+}
+
+void PLATFORM_IIC3_ConfigIicMode(void)
+{
+    PINMUX_CONFIG(IIC3_SCL, IIC3_SCL);
+    PINMUX_CONFIG(IIC3_SDA, IIC3_SDA);
+}

@@ -47,6 +47,11 @@ static void section_init(void)
     csi_icache_invalid();
 #endif
 
+#ifdef CONFIG_SUSPEND
+extern void section_data_restore(void);
+    section_data_restore();
+#endif
+
     section_bss_clear();
 }
 

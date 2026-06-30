@@ -14,6 +14,52 @@ extern "C" {
 #include "imx675_cmos_ex.h"
 
 static const IMX675_MODE_S g_astImx675_mode[IMX675_MODE_NUM] = {
+	[IMX675_MODE_4M30] = {
+		.name = "4M30",
+		.astImg[0] = {
+			.stSnsSize = {
+				.u32Width = 2608,
+				.u32Height = 1444,
+			},
+			.stWndRect = {
+				.s32X = 0,
+				.s32Y = 0,
+				.u32Width = 2560,
+				.u32Height = 1440,
+			},
+			.stMaxSize = {
+				.u32Width = 2608,
+				.u32Height = 1444,
+			},
+		},
+		.f32MaxFps = 30,
+		.f32MinFps = 0.0066,
+		.u32HtsDef = 0x1130,
+		.u32VtsDef = 3666,
+		.stExp[0] = {
+			.u16Min = 4,
+			.u16Max = 3666-1, //1123,
+			.u16Def = 400,
+			.u16Step = 1,
+		},
+		.stAgain[0] = {
+			.u16Min = 1024,
+			.u16Max = 32381,
+			.u16Def = 1024,
+			.u16Step = 1,
+		},
+		.stDgain[0] = {
+			.u16Min = 1024,
+			.u16Max = 65535,
+			.u16Def = 1024,
+			.u16Step = 1,
+		},
+		.u16RHS1 = 7,
+		.u16BRL = 1984,
+		.u16OpbSize = 10,
+		.u16MarginVtop = 8,
+		.u16MarginVbot = 9,
+	},
 	[IMX675_MODE_5M30] = {
 		.name = "5M30",
 		.astImg[0] = {
@@ -38,7 +84,7 @@ static const IMX675_MODE_S g_astImx675_mode[IMX675_MODE_NUM] = {
 		.u32VtsDef = 3666,
 		.stExp[0] = {
 			.u16Min = 4,
-			.u16Max = 3666-1,
+			.u16Max = 3666-1, //1123,
 			.u16Def = 400,
 			.u16Step = 1,
 		},

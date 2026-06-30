@@ -36,6 +36,7 @@ extern "C" {
 #define VO_INTF_HDMI (0x01L << 15)
 #define VO_INTF_I80_SW (0x01L << 16)
 #define VO_INTF_I80_HW (0x01L << 17)
+#define VO_INTF_RGB (0x01L << 18)
 
 #define COLOR_RGB_RED RGB_8BIT(0xFF, 0, 0)
 #define COLOR_RGB_GREEN RGB_8BIT(0, 0xFF, 0)
@@ -318,6 +319,40 @@ enum VO_TOP_BT_MUX {
 	VO_BT_MUX_MAX,
 };
 
+enum VO_TOP_RGB_MUX {
+	VO_MUX_RGB_DATA0 = 0,
+	VO_MUX_RGB_DATA1,
+	VO_MUX_RGB_DATA2,
+	VO_MUX_RGB_DATA3,
+	VO_MUX_RGB_DATA4,
+	VO_MUX_RGB_DATA5,
+	VO_MUX_RGB_DATA6,
+	VO_MUX_RGB_DATA7,
+	VO_MUX_RGB_DATA8,
+	VO_MUX_RGB_DATA9,
+	VO_MUX_RGB_DATA10,
+	VO_MUX_RGB_DATA11,
+	VO_MUX_RGB_DATA12,
+	VO_MUX_RGB_DATA13,
+	VO_MUX_RGB_DATA14,
+	VO_MUX_RGB_DATA15,
+	VO_MUX_RGB_DATA16,
+	VO_MUX_RGB_DATA17,
+	VO_MUX_RGB_DATA18,
+	VO_MUX_RGB_DATA19,
+	VO_MUX_RGB_DATA20,
+	VO_MUX_RGB_DATA21,
+	VO_MUX_RGB_DATA22,
+	VO_MUX_RGB_DATA23,
+	VO_MUX_RGB_VS = 24,
+	VO_MUX_RGB_HS,
+	VO_MUX_RGB_HDE,
+	VO_MUX_RGB_TG_HS_TILE = 30,
+	VO_MUX_RGB_TG_VS_TILE,
+	VO_MUX_RGB_CLK,
+	VO_RGB_MUX_MAX,
+};
+
 enum VO_TOP_SEL {
 	VO_CLK0 = 0,
 	VO_CLK1,
@@ -349,6 +384,10 @@ enum VO_TOP_SEL {
 	VO_D25,
 	VO_D26,
 	VO_D27,
+	VO_D28,
+	VO_D29,
+	VO_D30,
+	VO_D31,
 	VO_D_MAX,
 };
 
@@ -383,6 +422,10 @@ enum VO_TOP_D_SEL {
 	VO_MIPI_RXP1 = VO_D7,
 	VO_MIPI_RXN0 = VO_D6,
 	VO_MIPI_RXP0 = VO_D5,
+	VO_CPU_TMS = VO_D28,
+	VO_CPU_TCK = VO_D29,
+	VO_CPU_TRST = VO_D30,
+	VO_AUX0 =VO_D31,
 	VO_PAD_MAX = VO_D_MAX
 };
 
@@ -414,6 +457,10 @@ typedef struct _VO_BT_ATTR_S {
 	struct VO_PINMUX pins;
 } VO_BT_ATTR_S;
 
+typedef struct _VO_RGB_ATTR_S {
+	struct VO_PINMUX pins;
+} VO_RGB_ATTR_S;
+
 /*
  * u32BgColor: Background color of a device, in RGB format.
  * enIntfType: Type of a VO interface.
@@ -432,6 +479,7 @@ typedef struct _VO_PUB_ATTR_S {
 		SW_I80_CFG_S sti80Cfg;
 		VO_LVDS_ATTR_S stLvdsAttr;
 		VO_BT_ATTR_S stBtAttr;
+		VO_RGB_ATTR_S stRgbAttr;
 	};
 } VO_PUB_ATTR_S;
 

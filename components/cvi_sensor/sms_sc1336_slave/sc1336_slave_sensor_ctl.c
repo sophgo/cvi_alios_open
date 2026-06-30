@@ -114,9 +114,9 @@ void sc1336_slave_init(VI_PIPE ViPipe)
 
 	sc1336_slave_i2c_init(ViPipe);
 
-	if ((u8ImgMode == SC1336_SLAVE_MODE_720P30) || (u8ImgMode == SC1336_SLAVE_MODE_720P30_WDR))
+	if ((u8ImgMode == SC1336_SLAVE_MODE_720P30))
 		sc1336_slave_linear_720p30_init(ViPipe);
-	else if ((u8ImgMode == SC1336_SLAVE_MODE_720P60) || (u8ImgMode == SC1336_SLAVE_MODE_720P60_WDR))
+	else if ((u8ImgMode == SC1336_SLAVE_MODE_720P60))
 		sc1336_slave_linear_720p60_init(ViPipe);
 
 	g_pastsc1336_slave[ViPipe]->bInit = CVI_TRUE;

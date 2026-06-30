@@ -38,6 +38,8 @@ ISP_SNS_COMMBUS_U g_aunSC2336_BusInfo[VI_MAX_PIPE_NUM] = {
 	[1 ... VI_MAX_PIPE_NUM - 1] = { .s8I2cDev = -1}
 };
 
+ISP_SNS_MIRRORFLIP_TYPE_E g_aeSc2336_MirrorFip[VI_MAX_PIPE_NUM] = {ISP_SNS_NORMAL};
+
 CVI_U16 g_au16SC2336_GainMode[VI_MAX_PIPE_NUM] = {0};
 CVI_U16 g_au16SC2336_L2SMode[VI_MAX_PIPE_NUM] = {0};
 
@@ -640,6 +642,19 @@ static CVI_S32 cmos_set_image_mode(VI_PIPE ViPipe, ISP_CMOS_SENSOR_IMAGE_MODE_S 
 	return CVI_SUCCESS;
 }
 
+static CVI_VOID sensor_mirror_flip(VI_PIPE ViPipe, ISP_SNS_MIRRORFLIP_TYPE_E eSnsMirrorFlip)
+{
+	ISP_SNS_STATE_S *pstSnsState = CVI_NULL;
+
+	SC2336_SENSOR_GET_CTX(ViPipe, pstSnsState);
+	CMOS_CHECK_POINTER_VOID(pstSnsState);
+	/* Apply the setting on the fly  */
+	if (pstSnsState->bInit == CVI_TRUE && g_aeSc2336_MirrorFip[ViPipe] != eSnsMirrorFlip) {
+		sc2336_mirror_flip(ViPipe, eSnsMirrorFlip);
+		g_aeSc2336_MirrorFip[ViPipe] = eSnsMirrorFlip;
+	}
+}
+
 static CVI_VOID sensor_global_init(VI_PIPE ViPipe)
 {
 	ISP_SNS_STATE_S *pstSnsState = CVI_NULL;
@@ -773,6 +788,7 @@ static CVI_VOID sensor_ctx_exit(VI_PIPE ViPipe)
 	SC2336_SENSOR_GET_CTX(ViPipe, pastSnsStateCtx);
 	SENSOR_FREE(pastSnsStateCtx);
 	SC2336_SENSOR_RESET_CTX(ViPipe);
+	g_aeSc2336_MirrorFip[ViPipe] = ISP_SNS_NORMAL;
 }
 
 static CVI_S32 sensor_register_callback(VI_PIPE ViPipe, ALG_LIB_S *pstAeLib, ALG_LIB_S *pstAwbLib)
@@ -872,7 +888,7 @@ ISP_SNS_OBJ_S stSnsSC2336_Obj = {
 	.pfnUnRegisterCallback  = sensor_unregister_callback,
 	.pfnStandby             = sc2336_standby,
 	.pfnRestart             = sc2336_restart,
-	.pfnMirrorFlip          = sc2336_mirror_flip,
+	.pfnMirrorFlip          = sensor_mirror_flip,
 	.pfnWriteReg            = sc2336_write_register,
 	.pfnReadReg             = sc2336_read_register,
 	.pfnSetBusInfo          = sc2336_set_bus_info,

@@ -18,6 +18,7 @@ enum cvi_disp_intf {
 	CVI_VIP_DISP_INTF_I80_SW,
 	CVI_VIP_DISP_INTF_I80_HW,
 	CVI_VIP_DISP_INTF_LVDS,
+	CVI_VIP_DISP_INTF_RGB,
 	CVI_VIP_DISP_INTF_MAX,
 };
 
@@ -132,6 +133,10 @@ enum sclr_top_vo_sel {
 	SCLR_VO_D25,
 	SCLR_VO_D26,
 	SCLR_VO_D27,
+	SCLR_VO_D28,
+	SCLR_VO_D29,
+	SCLR_VO_D30,
+	SCLR_VO_D31,
 	SCLR_VO_D_MAX,
 };
 
@@ -166,6 +171,10 @@ enum sclr_top_vo_d_sel {
 	SCLR_VO_MIPI_RXP1 = SCLR_VO_D7,
 	SCLR_VO_MIPI_RXN0 = SCLR_VO_D6,
 	SCLR_VO_MIPI_RXP0 = SCLR_VO_D5,
+	SCLR_VO_CPU_TMS = SCLR_VO_D28,
+	SCLR_VO_CPU_TCK = SCLR_VO_D29,
+	SCLR_VO_CPU_TRST = SCLR_VO_D30,
+	SCLR_VO_AUX0 =SCLR_VO_D31,
 	SCLR_VO_PAD_MAX = SCLR_VO_D_MAX
 };
 
@@ -192,6 +201,11 @@ enum BT_MODE {
 struct cvi_bt_intf_cfg {
 	__u32 pixelclock;
 	enum BT_MODE mode;
+	struct vo_pins pins;
+};
+
+struct cvi_rgb_intf_cfg {
+	__u32 pixelclock;
 	struct vo_pins pins;
 };
 
@@ -225,6 +239,7 @@ struct cvi_disp_intf_cfg {
 		struct cvi_dsi_intf_cfg dsi_cfg;
 		struct cvi_lvds_intf_cfg lvds_cfg;
 		struct cvi_bt_intf_cfg bt_cfg;
+		struct cvi_rgb_intf_cfg rgb_cfg;
 	};
 };
 

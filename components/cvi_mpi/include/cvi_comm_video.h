@@ -513,6 +513,8 @@ typedef struct _VCODEC_PERF_FPS_S {
 	CVI_U32 u32InFPS;	/*Input frame rate*/
 	CVI_U32 u32OutFPS;	/*Output frame rate*/
 	CVI_U64 u64HwTime;	/*Hardware processing time*/
+	CVI_U64 u64DoneFrame; /*Number of processed frames*/
+	CVI_U64 u64MaxHwTime; /*Max hardware processing time*/
 } VCODEC_PERF_FPS_S;
 
 #ifdef __cplusplus

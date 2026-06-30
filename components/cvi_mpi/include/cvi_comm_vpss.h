@@ -28,6 +28,7 @@ extern "C" {
 #define VPSS_INVALID_CHN     -1
 #define VPSS_INVALID_GRP     -1
 #define CVI_STITCH_CHN_MAX_NUM 4
+#define CVI_STITCH_MAX_BIND_NUM 4
 
 
 /*
@@ -184,7 +185,8 @@ typedef struct _CVI_STITCH_CHN_S {
 
 /**
  * u8ChnNum: the number of vpss stitch chn
- * VoChn: Vo chn id
+ * u8DstChnNum: the number of destination channels
+ * astDstChn: Destination channels for vpss stitch output
  * s32OutFps: Output FPS
  * enOutPixelFormat: image pixel format
  * stOutSize: Output size
@@ -193,7 +195,8 @@ typedef struct _CVI_STITCH_CHN_S {
  */
 typedef struct _CVI_STITCH_ATTR_S {
 	CVI_U8 u8ChnNum;
-	CVI_U8 VoChn;
+	CVI_U8 u8DstChnNum;
+	MMF_CHN_S astDstChn[CVI_STITCH_MAX_BIND_NUM];
 	CVI_S32 s32OutFps;
 	PIXEL_FORMAT_E enOutPixelFormat;
 	SIZE_S stOutSize;

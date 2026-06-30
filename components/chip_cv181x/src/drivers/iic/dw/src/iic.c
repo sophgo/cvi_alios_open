@@ -11,14 +11,24 @@
 #include <drv/porting.h>
 #include <aos/cli.h>
 //#include <timer.h>
+#include <drv/pin.h>
+#include <pinctrl-mars.h>
+#include <unistd.h>
+#include "platform.h"
 
 #include "dw_iic_ll.h"
+#include "iic_recovery.h"
 
 extern uint16_t iic_tx_hs_num[];
 extern uint16_t iic_rx_hs_num[];
 #define VOID_P_DEC(p, val) do{ uint8_t *temp = (uint8_t *)p; temp -= val; p = (void *)temp; }while(0);
 
 static struct iic_drv_priv iic_list[6] = {0};
+
+#define MAX_IIC_RECOVERY_CONFIGS 6
+
+/* Internal recovery configuration storage */
+static iic_recovery_config_t iic_recovery_configs[MAX_IIC_RECOVERY_CONFIGS];
 
 /**
   \brief       wait_iic_transmit
@@ -1028,6 +1038,286 @@ csi_error_t csi_iic_master_receive_async(csi_iic_t  *iic, uint32_t devaddr, void
     return ret;
 }
 
+/* Internal function to find recovery configuration by IIC index */
+static iic_recovery_config_t* _get_recovery_config(uint8_t iic_idx)
+{
+    if (iic_idx >= MAX_IIC_RECOVERY_CONFIGS) {
+        return NULL;
+    }
+
+    /* Check if this index is configured and enabled */
+    if (iic_recovery_configs[iic_idx].enable) {
+        return &iic_recovery_configs[iic_idx];
+    }
+
+    return NULL;
+}
+
+/* Public API implementations */
+int csi_iic_set_recovery_config(uint8_t iic_idx, const iic_recovery_config_t *config)
+{
+    if (!config || iic_idx >= MAX_IIC_RECOVERY_CONFIGS) {
+        return -1;
+    }
+
+    /* Copy configuration directly to the corresponding index */
+    if (memcmp(&iic_recovery_configs[iic_idx], config, sizeof(iic_recovery_config_t)) != 0) {
+        memcpy(&iic_recovery_configs[iic_idx], config, sizeof(iic_recovery_config_t));
+        // printf("IIC%d recovery config %s\r\n", iic_idx, config->enable ? "enabled" : "disabled");
+    }
+
+    return 0;
+}
+
+int csi_iic_get_recovery_config(uint8_t iic_idx, iic_recovery_config_t *config)
+{
+    if (!config || iic_idx >= MAX_IIC_RECOVERY_CONFIGS) {
+        return -1;
+    }
+
+    /* Check if this index has been configured (non-zero structure) */
+    if (iic_recovery_configs[iic_idx].config_gpio_mode != NULL &&
+        iic_recovery_configs[iic_idx].config_iic_mode != NULL) {
+        memcpy(config, &iic_recovery_configs[iic_idx], sizeof(iic_recovery_config_t));
+        return 0;
+    }
+
+    return -1; /* Config not found */
+}
+
+int csi_iic_recovery_enable(uint8_t iic_idx, uint8_t enable)
+{
+    if (iic_idx >= MAX_IIC_RECOVERY_CONFIGS) {
+        return -1;
+    }
+
+    /* Check if this index has been configured */
+    if (iic_recovery_configs[iic_idx].config_gpio_mode != NULL &&
+        iic_recovery_configs[iic_idx].config_iic_mode != NULL) {
+        iic_recovery_configs[iic_idx].enable = enable ? 1 : 0;
+        printf("IIC%d recovery %s\r\n", iic_idx, enable ? "enabled" : "disabled");
+        return 0;
+    }
+
+    return -1; /* Config not found */
+}
+
+int csi_iic_recovery_is_enabled(uint8_t iic_idx)
+{
+    if (iic_idx >= MAX_IIC_RECOVERY_CONFIGS) {
+        return -1;
+    }
+
+    /* Check if this index has been configured */
+    if (iic_recovery_configs[iic_idx].config_gpio_mode != NULL &&
+        iic_recovery_configs[iic_idx].config_iic_mode != NULL) {
+        return iic_recovery_configs[iic_idx].enable ? 1 : 0;
+    }
+
+    return 0; /* Not configured, treated as disabled */
+}
+
+#define GPIO_PIN_MASK(_gpio_num) (1 << _gpio_num)
+void _gpio_set_val(uint8_t gpio_grp, uint8_t gpio_num, uint8_t level)
+{
+    csi_error_t ret;
+    csi_gpio_t gpio = {0};
+
+    ret = csi_gpio_init(&gpio, gpio_grp);
+    if(ret != CSI_OK) {
+        printf("csi_gpio_init failed\r\n");
+        return;
+    }
+    // gpio write
+    ret = csi_gpio_dir(&gpio , GPIO_PIN_MASK(gpio_num), GPIO_DIRECTION_OUTPUT);
+
+    if(ret != CSI_OK) {
+        printf("csi_gpio_dir failed\r\n");
+        return;
+    }
+    csi_gpio_write(&gpio , GPIO_PIN_MASK(gpio_num), level);
+}
+
+int32_t _gpio_get_val(uint8_t gpio_grp, uint8_t gpio_num)
+{
+    csi_error_t ret;
+    csi_gpio_t gpio = {0};
+    uint32_t level = 0;
+
+    ret = csi_gpio_init(&gpio, gpio_grp);
+    if(ret != CSI_OK) {
+        printf("csi_gpio_init failed\r\n");
+        return -1;
+    }
+    // gpio write
+    ret = csi_gpio_dir(&gpio , GPIO_PIN_MASK(gpio_num), GPIO_DIRECTION_INPUT);
+
+    if(ret != CSI_OK) {
+        printf("csi_gpio_dir failed\r\n");
+        return -1;
+    }
+    level = csi_gpio_read(&gpio , GPIO_PIN_MASK(gpio_num));
+    return (level & GPIO_PIN_MASK(gpio_num)) >> gpio_num;
+}
+
+#define RECOVERY_UDELAY     20
+#define RECOVERY_CLK_CNT    9
+
+/* Dynamic GPIO operations based on specific IIC configuration */
+static inline void _set_scl_by_config(iic_recovery_config_t *config, uint8_t val)
+{
+    if (config) {
+        _gpio_set_val(config->scl_gpio_grp, config->scl_gpio_num, val);
+    }
+}
+
+static inline void _set_sda_by_config(iic_recovery_config_t *config, uint8_t val)
+{
+    if (config) {
+        _gpio_set_val(config->sda_gpio_grp, config->sda_gpio_num, val);
+    }
+}
+
+static inline int32_t _get_scl_by_config(iic_recovery_config_t *config)
+{
+    if (config) {
+        return _gpio_get_val(config->scl_gpio_grp, config->scl_gpio_num);
+    }
+    return -1;
+}
+
+static inline int32_t _get_sda_by_config(iic_recovery_config_t *config)
+{
+    if (config) {
+        return _gpio_get_val(config->sda_gpio_grp, config->sda_gpio_num);
+    }
+    return -1;
+}
+
+/* Macros for GPIO operations with specific config */
+#define set_scl(config, val)        _set_scl_by_config(config, val)
+#define set_sda(config, val)        _set_sda_by_config(config, val)
+#define get_scl(config)             _get_scl_by_config(config)
+#define get_sda(config)             _get_sda_by_config(config)
+
+/**
+  \brief       recover bus when busy: csi_iic_uninit-->pinmux-->io-->soft reset-->pinmux->csi_iic_init
+  \param[in]   iic            handle to operate.
+  \return      0 if success, -1 if failed
+*/
+int i2c_recover_bus(csi_iic_t *iic)
+{
+    int32_t i = 0;
+    uint32_t i2c_soft_rst_reg_val = 0;
+    dw_iic_regs_t *iic_base = (dw_iic_regs_t *)HANDLE_REG_BASE(iic);
+    uint8_t iic_idx = HANDLE_DEV_IDX(iic);
+    iic_recovery_config_t *config = _get_recovery_config(iic_idx);
+
+    /* Check if this IIC index supports recovery */
+    if (!config) {
+        printf("i2c_recover_bus: IIC%d recovery not configured or disabled\r\n", iic_idx);
+        return -1;
+    }
+
+    printf("Starting IIC%d bus recovery...\r\n", iic_idx);
+
+    // Same recovery logic as before...
+    /* prepare_recovery */
+    dw_iic_clear_all_irq(iic_base);
+    dw_iic_disable_all_irq(iic_base);
+    dw_iic_disable(iic_base);
+    csi_irq_disable((uint32_t)iic->dev.irq_num);
+    csi_irq_detach((uint32_t)iic->dev.irq_num);
+
+    /* Configure pins as GPIO using platform configuration */
+    if (config->config_gpio_mode) {
+        config->config_gpio_mode();
+    }
+    printf("IIC%d initial state -> scl:%d sda:%d\r\n", iic_idx, get_scl(config), get_sda(config));
+
+    // Step 1: Ensure SDA is high
+    set_sda(config, 1);
+    udelay(RECOVERY_UDELAY);
+
+    // Step 2: Generate 9 clock pulses
+    printf("Generating 9 clock pulses on SCL...\r\n");
+    for (i = 0; i < RECOVERY_CLK_CNT; i++) {
+        if (get_scl(config) == 0) {
+            printf("SCL is stuck low, cannot recover.\n");
+            if (config->config_iic_mode) {
+                config->config_iic_mode();
+            }
+            return -1;
+        }
+
+        set_scl(config, 0);
+        udelay(RECOVERY_UDELAY);
+        set_scl(config, 1);
+        udelay(RECOVERY_UDELAY);
+
+        if (get_sda(config) == 1) {
+            printf("SDA released after %d clock pulses\r\n", i + 1);
+            break;
+        }
+    }
+
+    // Step 3: Generate STOP condition
+    printf("Generating a STOP condition...\r\n");
+    set_scl(config, 1);
+    udelay(RECOVERY_UDELAY / 2);
+    set_sda(config, 0);
+    udelay(RECOVERY_UDELAY);
+    set_sda(config, 1);
+    udelay(RECOVERY_UDELAY);
+
+    printf("Recovery sequence finished. Final state -> scl:%d sda:%d\r\n", get_scl(config), get_sda(config));
+
+    if (get_scl(config) == 0 || get_sda(config) == 0) {
+        printf("Warning: IIC%d bus may not be fully recovered. SCL:%d SDA:%d\r\n", iic_idx, get_scl(config), get_sda(config));
+    }
+
+    /* soft reset iic ip*/
+    i2c_soft_rst_reg_val = mmio_read_32(0x03003000);
+    printf("i2c%d_soft_rst_reg_val:%#x\r\n", iic_idx, i2c_soft_rst_reg_val);
+    mmio_write_32(0x03003000, i2c_soft_rst_reg_val & (~(1 << (27 + iic_idx))));
+    udelay(100);
+    mmio_write_32(0x03003000, i2c_soft_rst_reg_val | (1 << (27 + iic_idx)));
+    udelay(100);
+
+    /* Restore pinmux configuration */
+    if (config->config_iic_mode) {
+        config->config_iic_mode();
+    }
+    udelay(50);
+
+    /* Reinitialize I2C controller */
+    dw_iic_disable(iic_base);
+    udelay(10);
+    dw_iic_clear_all_irq(iic_base);
+    dw_iic_disable_all_irq(iic_base);
+    iic_base->IC_CLR_TX_ABRT;
+
+    // Reset software state
+    iic_base->IC_SAR = 0;
+    iic->state.writeable = 1U;
+    iic->state.readable  = 1U;
+    iic->state.error     = 0U;
+
+    dw_iic_set_receive_fifo_threshold(iic_base, 0x1);
+    dw_iic_set_transmit_fifo_threshold(iic_base, 0x0);
+    dw_iic_set_sda_hold_time(iic_base, 0x1e);
+    csi_iic_mode(iic, IIC_MODE_MASTER);
+    dw_iic_enable_restart(iic_base);
+    csi_iic_addr_mode(iic, IIC_ADDRESS_7BIT);
+    csi_iic_speed(iic, IIC_BUS_SPEED_FAST);
+
+    udelay(100);
+    iic_base->IC_CLR_TX_ABRT;
+
+    printf("IIC%d recovery completed successfully\r\n", iic_idx);
+    return 0;
+}
+
 /**
   \brief       Start transmitting data as IIC Master.
                This function is blocking
@@ -1065,8 +1355,19 @@ int32_t csi_iic_mem_send(csi_iic_t *iic, uint32_t devaddr, uint16_t memaddr, csi
     }
 
     if (dw_iic_xfer_init(iic_base, devaddr, memaddr, memaddr_len)) {
-        ret = CSI_ERROR;
-        goto SEND_ERROR;
+        printf("I2C transfer init failed, starting recovery...\r\n");
+        if (i2c_recover_bus(iic) == 0) {
+            // Recovery successful, try initialization again
+            if (dw_iic_xfer_init(iic_base, devaddr, memaddr, memaddr_len)) {
+                printf("I2C transfer init failed again after recovery\r\n");
+                ret = CSI_ERROR;
+                goto SEND_ERROR;
+            }
+        } else {
+            printf("I2C bus recovery failed\r\n");
+            ret = CSI_ERROR;
+            goto SEND_ERROR;
+        }
     }
 
     timecount = timeout + csi_tick_get_ms();
@@ -1089,10 +1390,12 @@ int32_t csi_iic_mem_send(csi_iic_t *iic, uint32_t devaddr, uint16_t memaddr, csi
 
     if (dw_iic_xfer_finish(iic_base)) {
         ret = CSI_ERROR;
+        i2c_recover_bus(iic);  // No need to check return value here since error already occurred
         goto SEND_ERROR;
     }
 
 SEND_ERROR:
+    dw_iic_clear_all_irq(iic_base);
     dw_iic_disable(iic_base);
     aos_mutex_unlock(&iic_list[iic_idx].tx_mutex);
     return (ret == CSI_OK) ? size : ret;
@@ -1136,8 +1439,19 @@ int32_t csi_iic_mem_receive(csi_iic_t *iic, uint32_t devaddr, uint16_t memaddr, 
     }
 
     if (dw_iic_xfer_init(iic_base, devaddr, memaddr, memaddr_len)) {
-        ret = CSI_ERROR;
-        goto RECV_ERROR;
+        printf("I2C transfer init failed, starting recovery...\r\n");
+        if (i2c_recover_bus(iic) == 0) {
+            // Recovery successful, try initialization again
+            if (dw_iic_xfer_init(iic_base, devaddr, memaddr, memaddr_len)) {
+                printf("I2C transfer init failed again after recovery\r\n");
+                ret = CSI_ERROR;
+                goto RECV_ERROR;
+            }
+        } else {
+            printf("I2C bus recovery failed\r\n");
+            ret = CSI_ERROR;
+            goto RECV_ERROR;
+        }
     }
 
     timecount = timeout + csi_tick_get_ms();
@@ -1170,10 +1484,12 @@ int32_t csi_iic_mem_receive(csi_iic_t *iic, uint32_t devaddr, uint16_t memaddr, 
 
     if (dw_iic_xfer_finish(iic_base)) {
         ret = CSI_ERROR;
+        i2c_recover_bus(iic);  // No need to check return value here since error already occurred
         goto RECV_ERROR;
     }
 
 RECV_ERROR:
+    dw_iic_clear_all_irq(iic_base);
     dw_iic_disable(iic_base);
     aos_mutex_unlock(&iic_list[iic_idx].rx_mutex);
     return (ret == CSI_OK) ? size : ret;

@@ -22,7 +22,8 @@ enum imx675_linear_regs_e {
 	LINEAR_SHR0_0,
 	LINEAR_SHR0_1,
 	LINEAR_SHR0_2,
-	LINEAR_GAIN,
+	LINEAR_GAIN_L,
+	LINEAR_GAIN_H,
 	LINEAR_HCG,
 	LINEAR_VMAX_0,
 	LINEAR_VMAX_1,
@@ -36,9 +37,12 @@ enum imx675_dol2_regs_e {
 	DOL2_SHR0_0,
 	DOL2_SHR0_1,
 	DOL2_SHR0_2,
-	DOL2_GAIN,
+	DOL2_GAIN_L,
+	DOL2_GAIN_H,
 	DOL2_HCG,
-	DOL2_GAIN1,
+	DOL2_GAIN1_L,
+	DOL2_GAIN1_H,
+	DOL2_HCG1,
 	DOL2_RHS1_0,
 	DOL2_RHS1_1,
 	DOL2_RHS1_2,
@@ -53,7 +57,8 @@ enum imx675_dol2_regs_e {
 };
 
 typedef enum _IMX675_MODE_E {
-	IMX675_MODE_5M30 = 0,
+	IMX675_MODE_4M30 = 0,
+	IMX675_MODE_5M30,
 	IMX675_MODE_LINEAR_NUM,
 	IMX675_MODE_5M25_WDR = IMX675_MODE_LINEAR_NUM,
 	IMX675_MODE_NUM
@@ -91,7 +96,7 @@ typedef struct _IMX675_MODE_S {
 extern ISP_SNS_STATE_S *g_pastImx675[VI_MAX_PIPE_NUM];
 extern ISP_SNS_COMMBUS_U g_aunImx675_BusInfo[];
 extern CVI_U16 g_au16Imx675_GainMode[];
-extern const CVI_U8 imx675_i2c_addr;
+extern CVI_U8 imx675_i2c_addr;
 extern const CVI_U32 imx675_addr_byte;
 extern const CVI_U32 imx675_data_byte;
 extern void imx675_init(VI_PIPE ViPipe);

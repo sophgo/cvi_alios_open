@@ -49,6 +49,7 @@ build_config:
 source_file:
   - media/src/media_audio.c
   - media/src/media_video.c
+  - media/src/media_logo.c
   - param/src/*.c
   - media/src/loadbmp.c
 

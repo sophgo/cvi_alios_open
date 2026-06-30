@@ -1,7 +1,7 @@
 ## 第一部分： 基础信息
-name: fastboot                                    # <必选项> 包名称 （符合C语言变量命名规则），长度少于等于64字节
+name: normboot                                    # <必选项> 包名称 （符合C语言变量命名规则），长度少于等于64字节
 version: v7.5.1                                     # <必选项> 组件版本号
-description: yoc fastboot                         # <必选项> 建议至少20字以上
+description: yoc normboot                         # <必选项> 建议至少20字以上
 type: solution                                      # <必选项> 组件类型，为：solution, chip, board, common, sdk
 
 hw_info:
@@ -128,8 +128,8 @@ source_file:
   - application/common/src/*.c
   - application/param_parse/*.c ? <CONFIG_RTOS_PARSE_PARAM>
   - application/annon_msg/*.c ? <CONFIG_RTOS_ANNON_MSG>
-  - customization/turnkey/cv181xc_evb_qfn_param/*.c
-  - customization/turnkey/src/*.c
+  - customization/cv180zb_2331_2331_1l_switch/pipeline/*.c
+  - customization/cv180zb_2331_2331_1l_switch/src/*.c
 
 
 ## 第五部分：配置信息
@@ -166,32 +166,34 @@ def_config:
   USE_4K_ERASE_SECTION: 0
   CONFIG_SIMPLE_FONTMOD: 1
   CONFIG_SUPPORT_NORFLASH: 0
-  CONFIG_SNS0_TYPE: 14
+  CONFIG_SNS0_TYPE: 11
   CONFIG_SNS1_TYPE: 0
   CONFIG_SNS2_TYPE: 0
-  CONFIG_PANEL_HX8394: 0
+  CONFIG_PANEL_HX8394: 1
   CONFIG_PANEL_ILI9488: 0
+  CONFIG_PANEL_JD9165: 0
   CONFIG_VENC_TEST_CHN: 2
   CONFIG_PQTOOL_SUPPORT: 0
   CONFIG_PQBIN_USE_JSON: 0
   CONFIG_ISP_SUPPORT_PROC: 0
+  CONFIG_ENABLE_FASTBOOT: 0
 
-  CONFIG_CVI_LOG_TRACE_SUPPORT: 0
+  CONFIG_CVI_LOG_TRACE_SUPPORT: 1
 
-  CONFIG_SYS_SUPPORT_PROC: 0
-  CONFIG_VB_SUPPORT_PROC: 0
-  CONFIG_ICPM_SUPPORT_PROC: 0
-  CONFIG_LDC_SUPPORT_PROC: 0
-  CONFIG_RGN_SUPPORT_PROC: 0
-  CONFIG_VC_SUPPORT_PROC: 0
-  CONFIG_VI_SUPPORT_PROC: 0
-  CONFIG_VO_SUPPORT_PROC: 0
-  CONFIG_VPSS_SUPPORT_PROC: 0
-  CONFIG_LOG_SUPPORT_PROC: 0
+  CONFIG_SYS_SUPPORT_PROC: 1
+  CONFIG_VB_SUPPORT_PROC: 1
+  CONFIG_ICPM_SUPPORT_PROC: 1
+  CONFIG_LDC_SUPPORT_PROC: 1
+  CONFIG_RGN_SUPPORT_PROC: 1
+  CONFIG_VC_SUPPORT_PROC: 1
+  CONFIG_VI_SUPPORT_PROC: 1
+  CONFIG_VO_SUPPORT_PROC: 1
+  CONFIG_VPSS_SUPPORT_PROC: 1
+  CONFIG_LOG_SUPPORT_PROC: 1
 
   CONFIG_DUALOS_NO_CROP: 0 # 1 不裁剪 0 裁剪
-  CONFIG_SUPPORT_VDEC: 0 # 1 支持 0 不支持
-  CONFIG_SUPPORT_VO: 0 # 1 支持 0 不支持
+  CONFIG_SUPPORT_VDEC: 1 # 1 支持 0 不支持
+  CONFIG_SUPPORT_VO: 1 # 1 支持 0 不支持
   CONFIG_SUPPORT_VI: 1 # 1 支持 0 不支持
 
 

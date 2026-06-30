@@ -1,7 +1,7 @@
 ## 第一部分： 基础信息
-name: fastboot                                    # <必选项> 包名称 （符合C语言变量命名规则），长度少于等于64字节
+name: normboot                                    # <必选项> 包名称 （符合C语言变量命名规则），长度少于等于64字节
 version: v7.5.1                                     # <必选项> 组件版本号
-description: yoc fastboot                         # <必选项> 建议至少20字以上
+description: yoc normboot                         # <必选项> 建议至少20字以上
 type: solution                                      # <必选项> 组件类型，为：solution, chip, board, common, sdk
 
 hw_info:
@@ -29,47 +29,15 @@ depends:
   - aoshal: develop
   - libc_stub: develop
   - posix: develop
-  - cvi_link: v0.0.1
-  - cvi_msg: v0.0.1
   - cv181xc_evb: v0.0.1
   - chip_cv181x: v0.0.1
-  - cvi_osdrv_sys: v0.0.1
-  - cvi_osdrv_base: v0.0.1
-  - cvi_osdrv_vi: v0.0.1
-  - cvi_osdrv_vpss: v0.0.1
-  - cvi_osdrv_tpu: v0.0.1
-  - cvi_osdrv_ldc: v0.0.1
-  - cvi_osdrv_rgn: v0.0.1
-  - cvi_osdrv_vcodec: v0.0.1
-  - cvi_osdrv_vo: v0.0.1
-  - cvi_osdrv_cif: v0.0.1
-  - cvi_osdrv_ipcm: v0.0.1
-  - cvi_mw_sys: v0.0.1
-  - cvi_mw_audio: v0.0.1
   - minialsa: v7.5.1
   - drv_snd_cv181x: v7.5.1
-  - cvi_mw_mipi_tx: v0.0.1
-  - cvi_mw_vdec: v0.0.1
-  - cvi_mw_venc: v0.0.1
-  - cvi_mw_gdc: v0.0.1
-  - cvi_mw_ldc: v0.0.1
-  - cvi_mw_rgn: v0.0.1
-  - cvi_mw_vi: v0.0.1
-  - cvi_mw_vo: v0.0.1
-  - cvi_mw_vpss: v0.0.1
   - cvi_sensor: develop
-  - cvi_mw_isp: develop
-  - cvi_mw_isp_algo: develop
-  - cvi_mw_isp_ae: develop
-  - cvi_mw_isp_af: develop
-  - cvi_mw_isp_awb: develop
-  - cvi_mw_isp_bin: develop
-  - cvi_mw_bin: develop
   - cvi_platform: develop
   - cvi_test: develop
-#  - cvi_mw_isp_com_raw_replay: develop
-#  - cvi_mw_isp_daemon: develop
   - mini_ini: develop
+  - cvi_mpi: develop
 ## 第三部分：板级信息
 # hw_info:                                 # 对 solution、board、chip 三个字段的改进，统称为 hw_info 字段
 #   cpu_id: cpu0
@@ -160,8 +128,8 @@ source_file:
   - application/common/src/*.c
   - application/param_parse/*.c ? <CONFIG_RTOS_PARSE_PARAM>
   - application/annon_msg/*.c ? <CONFIG_RTOS_ANNON_MSG>
-  - customization/turnkey/cv181xc_evb_qfn_param/*.c
-  - customization/turnkey/src/*.c
+  - customization/cv1811c_jd9165/pipeline/*.c
+  - customization/cv1811c_jd9165/src/*.c
 
 
 ## 第五部分：配置信息
@@ -198,32 +166,34 @@ def_config:
   USE_4K_ERASE_SECTION: 0
   CONFIG_SIMPLE_FONTMOD: 1
   CONFIG_SUPPORT_NORFLASH: 0
-  CONFIG_SNS0_TYPE: 14
+  CONFIG_SNS0_TYPE: 11
   CONFIG_SNS1_TYPE: 0
   CONFIG_SNS2_TYPE: 0
-  CONFIG_PANEL_HX8394: 0
+  CONFIG_PANEL_HX8394: 1
   CONFIG_PANEL_ILI9488: 0
+  CONFIG_PANEL_JD9165: 0
   CONFIG_VENC_TEST_CHN: 2
   CONFIG_PQTOOL_SUPPORT: 0
   CONFIG_PQBIN_USE_JSON: 0
   CONFIG_ISP_SUPPORT_PROC: 0
+  CONFIG_ENABLE_FASTBOOT: 0
 
-  CONFIG_CVI_LOG_TRACE_SUPPORT: 0
+  CONFIG_CVI_LOG_TRACE_SUPPORT: 1
 
-  CONFIG_SYS_SUPPORT_PROC: 0
-  CONFIG_VB_SUPPORT_PROC: 0
-  CONFIG_ICPM_SUPPORT_PROC: 0
-  CONFIG_LDC_SUPPORT_PROC: 0
-  CONFIG_RGN_SUPPORT_PROC: 0
-  CONFIG_VC_SUPPORT_PROC: 0
-  CONFIG_VI_SUPPORT_PROC: 0
-  CONFIG_VO_SUPPORT_PROC: 0
-  CONFIG_VPSS_SUPPORT_PROC: 0
-  CONFIG_LOG_SUPPORT_PROC: 0
+  CONFIG_SYS_SUPPORT_PROC: 1
+  CONFIG_VB_SUPPORT_PROC: 1
+  CONFIG_ICPM_SUPPORT_PROC: 1
+  CONFIG_LDC_SUPPORT_PROC: 1
+  CONFIG_RGN_SUPPORT_PROC: 1
+  CONFIG_VC_SUPPORT_PROC: 1
+  CONFIG_VI_SUPPORT_PROC: 1
+  CONFIG_VO_SUPPORT_PROC: 1
+  CONFIG_VPSS_SUPPORT_PROC: 1
+  CONFIG_LOG_SUPPORT_PROC: 1
 
   CONFIG_DUALOS_NO_CROP: 0 # 1 不裁剪 0 裁剪
-  CONFIG_SUPPORT_VDEC: 0 # 1 支持 0 不支持
-  CONFIG_SUPPORT_VO: 0 # 1 支持 0 不支持
+  CONFIG_SUPPORT_VDEC: 1 # 1 支持 0 不支持
+  CONFIG_SUPPORT_VO: 1 # 1 支持 0 不支持
   CONFIG_SUPPORT_VI: 1 # 1 支持 0 不支持
 
 

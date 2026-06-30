@@ -37,6 +37,7 @@
 #include "cvi_mipi_tx.h"
 #if (!defined(CONFIG_SUPPORT_VO) || (CONFIG_SUPPORT_VO))
 #include "dsi_panels.h"
+#include "media_logo.h"
 #endif
 //#include "ldc_platform.h"
 #include "cvi_gdc.h"
@@ -975,7 +976,7 @@ int MEDIA_VIDEO_VoInit(PARAM_VO_CFG_S * pstVoCtx)
         return CVI_SUCCESS;
     }
     MEDIA_VIDEO_PanelInit();
-    return 0;
+    // return 0;
     for(i = 0 ;i < pstVoCtx->u8VoCnt;i++) {
         pstVoConfig = &pstVoCtx->pstVoCfg[i].stVoConfig;
         pstLayerAttr = &pstVoCtx->pstVoCfg[i].stLayerAttr;
@@ -993,9 +994,17 @@ int MEDIA_VIDEO_VoInit(PARAM_VO_CFG_S * pstVoCtx)
             CVI_VO_SetChnRotation(pstVoCtx->pstVoCfg[i].VoLayer,j,pstVoCtx->pstVoCfg[i].u8ChnRotation);
             MEDIA_CHECK_RET(CVI_VO_EnableChn(pstVoCtx->pstVoCfg[i].VoLayer, j), "CVI_VO_EnableChn failed!\n");
         }
-        MEDIA_CHECK_RET(CVI_SYS_Bind(&pstVoCtx->pstVoCfg[i].stSrcChn, &pstVoCtx->pstVoCfg[i].stDestChn), "CVI_SYS_Bind(VPSS-VO)");
+        if(pstVoCtx->pstVoCfg[i].u8Bindmode == true){
+            MEDIA_CHECK_RET(CVI_SYS_Bind(&pstVoCtx->pstVoCfg[i].stSrcChn, &pstVoCtx->pstVoCfg[i].stDestChn), "CVI_SYS_Bind(VPSS-VO)");
+        }
     }
     MEDIABUG_PRINTF("******start vo******\n");
+
+#if defined(CONFIG_ALIOSLOGO) && (CONFIG_ALIOSLOGO)
+	//show logo
+	CVI_Media_Vdec_Logo();
+#endif
+
     return CVI_SUCCESS;
 }
 

@@ -54,46 +54,6 @@ static const SC1336_1L_SLAVE_MODE_S g_astSC1336_1L_slave_mode[SC1336_1L_SLAVE_MO
 			.u32Step = 1,
 		},
 	},
-	[SC1336_1L_SLAVE_MODE_720P30_WDR] = {
-		.name = "720p30wdr",
-		.stImg[0] = {
-			.stSnsSize = {
-				.u32Width = 1280,
-				.u32Height = 720,
-			},
-			.stWndRect = {
-				.s32X = 0,
-				.s32Y = 0,
-				.u32Width = 1280,
-				.u32Height = 720,
-			},
-			.stMaxSize = {
-				.u32Width = 1280,
-				.u32Height = 720,
-			},
-		},
-		.stImg[1] = {
-			.stSnsSize = {
-				.u32Width = 1280,
-				.u32Height = 720,
-			},
-			.stWndRect = {
-				.s32X = 0,
-				.s32Y = 0,
-				.u32Width = 1280,
-				.u32Height = 720,
-			},
-			.stMaxSize = {
-				.u32Width = 1280,
-				.u32Height = 720,
-			},
-		},
-		.f32MaxFps = 30,
-		.f32MinFps = 1.37, /* 720 * 30 / 0x3FFF*/
-		.u32HtsDef = 1280,
-		.u32VtsDef = 750,
-		.u16SexpMaxReg = 0x13E,
-	},
 	[SC1336_1L_SLAVE_MODE_720P60] = {
 		.name = "720p60",
 		.stImg[0] = {
@@ -134,46 +94,6 @@ static const SC1336_1L_SLAVE_MODE_S g_astSC1336_1L_slave_mode[SC1336_1L_SLAVE_MO
 			.u32Def = 1024,
 			.u32Step = 1,
 		},
-	},
-	[SC1336_1L_SLAVE_MODE_720P60_WDR] = {
-		.name = "720p60wdr",
-		.stImg[0] = {
-			.stSnsSize = {
-				.u32Width = 1280,
-				.u32Height = 720,
-			},
-			.stWndRect = {
-				.s32X = 0,
-				.s32Y = 0,
-				.u32Width = 1280,
-				.u32Height = 720,
-			},
-			.stMaxSize = {
-				.u32Width = 1280,
-				.u32Height = 720,
-			},
-		},
-		.stImg[1] = {
-			.stSnsSize = {
-				.u32Width = 1280,
-				.u32Height = 720,
-			},
-			.stWndRect = {
-				.s32X = 0,
-				.s32Y = 0,
-				.u32Width = 1280,
-				.u32Height = 720,
-			},
-			.stMaxSize = {
-				.u32Width = 1280,
-				.u32Height = 720,
-			},
-		},
-		.f32MaxFps = 60,
-		.f32MinFps = 1.37, /* 750 * 30 / 0x3FFF*/
-		.u32HtsDef = 1280,
-		.u32VtsDef = 750,
-		.u16SexpMaxReg = 0x13E,
 	},
 };
 

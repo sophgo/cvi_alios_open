@@ -181,6 +181,45 @@ void PLATFORM_PowerOff(void)
 
 int PLATFORM_PanelInit(void)
 {
+#if (!defined(CONFIG_SUPPORT_VO) || (CONFIG_SUPPORT_VO))
+#if CONFIG_PANEL_HX8394
+	PINMUX_CONFIG(PWR_GPIO0, PWR_GPIO_0); // LCD_PWM
+	PINMUX_CONFIG(PWR_GPIO1, PWR_GPIO_1); // LCD_PWR_CT
+	PINMUX_CONFIG(PWR_GPIO2, PWR_GPIO_2); // LCD_RST
+	u8 pw_port, pw_pin, bl_port, bl_pin, rst_port, rst_pin;
+	pw_port = 4;
+	pw_pin = 1;
+	bl_port = 4;
+	bl_pin = 0;
+	rst_port = 4;
+	rst_pin = 2;
+	_GPIOSetValue(pw_port, pw_pin, 1);
+	_GPIOSetValue(bl_port, bl_pin, 1);
+	_GPIOSetValue(rst_port, rst_pin, 1);
+	udelay(20 * 1000);
+	_GPIOSetValue(rst_port, rst_pin, 0);
+	udelay(20 * 1000);
+	_GPIOSetValue(rst_port, rst_pin, 1);
+	udelay(20 * 1000);
+#elif CONFIG_PANEL_OTA7290B
+	u8 pw_port, pw_pin, bl_port, bl_pin, rst_port, rst_pin;
+	pw_port = 0;
+	pw_pin = 30;
+	bl_port = 4;
+	bl_pin = 0;
+	rst_port = 0;
+	rst_pin = 20;
+	_GPIOSetValue(pw_port, pw_pin, 1);
+	_GPIOSetValue(bl_port, bl_pin, 1);
+	_GPIOSetValue(rst_port, rst_pin, 1);
+	udelay(20 * 1000);
+	_GPIOSetValue(rst_port, rst_pin, 0);
+	udelay(20 * 1000);
+	_GPIOSetValue(rst_port, rst_pin, 1);
+	udelay(20 * 1000);
+#endif
+#endif
+
     return CVI_SUCCESS;
 }
 

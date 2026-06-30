@@ -257,7 +257,7 @@ static void sc035hgs_1L_linear_1296P30_init(VI_PIPE ViPipe)
 	sc035hgs_1L_write_register(ViPipe, 0x0100, 0x01);
 	sc035hgs_1L_write_register(ViPipe, 0x4418, 0x0a);
 	sc035hgs_1L_write_register(ViPipe, 0x4419, 0x80);
- 
+
 	sc035hgs_1L_default_reg_init(ViPipe);
 
 	sc035hgs_1L_write_register(ViPipe, 0x0100, 0x01);

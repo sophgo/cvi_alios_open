@@ -815,6 +815,7 @@ static CVI_VOID sensor_ctx_exit(VI_PIPE ViPipe)
 	BF2253L_SENSOR_GET_CTX(ViPipe, pastSnsStateCtx);
 	SENSOR_FREE(pastSnsStateCtx);
 	BF2253L_SENSOR_RESET_CTX(ViPipe);
+	g_aeBf2253l_MirrorFip[ViPipe] = ISP_SNS_NORMAL;
 }
 
 void bf2253l_mirror_flip(VI_PIPE ViPipe, ISP_SNS_MIRRORFLIP_TYPE_E eSnsMirrorFlip)

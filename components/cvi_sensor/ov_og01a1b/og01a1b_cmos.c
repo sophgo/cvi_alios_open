@@ -134,7 +134,7 @@ static CVI_S32 cmos_get_ae_default(VI_PIPE ViPipe, AE_SENSOR_DEFAULT_S *pstAeSns
 		pstAeSnsDft->u32InitAETolerance = 5;
 		pstAeSnsDft->u32AEResponseFrame = 4;
 		pstAeSnsDft->enAeExpMode = AE_EXP_HIGHLIGHT_PRIOR;
-		pstAeSnsDft->u32InitExposure = g_au32InitExposure[ViPipe] ? 
+		pstAeSnsDft->u32InitExposure = g_au32InitExposure[ViPipe] ?
 					g_au32InitExposure[ViPipe] : pstMode->stExp.u16Def;
 
 		pstAeSnsDft->u32MaxIntTime = pstMode->stExp.u16Max;
@@ -819,6 +819,7 @@ static CVI_VOID sensor_ctx_exit(VI_PIPE ViPipe)
 	OG01A1B_SENSOR_GET_CTX(ViPipe, pastSnsStateCtx);
 	SENSOR_FREE(pastSnsStateCtx);
 	OG01A1B_SENSOR_RESET_CTX(ViPipe);
+	g_aeOg01a1b_MirrorFip[ViPipe] = ISP_SNS_NORMAL;
 }
 
 static CVI_S32 sensor_register_callback(VI_PIPE ViPipe, ALG_LIB_S *pstAeLib, ALG_LIB_S *pstAwbLib)

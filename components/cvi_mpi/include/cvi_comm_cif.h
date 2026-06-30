@@ -290,6 +290,10 @@ struct ttl_dev_attr_s {
     signed char func[TTL_PIN_FUNC_NUM];    // Functionality array for TTL pin functions
     unsigned short v_bp;                    // Vertical back porch
     unsigned short h_bp;                    // Horizontal back porch
+	unsigned short sav_vld;                 // Start of Active Video (SAV) valid flag
+	unsigned short eav_vld;                 // End of Active Video (EAV) valid flag
+	unsigned short sav_blk;                 // Start of Active Video (SAV) block count
+	unsigned short eav_blk;                 // End of Active Video (EAV) block count
 };
 
 

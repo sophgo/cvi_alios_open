@@ -88,9 +88,11 @@ build_config:
     - sensor_cfg
     - sensor_i2c
     - byd_bf2253l
+    - byd_bf2257
     - cvsens_cv2003_1L
     - cvsens_cv2003_1L_slave
     - cvsens_cv2003_1L_slave1
+    - cvsens_cv2005
     - gcore_gc02m1
     - gcore_gc02m1_slave
     - gcore_gc0308
@@ -103,13 +105,18 @@ build_config:
     - gcore_gc2145
     - gcore_gc4023
     - gcore_gc4653
+    - gcore_gc4663
     - ov_og01a1b
     - ov_og01a10
+    - ov_os02g10
+    - ov_os02h10
     - pixelplus_pr2020
+    - pixelplus_xs9950
     - sony_imx307
     - sony_imx327
     - sony_imx675
     - techpoint_tp9950
+    - techpoint_tp9951
     - sms_sc035hgs_1L
     - sms_sc035hgs_1L_slave
     - sms_sc230ai_2L
@@ -128,6 +135,7 @@ build_config:
     - sms_sc2336
     - sms_sc2336_slave
     - sms_sc2336_slave1
+    - sms_sc285sl
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
 source_file:
@@ -135,9 +143,11 @@ source_file:
   - sensor_cfg/*.c
   - sensor_i2c/*.c
   - byd_bf2253l/*.c ? <CONFIG_SENSOR_BYD_BF2253L>
+  - byd_bf2257/*.c ? <CONFIG_SENSOR_BYD_BF2257>
   - cvsens_cv2003_1L/*.c ? <CONFIG_SENSOR_CVSENS_CV2003_1L>
   - cvsens_cv2003_1L_slave/*.c ? <CONFIG_SENSOR_CVSENS_CV2003_1L_SLAVE>
   - cvsens_cv2003_1L_slave1/*.c ? <CONFIG_SENSOR_CVSENS_CV2003_1L_SLAVE1>
+  - cvsens_cv2005/*.c ? <CONFIG_SENSOR_CVSENS_CV2005>
   - gcore_gc02m1/*.c ? <CONFIG_SENSOR_GCORE_GC02M1>
   - gcore_gc02m1_slave/*.c ? <CONFIG_SENSOR_GCORE_GC02M1_SLAVE>
   - gcore_gc0308/*.c ? <CONFIG_SENSOR_GCORE_GC0308>
@@ -148,15 +158,20 @@ source_file:
   - gcore_gc2145/*.c ? <CONFIG_SENSOR_GCORE_GC2145>
   - gcore_gc4023/*.c ? <CONFIG_SENSOR_GCORE_GC4023>
   - gcore_gc4653/*.c ? <CONFIG_SENSOR_GCORE_GC4653>
+  - gcore_gc4663/*.c ? <CONFIG_SENSOR_GCORE_GC4663>
   - gcore_gc1054/*.c ? <CONFIG_SENSOR_GCORE_GC1054>
   - gcore_gc1084/*.c ? <CONFIG_SENSOR_GCORE_GC1084>
   - ov_og01a1b/*.c ? <CONFIG_SENSOR_OV_OG01A1B>
   - ov_og01a10/*.c ? <CONFIG_SENSOR_OV_OG01A10>
+  - ov_os02g10/*.c ? <CONFIG_SENSOR_OV_OS02G10>
+  - ov_os02h10/*.c ? <CONFIG_SENSOR_OV_OS02H10>
   - pixelplus_pr2020/*.c ? <CONFIG_SENSOR_PIXELPLUS_PR2020>
+  - pixelplus_xs9950/*.c ? <CONFIG_SENSOR_PIXELPLUS_XS9950>
   - sony_imx307/*.c ? <CONFIG_SENSOR_SONY_IMX307>
   - sony_imx327/*.c ? <CONFIG_SENSOR_SONY_IMX327>
   - sony_imx675/*.c ? <CONFIG_SENSOR_SONY_IMX675>
   - techpoint_tp9950/*.c ? <CONFIG_SENSOR_TECHPOINT_TP9950>
+  - techpoint_tp9951/*.c ? <CONFIG_SENSOR_TECHPOINT_TP9951>
   - sms_sc1336_1L/*.c ? <CONFIG_SENSOR_SMS_SC1336_1L>
   - sms_sc035hgs_1L/*.c ? <CONFIG_SENSOR_SMS_SC035HGS_1L>
   - sms_sc035hgs_1L_slave/*.c ? <CONFIG_SENSOR_SMS_SC035HGS_1L_SLAVE>
@@ -175,6 +190,7 @@ source_file:
   - sms_sc2336_slave1/*.c ? <CONFIG_SENSOR_SMS_SC2336_SLAVE1>
   - sms_sc2331_1L_slave/*.c ? <CONFIG_SENSOR_SMS_SC2331_1L_SLAVE>
   - sms_sc2331_1L_slave1/*.c ? <CONFIG_SENSOR_SMS_SC2331_1L_SLAVE1>
+  - sms_sc285sl/*.c ? <CONFIG_SENSOR_SMS_SC285SL>
 
 
 

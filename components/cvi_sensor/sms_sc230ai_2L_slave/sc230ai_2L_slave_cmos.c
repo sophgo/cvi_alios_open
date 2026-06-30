@@ -642,6 +642,19 @@ static CVI_S32 cmos_set_image_mode(VI_PIPE ViPipe, ISP_CMOS_SENSOR_IMAGE_MODE_S 
 	return CVI_SUCCESS;
 }
 
+static CVI_VOID sensor_mirror_flip(VI_PIPE ViPipe, ISP_SNS_MIRRORFLIP_TYPE_E eSnsMirrorFlip)
+{
+	ISP_SNS_STATE_S *pstSnsState = CVI_NULL;
+
+	SC230AI_2L_SLAVE_SENSOR_GET_CTX(ViPipe, pstSnsState);
+	CMOS_CHECK_POINTER_VOID(pstSnsState);
+	/* Apply the setting on the fly  */
+	if (pstSnsState->bInit == CVI_TRUE && g_aeSc230ai_2L_SLAVE_MirrorFip[ViPipe] != eSnsMirrorFlip) {
+		sc230ai_2l_slave_mirror_flip(ViPipe, eSnsMirrorFlip);
+		g_aeSc230ai_2L_SLAVE_MirrorFip[ViPipe] = eSnsMirrorFlip;
+	}
+}
+
 static CVI_VOID sensor_global_init(VI_PIPE ViPipe)
 {
 	ISP_SNS_STATE_S *pstSnsState = CVI_NULL;
@@ -776,6 +789,7 @@ static CVI_VOID sensor_ctx_exit(VI_PIPE ViPipe)
 	SC230AI_2L_SLAVE_SENSOR_GET_CTX(ViPipe, pastSnsStateCtx);
 	SENSOR_FREE(pastSnsStateCtx);
 	SC230AI_2L_SLAVE_SENSOR_RESET_CTX(ViPipe);
+	g_aeSc230ai_2L_SLAVE_MirrorFip[ViPipe] = ISP_SNS_NORMAL;
 }
 
 static CVI_S32 sensor_register_callback(VI_PIPE ViPipe, ALG_LIB_S *pstAeLib, ALG_LIB_S *pstAwbLib)
@@ -884,7 +898,7 @@ ISP_SNS_OBJ_S stSnsSC230AI_2L_SLAVE_Obj = {
 	.pfnReadReg = sc230ai_2l_slave_read_register,
 	.pfnSetBusInfo = sc230ai_2l_slave_set_bus_info,
 	.pfnSetInit = sensor_set_init,
-	.pfnMirrorFlip = sc230ai_2l_slave_mirror_flip,
+	.pfnMirrorFlip = sensor_mirror_flip,
 	.pfnPatchRxAttr = sensor_patch_rx_attr,
 	.pfnPatchI2cAddr = sensor_patch_i2c_addr,
 	.pfnGetRxAttr = sensor_rx_attr,
