@@ -28,13 +28,13 @@ void init_stream(StreamBuffer *bs, const uint8_t *buf, int buf_size,
 
 void write_multibits(uint8_t *stream, uint8_t *src, int bit_pos, int bit_len)
 {
-	if (bit_len > 16)
+	if (bit_len > 8)
 		return;
 
 	int dest_bit_i = bit_pos & 7;
 	int dest_byte_i = bit_pos >> 3;
-	uint32_t *dest_ptr_ex = (uint32_t *)&stream[dest_byte_i];
-	uint32_t src_data_ex = (*(uint16_t *)src) << dest_bit_i;
+	uint16_t *dest_ptr_ex = (uint16_t *)&stream[dest_byte_i];
+	uint16_t src_data_ex = (*src) << dest_bit_i;
 
 	(*dest_ptr_ex) = (*dest_ptr_ex) | src_data_ex;
 }
@@ -44,11 +44,11 @@ void write_stream(StreamBuffer *bs, uint8_t *src, int bit_len)
 	int next_bit_pos = bs->bit_pos + bit_len;
 
 	if (next_bit_pos < (bs->buf_size << 3)) {
-		while (bit_len >= 16) {
-			write_multibits(bs->stream, src, bs->bit_pos, 16);
-			bs->bit_pos += 16;
-			bit_len -= 16;
-			src += 2;
+		while (bit_len >= 8) {
+			write_multibits(bs->stream, src, bs->bit_pos, 8);
+			bs->bit_pos += 8;
+			bit_len -= 8;
+			src ++;
 		};
 		if (bit_len > 0) {
 			write_multibits(bs->stream, src, bs->bit_pos, bit_len);
@@ -307,8 +307,18 @@ void enc_mode_syntax(StreamBuffer *bs, MODE_TYPE md, int run_len, CODE code,
 					_syntax = (code.color.code << 1) | 1;
 					write_stream(bs, (uint8_t *)&_syntax, 33);
 				}
-			}
+			} else {
+				if (run_len > 1) {
+					uint16_t _syntax = ((run_len - 1) << 3) | 4;
 
+					write_stream(bs, (uint8_t *)&_syntax, 3 + p_ctrl->reg_run_len_bd);
+				} else {
+					uint8_t lit_prefix = 1;
+
+					write_stream(bs, &lit_prefix, 1);
+				}
+				enc_literal(bs, code.color, p_ctrl->reg_osd_format);
+			}
 		}
 	} else {
 #ifndef OSDC_PALETTE_TURNOFF
@@ -665,7 +675,7 @@ void osd_cmpr_setup(OSDCmpr_Ctrl *p_ctrl, OSDCmpr_Cfg *p_cfg)
 size_t osd_cmpr_get_pixel_sz(OSD_FORMAT format)
 {
 	return (format == OSD_ARGB8888) ?
-			   4 : ((format == OSD_ARGB1555 || format == OSD_ARGB4444) ? 2 : 1); // (OSD_LUT8, OSD_LUT4)
+			   4 : ((format == OSD_ARGB1555 || format == OSD_ARGB4444) ? 2 : ((format == OSD_LUT8) ? 1 : 0)); // (OSD_LUT8, OSD_LUT4)
 };
 
 size_t osd_cmpr_get_bs_buf_max_sz(int pel_num, int pel_sz)

@@ -12,6 +12,7 @@ components/cvi_mmf_sdk/cvi_middleware/include
 components/cvi_mmf_sdk/cvi_middleware/uapi
 components/cvi_mmf_sdk/cvi_msg/internal_include/msg
 components/cvi_mmf_sdk/SensorSupportList
+components/cvi_mmf_sdk/PanelSupportList
 components/cvi_mmf_sdk/cvi_sensor
 
 components/aos/include/cvi_board_memmap.h

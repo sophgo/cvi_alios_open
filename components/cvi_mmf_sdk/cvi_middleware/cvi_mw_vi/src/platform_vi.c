@@ -1131,6 +1131,54 @@ CVI_S32 platform_vi_dumphwregistertofile(VI_PIPE ViPipe, FILE *fp, VI_DUMP_REGIS
 	return s32Ret;
 }
 
+CVI_S32 platform_vi_aiispcfg(VI_AI_ISP_CFG_S *pstAiIspCfg)
+{
+	CVI_S32 s32Ret = CVI_SUCCESS;
+
+	if (pstAiIspCfg == CVI_NULL) {
+		CVI_TRACE_VI(CVI_DBG_ERR, "pstAiIspCfg is NULL\n");
+		return CVI_ERR_VI_INVALID_NULL_PTR;
+	}
+
+	s32Ret = vi_sdk_set_ai_isp_cfg(pstAiIspCfg);
+	if (s32Ret != CVI_SUCCESS) {
+		CVI_TRACE_VI(CVI_DBG_ERR, "vi_sdk_set_ai_isp_cfg failed, ViPipe:%d, ret:0x%x\n",
+			pstAiIspCfg->viPipe, s32Ret);
+		return s32Ret;
+	}
+
+	return CVI_SUCCESS;
+}
+
+CVI_S32 platform_vi_aiispinfo(VI_AI_ISP_INFO_WRAP_S *pstAiIspWrapInfo)
+{
+	CVI_S32 s32Ret = CVI_SUCCESS;
+
+	if (pstAiIspWrapInfo == CVI_NULL) {
+		CVI_TRACE_VI(CVI_DBG_ERR, "pstAiIspWrapInfo is NULL\n");
+		return CVI_ERR_VI_INVALID_NULL_PTR;
+	}
+
+	if (pstAiIspWrapInfo->enCmd == VI_CMD_GET_AI_ISP_RAW) {
+		s32Ret = vi_sdk_get_ai_isp_raw(pstAiIspWrapInfo);
+		if (s32Ret != CVI_SUCCESS) {
+			CVI_TRACE_VI(CVI_DBG_ERR, "vi_sdk_get_ai_isp_raw failed, ViPipe:%d, ret:0x%x\n",
+				pstAiIspWrapInfo->viPipe, s32Ret);
+			return s32Ret;
+		}
+
+	} else {
+		s32Ret = vi_sdk_put_ai_isp_raw(pstAiIspWrapInfo);
+		if (s32Ret != CVI_SUCCESS) {
+			CVI_TRACE_VI(CVI_DBG_ERR, "vi_sdk_put_ai_isp_raw failed, ViPipe:%d, ret:0x%x\n",
+				pstAiIspWrapInfo->viPipe, s32Ret);
+			return s32Ret;
+		}
+	}
+
+	return CVI_SUCCESS;
+}
+
 /**
  * @deprecated
  */

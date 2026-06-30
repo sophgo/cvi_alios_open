@@ -184,8 +184,10 @@ void PLATFORM_IoInit(void)
 	#endif
 
 	PINMUX_CONFIG(CAM_MCLK0, CAM_MCLK0);
+#if defined(CONFIG_CHIP_cv1842hp) || defined(CONFIG_CHIP_cv1843hp) || defined(CONFIG_CHIP_cv1841h)
 	PINMUX_CONFIG(IIC3_SCL, IIC3_SCL);
 	PINMUX_CONFIG(IIC3_SDA, IIC3_SDA);
+#endif
 
 #if 0 //evb mipi switch
 	PINMUX_CONFIG(SD1_CMD, IIC3_SCL);

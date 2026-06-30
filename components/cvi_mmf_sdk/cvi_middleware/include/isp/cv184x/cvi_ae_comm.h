@@ -87,6 +87,11 @@ typedef struct _AE_SENSOR_DEFAULT_S {
 	CVI_U32 u32MaxIntTimeStep;
 	CVI_U32 u32LFMaxShortTime;
 	CVI_U32 u32LFMinExposure;
+
+	CVI_U32 u32IntAgain;
+	CVI_U32 u32IntDgain;
+	CVI_U32 u32IntExposure;
+
 	ISP_AE_STRATEGY_E enAeExpMode;
 
 	CVI_U16 u16ISOCalCoef;

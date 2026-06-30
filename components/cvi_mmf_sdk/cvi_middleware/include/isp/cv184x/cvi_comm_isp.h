@@ -1300,6 +1300,17 @@ typedef struct _TEAISP_BNR_NP_S {
 	CVI_FLOAT CalibrationCoef[2][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0, 0xFF]*/
 } TEAISP_BNR_NP_S;
 
+typedef enum _TEAISP_FE_PROCESS_TYPE_E {
+	TEAISP_FE_PROCESS_OFF,
+	TEAISP_FE_PROCESS_FP16,
+	TEAISP_FE_PROCESS_FP32,
+	TEAISP_FE_PROCESS_BF16,
+	TEAISP_FE_PROCESS_BUTT
+} TEAISP_FE_PROCESS_TYPE_E;
+
+typedef struct _TEAISP_DRIVER_CFG_S {
+	TEAISP_FE_PROCESS_TYPE_E enFeProcessType;
+} TEAISP_DRIVER_CFG_S;
 
 //-----------------------------------------------------------------------------
 //  isp module (auto gen)

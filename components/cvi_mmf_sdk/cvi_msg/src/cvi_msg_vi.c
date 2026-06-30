@@ -11,6 +11,7 @@
 #include "msg_vi.h"
 #include "msg_ctx.h"
 #include "cvi_debug.h"
+#include "driver_vi.h"
 //#include "gdc_mesh.h"
 
 #ifndef UNUSED
@@ -1642,6 +1643,64 @@ static CVI_S32 MSG_VI_DetachVbPool(CVI_S32 siId, CVI_IPCMSG_MESSAGE_S *pstMsg)
 	return CVI_SUCCESS;
 }
 
+static CVI_S32 MSG_VI_AiIspCfg(CVI_S32 siId, CVI_IPCMSG_MESSAGE_S *pstMsg)
+{
+	CVI_S32 s32Ret;
+	CVI_IPCMSG_MESSAGE_S *respMsg = CVI_NULL;
+
+	CHECK_MSG_SIZE(VI_AI_ISP_CFG_S, pstMsg->u32BodyLen);
+
+	s32Ret = CVI_VI_AiIspCfg((VI_AI_ISP_CFG_S *)pstMsg->pBody);
+	if (s32Ret != CVI_SUCCESS) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "CVI_VI_AiIspCfg Failed : %#x!\n", s32Ret);
+	}
+
+	respMsg = CVI_IPCMSG_CreateRespMessage(pstMsg, s32Ret, NULL, 0);
+	if (respMsg == CVI_NULL) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "call CVI_IPCMSG_CreateRespMessage fail\n");
+	}
+
+	s32Ret = CVI_IPCMSG_SendOnly(siId, respMsg);
+	if (s32Ret != CVI_SUCCESS) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "call CVI_IPCMSG_SendOnly fail,ret:%x\n", s32Ret);
+		CVI_IPCMSG_DestroyMessage(respMsg);
+		return s32Ret;
+	}
+
+	CVI_IPCMSG_DestroyMessage(respMsg);
+	return CVI_SUCCESS;
+}
+
+static CVI_S32 MSG_VI_AiIspInfo(CVI_S32 siId, CVI_IPCMSG_MESSAGE_S *pstMsg)
+{
+	CVI_S32 s32Ret;
+	CVI_IPCMSG_MESSAGE_S *respMsg = CVI_NULL;
+	VI_AI_ISP_INFO_WRAP_S stAiIspWrapInfo;
+
+	CHECK_MSG_SIZE(VI_AI_ISP_INFO_WRAP_S, pstMsg->u32BodyLen);
+
+	memcpy(&stAiIspWrapInfo, pstMsg->pBody, sizeof(VI_AI_ISP_INFO_WRAP_S));
+	s32Ret = CVI_VI_AiIspInfo(&stAiIspWrapInfo);
+	if (s32Ret != CVI_SUCCESS) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "CVI_VI_AiIspInfo Failed : %#x!\n", s32Ret);
+	}
+
+	respMsg = CVI_IPCMSG_CreateRespMessage(pstMsg, s32Ret, &stAiIspWrapInfo, sizeof(VI_AI_ISP_INFO_WRAP_S));
+	if (respMsg == CVI_NULL) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "call CVI_IPCMSG_CreateRespMessage fail\n");
+	}
+
+	s32Ret = CVI_IPCMSG_SendOnly(siId, respMsg);
+	if (s32Ret != CVI_SUCCESS) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "call CVI_IPCMSG_SendOnly fail,ret:%x\n", s32Ret);
+		CVI_IPCMSG_DestroyMessage(respMsg);
+		return s32Ret;
+	}
+
+	CVI_IPCMSG_DestroyMessage(respMsg);
+	return CVI_SUCCESS;
+}
+
 static MSG_MODULE_CMD_S g_stViCmdTable[] = {
 	{ MSG_CMD_VI_SET_DEV_ATTR,		MSG_VI_SetDevAttr },
 	{ MSG_CMD_VI_GET_DEV_ATTR,		MSG_VI_GetDevAttr },
@@ -1698,6 +1757,8 @@ static MSG_MODULE_CMD_S g_stViCmdTable[] = {
 	{ MSG_CMD_VI_QUERY_DEV_STATUS,		MSG_VI_QueryDevStatus},
 	{ MSG_CMD_VI_ATTACH_VB_POOL,		MSG_VI_AttachVbPool},
 	{ MSG_CMD_VI_DETACH_VB_POOL,		MSG_VI_DetachVbPool},
+	{ MSG_CMD_VI_AI_ISP_CFG,		MSG_VI_AiIspCfg},
+	{ MSG_CMD_VI_AI_ISP_INFO,		MSG_VI_AiIspInfo},
 };
 
 MSG_SERVER_MODULE_S g_stModuleVi = {

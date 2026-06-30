@@ -24,42 +24,53 @@ static inline bool is_in_range(int x, int begin, int end)
 	return (x >= begin && x < end);
 }
 
-int count_repeat_pixel(uint8_t *src, int pixel_sz, int pixel_num)
+int count_repeat_pixel(uint8_t *src, int pixel_sz, int pixel_num, int idx)
 {
 	int num = pixel_num - 1;
+	uint8_t *cur_ptr = NULL;
 
-	if (pixel_sz == 2) {
-		uint16_t ref = ((uint16_t *)src)[0];
-		uint16_t *cur_ptr = &((uint16_t *)src)[1];
+	if (pixel_sz == 0) {
+		uint8_t ref = 0;
+		uint8_t cur = 0;
+		cur_ptr = &src[0];
 
-		for (int cnt = 0; cnt < num; cnt++) {
-			if (ref != (*cur_ptr)) {
-				num = cnt;
-				break;
-			}
-			cur_ptr++;
+		if (idx == 0) {
+			ref = (*cur_ptr >> 4) & 0x0f;
+			cur = *cur_ptr & 0x0f;
+			idx = 1;
+		} else {
+			ref = *cur_ptr & 0x0f;
+			cur_ptr += 1;
+			cur = (*cur_ptr >> 4) & 0x0f;
+			idx = 0;
 		}
-	} else if (pixel_sz == 4) {
-		uint32_t ref = ((uint32_t *)src)[0];
-		uint32_t *cur_ptr = &((uint32_t *)src)[1];
 
 		for (int cnt = 0; cnt < num; cnt++) {
-			if (ref != (*cur_ptr)) {
+			if (ref != (cur)) {
 				num = cnt;
 				break;
 			}
-			cur_ptr++;
+			if (idx == 0) {
+				cur = (*cur_ptr) & 0x0f;
+				idx = 1;
+			} else {
+				cur_ptr += 1;
+				cur = (*cur_ptr >> 4) & 0x0f;
+				idx = 0;
+			}
 		}
-	} else if (pixel_sz == 1) {
-		uint8_t ref = src[0];
-		uint8_t *cur_ptr = &src[1];
+	} else {
+		for (int byte_i = 0; byte_i < pixel_sz; byte_i++) {
+			uint8_t ref = src[byte_i];
+			uint8_t *cur_ptr = &src[byte_i + pixel_sz];
 
-		for (int cnt = 0; cnt < num; cnt++) {
-			if (ref != (*cur_ptr)) {
-				num = cnt;
-				break;
+			for (int cnt = 0; cnt < num; cnt++) {
+				if (ref != (*cur_ptr)) {
+					num = cnt;
+					break;
+				}
+				cur_ptr += pixel_sz;
 			}
-			cur_ptr++;
 		}
 	}
 	return num + 1;
@@ -253,10 +264,14 @@ void draw_cmpr_finish(Cmpr_Canvas_Ctrl *ctrl)
 }
 
 void draw_cmpr_pixel(uint8_t *color_code_ptr, uint16_t length, bool is_first_pel,
-			 Cmpr_Canvas_Ctrl *ctrl)
+			 Cmpr_Canvas_Ctrl *ctrl, int idx)
 {
-	RGBA cur_c =
-		get_color(color_code_ptr, ctrl->osdCmpr_ctrl.reg_osd_format);
+	RGBA cur_c = {0};
+	if (ctrl->osdCmpr_ctrl.reg_osd_format == OSD_LUT4) {
+		cur_c.a = (*color_code_ptr >> (idx == 0 ? 4 : 0)) & 0x0f;
+	} else {
+		cur_c = get_color(color_code_ptr, ctrl->osdCmpr_ctrl.reg_osd_format);
+	}
 
 	osd_cmpr_enc_const_pixel(cur_c, &ctrl->last_color, &ctrl->rl_cnt, &ctrl->md,
 				 &ctrl->code, &length, is_first_pel, OSDEC_MAX_RL,
@@ -281,7 +296,7 @@ void draw_cmpr_canvas_line(Cmpr_Canvas_Ctrl *ctrl, DRAW_OBJ *obj_vec,
 		if (segment->is_const) {
 			if (segment->width > 0) {
 				draw_cmpr_pixel((uint8_t *)&segment->color.code,
-					segment->width, y == 0 && i == 0, ctrl);
+					segment->width, y == 0 && i == 0, ctrl, 1);
 			}
 		} else {
 			int rep_cnt;
@@ -289,12 +304,23 @@ void draw_cmpr_canvas_line(Cmpr_Canvas_Ctrl *ctrl, DRAW_OBJ *obj_vec,
 
 			if (!segment->is_cmpr) {
 				for (int pel_i = 0; pel_i < segment->width; pel_i += rep_cnt) {
-					uint8_t *cur_ptr = &src_ptr[pel_i * pixel_sz];
+					uint8_t *cur_ptr = NULL;
+					uint8_t idx = 0;
+					if (pixel_sz == 0) {
+						cur_ptr = &src_ptr[pel_i / 2];
+						idx = pel_i % 2;
+					} else {
+						cur_ptr = &src_ptr[pel_i * pixel_sz];
+					}
+					rep_cnt = count_repeat_pixel(cur_ptr, pixel_sz, segment->width - pel_i, idx);
 
-					rep_cnt = count_repeat_pixel(cur_ptr, pixel_sz, segment->width - pel_i);
-					draw_cmpr_pixel(cur_ptr, rep_cnt, y == 0 && i == 0 && pel_i == 0, ctrl);
+					draw_cmpr_pixel(cur_ptr, rep_cnt, y == 0 && i == 0 && pel_i == 0, ctrl, idx);
 				}
-				segment->color.buf += (segment->stride * pixel_sz);
+				if (pixel_sz == 0) {
+					segment->color.buf += (segment->stride / 2);
+				} else {
+					segment->color.buf += (segment->stride * pixel_sz);
+				}
 			} else {
 				int pel_cnt = 0;
 
@@ -302,7 +328,7 @@ void draw_cmpr_canvas_line(Cmpr_Canvas_Ctrl *ctrl, DRAW_OBJ *obj_vec,
 					rep_cnt = MIN(src_ptr[0] + 1,  segment->width - pel_cnt);
 					uint8_t *cur_ptr = &src_ptr[1];
 
-					draw_cmpr_pixel(cur_ptr, rep_cnt, y == 0 && i == 0 && pel_cnt == 0, ctrl);
+					draw_cmpr_pixel(cur_ptr, rep_cnt, y == 0 && i == 0 && pel_cnt == 0, ctrl, 1);
 					src_ptr += (1 + pixel_sz);
 					pel_cnt += rep_cnt;
 				}
@@ -425,8 +451,13 @@ void plot_segments_on_line(DRAW_OBJ *obj_vec, uint32_t obj_num,
 
 				if (!seg->segment.is_cmpr) {
 					seg->segment.stride = obj->bitmap.stride;
-					seg->segment.color.buf = obj->color.buf + ((incr_y * seg->segment.stride) +
-						(x - slice_cur->slice.x0)) * pixel_sz;
+					if (pixel_sz == 0) {
+						seg->segment.color.buf = obj->color.buf + ((incr_y * seg->segment.stride) +
+							(x - slice_cur->slice.x0)) / 2;
+					} else {
+						seg->segment.color.buf = obj->color.buf + ((incr_y * seg->segment.stride) +
+							(x - slice_cur->slice.x0)) * pixel_sz;
+					}
 				} else {
 					seg->segment.color.buf =
 						&obj->color.buf[obj->bitmap.bs_offset];
@@ -475,6 +506,7 @@ int draw_cmpr_canvas(Canvas_Attr *canvas, DRAW_OBJ *objs, uint32_t obj_num,
 					objs[var].rect.height, objs[var].rect.thickness, objs[var]._min_y,
 					objs[var]._max_y, objs[var].color.code);
 			} else if (objs[var].type == LINE) {
+				#if 0
 				osdc_printf("xy(%f %f %f %f %f %f %f %f) slope(%f) thick(%f) y(%d %d) color(0x%x)\n",
 					objs[var].line._bx[0], objs[var].line._bx[1],
 					objs[var].line._by[0], objs[var].line._by[1],
@@ -482,6 +514,7 @@ int draw_cmpr_canvas(Canvas_Attr *canvas, DRAW_OBJ *objs, uint32_t obj_num,
 					objs[var].line._ey[0], objs[var].line._ey[1],
 					objs[var].line._mx, objs[var].line.ts_h,
 					objs[var]._min_y, objs[var]._max_y, objs[var].color.code);
+				#endif
 			} else if (objs[var].type == BIT_MAP) {
 
 			} else if (objs[var].type == CMPR_BIT_MAP) {
@@ -707,7 +740,7 @@ int cmpr_bitmap(Canvas_Attr *canvas, uint8_t *ibuf, uint8_t *obuf, int width,
 
 		for (int x = 0; x < width; x += step) {
 			int cnt = count_repeat_pixel(cur_ptr, pixel_sz,
-							 width - x);
+							 width - x, 0);
 			step = cnt;
 			while (cnt > 0) {
 				int new_bs_sz_cnt = bs_sz_cnt + rl_pair_sz;

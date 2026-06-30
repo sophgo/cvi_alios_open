@@ -15,13 +15,13 @@
 #include "cvi_comm_vdec.h"
 #include "cvi_board_memmap.h"
 #include "cvi_param.h"
+#include "media_logo.h"
 //#include "cvi_comm_aio.h"
 // #include "bootsound.h"
 //#include "alsa/pcm.h"
 // #include "dsi_panels.h"
 
-
-#define READ_LEN_MAX 256*1024
+#define READ_LEN_MAX CVIMMAP_RTOS_LOGO_SIZE
 
 typedef struct _VDEC_ATTR {
 	PAYLOAD_TYPE_E enType;
@@ -323,17 +323,27 @@ int CVI_Media_PanelInit(void)
     return 0;
 }
 #endif
+
+static media_backlight_cb g_backlight_cb = NULL;
+
+void CVI_Media_RegisterBacklightCtl(media_backlight_cb cb)
+{
+    g_backlight_cb = cb;
+}
+
 int CVI_Media_Vdec_Logo(void)
 {
     CVI_S32 s32Ret = CVI_SUCCESS;
     VDEC_STREAM_S pstStream = {0};
     VIDEO_FRAME_INFO_S pstFrameInfo = {0};
-    CVI_U8 * pu8Buf = (CVI_U8 *)CVIMMAP_RTOS_LOGO_ADDR;
+    CVI_U8 *pu8Buf = (CVI_U8 *)CVIMMAP_RTOS_LOGO_ADDR;
     CVI_BOOL bFindStart = 0;
+    CVI_BOOL bFindEnd = 0;
     CVI_U32 u32Len = 0, u32Start = 0;
     CVI_U32 s32ReadLen = 0;
     int i = 0;
     VO_VIDEO_LAYER_ATTR_S stLayerAttr = {0};
+    bool backlight_status = false;
 
     s32Ret = CVI_VB_Init();
     if (s32Ret != CVI_SUCCESS) {
@@ -343,8 +353,8 @@ int CVI_Media_Vdec_Logo(void)
 
     // Dynamically parse atom data in mjpeg files and calculate video width and height
     for (CVI_S32 i = 0; i < READ_LEN_MAX - 1; i++) {
-        if (pu8Buf[i] == 0xFF && pu8Buf[i + 1] == 0xC0 && pu8Buf[i + 2] == 0x00 && // SOFO
-            pu8Buf[i + 3] == 0x11&& pu8Buf[i + 4] == 0x08) {
+        if (pu8Buf[i] == 0xFF&& pu8Buf[i + 1] == 0xC0 && pu8Buf[i + 2] == 0x00 && // SOFO
+            pu8Buf[i + 3] == 0x11 && pu8Buf[i + 4] == 0x08) {
             vdec_attr_logo.u32Height = pu8Buf[i + 5] * 256 + pu8Buf[i + 6];
             vdec_attr_logo.u32Width = pu8Buf[i + 7] * 256 + pu8Buf[i + 8];
             printf("vdec_attr_logo.u32Height:%d \n", vdec_attr_logo.u32Height);
@@ -380,16 +390,24 @@ int CVI_Media_Vdec_Logo(void)
             }
         }
 
+        bFindEnd = CVI_FALSE;
         for (; i < READ_LEN_MAX - 1; i++) {
             if (pu8Buf[i] == 0xFF && pu8Buf[i + 1] == 0xD9) {
+                bFindEnd = CVI_TRUE;
                 break;
             }
         }
-        s32ReadLen = i + 3 - u32Start;
+        s32ReadLen = i + 2 - u32Start;
         i += 2;
 
         if (bFindStart == CVI_FALSE) {
             printf("can not find JPEG start code!!\n");
+            _vdec_deinit(vdec_attr_logo);
+            CVI_VB_Exit();
+            return CVI_FAILURE;
+        }
+        if (bFindEnd == CVI_FALSE) {
+            printf("can not find JPEG end code!!\n");
             _vdec_deinit(vdec_attr_logo);
             CVI_VB_Exit();
             return CVI_FAILURE;
@@ -458,6 +476,10 @@ int CVI_Media_Vdec_Logo(void)
             _vdec_deinit(vdec_attr_logo);
             CVI_VB_Exit();
             return s32Ret;
+        }
+        if (!backlight_status && g_backlight_cb) {
+            backlight_status = true;
+            g_backlight_cb();
         }
         CVI_VDEC_ReleaseFrame(0, &pstFrameInfo);
         _vdec_deinit(vdec_attr_logo);

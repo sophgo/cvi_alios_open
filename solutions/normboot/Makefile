@@ -19,11 +19,12 @@ all:
 	$(CPRE) if [ -e $(CURDIR)/prebuild.sh ]; then bash $(CURDIR)/prebuild.sh; fi
 	$(CPRE) if [ -e package.yaml ]; then rm -f package.yaml; fi
 	$(CPRE) cp -f package_yamls/package.yaml.$(PROJECT) package.yaml;
-	@/usr/bin/env python ../../scripts/defconfig/defconfig.py
-	@/usr/bin/env python ../../scripts/yaml_update.py
+	@/usr/bin/env python3 ../../scripts/defconfig/defconfig.py
+	@/usr/bin/env python3 ../../scripts/yaml_update.py
 ifeq ($(SDK_RELEASE_FLAG),1)
 	@make -C ../../components/cvi_mpi CHIP_ARCH=$(CHIP_ARCH)
 endif
+	$(CPRE) touch $(CURDIR)/application/common/src/common_yocsystem.c
 	$(CPRE) scons $(VERB) --board=$(ALIOS_BOARD) -j4
 	@if [ ${RTOS_COMPRESS_TYPE} != " " ] &&  [ ${RTOS_COMPRESS_TYPE} != "orig" ] && [ -f yoc.bin ]; then \
 		@echo Compress the yoc.bin as ${RTOS_COMPRESS_TYPE}; \
@@ -52,8 +53,8 @@ sdk:
 clean:
 	$(CPRE) if [ -e package.yaml ]; then rm -f package.yaml; fi
 	$(CPRE) cp -f package_yamls/package.yaml.$(PROJECT) package.yaml;
-	@/usr/bin/env python ../../scripts/defconfig/defconfig.py
-	@/usr/bin/env python ../../scripts/yaml_update.py
+	@/usr/bin/env python3 ../../scripts/defconfig/defconfig.py
+	@/usr/bin/env python3 ../../scripts/yaml_update.py
 	$(CPRE) scons -c
 ifeq ($(OS), Windows_NT)
 	$(CPRE) if exist yoc_sdk rmdir /s /q yoc_sdk

@@ -64,4 +64,7 @@ int vi_sdk_get_chn_flip_mirror(struct vi_chn_flip_mirror_cfg *cfg);
 int vi_sdk_attach_vbpool(struct vi_vb_pool_cfg *cfg);
 int vi_sdk_detach_vbpool(struct vi_vb_pool_cfg *cfg);
 int vi_sdk_dump_register(int pipe, struct ip_info *ip_info);
+int vi_sdk_set_ai_isp_cfg(VI_AI_ISP_CFG_S *cfg);
+int vi_sdk_get_ai_isp_raw(VI_AI_ISP_INFO_WRAP_S *infoWrap);
+int vi_sdk_put_ai_isp_raw(VI_AI_ISP_INFO_WRAP_S *infoWrap);
 #endif // MODULES_VPU_INCLUDE_VI_IOCTL_H_

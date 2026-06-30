@@ -1643,24 +1643,23 @@ static CVI_S32 MSG_VENC_SetSvcParam(CVI_S32 siId, CVI_IPCMSG_MESSAGE_S *pstMsg)
                 CVI_TRACE_MSG(CVI_DBG_ERR, "SetSvcParam fail, Chn:%d ret:0x%x\n", VeChn, s32Ret);
 	}
 	respMsg = CVI_IPCMSG_CreateRespMessage(pstMsg, s32Ret, NULL, 0);
-	respMsg = CVI_IPCMSG_CreateRespMessage(pstMsg, s32Ret, NULL, 0);
-        if (respMsg == CVI_NULL) {
-                CVI_TRACE_MSG(CVI_DBG_ERR, "CreateRespMessage fail, Chn:%d\n", VeChn);
-                return CVI_FAILURE;
-        }
+	if (respMsg == CVI_NULL) {
+			CVI_TRACE_MSG(CVI_DBG_ERR, "CreateRespMessage fail, Chn:%d\n", VeChn);
+			return CVI_FAILURE;
+	}
 
-        s32Ret = CVI_IPCMSG_SendOnly(siId, respMsg);
-        if (s32Ret != CVI_SUCCESS) {
-                CVI_TRACE_MSG(CVI_DBG_ERR, "IPCMSG_SendOnly fail, Chn:%d\n", VeChn);
-                CVI_IPCMSG_DestroyMessage(respMsg);
-                return CVI_FAILURE;
-        }
+	s32Ret = CVI_IPCMSG_SendOnly(siId, respMsg);
+	if (s32Ret != CVI_SUCCESS) {
+			CVI_TRACE_MSG(CVI_DBG_ERR, "IPCMSG_SendOnly fail, Chn:%d\n", VeChn);
+			CVI_IPCMSG_DestroyMessage(respMsg);
+			return CVI_FAILURE;
+	}
 
-        CVI_IPCMSG_DestroyMessage(respMsg);
+	CVI_IPCMSG_DestroyMessage(respMsg);
 
-        CVI_MSG_VENC_API_OUT;
+	CVI_MSG_VENC_API_OUT;
 
-        return CVI_SUCCESS;
+	return CVI_SUCCESS;
 
 }
 

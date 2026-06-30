@@ -837,6 +837,91 @@ static CVI_S32 MSG_ISP_AESetAeSimMode(CVI_S32 siId, CVI_IPCMSG_MESSAGE_S *pstMsg
 }
 
 
+static CVI_S32 MSG_ISP_AESetFastConvergeAttr(CVI_S32 siId, CVI_IPCMSG_MESSAGE_S *pstMsg)
+{
+	CVI_S32 s32Ret;
+	CVI_IPCMSG_MESSAGE_S *respMsg = CVI_NULL;
+	VI_PIPE ViPipe = GET_DEV_ID(pstMsg->u32Module);
+	ISP_AE_BOOT_FAST_CONVERGE_S *pstFastAttr = (ISP_AE_BOOT_FAST_CONVERGE_S *)pstMsg->pBody;
+
+	CHECK_MSG_SIZE(ISP_AE_BOOT_FAST_CONVERGE_S, pstMsg->u32BodyLen);
+
+	s32Ret = CVI_ISP_SetFastConvergeAttr(ViPipe, pstFastAttr);
+
+	respMsg = CVI_IPCMSG_CreateRespMessage(pstMsg, s32Ret, NULL, 0);
+	if (respMsg == CVI_NULL) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "create respMsg error\n");
+	}
+
+	s32Ret = CVI_IPCMSG_SendOnly(siId, respMsg);
+	if (s32Ret != CVI_SUCCESS) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "send msg fail,ret:%x\n", s32Ret);
+		CVI_IPCMSG_DestroyMessage(respMsg);
+		return s32Ret;
+	}
+
+	CVI_IPCMSG_DestroyMessage(respMsg);
+
+	return CVI_SUCCESS;
+}
+
+static CVI_S32 MSG_ISP_AEGetFastConvergeAttr(CVI_S32 siId, CVI_IPCMSG_MESSAGE_S *pstMsg)
+{
+	CVI_S32 s32Ret;
+	CVI_IPCMSG_MESSAGE_S *respMsg = CVI_NULL;
+	VI_PIPE ViPipe = GET_DEV_ID(pstMsg->u32Module);
+	ISP_AE_BOOT_FAST_CONVERGE_S stFastAttr;
+
+	s32Ret = CVI_ISP_GetFastConvergeAttr(ViPipe, &stFastAttr);
+
+	respMsg = CVI_IPCMSG_CreateRespMessage(pstMsg, s32Ret, &stFastAttr, sizeof(ISP_AE_BOOT_FAST_CONVERGE_S));
+	if (respMsg == CVI_NULL) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "create respMsg error\n");
+	}
+
+	s32Ret = CVI_IPCMSG_SendOnly(siId, respMsg);
+	if (s32Ret != CVI_SUCCESS) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "send msg fail,ret:%x\n", s32Ret);
+		CVI_IPCMSG_DestroyMessage(respMsg);
+		return s32Ret;
+	}
+
+	CVI_IPCMSG_DestroyMessage(respMsg);
+
+	return CVI_SUCCESS;
+}
+
+static CVI_S32 MSG_ISP_AEGetFastConvCalibrationInfo(CVI_S32 siId, CVI_IPCMSG_MESSAGE_S *pstMsg)
+{
+	CVI_S32 s32Ret;
+	CVI_IPCMSG_MESSAGE_S *respMsg = CVI_NULL;
+	VI_PIPE ViPipe = GET_DEV_ID(pstMsg->u32Module);
+	CVI_S16 firstFrameLuma = 0;
+	CVI_S16 stableBv = 0;
+	CVI_S32 dummy = 0;
+
+	s32Ret = CVI_ISP_GetFastConvCalibrationInfo(ViPipe, &firstFrameLuma, &stableBv);
+
+	respMsg = CVI_IPCMSG_CreateRespMessage(pstMsg, s32Ret, &dummy, sizeof(dummy));
+	if (respMsg == CVI_NULL) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "create respMsg error\n");
+	}
+
+	respMsg->as32PrivData[0] = firstFrameLuma;
+	respMsg->as32PrivData[1] = stableBv;
+
+	s32Ret = CVI_IPCMSG_SendOnly(siId, respMsg);
+	if (s32Ret != CVI_SUCCESS) {
+		CVI_TRACE_MSG(CVI_DBG_ERR, "send msg fail,ret:%x\n", s32Ret);
+		CVI_IPCMSG_DestroyMessage(respMsg);
+		return s32Ret;
+	}
+
+	CVI_IPCMSG_DestroyMessage(respMsg);
+
+	return CVI_SUCCESS;
+}
+
 static CVI_S32 MSG_ISP_AWBSetSimMode(CVI_S32 siId, CVI_IPCMSG_MESSAGE_S *pstMsg)
 {
 	CVI_S32 s32Ret = CVI_SUCCESS;
@@ -1235,6 +1320,9 @@ static MSG_MODULE_CMD_S g_stIspCmdTable[] = {
 	{ MSG_CMD_ISP_AE_GET_FPS, MSG_ISP_AEGetFps},
 	{ MSG_CMD_ISP_AE_GET_LVX100, MSG_ISP_AEGetLVX100},
 	{ MSG_CMD_ISP_AE_SET_FASTBOOT_EXPOSURE, MSG_ISP_AESetFastBootExposure},
+	{ MSG_CMD_ISP_AE_SET_FAST_CONVERGE_ATTR, MSG_ISP_AESetFastConvergeAttr},
+	{ MSG_CMD_ISP_AE_GET_FAST_CONVERGE_ATTR, MSG_ISP_AEGetFastConvergeAttr},
+	{ MSG_CMD_ISP_AE_GET_FAST_CONV_CALIBRATION_INFO, MSG_ISP_AEGetFastConvCalibrationInfo},
 	{ MSG_CMD_ISP_AE_SET_SIM_MODE, MSG_ISP_AESetAeSimMode},
 	{ MSG_CMD_ISP_AWB_GET_LOG_BUF, MSG_ISP_AWBGetLogBuf},
 	{ MSG_CMD_ISP_AWB_GET_BIN_SIZE, MSG_ISP_AWBGetBinSize},

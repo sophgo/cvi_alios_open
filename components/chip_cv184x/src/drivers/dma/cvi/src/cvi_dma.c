@@ -103,18 +103,22 @@ static void dw_clk_enable(struct dw_dma *dw)
 
 static void dw_clk_disable(struct dw_dma *dw)
 {
-
 	size_t irq_state;
+	int underflow_count = 0;
 
 	irq_state = csi_irq_save();
 	dw->clk_enable_count--;
-	if(!dw->clk_enable_count){
-		//hal_dma_off(dw);
-		//hal_dma_dwc_clk_set(0);
-	}else if(dw->clk_enable_count < 0){
-		dma_err("[BUG] dma clk_enable_count < 0\r\n");
-		dma_err("[BUG] dma clk_enable_count=%d\r\n", dw->clk_enable_count);
+	if (!dw->clk_enable_count) {
+		// hal_dma_off(dw);
+		// hal_dma_dwc_clk_set(0);
+	}
+	else if (dw->clk_enable_count < 0) {
+		underflow_count = dw->clk_enable_count;
 		dw->clk_enable_count = 0;
+		csi_irq_restore(irq_state);
+		dma_err("[BUG] dma clk_enable_count < 0\r\n");
+		dma_err("[BUG] dma clk_enable_count=%d\r\n", underflow_count);
+		return;
 	}
 
 	csi_irq_restore(irq_state);
@@ -716,11 +720,26 @@ void cvi_dma_ch_stop(int ctrl_idx, int ch_idx)
 {
 	dw_dma_t *dma = dma_array[ctrl_idx];
 	struct dw_dma_channel *dwc = &dma->chans[ch_idx];
+	size_t irq_state;
+	dlist_t queue_list;
+	dlist_t active_list;
 
+	dlist_init(&queue_list);
+	dlist_init(&active_list);
+
+	/*
+	 * Stop/clear and detach lists in one critical section, so IRQ complete
+	 * path cannot race and release the same descriptors twice.
+	 */
+	irq_state = csi_irq_save();
 	hal_dma_ch_off(dma, dwc->ch_mask);
+	hal_dma_dwc_clear_intstatus(dwc);
+	list_splice_init(&dwc->queue_list, &queue_list);
+	list_splice_init(&dwc->active_list, &active_list);
+	csi_irq_restore(irq_state);
 
-	release_descriptor(dma, &dwc->queue_list);
-	release_descriptor(dma, &dwc->active_list);
+	release_descriptor(dma, &queue_list);
+	release_descriptor(dma, &active_list);
 }
 
 void cvi_dma_ch_free(int ctrl_idx, int ch_idx)

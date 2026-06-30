@@ -278,6 +278,8 @@ CVI_S32 CVI_TEAISP_Init(VI_PIPE ViPipe, CVI_S32 maxDev);
 //-----------------------------------------------------------------------------
 //  TEAISP BNR
 //-----------------------------------------------------------------------------
+CVI_S32 CVI_TEAISP_BNR_Set_Driver_Init(VI_PIPE ViPipe, TEAISP_DRIVER_CFG_S *cfg);
+CVI_S32 CVI_TEAISP_BNR_Set_Driver_Deinit(VI_PIPE ViPipe);
 CVI_S32 CVI_TEAISP_BNR_SetModel(VI_PIPE ViPipe, const TEAISP_BNR_MODEL_INFO_S *pstModelInfo);
 CVI_S32 CVI_TEAISP_BNR_SetAttr(VI_PIPE ViPipe, const TEAISP_BNR_ATTR_S *pstTEAISPBNRAttr);
 CVI_S32 CVI_TEAISP_BNR_GetAttr(VI_PIPE ViPipe, TEAISP_BNR_ATTR_S *pstTEAISPBNRAttr);

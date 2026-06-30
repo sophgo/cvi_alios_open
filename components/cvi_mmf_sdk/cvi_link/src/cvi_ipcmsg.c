@@ -318,7 +318,7 @@ CVI_S32 CVI_IPCMSG_AddService(const CVI_CHAR *pszServiceName, const CVI_IPCMSG_C
 	if (config) {
 		config->num = 2;
 		config->blk_conf[0].size = sizeof(struct msg_head) + sizeof(CVI_IPCMSG_MESSAGE_S);
-		config->blk_conf[0].num = 5;
+		config->blk_conf[0].num = 10;
 		config->blk_conf[1].size = MSG_MAX_LEN;
 		config->blk_conf[1].num = 10;
 		ipcm_msg_srv_init(config);

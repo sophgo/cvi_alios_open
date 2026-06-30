@@ -502,7 +502,7 @@ typedef enum _ISP_CTRL_CMD_E {
 } ISP_CTRL_CMD_E;
 
 
-#define AWB_DBG_VER	(11)
+#define AWB_DBG_VER	(12)
 #define AWB_SENSOR_NUM (3)
 #define AWB_DBG_W	(64)
 #define AWB_DBG_H	(32)
@@ -555,6 +555,13 @@ typedef struct _AWB_DBG_S {
 	// fix size to 128 byte from here
 	CVI_U16 u16Region_R[AWB_SHIFT_REGION_NUM];
 	CVI_U8 u8Reserve[120];
+	// Per-block weight debug data (DBG_VER >= 12)
+	CVI_U16 u16P_lowCostWgt[2][AWB_DBG_W*AWB_DBG_H]; // pos/hist/strict-extra combined weight
+	CVI_U8  u8P_posWgt[2][AWB_DBG_W*AWB_DBG_H];    // position weight (0-255)
+	CVI_U8  u8P_histWgt[2][AWB_DBG_W*AWB_DBG_H];   // brightness/histogram weight (0-128)
+	CVI_U16 u16P_ctWgt[2][AWB_DBG_W*AWB_DBG_H];    // CT bin weight (0-1024), 0=excluded
+	CVI_U16 u16P_outdoorWgt[2][AWB_DBG_W*AWB_DBG_H]; // outdoor bin weight (0-256), 0=disabled/excluded
+	CVI_U32 u32P_finalWgt[2][AWB_DBG_W*AWB_DBG_H]; // final contribution used by debug heatmap
 } s_AWB_DBG_S;
 
 

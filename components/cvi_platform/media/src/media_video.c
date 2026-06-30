@@ -24,7 +24,7 @@
 #include "cvi_sns_ctrl.h"
 #include "cvi_mipi_tx.h"
 #if (!defined(CONFIG_SUPPORT_VO) || (CONFIG_SUPPORT_VO))
-#include "dsi_panels.h"
+#include "cvi_panels.h"
 #include "media_logo.h"
 #endif
 #include "cvi_gdc.h"
@@ -962,12 +962,25 @@ static void _MEDIA_VIDEO_MIPI_TX_Init(void)
     printf("Init for MIPI-Driver-%s\n", desc->panel_name);
 }
 
+static void _MEDIA_VIDEO_HW_MCU_Init(VO_PUB_ATTR_S *pstPubAttr)
+{
+    struct panel_desc_s *desc = &panel_desc;
+
+    pstPubAttr->enIntfSync = desc->stVoPubAttr.enIntfSync;
+    pstPubAttr->enIntfType = desc->stVoPubAttr.enIntfType;
+    pstPubAttr->stSyncInfo = desc->stVoPubAttr.stSyncInfo;
+    pstPubAttr->stMcuCfg = desc->stVoPubAttr.stMcuCfg;
+
+    printf("Init for Driver-%s\n", desc->panel_name);
+}
+
 int MEDIA_VIDEO_VoInit(PARAM_VO_CFG_S * pstVoCtx)
 {
     //vo init
     CVI_S32 i = 0;
     CVI_S32 j = 0;
     PARAM_VO_CONFIG_S * pstVoConfig = NULL;
+    VO_PUB_ATTR_S * pstPubAttr = NULL;
     VO_VIDEO_LAYER_ATTR_S * pstLayerAttr = NULL;
     VO_CHN_ATTR_S * pstVOChnAttr = NULL;
 
@@ -978,7 +991,14 @@ int MEDIA_VIDEO_VoInit(PARAM_VO_CFG_S * pstVoCtx)
     if (pstVoCtx->u8VoCnt == 0) {
         return CVI_SUCCESS;
     }
-    _MEDIA_VIDEO_MIPI_TX_Init();
+
+    pstPubAttr = &pstVoCtx->pstVoCfg[0].stVoConfig.stVoPubAttr;
+    printf("VoPubAttr.enIntfType: %#x\n", pstPubAttr->enIntfType);
+    if (pstPubAttr->enIntfType & VO_INTF_MIPI) {
+        _MEDIA_VIDEO_MIPI_TX_Init();
+    } else if (pstPubAttr->enIntfType & VO_INTF_HW_MCU) {
+        _MEDIA_VIDEO_HW_MCU_Init(pstPubAttr);
+    }
 
     for(i = 0 ;i < pstVoCtx->u8VoCnt;i++) {
         pstVoConfig = &pstVoCtx->pstVoCfg[i].stVoConfig;

@@ -33,6 +33,24 @@ static inline int S_CTRL_VALUE(int cfg, enum VI_IOCTL _ioctl)
 	return rc;
 }
 
+static inline int S_CTRL_PTR(void *cfg, int size, enum VI_IOCTL _ioctl)
+{
+	struct vi_ext_control ec1;
+	int rc = 0;
+
+	memset(&ec1, 0, sizeof(ec1));
+	ec1.id = _ioctl;
+	ec1.ptr = cfg;
+	ec1.size = size;
+
+	rc = driver_vi_ioctl(VI_IOC_S_CTRL, (unsigned long)&ec1);
+	if (rc < 0) {
+		fprintf(stderr, "VI_IOC_S_CTRL - %s NG, %s\n", __func__, strerror(errno));
+	}
+	return rc;
+}
+
+
 static inline int G_CTRL_PTR(void *cfg, int size, enum VI_IOCTL _ioctl)
 {
 	struct vi_ext_control ec1;
@@ -399,4 +417,60 @@ int vi_sdk_detach_vbpool(struct vi_vb_pool_cfg *cfg)
 int vi_sdk_dump_register(int pipe, struct ip_info *ip_info)
 {
 	return SDK_CTRL_SET_CFG(ip_info, sizeof(struct ip_info), VI_SDK_DUMP_REGISTER, -1, pipe, -1, -1);
+}
+
+int vi_sdk_set_ai_isp_cfg(VI_AI_ISP_CFG_S *pstAiIspCfg)
+{
+	struct vi_ai_isp_cfg cfg;
+
+	cfg.ViPipe = pstAiIspCfg->viPipe;
+	cfg.ViAiISPType = (CVI_U8)pstAiIspCfg->enAiIspType;
+	cfg.Reserved[0] = pstAiIspCfg->reserved[0];
+	cfg.Reserved[1] = pstAiIspCfg->reserved[1];
+
+	return S_CTRL_PTR(&cfg, sizeof(struct vi_ai_isp_cfg), VI_IOCTL_AI_ISP_CFG);
+}
+
+int vi_sdk_get_ai_isp_raw(VI_AI_ISP_INFO_WRAP_S *infoWrap)
+{
+	int ret = 0;
+	struct vi_ai_isp_info info;
+
+	info.ViPipe = infoWrap->stIspInfo.viPipe;
+	info.InputAddr[0] = infoWrap->stIspInfo.inputAddr[0];
+	info.InputAddr[1] = infoWrap->stIspInfo.inputAddr[1];
+	info.OutputAddr[0] = infoWrap->stIspInfo.outputAddr[0];
+	info.OutputAddr[1] = infoWrap->stIspInfo.outputAddr[1];
+	info.Size = infoWrap->stIspInfo.size;
+	info.Reserved[0] = infoWrap->stIspInfo.reserved[0];
+
+	ret = G_CTRL_PTR(&info, sizeof(struct vi_ai_isp_info), VI_IOCTL_GET_AI_ISP_RAW);
+	if (ret != CVI_SUCCESS) {
+		fprintf(stderr, "VI_IOCTL_GET_AI_ISP_RAW - %s NG, %s\n", __func__, strerror(errno));
+		return ret;
+	}
+
+	infoWrap->stIspInfo.inputAddr[0] = info.InputAddr[0];
+	infoWrap->stIspInfo.inputAddr[1] = info.InputAddr[1];
+	infoWrap->stIspInfo.outputAddr[0] = info.OutputAddr[0];
+	infoWrap->stIspInfo.outputAddr[1] = info.OutputAddr[1];
+	infoWrap->stIspInfo.size = info.Size;
+	infoWrap->stIspInfo.reserved[0] = info.Reserved[0];
+
+	return ret;
+}
+
+int vi_sdk_put_ai_isp_raw(VI_AI_ISP_INFO_WRAP_S *infoWrap)
+{
+	struct vi_ai_isp_info info;
+
+	info.ViPipe = infoWrap->stIspInfo.viPipe;
+	info.InputAddr[0] = infoWrap->stIspInfo.inputAddr[0];
+	info.InputAddr[1] = infoWrap->stIspInfo.inputAddr[1];
+	info.OutputAddr[0] = infoWrap->stIspInfo.outputAddr[0];
+	info.OutputAddr[1] = infoWrap->stIspInfo.outputAddr[1];
+	info.Size = infoWrap->stIspInfo.size;
+	info.Reserved[0] = infoWrap->stIspInfo.reserved[0];
+
+	return S_CTRL_PTR(&info, sizeof(struct vi_ai_isp_info), VI_IOCTL_PUT_AI_ISP_RAW);
 }
