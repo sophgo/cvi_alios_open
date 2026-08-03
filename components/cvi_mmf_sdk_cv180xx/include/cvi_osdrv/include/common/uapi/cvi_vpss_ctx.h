@@ -42,6 +42,7 @@ struct VPSS_CHN_CFG {
 	VPSS_LDC_ATTR_S stLDCAttr;
 	CVI_U32 VbPool;
 	VPSS_CHN_BUF_WRAP_S stBufWrap;
+	CVI_U64 bufWrapPhyAddr_base;
 	CVI_U64 bufWrapPhyAddr;
 	CVI_U32 u32BufWrapDepth;
 	struct VPSS_CHN_WORK_STATUS_S stChnWorkStatus;
@@ -53,6 +54,7 @@ struct VPSS_CHN_CFG {
 struct cvi_vpss_ctx {
 	CVI_BOOL isCreated;
 	CVI_BOOL isStarted;
+	CVI_BOOL isNotifyVc;
 	VPSS_GRP_ATTR_S stGrpAttr;
 	VPSS_CROP_INFO_S stGrpCropInfo;
 	CVI_U8 chnNum;

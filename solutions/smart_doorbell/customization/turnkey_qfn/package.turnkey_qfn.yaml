@@ -62,6 +62,7 @@ depends:
   - zlib: develop
   - cvi_test: develop
   - fw_h26x: v0.0.1
+  - ddrmon: v1.0.0
 
   - cvi_mmf_sdk_cv181xx: develop
 ## 第三部分：板级信息
@@ -244,8 +245,8 @@ def_config:
 
   CONFIG_SENSOR_QUICK_STARTUP: 0
 
-  CONFIG_SNS0_TYPE: 8
-  CONFIG_SNS1_TYPE: 7
+  CONFIG_SNS0_TYPE: 10
+  CONFIG_SNS1_TYPE: 9
   CONFIG_SNS2_TYPE: 0
 
   ## Panel
@@ -259,13 +260,16 @@ def_config:
   CONFIG_USB_HS: 1
   CONFIG_SUPPORT_USB_DC: 1
   CONFIG_SUPPORT_USB_HC: 0
+  # Should be disabled when use RNDIS
   CONFIG_USB_DWC2_DMA_ENABLE: 1
   CONFIG_USB_BULK_UVC: 0
 
   CONFIG_USBD_UVC: 1
+  CONFIG_USBD_UVC_NUM: 1
+  CONFIG_SBM_ENABLE: 0
   CONFIG_USBD_UAC: 1
   CONFIG_USBD_CDC_UART: 0
-  CONFIG_USBD_CDC_RNDIS: 0
+  CONFIG_USBD_CDC_RNDIS: 1
   CONFIG_USBD_HID_KEYBOARD: 0
 
   ## Misc
@@ -273,6 +277,11 @@ def_config:
   CONFIG_PQTOOL_UART_SUPPORT: 1
   CONFIG_PQBIN_USE_JSON: 0
   CONFIG_ISP_SUPPORT_PROC: 0
+
+  ## DDR Monitor
+  CONFIG_CVI_DDRMON: 1
+  CONFIG_CVI_DDRMON_TEST: 1
+
 ## 第六部分：安装信息
 # install:
 #   - dest: include/                       # 安装的目的路径 dest是相当路径，通常是相对于YoC SDK 安装目录

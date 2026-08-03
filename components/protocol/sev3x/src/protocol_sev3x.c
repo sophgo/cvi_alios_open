@@ -3,9 +3,9 @@
 #include <aos/kernel.h>
 #include <pin.h>
 #include <pthread.h>
+#include <stdarg.h>
 #include "media_video.h"
 #include "uart_communication.h"
-
 #define DEBUG_PRINT(fmt, ...) printf("DEBUG: %s:%d: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
 /* datalink接收队列缓存 */
@@ -265,6 +265,66 @@ static void protocol_send(unsigned char* in, unsigned short len)
     printf("\n");
 }
 
+// 填充协议头元信息
+// tx_buf: 缓存指针, msg_id: 消息ID, len: 数据长度
+static inline void proto_msg_set_head_meta(uint8_t* tx_buf, int msg_id, int len)
+{
+    tx_buf[HEAD_FIRST]  = FRAME_FIRST;
+    tx_buf[HEAD_SECOND] = FRAME_SECOND;
+    tx_buf[MSG_ID]      = msg_id;
+    tx_buf[LENGTH_HIGH] = len >> 8;
+    tx_buf[LENGTH_LOW]  = len & 0xff;
+}
+
+// 填充并发送消息头
+// tx_buf: 缓存指针, msg_id: 消息ID
+// len: 数据长度, data: 数据指针
+static void proto_msg_send_head(uint8_t* tx_buf, int msg_id, int len, uint8_t* data)
+{
+    proto_msg_set_head_meta(tx_buf, msg_id, len);
+    memcpy(&tx_buf[DATA_START], data, len);
+    tx_buf[DATA_START + len] = get_check_sum(&tx_buf[MSG_ID], len + 3);
+    protocol_send(tx_buf, len + 6);
+}
+
+// 填充并发送消息头，支持可变参数
+// tx_buf: 缓存指针, msg_id: 消息ID
+// n: 可变参数个数(即数据长度), ...: 可变参数形式的数据
+static void proto_msg_send_head_n(uint8_t* tx_buf, int msg_id, int n, ...)
+{
+    proto_msg_set_head_meta(tx_buf, msg_id, n);
+
+    va_list valist;
+    va_start(valist, n);
+    for (int i = 0; i < n; ++i) {
+        tx_buf[DATA_START + i] = (uint8_t)va_arg(valist, int);
+    }
+    tx_buf[DATA_START + n] = get_check_sum(&tx_buf[MSG_ID], n + 3);
+    protocol_send(tx_buf, n + 6);
+    va_end(valist);
+}
+
+// 填充并发送消息头，支持可变参数和额外的数据指针，填充顺序为：可变参数 --> 额外数据
+// tx_buf: 缓存指针, msg_id: 消息ID
+// extra_len: 额外数据的长度, extra_data: 额外的数据指针
+// n: 可变参数个数(即基础数据长度), ...: 可变参数形式的基础数据
+static void proto_msg_send_head_n_extra(uint8_t* tx_buf, int msg_id, int extra_len,
+                                        uint8_t* extra_data, int n, ...)
+{
+    int len = n + extra_len;
+    proto_msg_set_head_meta(tx_buf, msg_id, len);
+
+    va_list valist;
+    va_start(valist, n);
+    for (int i = 0; i < n; ++i) {
+        tx_buf[DATA_START + i] = (uint8_t)va_arg(valist, int);
+    }
+    memcpy(&tx_buf[DATA_START + n], extra_data, extra_len);
+    tx_buf[DATA_START + len] = get_check_sum(&tx_buf[MSG_ID], len + 3);
+    protocol_send(tx_buf, len + 6);
+    va_end(valist);
+}
+
 /*****************************************************************************
 函数名称 : msg_reply_getstatus
 功能描述 : 获取模组状态
@@ -273,21 +333,8 @@ static void protocol_send(unsigned char* in, unsigned short len)
 *****************************************************************************/
 static void msg_reply_getstatus(MR_STATUS_E result)
 {
-    unsigned char check_sum          = 0;
-    unsigned short len               = 3;
-    g_potocol_tx_buf[HEAD_FIRST]     = 0xEF;
-    g_potocol_tx_buf[HEAD_SECOND]    = 0xAA;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = len >> 8;
-    g_potocol_tx_buf[LENGTH_LOW]     = len & 0xff;
-    g_potocol_tx_buf[DATA_START]     = 0x11;
-    g_potocol_tx_buf[DATA_START + 1] = result;
-    g_potocol_tx_buf[DATA_START + 2] = g_device_running_state.status;
-    DEBUG_PRINT("len = %d\n", len);
-    check_sum                 = get_check_sum((unsigned char*)g_potocol_tx_buf + 2, len + 3);
-    g_potocol_tx_buf[len + 5] = check_sum;
-    //
-    protocol_send((unsigned char*)g_potocol_tx_buf, len + 6);
+    proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 3, MID_GETSTATUS, result,
+                          g_device_running_state.status);
 }
 
 /*****************************************************************************
@@ -298,19 +345,8 @@ static void msg_reply_getstatus(MR_STATUS_E result)
 *****************************************************************************/
 static void msg_reply_reset(MR_STATUS_E result)
 {
-    unsigned char check_sum          = 0;
-    unsigned short len               = 2;
-    g_potocol_tx_buf[HEAD_FIRST]     = 0xEF;
-    g_potocol_tx_buf[HEAD_SECOND]    = 0xAA;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = len >> 8;
-    g_potocol_tx_buf[LENGTH_LOW]     = len & 0xff;
-    g_potocol_tx_buf[DATA_START]     = result;
-    g_potocol_tx_buf[DATA_START + 1] = g_device_running_state.status;
-    check_sum                        = get_check_sum((unsigned char*)g_potocol_tx_buf + 2, len + 3);
-    g_potocol_tx_buf[len + 5]        = check_sum;
-    //
-    protocol_send((unsigned char*)g_potocol_tx_buf, len + 6);
+    proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 2, result,
+                          g_device_running_state.status);
 }
 
 /*****************************************************************************
@@ -321,29 +357,11 @@ static void msg_reply_reset(MR_STATUS_E result)
 *****************************************************************************/
 static void msg_reply_init_encryption(MR_STATUS_E result)
 {
-    // g_device_running_state.status = 0;
-    unsigned char check_sum     = 0;
-    unsigned short len          = 0x20;
-    unsigned char device_id[32] = {0xB9, 0x87, 0x85, 0xD6, 0xD6, 0xD1, 0xA6, 0x72, 0xB6, 0xA4, 0x21,
-                                   0xB7, 0xAD, 0x7E, 0x0F, 0x98, 0x83, 0xBA, 0x62, 0x5B, 0x52, 0x83,
-                                   0x50, 0x2C, 0xC7, 0x4A, 0xF9, 0xAE, 0x2C, 0x2F, 0x84, 0x03};
-
-    /* TODO做根据key进行加密并回复 */
-
-    memcpy(&g_potocol_tx_buf[HEAD_SECOND + 3], device_id, sizeof(device_id));
-
-    g_potocol_tx_buf[HEAD_FIRST]      = 0xEF;
-    g_potocol_tx_buf[HEAD_SECOND]     = 0xAA;
-    g_potocol_tx_buf[MSG_ID]          = MID_REPLY;
-    g_potocol_tx_buf[HEAD_SECOND + 1] = len >> 8;
-    g_potocol_tx_buf[HEAD_SECOND + 2] = len & 0xff;
-    // g_potocol_tx_buf[HEAD_SECOND + 3] = 0x50;
-    // g_potocol_tx_buf[DATA_START+1] = 00;
-    DEBUG_PRINT("len = %d\n", len);
-    check_sum                 = get_check_sum((unsigned char*)g_potocol_tx_buf + 4, len + 2);
-    g_potocol_tx_buf[len + 4] = check_sum;
-    //
-    protocol_send((unsigned char*)g_potocol_tx_buf, len + 5);
+    uint8_t device_id[32] = {0xB9, 0x87, 0x85, 0xD6, 0xD6, 0xD1, 0xA6, 0x72, 0xB6, 0xA4, 0x21,
+                             0xB7, 0xAD, 0x7E, 0x0F, 0x98, 0x83, 0xBA, 0x62, 0x5B, 0x52, 0x83,
+                             0x50, 0x2C, 0xC7, 0x4A, 0xF9, 0xAE, 0x2C, 0x2F, 0x84, 0x03};
+    proto_msg_send_head((uint8_t*)g_potocol_tx_buf, MID_REPLY, sizeof(device_id),
+                        (uint8_t*)device_id);
 }
 
 /*****************************************************************************
@@ -354,21 +372,8 @@ static void msg_reply_init_encryption(MR_STATUS_E result)
 *****************************************************************************/
 static void msg_reply_set_release_enc_key(MR_STATUS_E result)
 {
-    unsigned char check_sum          = 0;
-    unsigned short len               = 2;
-    g_potocol_tx_buf[HEAD_FIRST]     = 0xEF;
-    g_potocol_tx_buf[HEAD_SECOND]    = 0xAA;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = len >> 8;
-    g_potocol_tx_buf[LENGTH_LOW]     = len & 0xff;
-    g_potocol_tx_buf[DATA_START]     = 0x52;
-    g_potocol_tx_buf[DATA_START + 1] = result;
-    // len += PROTOCOL_HEAD;
-    DEBUG_PRINT("len = %d\n", len);
-    check_sum                 = get_check_sum((unsigned char*)g_potocol_tx_buf + 2, len + 3);
-    g_potocol_tx_buf[len + 5] = check_sum;
-
-    protocol_send((unsigned char*)g_potocol_tx_buf, len + 6);
+    proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 2, MID_SET_RELEASE_ENC_KEY,
+                          result);
 }
 
 /*****************************************************************************
@@ -379,25 +384,11 @@ static void msg_reply_set_release_enc_key(MR_STATUS_E result)
 *****************************************************************************/
 static void msg_reply_upload_image(MR_STATUS_E result)
 {
-    unsigned char check_sum          = 0;
-    unsigned char* image_data        = NULL;
-    image_data                       = (unsigned char*)malloc(4000);
-    unsigned short len               = 4000;
-    g_potocol_tx_buf[HEAD_FIRST]     = FRAME_FIRST;
-    g_potocol_tx_buf[HEAD_SECOND]    = FRAME_SECOND;
-    g_potocol_tx_buf[MSG_ID]         = MID_IMAGE;
-    g_potocol_tx_buf[LENGTH_HIGH]    = len >> 8;
-    g_potocol_tx_buf[LENGTH_LOW]     = len & 0xff;
-    g_potocol_tx_buf[DATA_START]     = MID_UPLOADIMAGE;
-    g_potocol_tx_buf[DATA_START + 1] = result;
-    memcpy(&g_potocol_tx_buf[DATA_START + 2], image_data, len);
-    free(image_data);
-
-    DEBUG_PRINT("len = %d\n", len);
-    check_sum                 = get_check_sum((unsigned char*)g_potocol_tx_buf + 2, len + 3);
-    g_potocol_tx_buf[len + 5] = check_sum;
-
-    protocol_send((unsigned char*)g_potocol_tx_buf, len + 6);
+    uint8_t* image_data = (uint8_t*)malloc(4000);
+    if (!image_data)
+        return;
+    proto_msg_send_head_n_extra((uint8_t*)g_potocol_tx_buf, MID_IMAGE, 4000, image_data, 2,
+                                MID_UPLOADIMAGE, result);
 }
 
 /*****************************************************************************
@@ -408,16 +399,7 @@ static void msg_reply_upload_image(MR_STATUS_E result)
 *****************************************************************************/
 static void msg_reply_snap_image(MR_STATUS_E result)
 {
-    g_potocol_tx_buf[HEAD_FIRST]     = FRAME_FIRST;
-    g_potocol_tx_buf[HEAD_SECOND]    = FRAME_SECOND;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = 0x00;
-    g_potocol_tx_buf[LENGTH_LOW]     = 0x02;
-    g_potocol_tx_buf[DATA_START]     = MID_SNAPIMAGE;
-    g_potocol_tx_buf[DATA_START + 1] = result;
-    g_potocol_tx_buf[DATA_START + 2] =
-        get_check_sum((unsigned char*)g_potocol_tx_buf + 2, 1 + 2 + 2);
-    protocol_send((unsigned char*)g_potocol_tx_buf, 2 + 1 + 2 + 2 + 1);
+    proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 2, MID_SNAPIMAGE, result);
 }
 
 /*****************************************************************************
@@ -428,20 +410,9 @@ static void msg_reply_snap_image(MR_STATUS_E result)
 *****************************************************************************/
 static void msg_reply_get_saved_image(MR_STATUS_E result, s_msg_reply_get_saved_image_data* res_msg)
 {
-    g_potocol_tx_buf[HEAD_FIRST]     = FRAME_FIRST;
-    g_potocol_tx_buf[HEAD_SECOND]    = FRAME_SECOND;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = 0x00;
-    g_potocol_tx_buf[LENGTH_LOW]     = 0x06;
-    g_potocol_tx_buf[DATA_START]     = MID_GETSAVEDIMAGE;
-    g_potocol_tx_buf[DATA_START + 1] = result;
-    g_potocol_tx_buf[DATA_START + 2] = res_msg->image_size[3];
-    g_potocol_tx_buf[DATA_START + 3] = res_msg->image_size[2];
-    g_potocol_tx_buf[DATA_START + 4] = res_msg->image_size[1];
-    g_potocol_tx_buf[DATA_START + 5] = res_msg->image_size[0];
-    g_potocol_tx_buf[DATA_START + 6] =
-        get_check_sum((unsigned char*)g_potocol_tx_buf + 2, 1 + 2 + 6);
-    protocol_send((unsigned char*)g_potocol_tx_buf, 2 + 1 + 2 + 6 + 1);
+    proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 6, MID_GETSAVEDIMAGE, result,
+                          res_msg->image_size[3], res_msg->image_size[2], res_msg->image_size[1],
+                          res_msg->image_size[0]);
 }
 
 /*****************************************************************************
@@ -483,42 +454,12 @@ static void msg_reply_verify(MR_STATUS_E result, s_msg_reply_verify_data* ret_ms
 
 static void msg_reply_face_state(s_note_data_face* ret_msg)
 {
-    g_potocol_tx_buf[HEAD_FIRST]  = 0xEF;
-    g_potocol_tx_buf[HEAD_SECOND] = 0xAA;
-    g_potocol_tx_buf[MSG_ID]      = MID_NOTE;
-    /* SIZE */
-    g_potocol_tx_buf[LENGTH_HIGH] = 0x00;
-    g_potocol_tx_buf[LENGTH_LOW]  = 0x11;
-    /* DATA */
-    g_potocol_tx_buf[DATA_START] = NID_FACE_STATE;
-    /* state */
-    g_potocol_tx_buf[DATA_START + 1] = ret_msg->left & 0xff;
-    g_potocol_tx_buf[DATA_START + 2] = ret_msg->left >> 8;
-    /* left */
-    g_potocol_tx_buf[DATA_START + 3] = ret_msg->left & 0xff;
-    g_potocol_tx_buf[DATA_START + 4] = ret_msg->left >> 8;
-    /* top */
-    g_potocol_tx_buf[DATA_START + 5] = ret_msg->top & 0xff;
-    g_potocol_tx_buf[DATA_START + 6] = ret_msg->top >> 8;
-    /* right */
-    g_potocol_tx_buf[DATA_START + 7] = ret_msg->right & 0xff;
-    g_potocol_tx_buf[DATA_START + 8] = ret_msg->right >> 8;
-    /* bottom */
-    g_potocol_tx_buf[DATA_START + 9]  = ret_msg->bottom & 0xff;
-    g_potocol_tx_buf[DATA_START + 10] = ret_msg->bottom >> 8;
-    /* yaw */
-    g_potocol_tx_buf[DATA_START + 11] = ret_msg->yaw & 0xff;
-    g_potocol_tx_buf[DATA_START + 12] = ret_msg->yaw >> 8;
-    /* pitch */
-    g_potocol_tx_buf[DATA_START + 12] = ret_msg->pitch & 0xff;
-    g_potocol_tx_buf[DATA_START + 14] = ret_msg->pitch >> 8;
-    /* roll */
-    g_potocol_tx_buf[DATA_START + 15] = ret_msg->roll & 0xff;
-    g_potocol_tx_buf[DATA_START + 16] = ret_msg->roll >> 8;
-    /* Parity: MID + szie + data */
-    g_potocol_tx_buf[DATA_START + 17] =
-        get_check_sum((unsigned char*)g_potocol_tx_buf + 2, 1 + 2 + 17);
-    // protocol_send((unsigned char*)g_potocol_tx_buf, 2 + 1 + 2 + 17 + 1);
+    proto_msg_send_head_n(
+        (uint8_t*)g_potocol_tx_buf, MID_NOTE, 17, NID_FACE_STATE, ret_msg->state & 0xff,
+        ret_msg->state >> 8, ret_msg->left & 0xff, ret_msg->left >> 8, ret_msg->top & 0xff,
+        ret_msg->top >> 8, ret_msg->right & 0xff, ret_msg->right >> 8, ret_msg->bottom & 0xff,
+        ret_msg->bottom >> 8, ret_msg->yaw & 0xff, ret_msg->yaw >> 8, ret_msg->pitch & 0xff,
+        ret_msg->pitch >> 8, ret_msg->roll & 0xff, ret_msg->roll >> 8);
 }
 
 /*****************************************************************************
@@ -529,30 +470,11 @@ static void msg_reply_face_state(s_note_data_face* ret_msg)
 *****************************************************************************/
 static void msg_reply_enroll(MR_STATUS_E result, s_msg_reply_enroll_data* ret_msg)
 {
-    g_potocol_tx_buf[HEAD_FIRST]  = 0xEF;
-    g_potocol_tx_buf[HEAD_SECOND] = 0xAA;
-    g_potocol_tx_buf[MSG_ID]      = MID_REPLY;
-    unsigned short len            = 5;
     if (result == MR_SUCCESS) {
-        g_potocol_tx_buf[LENGTH_HIGH]    = len >> 8;
-        g_potocol_tx_buf[LENGTH_LOW]     = len & 0xff;
-        g_potocol_tx_buf[DATA_START]     = MID_ENROLL;
-        g_potocol_tx_buf[DATA_START + 1] = result;
-        g_potocol_tx_buf[DATA_START + 2] = ret_msg->user_id_heb;
-        g_potocol_tx_buf[DATA_START + 3] = ret_msg->user_id_leb;
-        g_potocol_tx_buf[DATA_START + 4] = ret_msg->face_direction;
-        g_potocol_tx_buf[DATA_START + 5] =
-            get_check_sum((unsigned char*)g_potocol_tx_buf + 2, len + 3);
-        protocol_send((unsigned char*)g_potocol_tx_buf, len + 6);
+        proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 5, MID_ENROLL, result,
+                              ret_msg->user_id_heb, ret_msg->user_id_leb, ret_msg->face_direction);
     } else {
-        len                              = 2;
-        g_potocol_tx_buf[LENGTH_HIGH]    = len >> 8;
-        g_potocol_tx_buf[LENGTH_LOW]     = len & 0xff;
-        g_potocol_tx_buf[DATA_START]     = MID_ENROLL;
-        g_potocol_tx_buf[DATA_START + 1] = result;
-        g_potocol_tx_buf[DATA_START + 2] =
-            get_check_sum((unsigned char*)g_potocol_tx_buf + 2, len + 3);
-        protocol_send((unsigned char*)g_potocol_tx_buf, len + 6);
+        proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 2, MID_ENROLL, result);
     }
 }
 
@@ -564,20 +486,8 @@ static void msg_reply_enroll(MR_STATUS_E result, s_msg_reply_enroll_data* ret_ms
 *****************************************************************************/
 static void msg_reply_enroll_single(MR_STATUS_E result, s_msg_reply_enroll_data* ret_msg)
 {
-    unsigned char check_sum          = 0;
-    unsigned short len               = 5;
-    g_potocol_tx_buf[HEAD_FIRST]     = 0xEF;
-    g_potocol_tx_buf[HEAD_SECOND]    = 0xAA;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = len >> 8;
-    g_potocol_tx_buf[LENGTH_LOW]     = len & 0xff;
-    g_potocol_tx_buf[DATA_START]     = MID_ENROLL_SINGLE;
-    g_potocol_tx_buf[DATA_START + 1] = result;
-
-    memcpy(&g_potocol_tx_buf[DATA_START + 2], ret_msg, sizeof(s_msg_reply_enroll_data));
-    check_sum                 = get_check_sum((unsigned char*)g_potocol_tx_buf + 2, len + 3);
-    g_potocol_tx_buf[len + 5] = check_sum;
-    protocol_send((unsigned char*)g_potocol_tx_buf, len + 6);
+    proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 5, MID_ENROLL_SINGLE, result,
+                          ret_msg->user_id_heb, ret_msg->user_id_leb, ret_msg->face_direction);
 }
 
 /*****************************************************************************
@@ -588,19 +498,7 @@ static void msg_reply_enroll_single(MR_STATUS_E result, s_msg_reply_enroll_data*
 *****************************************************************************/
 static void msg_reply_deluser(MR_STATUS_E result)
 {
-    unsigned char check_sum          = 0;
-    unsigned short len               = 2;
-    g_potocol_tx_buf[HEAD_FIRST]     = 0xEF;
-    g_potocol_tx_buf[HEAD_SECOND]    = 0xAA;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = len >> 8;
-    g_potocol_tx_buf[LENGTH_LOW]     = len & 0xff;
-    g_potocol_tx_buf[DATA_START]     = 0x20;
-    g_potocol_tx_buf[DATA_START + 1] = result;
-
-    check_sum                 = get_check_sum((unsigned char*)g_potocol_tx_buf + 2, len + 3);
-    g_potocol_tx_buf[len + 5] = check_sum;
-    protocol_send((unsigned char*)g_potocol_tx_buf, len + 6);
+    proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 2, MID_DELUSER, result);
 }
 
 /*****************************************************************************
@@ -611,19 +509,7 @@ static void msg_reply_deluser(MR_STATUS_E result)
 *****************************************************************************/
 static void msg_reply_delall(MR_STATUS_E result)
 {
-    unsigned char check_sum          = 0;
-    unsigned short len               = 2;
-    g_potocol_tx_buf[HEAD_FIRST]     = 0xEF;
-    g_potocol_tx_buf[HEAD_SECOND]    = 0xAA;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = len >> 8;
-    g_potocol_tx_buf[LENGTH_LOW]     = len & 0xff;
-    g_potocol_tx_buf[DATA_START]     = 0x21;
-    g_potocol_tx_buf[DATA_START + 1] = result;
-
-    check_sum                 = get_check_sum((unsigned char*)g_potocol_tx_buf + 2, len + 3);
-    g_potocol_tx_buf[len + 5] = check_sum;
-    protocol_send((unsigned char*)g_potocol_tx_buf, len + 6);
+    proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 2, MID_DELALL, result);
 }
 
 /*****************************************************************************
@@ -634,19 +520,9 @@ static void msg_reply_delall(MR_STATUS_E result)
 *****************************************************************************/
 static void msg_reply_getuserinfo(MR_STATUS_E result, s_msg_reply_getuserinfo_data* res_msg)
 {
-    g_potocol_tx_buf[HEAD_FIRST]     = FRAME_FIRST;
-    g_potocol_tx_buf[HEAD_SECOND]    = FRAME_SECOND;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = 0x00;
-    g_potocol_tx_buf[LENGTH_LOW]     = 24;
-    g_potocol_tx_buf[DATA_START]     = MID_GETUSERINFO;
-    g_potocol_tx_buf[DATA_START + 1] = result;
-    g_potocol_tx_buf[DATA_START + 2] = res_msg->user_id_heb;
-    g_potocol_tx_buf[DATA_START + 3] = res_msg->user_id_leb;
-    memcpy(&g_potocol_tx_buf[DATA_START + 4], res_msg->user_name, USER_NAME_SIZE);
-    g_potocol_tx_buf[DATA_START + 24] =
-        get_check_sum((unsigned char*)g_potocol_tx_buf + 2, 1 + 2 + 24);
-    protocol_send((unsigned char*)g_potocol_tx_buf, 2 + 1 + 2 + 24 + 1);
+    proto_msg_send_head_n_extra((uint8_t*)g_potocol_tx_buf, MID_REPLY, USER_NAME_SIZE,
+                                (uint8_t*)res_msg->user_name, 4, MID_GETUSERINFO, result,
+                                res_msg->user_id_heb, res_msg->user_id_leb);
 }
 
 /*****************************************************************************
@@ -657,20 +533,7 @@ static void msg_reply_getuserinfo(MR_STATUS_E result, s_msg_reply_getuserinfo_da
 *****************************************************************************/
 static void msg_reply_facereset(MR_STATUS_E result)
 {
-    unsigned char check_sum          = 0;
-    unsigned short len               = 2;
-    g_potocol_tx_buf[HEAD_FIRST]     = 0xEF;
-    g_potocol_tx_buf[HEAD_SECOND]    = 0xAA;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = len >> 8;
-    g_potocol_tx_buf[LENGTH_LOW]     = len & 0xff;
-    g_potocol_tx_buf[DATA_START]     = 0x23;
-    g_potocol_tx_buf[DATA_START + 1] = result;
-
-    DEBUG_PRINT("len = %d\n", len);
-    check_sum                 = get_check_sum((unsigned char*)g_potocol_tx_buf + 2, len + 3);
-    g_potocol_tx_buf[len + 5] = check_sum;
-    protocol_send((unsigned char*)g_potocol_tx_buf, len + 6);
+    proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 2, MID_FACERESET, result);
 }
 
 /*****************************************************************************
@@ -681,18 +544,9 @@ static void msg_reply_facereset(MR_STATUS_E result)
 *****************************************************************************/
 static void msg_reply_get_all_userid(MR_STATUS_E result, s_msg_reply_all_userid_data* ret_msg)
 {
-    g_potocol_tx_buf[HEAD_FIRST]     = FRAME_FIRST;
-    g_potocol_tx_buf[HEAD_SECOND]    = FRAME_SECOND;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = 0x00;
-    g_potocol_tx_buf[LENGTH_LOW]     = 0x67;
-    g_potocol_tx_buf[DATA_START]     = MID_GET_ALL_USERID;
-    g_potocol_tx_buf[DATA_START + 1] = result;
-    g_potocol_tx_buf[DATA_START + 2] = ret_msg->user_counts;
-    memcpy(&g_potocol_tx_buf[DATA_START + 3], ret_msg->user_id, 100);
-    g_potocol_tx_buf[DATA_START + 103] =
-        get_check_sum((unsigned char*)g_potocol_tx_buf + 2, 1 + 2 + 103);
-    protocol_send((unsigned char*)g_potocol_tx_buf, 2 + 1 + 2 + 103 + 1);
+    proto_msg_send_head_n_extra((uint8_t*)g_potocol_tx_buf, MID_REPLY, 100,
+                                (uint8_t*)ret_msg->user_id, 3, MID_GET_ALL_USERID, result,
+                                ret_msg->user_counts);
 }
 
 /*****************************************************************************
@@ -703,30 +557,11 @@ static void msg_reply_get_all_userid(MR_STATUS_E result, s_msg_reply_all_userid_
 *****************************************************************************/
 static void msg_reply_enroll_itg(MR_STATUS_E result, s_msg_reply_enroll_data* ret_msg)
 {
-    g_potocol_tx_buf[HEAD_FIRST]  = FRAME_FIRST;
-    g_potocol_tx_buf[HEAD_SECOND] = FRAME_SECOND;
-    g_potocol_tx_buf[MSG_ID]      = MID_REPLY;
-    unsigned short len            = 5;
     if (result == MR_SUCCESS) {
-        g_potocol_tx_buf[LENGTH_HIGH]    = len >> 8;
-        g_potocol_tx_buf[LENGTH_LOW]     = len & 0xff;
-        g_potocol_tx_buf[DATA_START]     = MID_ENROLL_ITG;
-        g_potocol_tx_buf[DATA_START + 1] = result;
-        g_potocol_tx_buf[DATA_START + 2] = ret_msg->user_id_heb;
-        g_potocol_tx_buf[DATA_START + 3] = ret_msg->user_id_leb;
-        g_potocol_tx_buf[DATA_START + 4] = ret_msg->face_direction;
-        g_potocol_tx_buf[DATA_START + 5] =
-            get_check_sum((unsigned char*)g_potocol_tx_buf + 2, len + 3);
-        protocol_send((unsigned char*)g_potocol_tx_buf, len + 6);
+        proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 5, MID_ENROLL_ITG, result,
+                              ret_msg->user_id_heb, ret_msg->user_id_leb, ret_msg->face_direction);
     } else {
-        len                              = 2;
-        g_potocol_tx_buf[LENGTH_HIGH]    = len >> 8;
-        g_potocol_tx_buf[LENGTH_LOW]     = len & 0xff;
-        g_potocol_tx_buf[DATA_START]     = MID_ENROLL_ITG;
-        g_potocol_tx_buf[DATA_START + 1] = result;
-        g_potocol_tx_buf[DATA_START + 2] =
-            get_check_sum((unsigned char*)g_potocol_tx_buf + 2, len + 3);
-        protocol_send((unsigned char*)g_potocol_tx_buf, len + 6);
+        proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 2, MID_ENROLL_ITG, result);
     }
 }
 
@@ -738,19 +573,11 @@ static void msg_reply_enroll_itg(MR_STATUS_E result, s_msg_reply_enroll_data* re
 *****************************************************************************/
 static void msg_reply_get_version(MR_STATUS_E result, s_msg_reply_version_data* res_msg)
 {
-    g_potocol_tx_buf[HEAD_FIRST]     = 0xEF;
-    g_potocol_tx_buf[HEAD_SECOND]    = 0xAA;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = 0x00;
-    g_potocol_tx_buf[LENGTH_LOW]     = 0x22;
-    g_potocol_tx_buf[DATA_START]     = MID_GET_VERSION;
-    g_potocol_tx_buf[DATA_START + 1] = result;
-    memcpy(&g_potocol_tx_buf[DATA_START + 2], res_msg->version_info, VERSION_INFO_BUFFER_SIZE);
-    g_potocol_tx_buf[DATA_START + 34] =
-        get_check_sum((unsigned char*)g_potocol_tx_buf + 2, 1 + 2 + 34);
-    protocol_send((unsigned char*)g_potocol_tx_buf, 2 + 1 + 2 + 34 + 1);
+    proto_msg_send_head_n_extra((uint8_t*)g_potocol_tx_buf, MID_REPLY, VERSION_INFO_BUFFER_SIZE,
+                                (uint8_t*)res_msg->version_info, 2, MID_GET_VERSION, result);
 }
 
+// TODO: 从msg_reply_start_ota到msg_reply_upload_debug_info流程待补充，且需要重构
 /*****************************************************************************
 函数名称 : msg_reply_start_ota
 功能描述 : 回复验证
@@ -951,28 +778,8 @@ static void msg_reply_config_baudrate(void)
 *****************************************************************************/
 static void msg_get_logfile(void)
 {
-    unsigned char check_sum          = 0;
-    unsigned short len               = 6;
-    g_potocol_tx_buf[HEAD_FIRST]     = FRAME_FIRST;
-    g_potocol_tx_buf[HEAD_SECOND]    = FRAME_SECOND;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = len >> 8;
-    g_potocol_tx_buf[LENGTH_LOW]     = len & 0xff;
-    g_potocol_tx_buf[DATA_START]     = MID_GET_LOGFILE;
-    g_potocol_tx_buf[DATA_START + 1] = MR_SUCCESS;
-
-    reply_get_saved_image_data.image_size[0] = 0x00;
-    reply_get_saved_image_data.image_size[1] = 0x00;
-    reply_get_saved_image_data.image_size[2] = 0x3B;
-    reply_get_saved_image_data.image_size[3] = 0x5B;
-    memcpy(&g_potocol_tx_buf[DATA_START + 2], reply_get_saved_image_data.image_size,
-           sizeof(s_msg_reply_get_saved_image_data));
-    // len += PROTOCOL_HEAD;
-    DEBUG_PRINT("len = %d\n", len);
-    check_sum                 = get_check_sum((unsigned char*)g_potocol_tx_buf + 2, len + 3);
-    g_potocol_tx_buf[len + 5] = check_sum;
-    //
-    protocol_send((unsigned char*)g_potocol_tx_buf, len + 6);
+    proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 6, MID_GET_LOGFILE, MR_SUCCESS,
+                          0x00, 0x00, 0x3B, 0x5B);
 }
 
 /*****************************************************************************
@@ -1015,16 +822,8 @@ static void msg_reply_upload_logfile(void)
 *****************************************************************************/
 static void msg_reply_set_threshold_level(MR_STATUS_E result)
 {
-    g_potocol_tx_buf[HEAD_FIRST]     = FRAME_FIRST;
-    g_potocol_tx_buf[HEAD_SECOND]    = FRAME_SECOND;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = 0x00;
-    g_potocol_tx_buf[LENGTH_LOW]     = 0x02;
-    g_potocol_tx_buf[DATA_START]     = MID_SET_THRESHOLD_LEVEL;
-    g_potocol_tx_buf[DATA_START + 1] = result;
-    g_potocol_tx_buf[DATA_START + 2] =
-        get_check_sum((unsigned char*)g_potocol_tx_buf + 2, 1 + 2 + 2);
-    protocol_send((unsigned char*)g_potocol_tx_buf, 2 + 1 + 2 + 2 + 1);
+    proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 2, MID_SET_THRESHOLD_LEVEL,
+                          result);
 }
 
 /*****************************************************************************
@@ -1035,16 +834,7 @@ static void msg_reply_set_threshold_level(MR_STATUS_E result)
 *****************************************************************************/
 static void msg_reply_powerdown(MR_STATUS_E result)
 {
-    g_potocol_tx_buf[HEAD_FIRST]     = FRAME_FIRST;
-    g_potocol_tx_buf[HEAD_SECOND]    = FRAME_SECOND;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = 0x00;
-    g_potocol_tx_buf[LENGTH_LOW]     = 0x02;
-    g_potocol_tx_buf[DATA_START]     = MID_POWERDOWN;
-    g_potocol_tx_buf[DATA_START + 1] = result;
-    g_potocol_tx_buf[DATA_START + 2] =
-        get_check_sum((unsigned char*)g_potocol_tx_buf + 2, 1 + 2 + 2);
-    protocol_send((unsigned char*)g_potocol_tx_buf, 2 + 1 + 2 + 2 + 1);
+    proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 2, MID_POWERDOWN, result);
 }
 
 /*****************************************************************************
@@ -1055,16 +845,7 @@ static void msg_reply_powerdown(MR_STATUS_E result)
 *****************************************************************************/
 static void msg_reply_demomode(MR_STATUS_E result)
 {
-    g_potocol_tx_buf[HEAD_FIRST]     = FRAME_FIRST;
-    g_potocol_tx_buf[HEAD_SECOND]    = FRAME_SECOND;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = 0x00;
-    g_potocol_tx_buf[LENGTH_LOW]     = 0x02;
-    g_potocol_tx_buf[DATA_START]     = MID_DEMOMODE;
-    g_potocol_tx_buf[DATA_START + 1] = result;
-    g_potocol_tx_buf[DATA_START + 2] =
-        get_check_sum((unsigned char*)g_potocol_tx_buf + 2, 1 + 2 + 2);
-    protocol_send((unsigned char*)g_potocol_tx_buf, 2 + 1 + 2 + 2 + 1);
+    proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 2, MID_DEMOMODE, result);
 }
 
 /*****************************************************************************
@@ -1165,34 +946,13 @@ static void msg_reply_upload_debug_info(void)
 
 static void msg_reply_get_hardware(MR_STATUS_E result, s_msg_reply_get_hardware_data* ret_msg)
 {
-    g_potocol_tx_buf[HEAD_FIRST]     = FRAME_FIRST;
-    g_potocol_tx_buf[HEAD_SECOND]    = FRAME_SECOND;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = 0x00;
-    g_potocol_tx_buf[LENGTH_LOW]     = 0x22;
-    g_potocol_tx_buf[DATA_START]     = CVI_MID_GET_HARDWARE;
-    g_potocol_tx_buf[DATA_START + 1] = result;
-    memcpy(&g_potocol_tx_buf[DATA_START + 2], ret_msg->info, 32);
-    g_potocol_tx_buf[DATA_START + 34] =
-        get_check_sum((unsigned char*)g_potocol_tx_buf + 2, 1 + 2 + 34);
-    protocol_send((unsigned char*)g_potocol_tx_buf, 2 + 1 + 2 + 34 + 1);
+    proto_msg_send_head_n_extra((uint8_t*)g_potocol_tx_buf, MID_REPLY, 32, (uint8_t*)ret_msg->info,
+                                2, CVI_MID_GET_HARDWARE, result);
 }
 
 static void msg_reply_write_license(MR_STATUS_E result)
 {
-    unsigned char check_sum          = 0;
-    unsigned short len               = 2;
-    g_potocol_tx_buf[HEAD_FIRST]     = FRAME_FIRST;
-    g_potocol_tx_buf[HEAD_SECOND]    = FRAME_SECOND;
-    g_potocol_tx_buf[MSG_ID]         = MID_REPLY;
-    g_potocol_tx_buf[LENGTH_HIGH]    = len >> 8;
-    g_potocol_tx_buf[LENGTH_LOW]     = len & 0xff;
-    g_potocol_tx_buf[DATA_START]     = CVI_MID_WRITE_LICENSE;
-    g_potocol_tx_buf[DATA_START + 1] = result;
-
-    check_sum                 = get_check_sum((unsigned char*)g_potocol_tx_buf + 2, len + 3);
-    g_potocol_tx_buf[len + 5] = check_sum;
-    protocol_send((unsigned char*)g_potocol_tx_buf, len + 6);
+    proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_REPLY, 2, CVI_MID_WRITE_LICENSE, result);
 }
 
 // /*****************************************************************************
@@ -1235,29 +995,13 @@ static void msg_reply_write_license(MR_STATUS_E result)
 *****************************************************************************/
 static void msg_reply_getlibrary_version(s_msg_reply_library_version_data* res_msg)
 {
-    g_potocol_tx_buf[HEAD_FIRST]  = FRAME_FIRST;
-    g_potocol_tx_buf[HEAD_SECOND] = FRAME_SECOND;
-    g_potocol_tx_buf[MSG_ID]      = MID_GETLIBRARY_VERSION;
-    g_potocol_tx_buf[LENGTH_HIGH] = 0x00;
-    g_potocol_tx_buf[LENGTH_LOW]  = 0x14;
-    memcpy(&g_potocol_tx_buf[DATA_START + 2], res_msg->library_version_info,
-           sizeof(s_msg_reply_library_version_data));
-    g_potocol_tx_buf[DATA_START + 20] =
-        get_check_sum((unsigned char*)g_potocol_tx_buf + 2, 1 + 2 + 20);
-    protocol_send((unsigned char*)g_potocol_tx_buf, 2 + 1 + 2 + 20 + 1);
+    proto_msg_send_head((uint8_t*)g_potocol_tx_buf, MID_GETLIBRARY_VERSION, 20,
+                        (uint8_t*)res_msg->library_version_info);
 }
 
 static void msg_reply_ready(void)
 {
-    g_potocol_tx_buf[HEAD_FIRST]  = FRAME_FIRST;
-    g_potocol_tx_buf[HEAD_SECOND] = FRAME_SECOND;
-    g_potocol_tx_buf[MSG_ID]      = MID_NOTE;
-    g_potocol_tx_buf[LENGTH_HIGH] = 0x00;
-    g_potocol_tx_buf[LENGTH_LOW]  = 0x01;
-    g_potocol_tx_buf[DATA_START]  = NID_READY;
-    g_potocol_tx_buf[DATA_START + 1] =
-        get_check_sum((unsigned char*)g_potocol_tx_buf + 2, 1 + 2 + 1);
-    protocol_send((unsigned char*)g_potocol_tx_buf, 2 + 1 + 2 + 1 + 1);
+    proto_msg_send_head_n((uint8_t*)g_potocol_tx_buf, MID_NOTE, 1, NID_READY);
 }
 
 static void do_mid_enroll_single(void)

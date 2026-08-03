@@ -29,15 +29,15 @@ void YOC_SYSTEM_FsVfsInit()
 	int fatfs_en = 0;
 	ret = partition_init();
 	if (ret >= 0) {
-		fatfs_en = app_sd_detect_check();
+		// fatfs_en = app_sd_detect_check();
 		LOGE("app", fatfs_en ? "fatfs enable.\n" : "fatfs disable.\n");
-	#if CONFIG_SPIFFS_SUPPORT
-		ret = vfs_lfs_register("spiffs");
-		if (ret != 0) {
-		   LOGE("app", "lfs register failed(%d)", ret);
-		} else
-		   LOGE("app", "lfs register succeed.");
-	#endif
+	// #if CONFIG_SPIFFS_SUPPORT
+	// 	ret = vfs_lfs_register("spiffs");
+	// 	if (ret != 0) {
+	// 	   LOGE("app", "lfs register failed(%d)", ret);
+	// 	} else
+	// 	   LOGE("app", "lfs register succeed.");
+	// #endif
 		// ret = aos_kv_init("kv");
 		// if (ret != 0) {
 		//     LOGE("app", "aos_kv_init failed(%d)", ret);

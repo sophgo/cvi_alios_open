@@ -99,6 +99,7 @@ build_config:
     - gcore_gc2083
     - gcore_gc3003
     - gcore_gc4653
+    - gcore_gc6603
     - opnous_opn8018
     - sms_sc200ai
     - sms_sc1346_1L
@@ -129,6 +130,8 @@ build_config:
     - spix_sp2509
     - spix_sp2509_multi
     - sms_sc530ai_4L
+    - sms_sc533hai
+    - sms_sc533hai_2L
     - sms_sc230ai
     - sms_sc230ai_slave
     - ov_og01a10
@@ -138,11 +141,13 @@ build_config:
     - ov_ov02b10_slave
     - ov_os04a10
     - cista_c2599
+    - cvsens_cv2002
     - cvsens_cv2003
     - ov_ov9732
     - sms_sc2331_1L
     - sms_sc035hgs_1L
     - imgds_mis2032
+    - imgds_mis5001
 
 # source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
 #   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
@@ -162,6 +167,7 @@ source_file:
   - gcore_gc2083/*.c ? <CONFIG_SENSOR_GCORE_GC2083>
   - gcore_gc3003/*.c ? <CONFIG_SENSOR_GCORE_GC3003>
   - gcore_gc4653/*.c ? <CONFIG_SENSOR_GCORE_GC4653>
+  - gcore_gc6603/*.c ? <CONFIG_SENSOR_GCORE_GC6603>
   - opnous_opn8018/*.c ? <CONFIG_SENSOR_OPNOUS_OPN8018>
   - sms_sc200ai/*.c ? <CONFIG_SENSOR_SMS_SC200AI>
   - sms_sc1346_1L/*.c ? <CONFIG_SENSOR_SMS_SC1346_1L>
@@ -190,6 +196,8 @@ source_file:
   - sms_sc230ai_slave/*.c ? <CONFIG_SENSOR_SMS_SC230AI_SLAVE>
   - sms_sc301iot/*.c ? <CONFIG_SENSOR_SMS_SC301IOT>
   - sms_sc530ai_4L/*.c ? <CONFIG_SENSOR_SMS_SC530AI_4L>
+  - sms_sc533hai/*.c ? <CONFIG_SENSOR_SMS_SC533HAI>
+  - sms_sc533hai_2L/*.c ? <CONFIG_SENSOR_SMS_SC533HAI_2L>
   - byd_bf2257cs/*.c ? <CONFIG_SENSOR_BYD_BF2257CS>
   - byd_bf2257cs_slave/*.c ? <CONFIG_SENSOR_BYD_BF2257CS_SLAVE>
   - spix_sp2509/*.c ? <CONFIG_SENSOR_SPIX_SP2509>
@@ -202,10 +210,12 @@ source_file:
   - ov_os04a10/*.c ? <CONFIG_SENSOR_OV_OS04A10>
   - cista_c2599/*.c ? <CONFIG_SENSOR_CISTA_C2599>
   - cvsens_cv2003/*.c ? <CONFIG_SENSOR_CVSENS_CV2003>
+  - cvsens_cv2002/*.c ? <CONFIG_SENSOR_CVSENS_CV2002>
   - ov_ov9732/*.c ? <CONFIG_SENSOR_OV_OV9732>
   - sms_sc2331_1L/*.c ? <CONFIG_SENSOR_SMS_SC2331_1L>
   - sms_sc035hgs_1L/*.c ? <CONFIG_SENSOR_SMS_SC035HGS>
   - imgds_mis2032/*.c ? <CONFIG_SENSOR_IMGDS_MIS2032>
+  - imgds_mis5001/*.c ? <CONFIG_SENSOR_IMGDS_MIS5001>
 ## 第五部分：配置信息
 # def_config:                              # 组件的可配置项
 #   CONFIG_DEBUG: y

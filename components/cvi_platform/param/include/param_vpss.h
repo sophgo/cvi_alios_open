@@ -7,10 +7,19 @@
 
 //多级别结构 确定使用的多级数组加number作标定 (多级限定场景 串行结构 不允许存在同一级别有多个多级存在) 大结构必须精简尽量使用指针
 
+typedef struct _PARAM_VPSS_LDC_CFG_S {
+    CVI_BOOL bLdcEn;           // Whether enable vpss ldc
+    CVI_CHAR* pPartitionName;  // flash's partition name which store ldc mesh.bin
+    CVI_U32 u32Offset;         // offset of partition
+    CVI_U32 u32MeshSize;       // size of mesh.bin
+} PARAM_VPSS_LDC_CFG_S;
+
 typedef struct _PARAM_VPSS_CHN_CFG_S {
     CVI_U8 u8Rotation;
     VPSS_CHN_ATTR_S stVpssChnAttr;
     VPSS_CROP_INFO_S  stVpssChnCropInfo;
+	VPSS_CHN_BUF_WRAP_S stVpssChnBufWrap;
+    PARAM_VPSS_LDC_CFG_S stVpssLdcCfg;  // configuration of vpss ldc
 } PARAM_VPSS_CHN_CFG_S;
 
 typedef struct _PARAM_VPSS_GRP_CFG_S {

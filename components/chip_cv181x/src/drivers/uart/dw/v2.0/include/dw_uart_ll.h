@@ -256,8 +256,13 @@ extern "C" {
 
 #define UART_BUSY_TIMEOUT                 0x70000000U
 
-#define SOFT_RSTN_ADDR 0x03003000
+#define SOFT_RSTN_ADDR  0x03003000
+#define UART_USR_OFFSET 0x7C
+
 #define UART0_RSTN_OFFSET (0x1 << 23)
+#define UART1_RSTN_OFFSET (0x1 << 24)
+#define UART2_RSTN_OFFSET (0x1 << 25)
+#define UART3_RSTN_OFFSET (0x1 << 26)
 
 typedef struct {
     union {

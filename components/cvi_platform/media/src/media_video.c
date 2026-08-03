@@ -3,6 +3,7 @@
 #include <string.h>
 #include <errno.h>
 #include <aos/cli.h>
+#include "sys/prctl.h"
 #include "media_video.h"
 #include "rtos_types.h"
 #include "cvi_common.h"
@@ -622,7 +623,7 @@ int MEDIA_VIDEO_ViLdcInit(PARAM_DEV_CFG_S* pstViDevInfo, uint32_t u32ViChn)
     }
     printf("Open partition %s passed\n", pstViDevInfo->stViLdcCfg.pPartitionName);
 
-    uint32_t u32Offset = 0;
+    uint32_t u32Offset = pstViLdcCfg->u32Offset;
     uint32_t u32MeshSize = pstViLdcCfg->u32MeshSize;
 
     /* Allocate memory space for LDC mesh.bin */
@@ -638,6 +639,43 @@ int MEDIA_VIDEO_ViLdcInit(PARAM_DEV_CFG_S* pstViDevInfo, uint32_t u32ViChn)
     stMeshDumpAttr.enModId = CVI_ID_VI;
     stMeshDumpAttr.viMeshAttr.chn = u32ViChn;
     CVI_GDC_LoadMeshWithBuf(&stMeshDumpAttr, &stViLdcCfg.stLDCAttr.stAttr, pMeshBuf, u32MeshSize);
+
+    return CVI_SUCCESS;
+}
+
+int MEDIA_VIDEO_VpssLdcInit(PARAM_VPSS_CHN_CFG_S* pstVpssChnCfg, uint32_t u32VpssGrp, uint32_t u32VpssChn)
+{
+    printf("Start VPSS LDC Init, u32VpssGrp = %d VpssChn = %d\n", u32VpssGrp, u32VpssChn);
+
+    struct vpss_chn_ldc_cfg stVpssChnLdcCfg;
+
+    PARAM_VPSS_LDC_CFG_S* pstVpssLdcCfg = &(pstVpssChnCfg->stVpssLdcCfg);
+    printf("pPartitionName:%s\n",pstVpssLdcCfg->pPartitionName);
+    partition_t u32Partition = partition_open(pstVpssLdcCfg->pPartitionName);
+    if (u32Partition < 0) {
+        printf("Open partition %s failed\n", pstVpssLdcCfg->pPartitionName);
+        return CVI_FAILURE;
+    }
+
+    uint32_t u32Offset = pstVpssLdcCfg->u32Offset;
+    uint32_t u32MeshSize = pstVpssLdcCfg->u32MeshSize;
+
+    printf("Open partition %s passed u32Offset=%d\n", pstVpssLdcCfg->pPartitionName, u32Offset);
+
+    /* Allocate memory space for LDC mesh.bin */
+    void* pMeshBuf = aos_malloc_align(DEFAULT_ALIGN, u32MeshSize + DEFAULT_ALIGN);
+    int32_t s32Ret = partition_read(u32Partition, u32Offset, pMeshBuf, u32MeshSize);
+    if (s32Ret < 0) {
+        printf("Partition read %s failed\n", pstVpssLdcCfg->pPartitionName);
+        return CVI_FAILURE;
+    }
+    printf("Partition read %s passed\n", pstVpssLdcCfg->pPartitionName);
+
+    MESH_DUMP_ATTR_S stMeshDumpAttr;
+    stMeshDumpAttr.enModId = CVI_ID_VPSS;
+    stMeshDumpAttr.vpssMeshAttr.grp = u32VpssGrp;
+    stMeshDumpAttr.vpssMeshAttr.chn = u32VpssChn;
+    CVI_GDC_LoadMeshWithBuf(&stMeshDumpAttr, &stVpssChnLdcCfg.stLDCAttr.stAttr, pMeshBuf, u32MeshSize);
 
     return CVI_SUCCESS;
 }
@@ -886,7 +924,6 @@ static int _MEDIA_VIDEO_SysVbInit()
 
 int MEDIA_VIDEO_SysVbInit(PARAM_SYS_CFG_S * pstSysCtx)
 {
-    VPSS_MODE_S stVPSSMode = {0};
     VI_VPSS_MODE_S stVIVPSSMode = {0};
     CVI_U32 	u32BlkSize;
     CVI_U32 	u32RotBlkSize;
@@ -899,15 +936,15 @@ int MEDIA_VIDEO_SysVbInit(PARAM_SYS_CFG_S * pstSysCtx)
         return CVI_SUCCESS;
     }
 
+	LOG_LEVEL_CONF_S stConf = {CVI_ID_VPSS, 1, "vpss"};
+    MEDIA_CHECK_RET(CVI_LOG_SetLevelConf(&stConf), "CVI_LOG_SetLevelConf failed\n");
+
     MEDIA_CHECK_RET(CVI_SYS_Init(), "CVI_SYS_Init failed\n");
-    stVPSSMode.enMode = pstSysCtx->stVPSSMode.enMode;
     for(i = 0; i < pstSysCtx->u8ViCnt; i++) {
         stVIVPSSMode.aenMode[i] = pstSysCtx->stVIVPSSMode.aenMode[i];
-        stVPSSMode.aenInput[i] = pstSysCtx->stVPSSMode.aenInput[i];
-        stVPSSMode.ViPipe[i] = pstSysCtx->stVPSSMode.ViPipe[i];
     }
     MEDIA_CHECK_RET(CVI_SYS_SetVIVPSSMode(&stVIVPSSMode),"CVI_SYS_SetVIVPSSMode failed\n");
-    CVI_SYS_SetVPSSModeEx(&stVPSSMode);
+    MEDIA_CHECK_RET(CVI_SYS_SetVPSSModeEx(&pstSysCtx->stVPSSMode), "CVI_SYS_SetVPSSModeEx failed\n");
     //vb init
     memset(&stVbConfig, 0, sizeof(VB_CONFIG_S));
     stVbConfig.u32MaxPoolCnt = pstSysCtx->u8VbPoolCnt;
@@ -924,6 +961,7 @@ int MEDIA_VIDEO_SysVbInit(PARAM_SYS_CFG_S * pstSysCtx)
     }
     MEDIA_CHECK_RET(CVI_VB_SetConfig(&stVbConfig), "CVI_VB_SetConfig failed\n");
     MEDIA_CHECK_RET(CVI_VB_Init(), "CVI_VB_Init failed\n");
+
     return CVI_SUCCESS;
 }
 
@@ -963,7 +1001,7 @@ int MEDIA_VIDEO_VpssInit(PARAM_VPSS_CFG_S * pstVpssCtx)
         if(pstVpssCtx->pstVpssGrpCfg[i].s32BindVidev != -1) {
 			MEDIA_CHECK_RET(getDevAttr(pstVpssCtx->pstVpssGrpCfg[i].s32BindVidev, &stViDevAttr),
 							"getDevAttr fail");
-			if(pstVpssCtx->pstVpssGrpCfg[i].u8ViRotation == 90) {
+			if(pstVpssCtx->pstVpssGrpCfg[i].u8ViRotation == ROTATION_90) {
                 pstVpssGrp->u32MaxW = stViDevAttr.stSize.u32Height;
                 pstVpssGrp->u32MaxH = stViDevAttr.stSize.u32Width;
             } else {
@@ -981,7 +1019,17 @@ int MEDIA_VIDEO_VpssInit(PARAM_VPSS_CFG_S * pstVpssCtx)
         for(j = 0; j < pstVpssCtx->pstVpssGrpCfg[i].u8ChnCnt; j++) {
             pstVpssChn = &pstVpssCtx->pstVpssGrpCfg[i].pstChnCfg[j].stVpssChnAttr;
             MEDIA_CHECK_RET(CVI_VPSS_SetChnAttr(VpssGrp, j, pstVpssChn), "CVI_VPSS_SetChnAttr failed\n");
+            if (pstVpssCtx->pstVpssGrpCfg[i].pstChnCfg[j].stVpssChnBufWrap.bEnable) {
+                MEDIA_CHECK_RET(CVI_VPSS_SetChnBufWrapAttr(VpssGrp, j,
+                    &pstVpssCtx->pstVpssGrpCfg[i].pstChnCfg[j].stVpssChnBufWrap),
+                    "CVI_VPSS_SetChnBufWrapAttr failed\n");
+            }
+
+            if (pstVpssCtx->pstVpssGrpCfg[i].pstChnCfg[j].stVpssLdcCfg.bLdcEn) {
+                MEDIA_VIDEO_VpssLdcInit(&pstVpssCtx->pstVpssGrpCfg[i].pstChnCfg[j], i, j);
+            }
             MEDIA_CHECK_RET(CVI_VPSS_EnableChn(VpssGrp, j), "CVI_VPSS_EnableChn failed\n");
+            CVI_VPSS_SetChnScaleCoefLevel(i,j,VPSS_SCALE_COEF_DOWNSCALE_SMOOTH);
             if(pstVpssCtx->pstVpssGrpCfg[i].pstChnCfg[j].u8Rotation != ROTATION_0) {
                 CVI_VPSS_SetChnRotation(VpssGrp, j, pstVpssCtx->pstVpssGrpCfg[i].pstChnCfg[j].u8Rotation);
             }
@@ -1278,6 +1326,26 @@ static int _MEDIA_VIDEO_VoDeinit()
 
 
 #if CONFIG_APP_VENC_SUPPORT
+int MEDIA_VIDEO_VencGetStream(int VencChn,VENC_STREAM_S *pstStreamFrame,unsigned int blocktimeMs);
+
+// static void *streamProc(void *args)
+// {
+//     int chn = *((int *)args);
+//     VENC_STREAM_S stStream = {0};
+//     CVI_CHAR cName[32] = {0};
+//     snprintf(cName, sizeof(cName), "venc_stmproc_%d", chn);
+// 	prctl(PR_SET_NAME, cName);
+
+//     while(1) {
+//         if(MEDIA_VIDEO_VencGetStream(chn, &stStream, 200) == CVI_SUCCESS) {
+//             // SendToRtsp(chn,&stStream);
+//             MEDIA_VIDEO_VencReleaseStream(chn,&stStream);
+//         }
+//         usleep(33*1000);
+//     }
+//     return 0;
+// }
+
 int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
 {
     VENC_CHN_ATTR_S stAttr = {0};
@@ -1294,9 +1362,9 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
     VENC_H264_VUI_S stH264Vui = {0};
 #endif
     VENC_JPEG_PARAM_S stJpegParam = {0};
-#if !(CONFIG_USBD_UVC)
+// #if !(CONFIG_USBD_UVC)
     VENC_RECV_PIC_PARAM_S stRecvParam = {0};
-#endif
+// #endif
     VPSS_CHN_ATTR_S stVpssChnAttr = {0};
     MMF_CHN_S stSrcChn;
     MMF_CHN_S stDestChn;
@@ -1319,8 +1387,10 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
     }
 
     VencChn = pstVecncChnCtx->stChnParam.u8VencChn;
-    if(pstVecncChnCtx->stChnParam.u8ModId == CVI_ID_VPSS && pstVecncChnCtx->stChnParam.u16Width == 0 &&  pstVecncChnCtx->stChnParam.u16Height == 0) {
-        MEDIA_CHECK_RET(CVI_VPSS_GetChnAttr(pstVecncChnCtx->stChnParam.u8DevId, pstVecncChnCtx->stChnParam.u8DevChnid, &stVpssChnAttr), "CVI_VPSS_GetChnAttr");
+    if((pstVecncChnCtx->stChnParam.u8ModId == CVI_ID_VPSS || pstVecncChnCtx->stChnParam.u8ModId == 0) && pstVecncChnCtx->stChnParam.u16Width == 0 &&  pstVecncChnCtx->stChnParam.u16Height == 0) {
+        if (CVI_VPSS_GetChnAttr(pstVecncChnCtx->stChnParam.u8DevId, pstVecncChnCtx->stChnParam.u8DevChnid, &stVpssChnAttr) != CVI_SUCCESS) {
+            return MEDIA_VIDEO_RET_DEFER;
+        }
         // if VPSS enable rotation, need exchange width and height
         MEDIA_CHECK_RET(CVI_VPSS_GetChnRotation(pstVecncChnCtx->stChnParam.u8DevId, pstVecncChnCtx->stChnParam.u8DevChnid, &enRotation), "CVI_VPSS_GetChnRotation");
         if (ROTATION_90 == enRotation || ROTATION_270 == enRotation) {
@@ -1343,7 +1413,12 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
     stAttr.stVencAttr.u32PicWidth = pstVecncChnCtx->stChnParam.u16Width;
     stAttr.stVencAttr.u32PicHeight = pstVecncChnCtx->stChnParam.u16Height;
     stAttr.stVencAttr.bSingleCore = 0;
-    stAttr.stVencAttr.bEsBufQueueEn = pstVecncChnCtx->stChnParam.u8EsBufQueueEn;
+    stAttr.stVencAttr.bEsBufQueueEn = 1;
+    if (pstVecncChnCtx->stChnParam.u16EnType == PT_H264 || pstVecncChnCtx->stChnParam.u16EnType == PT_H265) {
+        stAttr.stVencAttr.bIsoSendFrmEn = 1;
+    } else {
+        stAttr.stVencAttr.bIsoSendFrmEn = 0;
+    }
 
     stAttr.stRcAttr.enRcMode = pstVecncChnCtx->stRcParam.u16RcMode;
     switch (pstVecncChnCtx->stChnParam.u16EnType) {
@@ -1426,7 +1501,7 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
     stAttr.stGopAttr.stNormalP.s32IPQpDelta = pstVecncChnCtx->stGopParam.s8IPQpDelta;
 
     MEDIA_CHECK_RET(CVI_VENC_GetModParam(&stModParam), "CVI_VENC_GetModParam");
-#if (CONFIG_USBD_UVC)
+// #if (CONFIG_USBD_UVC)
 	stModParam.enVencModType = MODTYPE_JPEGE;
     stModParam.stJpegeModParam.enJpegeFormat = JPEGE_FORMAT_CUSTOM;
     stModParam.stJpegeModParam.JpegMarkerOrder[0] = JPEGE_MARKER_SOI;
@@ -1436,7 +1511,7 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
     stModParam.stJpegeModParam.JpegMarkerOrder[4] = JPEGE_MARKER_DHT_MERGE;
     stModParam.stJpegeModParam.JpegMarkerOrder[5] = JPEGE_MARKER_DRI;
     stModParam.stJpegeModParam.JpegMarkerOrder[6] = JPEGE_MARKER_BUTT;
-#endif
+// #endif
     MEDIA_CHECK_RET(CVI_VENC_SetModParam(&stModParam), "CVI_VENC_SetModParam");
 
     MEDIA_CHECK_RET(CVI_VENC_CreateChn(VencChn, &stAttr), "CVI_VENC_CreateChn");
@@ -1574,7 +1649,10 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
         MEDIA_CHECK_RET(CVI_VENC_GetJpegParam(VencChn, &stJpegParam), "CVI_VENC_GetJpegParam");
         MEDIA_CHECK_RET(CVI_VENC_SetJpegParam(VencChn, &stJpegParam), "CVI_VENC_SetJpegParam");
     }
-    if(pstVecncChnCtx->stChnParam.u8ModId == CVI_ID_VPSS || pstVecncChnCtx->stChnParam.u8ModId == CVI_ID_VI ) {
+
+    if(!pstVecncChnCtx->stChnParam.bIsSBM
+       && (pstVecncChnCtx->stChnParam.u8ModId == CVI_ID_VPSS
+           || pstVecncChnCtx->stChnParam.u8ModId == CVI_ID_VI)) {
         stDestChn.enModId = CVI_ID_VENC;
         stDestChn.s32DevId = 0;
         stDestChn.s32ChnId = pstVecncChnCtx->stChnParam.u8VencChn;
@@ -1584,15 +1662,42 @@ int MEDIA_VIDEO_VencChnInit(PARAM_VENC_CFG_S *pstVencCfg,int VencChn)
         MEDIA_CHECK_RET(CVI_SYS_Bind(&stSrcChn, &stDestChn), "CVI_SYS_Bind err");
     }
 
-#if !(CONFIG_USBD_UVC)
+// #if !(CONFIG_USBD_UVC)
     stRecvParam.s32RecvPicNum = -1;
     MEDIA_CHECK_RET(CVI_VENC_StartRecvFrame(VencChn, &stRecvParam), "CVI_VENC_StartRecvFrame");
     pstVecncChnCtx->stChnParam.u8InitStatus = 1;
-#endif
+// #endif
+
+    if(pstVecncChnCtx->stChnParam.bIsSBM) {
+        stDestChn.enModId = CVI_ID_VENC;
+        stDestChn.s32DevId = 0;
+        stDestChn.s32ChnId = pstVecncChnCtx->stChnParam.u8VencChn;
+        stSrcChn.enModId = pstVecncChnCtx->stChnParam.u8ModId;
+        stSrcChn.s32DevId = pstVecncChnCtx->stChnParam.u8DevId;
+        stSrcChn.s32ChnId = pstVecncChnCtx->stChnParam.u8DevChnid;
+        MEDIA_CHECK_RET(CVI_SYS_Bind(&stSrcChn, &stDestChn), "CVI_SYS_Bind err");
+    }
+
+    // pthread_t pthreadId = 0;
+    // struct sched_param param;
+    // pthread_attr_t pthread_attr;
+
+    // param.sched_priority = 35;
+    // pthread_attr_init(&pthread_attr);
+    // pthread_attr_setschedpolicy(&pthread_attr, SCHED_RR);
+    // pthread_attr_setschedparam(&pthread_attr, &param);
+    // pthread_attr_setinheritsched(&pthread_attr, PTHREAD_EXPLICIT_SCHED);
+    // // pthread_attr_setstacksize(&pthread_attr, 4096);
+    // int ret = pthread_create(&pthreadId, &pthread_attr, streamProc, (CVI_VOID *)&VencChn);
+    // if (ret != 0) {
+    //     printf("[Chn %d]pthread_create failed, ret %d\n", VencChn, ret);
+    //     return ret;
+    // }
+
     return CVI_SUCCESS;
 }
 
-int MEDAI_VIDEO_VencChnDeinit(PARAM_VENC_CFG_S *pstVencCfg, int VencChn)
+int MEDIA_VIDEO_VencChnDeinit(PARAM_VENC_CFG_S *pstVencCfg, int VencChn)
 {
     MMF_CHN_S stSrcChn;
     MMF_CHN_S stDestChn;
@@ -1635,7 +1740,10 @@ int MEDIA_VIDEO_VencInit(PARAM_VENC_CFG_S *pstVencCfg)
         return CVI_FAILURE;
     }
     for(int i = 0 ; i < pstVencCfg->s32VencChnCnt; i++) {
-        if(MEDIA_VIDEO_VencChnInit(pstVencCfg,i) != CVI_SUCCESS) {
+        int ret = MEDIA_VIDEO_VencChnInit(pstVencCfg,i);
+        if (ret == MEDIA_VIDEO_RET_DEFER) {
+            MEDIABUG_PRINTF("MEDIA_VIDEO_VencChnInit %d defer (VPSS not ready)\n", i);
+        } else if (ret != CVI_SUCCESS) {
             MEDIABUG_PRINTF("MEDIA_VIDEO_VencChnInit %d err \n",i);
         }
     }
@@ -1658,7 +1766,7 @@ int MEDIA_VIDEO_VencDeInit(PARAM_VENC_CFG_S *pstVencCfg)
         return CVI_FAILURE;
     }
     for(int i = 0 ; i < pstVencCfg->s32VencChnCnt; i++) {
-        MEDAI_VIDEO_VencChnDeinit(pstVencCfg,i);
+        MEDIA_VIDEO_VencChnDeinit(pstVencCfg,i);
     }
     g_pstVencCfg = NULL;
     return CVI_SUCCESS;
@@ -1692,6 +1800,7 @@ int MEDIA_VIDEO_VencGetStream(int VencChn,VENC_STREAM_S *pstStreamFrame,unsigned
     }
     pstVecncChnCtx = &pstVencCfg->pstVencChnCfg[VencChn];
     pstVecncChnCtx->stChnParam.u8RunStatus = 1;
+
     if(pstVecncChnCtx->stChnParam.u8ModId != CVI_ID_VPSS && pstVecncChnCtx->stChnParam.u8ModId != CVI_ID_VI ) {
         MEDIA_CHECK_RET(CVI_VPSS_GetChnFrame(pstVecncChnCtx->stChnParam.u8DevId, pstVecncChnCtx->stChnParam.u8DevChnid, &stSrcFrame, 2000), "CVI_VPSS_GetChnFrame");
         s32ret = CVI_VENC_SendFrame(VencChn, &stSrcFrame, 2000);
@@ -1800,6 +1909,9 @@ static int _MEDIA_VIDEO_Step1Init()
     }
     MEDIA_CHECK_RET(_MEDIA_VIDEO_SysVbInit(),"MEDIA_VIDEO_SysVbInit failed");
     MEDIA_CHECK_RET(_MEDIA_VIDEO_ViInit(),"MEDIA_VIDEO_ViInit failed");
+#if CONFIG_APP_VENC_SUPPORT
+	MEDIA_CHECK_RET(_MEDIA_VIDEO_VencInit(),"MEDIA_VIDEO_VencInit failed");
+#endif
     MEDIA_CHECK_RET(_MEDIA_VIDEO_VpssInit(),"MEDIA_VIDEO_VpssInit failed");
 #if CONFIG_APP_DUMP_FRAME
     PARAM_SYS_CFG_S *pstSysCtx = PARAM_GET_SYS_CFG();
@@ -1828,10 +1940,6 @@ static int _MEDIA_VIDEO_Step2Init()
     GUI_Display_Start();
 #endif
 
-#if CONFIG_APP_VENC_SUPPORT
-    MEDIA_CHECK_RET(_MEDIA_VIDEO_VencInit(),"MEDIA_VIDEO_VencInit failed");
-#endif
-
 #if (CONFIG_APP_AI_SUPPORT == 1)
     APP_AiStart();
 #endif
@@ -1839,6 +1947,9 @@ static int _MEDIA_VIDEO_Step2Init()
     efuse_bootFreqHigher();
 #endif
     g_mediaVideoRunStatus = 1;
+
+    // extern void vr_init();
+    // vr_init();
 
     return CVI_SUCCESS;
 }
@@ -2086,4 +2197,123 @@ void testMedia_sensor_switch(int32_t argc, char **argv)
     }
 }
 ALIOS_CLI_CMD_REGISTER(testMedia_sensor_switch, testMedia_sensor_switch, testMedia_sensor_switch);
+#endif
+#if 0
+#include <math.h>
+#include "usb_config.h"
+#include "usb_mem.h"
+void gen_vr_mesh(int32_t argc, char **argv)
+// void* gen_vr_mesh(void* arg)
+{
+    // struct vpss_chn_ldc_cfg stVpssChnLdcCfg;
+
+    // PARAM_VPSS_LDC_CFG_S* pstVpssLdcCfg = &(pstVpssChnCfg->stVpssLdcCfg);
+    // printf("pPartitionName:%s\n",pstVpssLdcCfg->pPartitionName);
+    // partition_t u32Partition = partition_open(pstVpssLdcCfg->pPartitionName);
+    // if (u32Partition < 0) {
+    //     printf("Open partition %s failed\n", pstVpssLdcCfg->pPartitionName);
+    //     return CVI_FAILURE;
+    // }
+
+    // uint32_t u32Offset = pstVpssLdcCfg->u32Offset;
+    // uint32_t u32MeshSize = pstVpssLdcCfg->u32MeshSize;
+
+    // printf("Open partition %s passed u32Offset=%d\n", pstVpssLdcCfg->pPartitionName, u32Offset);
+
+    // /* Allocate memory space for LDC mesh.bin */
+    // void* pMeshBuf = aos_malloc_align(DEFAULT_ALIGN, u32MeshSize + DEFAULT_ALIGN);
+    // int32_t s32Ret = partition_read(u32Partition, u32Offset, pMeshBuf, u32MeshSize);
+    // if (s32Ret < 0) {
+    //     printf("Partition read %s failed\n", pstVpssLdcCfg->pPartitionName);
+    //     return CVI_FAILURE;
+    // }
+    // printf("Partition read %s passed\n", pstVpssLdcCfg->pPartitionName);
+
+    // MESH_DUMP_ATTR_S stMeshDumpAttr;
+    // stMeshDumpAttr.enModId = CVI_ID_VPSS;
+    // stMeshDumpAttr.vpssMeshAttr.grp = u32VpssGrp;
+    // stMeshDumpAttr.vpssMeshAttr.chn = u32VpssChn;
+    // CVI_GDC_LoadMeshWithBuf(&stMeshDumpAttr, &stVpssChnLdcCfg.stLDCAttr.stAttr, pMeshBuf, u32MeshSize);
+
+
+    // if(argc < 3) {
+    //     // printf("please input 0/1 chose sensor switch\n");
+    //     printf("gen_vr_mesh Yaw[120~240] Pitch[-60~60] \n");
+    //     return ;
+    // }
+
+    // CVI_FLOAT fYaw = atof(argv[1]);
+    // if (fYaw > 240 || fYaw < 120){
+    //     printf("input illegal\n");
+    //     return ;
+    // }
+
+    // CVI_FLOAT fPitch = atof(argv[2]);
+    // if (fabsf(fPitch) > 60 ){
+    //     printf("input illegal\n");
+    //     return ;
+    // }
+
+   struct vpss_chn_ldc_cfg stVpssChnLdcCfg;
+   size_t u32ActualSize;
+   uint32_t u32VpssGrp = 0;
+   uint32_t u32VpssChn = 2;
+   uint32_t u32MeshSize = 153600;
+   // void* pMeshBuf = aos_malloc_align(DEFAULT_ALIGN, u32MeshSize + DEFAULT_ALIGN);
+   // uint8_t* pMeshBuf = (uint8_t*)usb_iomalloc(u32MeshSize);
+   /* pingpong buffer for mesh */
+   uint8_t* pMeshBuf[2] = {0};
+   volatile int pingpong = 0;
+
+   pMeshBuf[0] = (uint8_t*)usb_iomalloc(u32MeshSize);
+   pMeshBuf[1] = (uint8_t*)usb_iomalloc(u32MeshSize);
+
+   MESH_DUMP_ATTR_S stMeshDumpAttr;
+   stMeshDumpAttr.enModId = CVI_ID_VPSS;
+   stMeshDumpAttr.vpssMeshAttr.grp = u32VpssGrp;
+   stMeshDumpAttr.vpssMeshAttr.chn = u32VpssChn;
+
+   while(1){
+       for(int i=120;i<=240;i=i+10){
+           // memset(pMeshBuf, 0, sizeof(u32MeshSize));
+           CVI_GDC_GenFisheyeMesh(90, i, 0, 185, true,  640,  640, 640, 640, pMeshBuf[pingpong], u32MeshSize,  &u32ActualSize);
+           CVI_GDC_LoadMeshWithBuf(&stMeshDumpAttr, &stVpssChnLdcCfg.stLDCAttr.stAttr, pMeshBuf[pingpong], u32MeshSize);
+           pingpong ^= 1;
+           sleep(1);
+       }
+
+       for(int i=-60;i<=60;i=i+10){
+           //  memset(pMeshBuf, 0, sizeof(u32MeshSize));
+           CVI_GDC_GenFisheyeMesh(90, 180, i, 185, true,  640,  640, 640, 640, pMeshBuf[pingpong], u32MeshSize,  &u32ActualSize);
+           CVI_GDC_LoadMeshWithBuf(&stMeshDumpAttr, &stVpssChnLdcCfg.stLDCAttr.stAttr, pMeshBuf[pingpong], u32MeshSize);
+           pingpong ^= 1;
+           sleep(1);
+       }
+   }
+
+    // CVI_GDC_GenFisheyeMesh(90, fYaw, fPitch, 185, true,  640,  640, 640, 640, pMeshBuf, 153600,  &u32ActualSize);
+
+    // MESH_DUMP_ATTR_S stMeshDumpAttr;
+    // stMeshDumpAttr.enModId = CVI_ID_VPSS;
+    // stMeshDumpAttr.vpssMeshAttr.grp = u32VpssGrp;
+    // stMeshDumpAttr.vpssMeshAttr.chn = u32VpssChn;
+    // CVI_GDC_LoadMeshWithBuf(&stMeshDumpAttr, &stVpssChnLdcCfg.stLDCAttr.stAttr, pMeshBuf, u32MeshSize);
+
+}
+ALIOS_CLI_CMD_REGISTER(gen_vr_mesh, gen_vr_mesh, gen_vr_mesh);
+
+
+// void vr_init(void)
+// {
+//     struct sched_param param;
+//     pthread_attr_t pthread_attr;
+//     pthread_t pthreadId = {0};
+//     param.sched_priority = 31;
+//     pthread_attr_init(&pthread_attr);
+//     pthread_attr_setschedpolicy(&pthread_attr, SCHED_RR);
+//     pthread_attr_setschedparam(&pthread_attr, &param);
+//     pthread_attr_setinheritsched(&pthread_attr, PTHREAD_EXPLICIT_SCHED);
+//     pthread_attr_setstacksize(&pthread_attr, 6 * 1024);
+//     pthread_create(&pthreadId, &pthread_attr, gen_vr_mesh, NULL);
+// }
 #endif

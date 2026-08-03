@@ -658,13 +658,13 @@ csi_error_t csi_iic_speed(csi_iic_t *iic, csi_iic_speed_t speed)
     /* This register can be written only when the I2C is disabled */
     if (speed == IIC_BUS_SPEED_STANDARD) {
         dw_iic_set_transfer_speed_standard(iic_base);
-        dw_iic_set_standard_scl_hcnt(iic_base, (((IC_CLK * 4000U) / 1000U) - 7U));
-        dw_iic_set_standard_scl_lcnt(iic_base, (((IC_CLK * 4700) / 1000U) - 1U));
+        dw_iic_set_standard_scl_hcnt(iic_base, (((IC_CLK * 4600U) / 1000U) - 7U));
+        dw_iic_set_standard_scl_lcnt(iic_base, (((IC_CLK * 5400U) / 1000U) - 1U));
         ret = CSI_OK;
     } else if (speed == IIC_BUS_SPEED_FAST) {
         dw_iic_set_transfer_speed_fast(iic_base);
-        dw_iic_set_fast_scl_hcnt(iic_base, (((IC_CLK * 600U) / 1000U) - 7U));
-        dw_iic_set_fast_scl_lcnt(iic_base, (((IC_CLK * 1300U) / 1000U) - 1U));
+        dw_iic_set_fast_scl_hcnt(iic_base, (((IC_CLK * 800U) / 1000U) - 7U));
+        dw_iic_set_fast_scl_lcnt(iic_base, (((IC_CLK * 1500U) / 1000U) - 1U));
         ret = CSI_OK;
     } else if (speed == IIC_BUS_SPEED_FAST_PLUS) {
         ret = CSI_UNSUPPORTED;

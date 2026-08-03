@@ -3,12 +3,14 @@
 */
 #include "cvitek_spi_nor.h"
 #include "drv/common.h"
+#include <csi_core.h>
 #ifndef CONFIG_KERNEL_NONE
 #include "aos/kernel.h"
 #endif
+#include "soc.h"
 
 #ifdef CONFIG_DMA_SUPPORT
-static aos_sem_t dma_task_sem;
+#define DMA_POLL_TIMEOUT_US 100000
 #endif
 
 int check_irq_status(struct cvi_spif *spif, uint8_t status, uint32_t timeout)
@@ -246,15 +248,43 @@ static void cvi_spif_set_memory_mode_off(struct cvi_spif *spif)
 }
 
 #ifdef CONFIG_DMA_SUPPORT
-static void dma_ch_callback(csi_dma_ch_t *dma_ch, csi_dma_event_t event, void *arg)
+
+/*
+ * Poll DMA channel enable register to wait for transfer completion.
+ * When CH_EN bit clears, all AXI transactions are done and data is in DDR.
+ */
+static int dma_poll_wait_done(csi_dma_ch_t *ch_hd, uint32_t timeout_us)
 {
-	if (event == DMA_EVENT_TRANSFER_DONE) {
-		aos_sem_signal(&dma_task_sem);
+	uint32_t waited = 0;
+	uint8_t ch_mask = 1 << ch_hd->ch_id;
+
+	while (waited < timeout_us) {
+		if ((readl((void *)(0x4330000 + 0x18)) & ch_mask) == 0)
+			return 0;
+		udelay(1);
+		waited++;
 	}
+	return -1;
 }
 
+/*
+ * cvi_spif_direct_read_execute - DMA read from DMMR-mapped flash to DDR.
+ * @spif: SPI flash controller context
+ * @buf:  destination buffer in DDR
+ * @from: source address (XIP-mapped flash address, DMMR must be ON)
+ * @len:  byte count
+ * @read: read operation config (for DMMR register setup)
+ *
+ * The scheduler is suspended ONLY across the narrow DMMR-critical window:
+ *   DMMR=1 -> DMA start -> DMA done -> DMMR=0
+ *
+ * DMA channel alloc/config are done BEFORE suspending (they may block on a
+ * mutex held by another task; blocking with the scheduler suspended would
+ * deadlock).  fence/dcache_invalid/stop/free are done AFTER resuming (they
+ * are slow and must not starve VI or other real-time tasks).
+ */
 static int cvi_spif_direct_read_execute(struct cvi_spif *spif, void *buf,
-		void *from, uint32_t len)
+		void *from, uint32_t len, spi_tran_conf_t *read)
 {
 	csi_dma_ch_t ch_hd;
 	csi_dma_ch_config_t *dma_config = &spif->dma_chan_config;
@@ -268,43 +298,54 @@ static int cvi_spif_direct_read_execute(struct cvi_spif *spif, void *buf,
 	dma_config->src_tw = DMA_DATA_WIDTH_32_BITS;
 	dma_config->dst_tw = DMA_DATA_WIDTH_32_BITS;
 	dma_config->trans_dir = DMA_MEM2MEM;
-	/* 32K */
 	dma_config->group_len = 0x8000;
 
+	/* Phase 1: alloc/config - may block, must be outside sched_suspend */
 	ret = csi_dma_ch_alloc(&ch_hd, -1, -1);
 	if (ret) {
 		printf("request dma channel failed!, ret:%d\n", ret);
-		goto ch_free;
+		return ret;
 	}
 
 	ret = csi_dma_ch_config(&ch_hd, dma_config);
 	if (ret) {
 		printf(" dma channel config failed!\n");
-		goto ch_free;
- 	}
-
-	ret = csi_dma_ch_attach_callback(&ch_hd, dma_ch_callback, NULL);
-	if (ret) {
-		printf("attach dma channel failed!\n");
-		goto detach;
+		csi_dma_ch_free(&ch_hd);
+		return ret;
 	}
 
-	ret = aos_sem_new(&dma_task_sem, 0);
-	if (ret) {
-		printf("creat sem failed!\n");
-		goto detach;
-	}
+	/* Phase 2: DMMR-critical window - no blocking allowed */
+	aos_kernel_sched_suspend();
+	cvi_spif_set_memory_mode_on(spif, read);
 	csi_dma_ch_start(&ch_hd, from, buf, len);
+	ret = dma_poll_wait_done(&ch_hd, DMA_POLL_TIMEOUT_US);
+	cvi_spif_set_memory_mode_off(spif);
+	aos_kernel_sched_resume();
 
-	aos_sem_wait(&dma_task_sem, 1000);
-	aos_sem_free(&dma_task_sem);
+	if (ret) {
+		printf("DMA poll timeout!\n");
+		csi_dma_ch_stop(&ch_hd);
+		csi_dma_ch_free(&ch_hd);
+		return ret;
+	}
+
+	/* Phase 3: post-DMA cleanup - outside sched_suspend */
+	__asm__ volatile("fence iorw, iorw" ::: "memory");
+	/*
+	 * Invalidate ONLY the destination buffer.
+	 * DMA has written fresh data for [buf, buf+len) to DDR; any
+	 * CPU-cached lines covering that range are now stale.
+	 *
+	 * csi_dcache_invalid() (global) must NOT be used here: it discards
+	 * ALL dirty cache lines without writeback, silently losing in-flight
+	 * stack/heap writes of every other task and causing corruption at the
+	 * next context switch.
+	 */
+	csi_dcache_invalid_range((uint64_t *)buf, (int64_t)len);
 
 	csi_dma_ch_stop(&ch_hd);
-detach:
-	csi_dma_ch_detach_callback(&ch_hd);
-ch_free:
 	csi_dma_ch_free(&ch_hd);
-	return ret;
+	return 0;
 }
 #endif
 
@@ -396,7 +437,10 @@ int cvi_spif_read_reg(struct spi_nor *nor, uint8_t opcode, uint8_t *buf, int len
 	writel(0x2, spif->io_base + REG_SPI_CE_CTRL);
 
 	cmd[0] = opcode;
-	if (cmd[0] ==  0x4b)
+	/* 0x4b (Read Unique ID, cmd+4 dummy) and 0x5a (RDSFDP, cmd+3 addr+1
+	 * dummy) both send 5 bytes before reading, so share the same path.
+	 */
+	if (cmd[0] == 0x4b || cmd[0] == CVI_SPINOR_OP_RDSFDP)
 		cvi_spi_data_out_tran(spif, cmd, 5, bus_width);
 	else
 		cvi_spi_data_out_tran(spif, &cmd[0], 1, bus_width);
@@ -442,16 +486,38 @@ int cvi_spif_read(struct spi_nor *nor, uint64_t from, uint32_t len, void *buf)
 	struct cvi_spif *spif = nor->priv;
 	spi_tran_conf_t *read = &nor->read_op;
 
-	cvi_spif_set_memory_mode_on(spif, read);
-
 #ifdef CONFIG_DMA_SUPPORT
-	if (len > 1024)
-		cvi_spif_direct_read_execute(spif, buf, spif->io_base + from, len);
-	else
+    /*
+     * DMA path requires buf to be 64-byte (cache-line) aligned.
+     * csi_dcache_invalid_range() invalidates whole cache lines; if buf
+     * shares a cache line with adjacent data, that adjacent data's dirty
+     * cache line would be discarded without writeback, causing corruption.
+     * Fall through to the safe CPU memcpy path for unaligned buffers and length not 64-byte aligned.
+     */
+    if (len > 1024) {
+        if (((uintptr_t)buf & 0x3f) == 0 && (len & 0x3f) == 0) {
+            int ret = cvi_spif_direct_read_execute(spif, buf, spif->io_base + from, len, read);
+            return ret ? ret : (int)len;
+        } else {
+            printf("buf or length is not 64-byte aligned, use CPU memcpy path instead of DMA path\n");
+        }
+    }
 #endif
-		memcpy_fromio(buf, spif->io_base + from, len);
 
+	/*
+	 * CPU memcpy path (len <= 1024): suspend the scheduler across the
+	 * entire DMMR window so no other task can clear DMMR mid-copy.
+	 * This path is fast (<< 1 ms), so the scheduling pause is negligible.
+	 */
+#ifndef CONFIG_KERNEL_NONE
+	aos_kernel_sched_suspend();
+#endif
+	cvi_spif_set_memory_mode_on(spif, read);
+	memcpy_fromio(buf, spif->io_base + from, len);
 	cvi_spif_set_memory_mode_off(spif);
+#ifndef CONFIG_KERNEL_NONE
+	aos_kernel_sched_resume();
+#endif
 
 	return (int)len;
 }
@@ -480,7 +546,7 @@ static int cvi_spif_nor_write(struct spi_nor *nor, spi_tran_conf_t *write_op, ui
 	cvi_spi_data_out_tran(spif, cmd, 1, bus_width);
 
 	/* addr */
-	bus_width = write_op->addr.buswidth; 
+	bus_width = write_op->addr.buswidth;
 	cvi_spi_data_out_tran(spif, cmd + 1, write_op->addr.nbytes, bus_width);
 
 	/* data */

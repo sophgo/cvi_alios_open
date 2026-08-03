@@ -69,6 +69,7 @@ typedef struct _PARAM_VENCCHN_PARAM_S {
     CVI_U8 u8EsBufQueueEn; ///< Use es buffer queue
     CVI_U8 u8EntropyEncModeI;//encode 编码属性 base/high
     CVI_U8 u8EntropyEncModeP;//encode 编码属性 base/high
+    CVI_BOOL bIsSBM;
 }PARAM_VENCCHN_PARAM_S;
 
 typedef struct PARAM_VENC_CHN_CFG_T {

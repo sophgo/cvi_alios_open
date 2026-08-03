@@ -317,16 +317,7 @@ static int usbd_vc_pu_sharpness_request_handler(uint8_t device_id, uint8_t bRequ
 	int vi_pipe = device_id;
 	uint16_t wSharpness = 0;
 	static ISP_SHARPEN_ATTR_S stDRCAttr;
-	uint8_t cnt = 0;
 
-	if(!cnt)
-	{
-		ret = CVI_ISP_GetSharpenAttr(vi_pipe, &stDRCAttr);
-		if (ret != 0) {
-			USB_LOG_WRN("CVI_ISP_GetSharpenAttr failed\n");
-		}
-		cnt = 1;
-	}
 
 	switch (bRequest) {
 		case VIDEO_REQUEST_SET_CUR: {

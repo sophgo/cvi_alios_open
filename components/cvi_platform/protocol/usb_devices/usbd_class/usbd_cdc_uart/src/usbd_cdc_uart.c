@@ -1,21 +1,21 @@
+#include <aos/aos.h>
+#include <aos/ringbuffer.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <aos/aos.h>
-#include <aos/ringbuffer.h>
 #include "devices/impl/uart_impl.h"
 
 #include <aos/cli.h>
 #include <ulog/ulog.h>
 
-#include "usbd_core.h"
 #include "usbd_cdc.h"
+#include "usbd_core.h"
 
-#include "usbd_descriptor.h"
+#include <errno.h>
 #include "usbd_cdc_uart.h"
 #include "usbd_cdc_urat_descriptor.h"
 #include "usbd_comp.h"
-
+#include "usbd_descriptor.h"
 
 #define CDC_MAX_RW_LEN (CDC_UART_MPS)
 
@@ -24,28 +24,28 @@
 #define EVENT_READ   0x00000F0F
 #define UART_RB_SIZE 4096
 
-#define uart(dev) ((cdc_uart_dev_t *)dev)
+#define uart(dev)              ((cdc_uart_dev_t*)dev)
 #define usb_serial_uart_uninit rvm_hal_device_free
 
 typedef struct {
     rvm_dev_t device;
     aos_event_t event_write_read;
-    void (*write_event)(rvm_dev_t *dev, int event_id, void *priv);
-    void *priv;
+    void (*write_event)(rvm_dev_t* dev, int event_id, void* priv);
+    void* priv;
     int type;
-    char *recv_buf;
-    uint8_t *cdc_tx_buffer;
-    uint8_t *cdc_rx_buffer;
+    char* recv_buf;
+    uint8_t* cdc_tx_buffer;
+    uint8_t* cdc_rx_buffer;
     dev_ringbuf_t read_buffer;
 } cdc_uart_dev_t;
 
-static cdc_uart_dev_t *s_uart_ctx = NULL;
+static cdc_uart_dev_t* s_uart_ctx = NULL;
 static USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t s_cdc_rx_buffer[CDC_MAX_RW_LEN];
 
 static struct cdc_uart_device_info cdc_uart_info;
-static uint8_t *cdc_uart_descriptor = NULL;
+static uint8_t* cdc_uart_descriptor = NULL;
 
-static cdc_uart_dev_t *dev_ctx()
+static cdc_uart_dev_t* dev_ctx()
 {
     if (!s_uart_ctx) {
         USB_LOG_INFO("cdc ctx is null\n");
@@ -53,20 +53,20 @@ static cdc_uart_dev_t *dev_ctx()
     return s_uart_ctx;
 }
 
-static rvm_dev_t *usb_serial_uart_init(driver_t *drv, void *config, int id)
+static rvm_dev_t* usb_serial_uart_init(driver_t* drv, void* config, int id)
 {
-    s_uart_ctx = (cdc_uart_dev_t *)rvm_hal_device_new(drv, sizeof(cdc_uart_dev_t), id);
+    s_uart_ctx = (cdc_uart_dev_t*)rvm_hal_device_new(drv, sizeof(cdc_uart_dev_t), id);
 
-    return (rvm_dev_t *)s_uart_ctx;
+    return (rvm_dev_t*)s_uart_ctx;
 }
 
-static int usb_serial_uart_open(rvm_dev_t *dev)
+static int usb_serial_uart_open(rvm_dev_t* dev)
 {
     if (aos_event_new(&uart(dev)->event_write_read, 0) != 0) {
         return -1;
     }
 
-    uart(dev)->recv_buf = (char *)aos_malloc(UART_RB_SIZE);
+    uart(dev)->recv_buf = (char*)aos_malloc(UART_RB_SIZE);
 
     if (uart(dev)->recv_buf == NULL) {
         goto error1;
@@ -96,7 +96,7 @@ error1:
     return -1;
 }
 
-static int usb_serial_uart_close(rvm_dev_t *dev)
+static int usb_serial_uart_close(rvm_dev_t* dev)
 {
     aos_event_free(&uart(dev)->event_write_read);
     usb_iofree(uart(dev)->cdc_tx_buffer);
@@ -104,24 +104,50 @@ static int usb_serial_uart_close(rvm_dev_t *dev)
     return 0;
 }
 
-static int usb_serial_uart_config(rvm_dev_t *dev, rvm_hal_uart_config_t *config)
+static int usb_serial_uart_config(rvm_dev_t* dev, rvm_hal_uart_config_t* config)
 {
     return 0;
 }
 
-static int usb_serial_uart_set_type(rvm_dev_t *dev, int type)
+static int usb_serial_uart_set_type(rvm_dev_t* dev, int type)
 {
     uart(dev)->type = type;
 
     return 0;
 }
 
-static int usb_serial_uart_set_buffer_size(rvm_dev_t *dev, uint32_t size)
+static int usb_serial_uart_set_buffer_size(rvm_dev_t* dev, uint32_t size)
 {
     return 0;
 }
 
-static int usb_serial_uart_send(rvm_dev_t *dev, const void *data, uint32_t size, uint32_t timeout_ms)
+static void cdc_uart_in_ep_recover(void)
+{
+    unsigned int stale_flags;
+    struct usbd_endpoint_cfg ep_cfg;
+
+    USB_LOG_WRN("cdc_uart IN ep %#x TX timeout – recovering (close+reopen)\n",
+                cdc_uart_info.cdc_uart_in_ep.ep_addr);
+
+    // Step 1: abort any in-progress transfer and flush TxFIFO
+    usbd_ep_close(cdc_uart_info.cdc_uart_in_ep.ep_addr);
+
+    // Step 2: restore the endpoint to a clean, ready state
+    ep_cfg.ep_addr     = cdc_uart_info.cdc_uart_in_ep.ep_addr;
+    ep_cfg.ep_mps      = CDC_UART_MPS;
+    ep_cfg.ep_type     = USB_ENDPOINT_TYPE_BULK;
+    ep_cfg.ep_interval = 0;
+    usbd_ep_open(&ep_cfg);
+
+    // Step 3: drain any stale EVENT_WRITE that arrived just after timeout
+    if (dev_ctx()) {
+        aos_event_get(&dev_ctx()->event_write_read, EVENT_WRITE, AOS_EVENT_OR_CLEAR, &stale_flags,
+                      0);
+    }
+}
+
+static int usb_serial_uart_send(rvm_dev_t* dev, const void* data, uint32_t size,
+                                uint32_t timeout_ms)
 {
     unsigned int actl_flags;
     int ret;
@@ -136,44 +162,56 @@ static int usb_serial_uart_send(rvm_dev_t *dev, const void *data, uint32_t size,
 
     memcpy(uart(dev)->cdc_tx_buffer, data, size);
 
+    /* Submit the transfer to the hardware. ret reflects submit status only. */
     ret = usbd_ep_start_write(cdc_uart_info.cdc_uart_in_ep.ep_addr, uart(dev)->cdc_tx_buffer, size);
+    if (ret != 0) {
+        return ret;
+    }
 
-    while (1) {
-        if (timeout_ms == 0 || timeout_ms <= (used_time = aos_now_ms() - time_enter)) {
-            break;
+    if (timeout_ms != 0) {
+        used_time = aos_now_ms() - time_enter;
+        if (used_time >= timeout_ms) {
+            /* Already timed out before we could wait */
+            cdc_uart_in_ep_recover();
+            return -ETIMEDOUT;
         }
-
-        if (aos_event_get(&uart(dev)->event_write_read, EVENT_WRITE, AOS_EVENT_OR_CLEAR, &actl_flags,
-                          timeout_ms - used_time) == -1) {
-            break;
+        /* Wait for TX-complete interrupt to set EVENT_WRITE.
+         * Returns 0 on success, non-zero on timeout/error. */
+        if (aos_event_get(&uart(dev)->event_write_read, EVENT_WRITE, AOS_EVENT_OR_CLEAR,
+                          &actl_flags, timeout_ms - used_time)
+            != 0) {
+            cdc_uart_in_ep_recover();
+            return -ETIMEDOUT;
         }
     }
 
-    return ret;
+    return 0;
 }
 
-static int usb_serial_uart_recv(rvm_dev_t *dev, void *data, uint32_t size, unsigned int timeout_ms)
+static int usb_serial_uart_recv(rvm_dev_t* dev, void* data, uint32_t size, unsigned int timeout_ms)
 {
     unsigned int actl_flags;
     int ret = 0;
     long long time_enter, used_time;
-    void *temp_buf   = data;
+    void* temp_buf      = data;
     uint32_t temp_count = size;
 
     time_enter = aos_now_ms();
 
     while (1) {
-        ret = ringbuffer_read(&uart(dev)->read_buffer, (uint8_t *)temp_buf, temp_count);
+        ret = ringbuffer_read(&uart(dev)->read_buffer, (uint8_t*)temp_buf, temp_count);
 
         temp_count = temp_count - ret;
-        temp_buf   = (uint8_t *)temp_buf + ret;
+        temp_buf   = (uint8_t*)temp_buf + ret;
 
-        if (temp_count == 0 || timeout_ms == 0 || timeout_ms <= (used_time = aos_now_ms() - time_enter)) {
+        if (temp_count == 0 || timeout_ms == 0
+            || timeout_ms <= (used_time = aos_now_ms() - time_enter)) {
             break;
         }
 
         if (aos_event_get(&uart(dev)->event_write_read, EVENT_READ, AOS_EVENT_OR_CLEAR, &actl_flags,
-                          timeout_ms - used_time) == -1) {
+                          timeout_ms - used_time)
+            != 0) {
             break;
         }
     }
@@ -181,20 +219,23 @@ static int usb_serial_uart_recv(rvm_dev_t *dev, void *data, uint32_t size, unsig
     return size - temp_count;
 }
 
-static void usb_serial_uart_event(rvm_dev_t *dev, void (*event)(rvm_dev_t *dev, int event_id, void *priv), void *priv)
+static void usb_serial_uart_event(rvm_dev_t* dev,
+                                  void (*event)(rvm_dev_t* dev, int event_id, void* priv),
+                                  void* priv)
 {
-    uart(dev)->priv = priv;
+    uart(dev)->priv        = priv;
     uart(dev)->write_event = event;
 }
 
 static uart_driver_t usb_serial_uart_driver = {
-    .drv = {
-        .name   = "usb_serial",
-        .init   = usb_serial_uart_init,
-        .uninit = usb_serial_uart_uninit,
-        .open   = usb_serial_uart_open,
-        .close  = usb_serial_uart_close,
-    },
+    .drv =
+        {
+            .name   = "usb_serial",
+            .init   = usb_serial_uart_init,
+            .uninit = usb_serial_uart_uninit,
+            .open   = usb_serial_uart_open,
+            .close  = usb_serial_uart_close,
+        },
     .config          = usb_serial_uart_config,
     .set_type        = usb_serial_uart_set_type,
     .set_buffer_size = usb_serial_uart_set_buffer_size,
@@ -202,7 +243,6 @@ static uart_driver_t usb_serial_uart_driver = {
     .recv            = usb_serial_uart_recv,
     .set_event       = usb_serial_uart_event,
 };
-
 
 static void drv_cdc_acm_uart_register(void)
 {
@@ -215,8 +255,6 @@ static void drv_cdc_acm_uart_unregister(void)
     snprintf(buf, sizeof(buf), "%s%d", usb_serial_uart_driver.drv.name, 0);
     rvm_driver_unregister(buf);
 }
-
-
 
 static void usbd_cdc_acm_bulk_out(uint8_t ep, uint32_t nbytes)
 {
@@ -249,7 +287,7 @@ static void usbd_cdc_acm_bulk_in(uint8_t ep, uint32_t nbytes)
 
 static void cdc_uart_desc_register_cb()
 {
-	cdc_uart_destroy_descriptor(cdc_uart_descriptor);
+    cdc_uart_destroy_descriptor(cdc_uart_descriptor);
 }
 
 static void cdc_uart_configure_done_callback(void)
@@ -262,19 +300,20 @@ void cdc_uart_desc_register(void)
 {
     uint32_t desc_len;
 
-    cdc_uart_info.cdc_uart_out_ep.ep_cb = usbd_cdc_acm_bulk_out;
+    cdc_uart_info.cdc_uart_out_ep.ep_cb   = usbd_cdc_acm_bulk_out;
     cdc_uart_info.cdc_uart_out_ep.ep_addr = comp_get_available_ep(0);
-    cdc_uart_info.cdc_uart_in_ep.ep_cb = usbd_cdc_acm_bulk_in;
-    cdc_uart_info.cdc_uart_in_ep.ep_addr = comp_get_available_ep(1);
+    cdc_uart_info.cdc_uart_in_ep.ep_cb    = usbd_cdc_acm_bulk_in;
+    cdc_uart_info.cdc_uart_in_ep.ep_addr  = comp_get_available_ep(1);
     cdc_uart_info.cdc_uart_int_ep.ep_addr = comp_get_available_ep(1);
-    cdc_uart_info.interface_nums = comp_get_interfaces_num();
+    cdc_uart_info.interface_nums          = comp_get_interfaces_num();
     USB_LOG_INFO("cdc_uart out ep:%#x\n", cdc_uart_info.cdc_uart_out_ep.ep_addr);
     USB_LOG_INFO("cdc_uart in ep:%#x\n", cdc_uart_info.cdc_uart_in_ep.ep_addr);
     USB_LOG_INFO("cdc_uart int ep:%#x\n", cdc_uart_info.cdc_uart_int_ep.ep_addr);
     USB_LOG_INFO("interface_nums:%d\n", cdc_uart_info.interface_nums);
 
     cdc_uart_descriptor = cdc_uart_build_descriptor(&cdc_uart_info, &desc_len);
-    comp_register_descriptors(USBD_TYPE_CDC_UART, cdc_uart_descriptor, desc_len, 2, cdc_uart_desc_register_cb);
+    comp_register_descriptors(USBD_TYPE_CDC_UART, cdc_uart_descriptor, desc_len, 2,
+                              cdc_uart_desc_register_cb);
     comp_register_cfg_done(USBD_TYPE_CDC_UART, cdc_uart_configure_done_callback);
 
     usbd_add_interface(usbd_cdc_acm_init_intf(&cdc_uart_info.cdc_uart_intf0));
@@ -292,5 +331,3 @@ void cdc_uart_deinit(void)
 {
     drv_cdc_acm_uart_unregister();
 }
-
-

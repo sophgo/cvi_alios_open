@@ -208,39 +208,66 @@ int csi_uart_set_output_stat(int stat)
     return 0;
 }
 
-csi_error_t csi_uart_init(csi_uart_t *uart, uint32_t idx)
+static void uart_reset(uint32_t uart_idx)
+{
+    switch (uart_idx) {
+    case 0:
+        mmio_clrbits_32(SOFT_RSTN_ADDR, UART0_RSTN_OFFSET);
+        mmio_setbits_32(SOFT_RSTN_ADDR, UART0_RSTN_OFFSET);
+        break;
+    case 1:
+        mmio_clrbits_32(SOFT_RSTN_ADDR, UART1_RSTN_OFFSET);
+        mmio_setbits_32(SOFT_RSTN_ADDR, UART1_RSTN_OFFSET);
+    case 2:
+        mmio_clrbits_32(SOFT_RSTN_ADDR, UART2_RSTN_OFFSET);
+        mmio_setbits_32(SOFT_RSTN_ADDR, UART2_RSTN_OFFSET);
+        break;
+    case 3:
+        mmio_clrbits_32(SOFT_RSTN_ADDR, UART3_RSTN_OFFSET);
+        mmio_setbits_32(SOFT_RSTN_ADDR, UART3_RSTN_OFFSET);
+        break;
+    default:
+        break;
+    }
+    return;
+}
+
+csi_error_t csi_uart_init(csi_uart_t* uart, uint32_t idx)
 {
     CSI_PARAM_CHK(uart, CSI_ERROR);
 
     csi_error_t ret = CSI_OK;
-    dw_uart_regs_t *uart_base;
-    struct ringbuf *tx_ringbuf;
+    dw_uart_regs_t* uart_base;
+    struct ringbuf* tx_ringbuf;
 
     ret = target_get(DEV_DW_UART_TAG, idx, &uart->dev);
-
-    if (idx == CONSOLE_UART_IDX) {
-        mmio_write_32(SOFT_RSTN_ADDR, mmio_read_32(SOFT_RSTN_ADDR) & ~UART0_RSTN_OFFSET);
-        udelay(10);
-        mmio_write_32(SOFT_RSTN_ADDR, mmio_read_32(SOFT_RSTN_ADDR) | UART0_RSTN_OFFSET);
-        udelay(10);
-    }
-
     if (ret == CSI_OK) {
-        uart_base = (dw_uart_regs_t *)HANDLE_REG_BASE(uart);
+        uart_base = (dw_uart_regs_t*)HANDLE_REG_BASE(uart);
+
+        int timeout = 1000;
+        int i       = 0;
+        for (; i < timeout; ++i) {
+            if (!(*(volatile uint32_t*)(uart_base + UART_USR_OFFSET) & 0x01)) {
+                break;
+            }
+        }
+        if (i >= timeout) {
+            uart_reset(idx);
+        }
 
         dw_uart_fifo_init(uart_base);
 
-        tx_ringbuf = (struct ringbuf *)malloc(sizeof(struct ringbuf));
+        tx_ringbuf = (struct ringbuf*)malloc(sizeof(struct ringbuf));
         if (tx_ringbuf == NULL) {
             return -1;
         }
-        tx_ringbuf->tx_buf = (char *)malloc(TX_RINGBUFFER_SIZE);
+        tx_ringbuf->tx_buf = (char*)malloc(TX_RINGBUFFER_SIZE);
         if (tx_ringbuf->tx_buf == NULL) {
             return -1;
         }
         ringbuffer_create(&tx_ringbuf->tx_ringbuffer, tx_ringbuf->tx_buf, TX_RINGBUFFER_SIZE);
 
-        uart->priv = tx_ringbuf;
+        uart->priv    = tx_ringbuf;
         uart->rx_size = 0U;
         uart->tx_size = 0U;
         uart->rx_data = NULL;

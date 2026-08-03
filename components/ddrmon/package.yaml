@@ -1,0 +1,50 @@
+## 第一部分： 基础信息
+name: ddrmon
+version: v1.0.0
+description: CVI DDR bandwidth monitor for CV18xx SoCs (CV180x/CV181x) on AliOS Things
+type: common
+license: Apache license v2.0
+tag: 平台组件
+keywords:
+  - ddr
+  - bandwidth
+  - monitor
+
+## 第二部分：依赖信息
+depends:
+  - aos: develop
+  - cli: develop
+  - vfs: develop
+  - csi: develop
+
+## 第四部分：编译连接信息
+build_config:
+  include:
+    - src/
+  internal_include:
+    - src/
+
+source_file:
+  - src/ddrmon_core.c ? <CONFIG_CVI_DDRMON>
+  - src/ddrmon_stats.c ? <CONFIG_CVI_DDRMON>
+  - src/ddrmon_cli.c ? <CONFIG_CVI_DDRMON>
+  - src/ddrmon_vfs.c ? <CONFIG_CVI_DDRMON>
+  - src/ddrmon_init.c ? <CONFIG_CVI_DDRMON>
+  - examples/test.c ? <CONFIG_CVI_DDRMON_TEST>
+
+def_config:
+  CVI_DDRMON: 1
+  CVI_AXIMON_BASE: 0x08008000
+  CVI_DDR_CTRL_BASE: 0x08004000
+  CVI_DDR_TOP_BASE: 0x0800A000
+  CVI_DDRMON_DEFAULT_PERIOD_MS: 20
+  CVI_DDRMON_RING_DEPTH: 16384
+  CVI_DDR_DATA_RATE_MHZ: 1333
+  CVI_DDR_BUS_WIDTH_BITS: 16
+  CVI_DDRMON_DEBUG: 1
+
+install:
+  - dest: "include/ddrmon"
+    source:
+      - "src/ddrmon_api.h"
+      - "src/ddrmon_stats.h"

@@ -42,15 +42,18 @@ struct uvc_device_info {
     uint8_t ep;        //assigned in-endpoint
     uint8_t formats;   //number of supported format
     uint8_t interface_nums;
-    uint8_t format_index; // uvc_format_info index.
+    uint8_t format_index; /* 1-based format index selected by PC (set at COMMIT time) */
+    uint8_t frame_index;  /* 1-based frame index selected by PC (set at COMMIT time) */
 	volatile bool streaming_on;
 	volatile bool tx_busy;
     volatile bool xfer_flag;
     volatile uint32_t xfer_len;
     volatile uint32_t xfer_offset;
     volatile bool update_flag;
+    volatile bool idr_request_flag;   /* set by uvc_streaming_on (IRQ ctx), consumed by
+                                       * video_streaming_send after VENC chn is created */
     struct video_source video;
-    struct uvc_format_info_st *format_info;
+    struct uvc_format_info_st *format_info; /* all supported formats for this node */
 	uint8_t *packet_buffer_uvc;
     bool header_flip;
     uint32_t tx_cnt;
@@ -65,7 +68,9 @@ struct uvc_device_info {
     aos_workqueue_t uvc_workqueue;
     aos_work_t uvc_frame_submmit;
 #endif
-	// interval max_frame_size max_payload_size
+    uint32_t venc_frame_cnt;
+    uint32_t venc_fps;
+    uint32_t tx_fps;
 };
 
 void uvc_desc_register();

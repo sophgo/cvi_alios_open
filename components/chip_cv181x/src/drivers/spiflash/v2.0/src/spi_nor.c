@@ -100,6 +100,8 @@ const struct flash_info spi_flash_ids[] = {
 		RD_FULL | WR_QPP | SECT_4K) },
 	{ "BY25Q256FS", INFO(0x684919, 0x0, 64 * 1024, 512,
 		RD_FULL | WR_QPP | SECT_4K | NOR_4B_OPCODES) },
+	{ "BY25FQ256ES", INFO(0x684019, 0x0, 64 * 1024, 512,
+		RD_FULL | WR_QPP | SECT_4K | NOR_4B_OPCODES) },
 	{ "PY25Q128HA", INFO(0x852018, 0x0, 64 * 1024, 256,
 		RD_FULL | WR_QPP | SECT_4K) },
 	{ "PY25Q64HA", INFO(0x852017, 0x0, 64 * 1024, 128,
@@ -114,7 +116,10 @@ const struct flash_info spi_flash_ids[] = {
 		RD_FULL | WR_QPP | SECT_4K | _10_DUMMY_CYCLE | NO_QE | ADJUST_DUMMY) },
 	{ "TH25Q64HA", INFO(0xCD6017, 0x0, 64 * 1024, 128,
 		RD_FULL | WR_QPP | SECT_4K) },
-
+	{ "P25D32SH", INFO(0x856016, 0x0, 64 * 1024, 64,
+		RD_DUAL | WR_SINGLE | SECT_4K | NO_QE) },
+	{ "XTD25W64A", INFO(0x0B7517, 0x0, 64 * 1024, 128,
+		RD_FULL | WR_FULL | SECT_4K) },
 	{},     /* Empty entry to terminate the list */
 
 };
@@ -246,7 +251,6 @@ static uint8_t spi_nor_convert_opcode(uint8_t opcode,
 
 void match_read_op(struct spi_nor *nor, uint32_t flags)
 {
-	struct flash_info *info = nor->info;
 	spi_tran_conf_t   *read = &nor->read_op;
 
 	read->addr.nbytes = nor->addr_width;
@@ -258,27 +262,29 @@ void match_read_op(struct spi_nor *nor, uint32_t flags)
 	read->data.buswidth = 1;
 	read->cmd.opcode = CVI_SPINOR_OP_READ;
 
-	/* maybe need to diff */
-	if (info->flags & RD_DUALIO) {
+	/* driven by the caller-supplied flags so a runtime SFDP probe can
+	 * override the static entry flags (see spi_nor_rescan, 0x856016)
+	 */
+	if (flags & RD_DUALIO) {
 		read->dummy.clks = 8;
 		read->addr.buswidth = 1;
 		read->data.buswidth = 2;
 		read->cmd.opcode = CVI_SPINOR_OP_READ_1_1_2;
 	}
 
-	if (info->flags & RD_QUAD) {
+	if (flags & RD_QUAD) {
 		read->dummy.clks = 8;
 		read->addr.buswidth = 1;
 		read->data.buswidth = 4;
 		read->cmd.opcode = CVI_SPINOR_OP_READ_1_1_4;
 	}
 
-	if (info->flags & RD_QUADIO) {
+	if (flags & RD_QUADIO) {
 		read->dummy.clks = 6;
 		read->addr.buswidth = 4;
 		read->data.buswidth = 4;
 		read->cmd.opcode = CVI_SPINOR_OP_READ_1_4_4;
-		if (info->flags & _10_DUMMY_CYCLE)
+		if (flags & _10_DUMMY_CYCLE)
 			read->dummy.clks = 10;
 		else
 			read->dummy.clks = 6;
@@ -287,7 +293,6 @@ void match_read_op(struct spi_nor *nor, uint32_t flags)
 
 void match_write_op(struct spi_nor *nor, uint32_t flags)
 {
-	struct flash_info *info = nor->info;
 	spi_tran_conf_t   *write = &nor->write_op;
 
 	write->addr.nbytes = nor->addr_width;
@@ -296,9 +301,9 @@ void match_write_op(struct spi_nor *nor, uint32_t flags)
 	write->cmd.buswidth = 1;
 	write->addr.buswidth = 1;
 	write->data.buswidth = 1;
-	write->cmd.opcode = CVI_SPINOR_OP_READ;
+	write->cmd.opcode = CVI_SPINOR_OP_PP;
 
-	if (info->flags & WR_QPP) {
+	if (flags & WR_QPP) {
 		write->addr.buswidth = 1;
 		write->data.buswidth = 4;
 		write->cmd.opcode = CVI_SPINOR_OP_PP_1_1_4;
@@ -823,12 +828,54 @@ int spi_nor_write(struct spi_nor *nor, uint32_t to, const void *buf, uint32_t le
 	return (int)i;
 }
 
+/*
+ * spi_nor_sfdp_is_puya_quad - tell apart two Puya NOR chips that share the
+ * same JEDEC ID 0x856016: P25Q32SH (quad capable) vs P25D32SH (no quad).
+ * The JEDEC ID is identical, so use the SFDP table to distinguish them.
+ *
+ * Read SFDP_PROBE_LEN bytes from SFDP address 0 (RDSFDP 0x5a, reusing the
+ * read_reg 5-byte command path). Return 1 only when the "SFDP" signature is
+ * valid AND the quad-support bytes exactly match the Q profile; on read
+ * failure / bad signature / mismatch return 0 (treated as the non-quad D, so
+ * an already-shipped D can never be misdetected as Q).
+ *
+ * Per both datasheets' SFDP Basic Flash Parameter Table:
+ *   off 0x00-0x03 signature "SFDP" = 53 46 44 50 (same on Q/D, validity only)
+ *   off 0x32: Q=0xF9 (1-4-4 & 1-1-4 support=1)  D=0x99 (=0)
+ *   off 0x40: Q=0xFE (4-4-4 support=1)          D=0xEE (=0)
+ */
+#define SFDP_PROBE_LEN	0x44
+static int spi_nor_sfdp_is_puya_quad(struct spi_nor *nor)
+{
+	uint8_t buf[SFDP_PROBE_LEN];
+	int ret;
+
+	memset(buf, 0xff, sizeof(buf));
+	ret = nor->read_reg(nor, CVI_SPINOR_OP_RDSFDP, buf, SFDP_PROBE_LEN);
+	if (ret < 0)
+		return 0;
+
+	/* validate the fixed signature before trusting any byte */
+	if (buf[0] != 0x53 || buf[1] != 0x46 ||
+	    buf[2] != 0x44 || buf[3] != 0x50) {
+		printf("spinor: 0x856016 SFDP signature mismatch, default to P25D32SH 1-1-1\n");
+		return 0;
+	}
+
+	/* only the exact quad-support profile counts as Q */
+	if (buf[0x32] == 0xF9 && buf[0x40] == 0xFE)
+		return 1;
+
+	return 0;
+}
+
 int spi_nor_rescan(struct spi_nor *nor)
 {
 	int ret;
 	const struct flash_info *info = NULL;
 	spi_tran_conf_t         *read_op = &nor->read_op;
 	spi_tran_conf_t         *write_op = &nor->write_op;
+	uint32_t                 eff_flags;
 
 	info = spi_nor_read_id(nor);
 	if (info == NULL) {
@@ -839,13 +886,33 @@ int spi_nor_rescan(struct spi_nor *nor)
 	nor->info = (struct flash_info *)info;
 	nor->addr_width= (info->sector_size * info->n_sectors > _16M) ? 4 : 3;
 
-	match_read_op(nor, info->flags);
-	match_write_op(nor, info->flags);
+	/*
+	 * P25Q32SH and P25D32SH share JEDEC ID 0x856016 and hit the same entry.
+	 * Use SFDP to tell them apart: if quad is detected (P25Q32SH) switch to
+	 * the P25Q64SH quad flags, otherwise keep the entry (P25D32SH, 1-1-1).
+	 *
+	 * eff_flags only feeds match_read_op/match_write_op/set_quad_mode/
+	 * set_dummy below; nor->info still points at the D entry, so the 4-byte
+	 * opcode block and erase path below keep using info->flags. This is fine
+	 * for 32Mbit (addr_width=3, no NOR_4B_OPCODES); a future >=16M Puya
+	 * sharing this ID would need this revisited.
+	 */
+	eff_flags = info->flags;
+	if (info->id_len >= 3 && info->id[0] == 0x85 &&
+	    info->id[1] == 0x60 && info->id[2] == 0x16) {
+		if (spi_nor_sfdp_is_puya_quad(nor)) {
+			eff_flags = RD_FULL | WR_QPP | SECT_4K;
+			printf("spinor: 0x856016 SFDP quad detected, use P25Q32SH quad flags\n");
+		}
+	}
 
-	if (!(info->flags & NO_QE) && (info->flags & (RD_QUADIO | WR_QUAD | RD_QUAD)))
+	match_read_op(nor, eff_flags);
+	match_write_op(nor, eff_flags);
+
+	if (!(eff_flags & NO_QE) && (eff_flags & (RD_QUADIO | WR_QUAD | RD_QUAD)))
 		set_quad_mode(nor);
 
-	if (info->flags & ADJUST_DUMMY)
+	if (eff_flags & ADJUST_DUMMY)
 		set_dummy(nor);
 
 #ifndef USE_4K_ERASE_SECTION

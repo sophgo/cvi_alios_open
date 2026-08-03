@@ -380,8 +380,8 @@ CVI_S32 APP_OSD_Create(APP_OSD_S *pstAppOsd)
         return CVI_FAILURE;
     }
     RECT_S Pos = {0};
-    RGN_ATTR_S stRegion ;
-    RGN_CHN_ATTR_S stChnAttr;
+    RGN_ATTR_S stRegion = {0};
+    RGN_CHN_ATTR_S stChnAttr = {0};
     CVI_S32 s32Ret = CVI_FAILURE;
 
     if (APP_OSD_GetRoationPos(pstAppOsd, &Pos) != CVI_SUCCESS) {

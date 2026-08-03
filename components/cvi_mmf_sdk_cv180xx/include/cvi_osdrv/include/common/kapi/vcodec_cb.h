@@ -11,6 +11,7 @@ enum VCODEC_CB_CMD {
 	VCODEC_CB_SEND_FRM,
 	VCODEC_CB_SKIP_FRM,
 	VCODEC_CB_SNAP_JPG_FRM,
+	VCODEC_CB_OVERFLOW_CHECK,
 	VCODEC_CB_SWITCH_CHN,
 	VCODEC_CB_MAX
 };
@@ -22,6 +23,8 @@ struct venc_send_frm_info {
 	struct cvi_buffer stInFrmBuf;
 	struct cvi_buffer stInFrmBuf1;
 	CVI_U32 sb_nb;
+	CVI_U32 sb_size;
+	CVI_BOOL isOnline;
 };
 
 struct venc_snap_frm_info {

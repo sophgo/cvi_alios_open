@@ -20,6 +20,8 @@ typedef enum {
 
 typedef struct {
     unsigned packetLen;
+    // OutPacketBuffer::maxSize override, 0 = use default (200KB)
+    unsigned outBufMaxSize;
     int port;
     int timeout;
     int maxConnNum;

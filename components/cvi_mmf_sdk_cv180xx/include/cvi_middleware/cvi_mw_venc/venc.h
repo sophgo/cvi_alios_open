@@ -188,12 +188,13 @@ typedef struct _venc_chn_context {
 	MUTEX_T chnMutex;
 	MUTEX_T chnShmMutex;
 
+	CVI_BOOL bDropFrm;
 	CVI_BOOL bSbSkipFrm;
 	VENC_SBM_STATE sbm_state;
 	CVI_U32 jpgFrmSkipCnt;
 
-	PTHREAD_T pSBMSendFrameThread;
-	VENC_SB_Setting stSbSetting;
+	int bSbmEnable;
+	cviVencSbSetting stSbSetting;
 	VIDEO_FRAME_INFO_S stVideoFrameInfo;
 
 	struct vb_s vb;
@@ -202,6 +203,15 @@ typedef struct _venc_chn_context {
 
 	CVI_BOOL bChnEnable;
 } venc_chn_context;
+
+typedef struct _venc_sbm_context {
+	CVI_U32 SbmNum;
+	VENC_CHN CurrSbmChn;
+	MUTEX_T SbmMutex;
+	pthread_t pSBMSendFrameThread;
+	VENC_SBM_STATE sbm_state;
+	CVI_U64 frameNum;
+} venc_sbm_context;
 
 typedef struct _CVI_VENC_MODPARAM_S {
 	VENC_MOD_VENC_S stVencModParam;
@@ -216,6 +226,7 @@ typedef struct _venc_context {
 	CVI_U32 chn_status[VENC_MAX_CHN_NUM];
 	CVI_VENC_PARAM_MOD_S ModParam;
 	pthread_t threadDataInput;
+	venc_sbm_context sbm_context;
 } venc_context;
 
 typedef struct _venc_proc_info_t {

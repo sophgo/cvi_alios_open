@@ -90,7 +90,11 @@ static PARAM_DEV_CFG_S VIDEVCFG_CTX_VI[] = {
 };
 
 PARAM_VI_CFG_S g_stViCtx = {
+#if CONFIG_SBM_ENABLE
+    .u32WorkSnsCnt = 1,
+#else
     .u32WorkSnsCnt = 2,
+#endif
     .pstSensorCfg = PARAM_CLASS(SENSORCFG,CTX,Sensor),
     .pstIspCfg = PARAM_CLASS(ISPCFG,CTX,ISP),
     .pstDevInfo = PARAM_CLASS(VIDEVCFG,CTX,VI)

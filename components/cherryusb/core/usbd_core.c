@@ -299,7 +299,7 @@ static bool usbd_get_descriptor(uint16_t type_index, uint8_t **data, uint32_t *l
 
     while (p[DESC_bLength] != 0U) {
         if (p[DESC_bDescriptorType] == type) {
-            if ((cur_index == index) || (cur_index == index-1)) {
+            if (cur_index == index) {
                 found = true;
                 break;
             }
@@ -368,7 +368,7 @@ static bool usbd_set_configuration(uint8_t config_index, uint8_t alt_setting)
                 /* remember current configuration index */
                 cur_config = p[CONF_DESC_bConfigurationValue];
 
-                if ((cur_config == config_index) || (cur_config-1 == config_index)){
+                if (cur_config == config_index) {
                     found = true;
                 }
 

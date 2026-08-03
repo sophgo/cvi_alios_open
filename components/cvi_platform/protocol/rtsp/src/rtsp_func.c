@@ -163,10 +163,15 @@ CVI_VOID rtsp_setup(int live, int type)
 
     if (0 == rtsp_init_flag) {
         config.port = 544;
+        // override RTP output buffer (default 200KB),
+        // larger values prevent I-frame truncation at high resolutions/bitrates
+        // config.outBufMaxSize = 500 * 1024;
         if (CVI_RTSP_Create(&ctx, &config) < 0) {
             printf("fail to create rtsp\n");
             return ;
         }
+        printf("[RTSP] OutPacketBuffer::maxSize = %d KB\n",
+               CVI_RTSP_GetOutBufMaxSize() / 1024);
     }
     rtsp_init_flag = 1;
 

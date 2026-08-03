@@ -69,6 +69,12 @@ int CVI_RTSP_DestroySession(CVI_RTSP_CTX *ctx, CVI_RTSP_SESSION *session);
  */
 int CVI_RTSP_SetListener(CVI_RTSP_CTX *ctx, CVI_RTSP_STATE_LISTENER *listener);
 
+/**
+ * @brief          Get current RTP output buffer max size
+ * @return         Current OutPacketBuffer::maxSize value in bytes
+ */
+int CVI_RTSP_GetOutBufMaxSize(void);
+
 #ifdef __cplusplus
 }
 #endif

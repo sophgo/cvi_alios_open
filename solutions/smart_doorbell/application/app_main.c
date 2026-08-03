@@ -20,6 +20,10 @@
 #include "platform.h"
 #include "usbd_comp.h"
 
+#if CONFIG_CVI_DDRMON
+#include "ddrmon_api.h"
+#endif
+
 #if CONFIG_USBD_CDC_RNDIS
 #include "usbd_cdc_rndis.h"
 #endif
@@ -154,6 +158,11 @@ int main(int argc, char* argv[])
     // cli and ulog init
     YOC_SYSTEM_ToolInit();
 
+    // DDR bandwidth monitor init
+#if CONFIG_CVI_DDRMON
+    ddrmon_component_init();
+#endif
+
 #if CONFIG_USBD_CDC_RNDIS
     rndis_device_init();
 #endif
@@ -171,5 +180,7 @@ int main(int argc, char* argv[])
 #endif
     while (1) {
         aos_msleep(3000);
+        // void gen_vr_mesh(int32_t argc, char **argv);
+        // gen_vr_mesh(0,NULL);
     };
 }
