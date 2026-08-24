@@ -49,6 +49,12 @@ extern "C" {
 #define CV1801B 23
 #define CV1800C 24
 #define CV1801C 25
+// new add for cv181x
+#define CV1810H 28
+// phobos3
+#define CV190AH 29
+// external DDR (no SIP DDR), efuse capacity field == 0
+#define CV1815J 30
 
 #define CVIU01 0x1
 #define CVIU02 0x2
