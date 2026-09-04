@@ -892,7 +892,7 @@ static CVI_S32 sensor_register_callback(VI_PIPE ViPipe, ALG_LIB_S *pstAeLib, ALG
 	ISP_SENSOR_REGISTER_S stIspRegister;
 	AE_SENSOR_REGISTER_S  stAeRegister;
 	AWB_SENSOR_REGISTER_S stAwbRegister;
-	ISP_SNS_ATTR_INFO_S   stSnsAttrInfo;
+	ISP_SNS_ATTR_INFO_S   stSnsAttrInfo = {0};
 
 	CMOS_CHECK_POINTER(pstAeLib);
 	CMOS_CHECK_POINTER(pstAwbLib);
@@ -903,6 +903,7 @@ static CVI_S32 sensor_register_callback(VI_PIPE ViPipe, ALG_LIB_S *pstAeLib, ALG
 		return CVI_FAILURE;
 
 	stSnsAttrInfo.eSensorId = GC1084_ID;
+	stSnsAttrInfo.bInitByUser = g_bInitByUser[ViPipe];
 
 	s32Ret  = cmos_init_sensor_exp_function(&stIspRegister.stSnsExp);
 	s32Ret |= CVI_ISP_SensorRegCallBack(ViPipe, &stSnsAttrInfo, &stIspRegister);

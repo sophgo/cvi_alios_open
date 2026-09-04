@@ -8,6 +8,7 @@
 #include "custom_param.h"
 PARAM_CLASSDEFINE(PARAM_SNS_CFG_S,SENSORCFG,CTX,Sensor)[] = {
     {
+        .bSnsInitByUser = 0,
         .enSnsType = CONFIG_SNS0_TYPE,
         .s32I2cAddr = -1,
         .s8I2cDev = 1,

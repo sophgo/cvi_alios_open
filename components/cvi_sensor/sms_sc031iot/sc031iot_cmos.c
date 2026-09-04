@@ -52,6 +52,7 @@ ISP_SNS_MIRRORFLIP_TYPE_E g_aeSc031iot_MirrorFip[VI_MAX_PIPE_NUM] = {ISP_SNS_NOR
 /****************************************************************************
  * local variables and functions                                            *
  ***************************************************************************/
+static CVI_BOOL g_bInitByUser[VI_MAX_PIPE_NUM] = {0};
 static CVI_S32 cmos_get_wdr_size(VI_PIPE ViPipe, ISP_SNS_ISP_INFO_S *pstIspCfg);
 
 #define SC031IOT_RES_IS_480P(w, h)      ((w) <= 640 && (h) <= 480)
@@ -304,7 +305,7 @@ static CVI_S32 sensor_register_callback(VI_PIPE ViPipe, ALG_LIB_S *pstAeLib, ALG
 {
 	CVI_S32 s32Ret;
 	ISP_SENSOR_REGISTER_S stIspRegister;
-	ISP_SNS_ATTR_INFO_S   stSnsAttrInfo;
+	ISP_SNS_ATTR_INFO_S   stSnsAttrInfo = {0};
 
 	CMOS_CHECK_POINTER(pstAeLib);
 	CMOS_CHECK_POINTER(pstAwbLib);
@@ -315,6 +316,7 @@ static CVI_S32 sensor_register_callback(VI_PIPE ViPipe, ALG_LIB_S *pstAeLib, ALG
 		return CVI_FAILURE;
 
 	stSnsAttrInfo.eSensorId = SC031IOT_ID;
+	stSnsAttrInfo.bInitByUser = g_bInitByUser[ViPipe];
 
 	s32Ret  = cmos_init_sensor_exp_function(&stIspRegister.stSnsExp);
 	s32Ret |= CVI_ISP_SensorRegCallBack(ViPipe, &stSnsAttrInfo, &stIspRegister);
@@ -348,6 +350,7 @@ static CVI_S32 sensor_unregister_callback(VI_PIPE ViPipe, ALG_LIB_S *pstAeLib, A
 static CVI_S32 sensor_set_init(VI_PIPE ViPipe, ISP_INIT_ATTR_S *pstInitAttr)
 {
 	CMOS_CHECK_POINTER(pstInitAttr);
+	g_bInitByUser[ViPipe] = pstInitAttr->bInitByUser;
 
 	return CVI_SUCCESS;
 }

@@ -57,6 +57,7 @@ static CVI_U32 g_au32LinesPer500ms[VI_MAX_PIPE_NUM] = {0};
 static CVI_U16 g_au16InitWBGain[VI_MAX_PIPE_NUM][3] = {{0} };
 static CVI_U16 g_au16SampleRgain[VI_MAX_PIPE_NUM] = {0};
 static CVI_U16 g_au16SampleBgain[VI_MAX_PIPE_NUM] = {0};
+static CVI_BOOL g_bInitByUser[VI_MAX_PIPE_NUM] = {0};
 static CVI_S32 cmos_get_wdr_size(VI_PIPE ViPipe, ISP_SNS_ISP_INFO_S *pstIspCfg);
 /*****Gc2053 Lines Range*****/
 #define GC2053_FULL_LINES_MAX  (0x3fff)
@@ -745,7 +746,7 @@ static CVI_S32 sensor_register_callback(VI_PIPE ViPipe, ALG_LIB_S *pstAeLib, ALG
 	ISP_SENSOR_REGISTER_S stIspRegister;
 	AE_SENSOR_REGISTER_S  stAeRegister;
 	AWB_SENSOR_REGISTER_S stAwbRegister;
-	ISP_SNS_ATTR_INFO_S   stSnsAttrInfo;
+	ISP_SNS_ATTR_INFO_S   stSnsAttrInfo = {0};
 
 	CMOS_CHECK_POINTER(pstAeLib);
 	CMOS_CHECK_POINTER(pstAwbLib);
@@ -756,6 +757,7 @@ static CVI_S32 sensor_register_callback(VI_PIPE ViPipe, ALG_LIB_S *pstAeLib, ALG
 		return CVI_FAILURE;
 
 	stSnsAttrInfo.eSensorId = GC2053_ID;
+	stSnsAttrInfo.bInitByUser = g_bInitByUser[ViPipe];
 
 	s32Ret  = cmos_init_sensor_exp_function(&stIspRegister.stSnsExp);
 	s32Ret |= CVI_ISP_SensorRegCallBack(ViPipe, &stSnsAttrInfo, &stIspRegister);
@@ -817,6 +819,7 @@ static CVI_S32 sensor_unregister_callback(VI_PIPE ViPipe, ALG_LIB_S *pstAeLib, A
 static CVI_S32 sensor_set_init(VI_PIPE ViPipe, ISP_INIT_ATTR_S *pstInitAttr)
 {
 	CMOS_CHECK_POINTER(pstInitAttr);
+	g_bInitByUser[ViPipe] = pstInitAttr->bInitByUser;
 
 	g_au32InitExposure[ViPipe] = pstInitAttr->u32Exposure;
 	g_au32LinesPer500ms[ViPipe] = pstInitAttr->u32LinesPer500ms;

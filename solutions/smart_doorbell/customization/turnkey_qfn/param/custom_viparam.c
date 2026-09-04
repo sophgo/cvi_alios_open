@@ -14,6 +14,7 @@ extern unsigned int cvi_ir_pq_param_length;
 
 PARAM_CLASSDEFINE(PARAM_SNS_CFG_S,SENSORCFG,CTX,Sensor)[] = {
     {
+        .bSnsInitByUser = 0,
         .enSnsType = CONFIG_SNS0_TYPE,
         .s32I2cAddr = -1,
         .s8I2cDev = 2,
@@ -26,6 +27,7 @@ PARAM_CLASSDEFINE(PARAM_SNS_CFG_S,SENSORCFG,CTX,Sensor)[] = {
         .s16MacClk = RX_MAC_CLK_200M,
     },
     {
+        .bSnsInitByUser = 0,
         .enSnsType = CONFIG_SNS1_TYPE,
         .s32I2cAddr = -1,
         .s8I2cDev = 2,

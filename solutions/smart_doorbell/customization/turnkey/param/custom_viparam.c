@@ -15,6 +15,7 @@ extern uint32_t isp_param_ir_face_len;
 PARAM_CLASSDEFINE(PARAM_SNS_CFG_S, SENSORCFG, CTX, Sensor)
 [] = {
     {
+        .bSnsInitByUser = 0,
         .enSnsType       = CONFIG_SNS0_TYPE,
         .s32I2cAddr      = 0x3d,
         .s8I2cDev        = 1,
@@ -30,6 +31,7 @@ PARAM_CLASSDEFINE(PARAM_SNS_CFG_S, SENSORCFG, CTX, Sensor)
 #endif
     },
     {
+        .bSnsInitByUser = 0,
         .enSnsType       = CONFIG_SNS1_TYPE,
         .s32I2cAddr      = 0x3c,
         .s8I2cDev        = 1,

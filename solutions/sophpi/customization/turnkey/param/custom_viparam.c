@@ -12,6 +12,7 @@
 
 PARAM_CLASSDEFINE(PARAM_SNS_CFG_S,SENSORCFG,CTX,Sensor)[] = {
     {
+        .bSnsInitByUser = 0,
         .enSnsType = CONFIG_SNS0_TYPE,
         .s32Framerate = 15,
         .s32I2cAddr = -1,
@@ -39,6 +40,7 @@ PARAM_CLASSDEFINE(PARAM_SNS_CFG_S,SENSORCFG,CTX,Sensor)[] = {
         .as8PNSwap[4] = 0,
     },
     {
+        .bSnsInitByUser = 0,
         .enSnsType = CONFIG_SNS1_TYPE,
         .s32Framerate = 15,
         .s32I2cAddr = 0x7e,

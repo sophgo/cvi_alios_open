@@ -67,7 +67,7 @@ static void uart_event_cb(csi_uart_t *uart, csi_uart_event_t event, void *arg)
 
     case UART_EVENT_RECEIVE_FIFO_READABLE: {
         int ret = 0;
-        if (&uart_list[(unsigned int)uart->dev.idx].recv_buf != NULL) {
+        if (uart_list[(unsigned int)uart->dev.idx].recv_buf != NULL) {
             uint8_t temp_buf[HAL_UART_FIFO_SIZE] = {0};
             do {
                 ret = csi_uart_receive(uart, temp_buf, HAL_UART_FIFO_SIZE, 0);
