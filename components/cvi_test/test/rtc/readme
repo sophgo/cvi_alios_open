@@ -1,0 +1,11 @@
+# test_rtc.c 说明文档
+
+## 文件概述
+test_rtc.c 是实时时钟(RTC)功能的测试程序，用于验证 RTC 驱动程序的各项功能。
+
+## 主要功能
+- RTC 时间读写测试
+- 时间准确性验证
+
+## 使用方法
+调用test_rtc命令，会自动设置时间并等待10秒，最后自动判断最终得到的时间是否符合预期，如果是就打印"[rtc]:cvitek rtc test pass"，如果不是就打印"[rtc]:cvitek rtc test fail"

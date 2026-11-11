@@ -1,0 +1,26 @@
+name: libmetal
+version: v0.1.0
+description: libmetal hardware abstraction library for AliOS RTOS (cvitek adaptation)
+type: common
+
+build_config:
+  include:
+    - include
+
+source_file:
+  - src/metal_io.c
+  - src/metal_sys.c
+  - src/metal_cache.c
+  - src/metal_sleep.c
+
+def_config:
+  METAL_INTERNAL: 1
+
+install:
+  - dest: "include/"
+    source:
+      - include/metal/*.h
+      - include/metal/compiler/*.h
+      - include/metal/compiler/gcc/*.h
+      - include/metal/processor/generic/*.h
+      - include/metal/system/alios/*.h

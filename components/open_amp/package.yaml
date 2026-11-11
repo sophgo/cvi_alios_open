@@ -1,0 +1,35 @@
+name: open_amp
+version: v0.1.0
+description: OpenAMP rpmsg/virtio/remoteproc library for cvitek dual-core communication
+type: common
+
+depends:
+  - libmetal: v0.1.0
+
+build_config:
+  include:
+    - lib/include
+    - lib/include/openamp
+  define:
+    VIRTIO_DEVICE_SUPPORT: 1
+    VIRTIO_DRIVER_SUPPORT: 1
+    VIRTIO_USE_DCACHE: 1
+    RPMSG_BUFFER_SIZE: 512
+    VQ_RX_EMPTY_NOTIFY: 0
+    METAL_INTERNAL: 1
+
+source_file:
+  - lib/virtio/virtio.c
+  - lib/virtio/virtqueue.c
+  - lib/remoteproc/remoteproc.c
+  - lib/remoteproc/remoteproc_virtio.c
+  - lib/remoteproc/rsc_table_parser.c
+  - lib/rpmsg/rpmsg.c
+  - lib/rpmsg/rpmsg_virtio.c
+  - lib/utils/utilities.c
+  - lib/version.c
+
+install:
+  - dest: "include/"
+    source:
+      - lib/include/openamp/*.h

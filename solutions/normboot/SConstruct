@@ -1,0 +1,12 @@
+#! /bin/env python
+
+from yoctools import Make
+import os
+
+defconfig = Make(elf='yoc.elf', objcopy='yoc.bin', objdump='yoc.asm')
+defconfig.build_env.env.AppendUnique(CCFLAGS='-ffile-prefix-map=' + os.getcwd().split("/cvi_alios")[0] + '/cvi_alios=')
+defconfig.build_env.env.AppendUnique(ASFLAGS='--debug-prefix-map=' + os.getcwd().split("/cvi_alios")[0] + '/cvi_alios=')
+
+Export('defconfig')
+
+defconfig.build_components()

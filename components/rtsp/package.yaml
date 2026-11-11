@@ -1,0 +1,290 @@
+
+## 第一部分： 基础信息
+name: rtsp                                          # <必选项> 包名称 （符合C语言变量命名规则），长度少于等于64字节
+version: develop                                    # <必选项> 组件版本号
+description: rtsp service base on live555           # <必选项> 建议至少20字以上
+type: common                                        # <必选项> 组件类型，为：solution, chip, board, common, sdk
+tag:                                                # <可选项> 组件分类，缺省值： ''
+license: Apache license v2.0                        # <可选项> 源代码的许可证，要确保所有代码、文件的许可证不冲突。如：MIT，Apache license v2.0，BSD
+
+## 第二部分：依赖信息
+#           指定该组件依赖的组件及版本
+# sdk_chip:                                # <可选项> 该组件依赖sdk组件，合理的依赖才能保证组件能编译、使用
+#   - sdk_chip_csky_dummy: v7.4.0
+#   - sdk_chip_riscv_dummy: v7.4.0
+# depends:                                 # <可选项> 该组件依赖其他的组件，合理的依赖才能保证组件能编译、使用
+#   - minilibc: v7.4.0
+#   - aos: v7.4.0
+
+depends:
+  - lwip: v7.4.7
+
+
+## 第四部分：编译连接信息
+# build_config:                            # <可选项> 编译配置项
+#   include:                               # <可选项> 编译时，影响编译器的-I 参数 ,全局有效
+#     - src                                #        include 只能是该软件包下的目录，不能使用外部目录
+#   internal_include:                      # <可选项> 编译时，影响编译器的-I 参数 ,组件内有效
+#     - include
+#   cflag: ''                              # <可选项> C 编译器所需要要的编译参数
+#   cxxflag: ''                            # <可选项> CXX 编译器所需要要的编译参数
+#   asmflag: ''                            # <可选项> 汇编器所需要要参数
+#   define:                                # <可选项> 宏定义, 增加编译器的-D 选项,如：
+#     XXX: 1                               #   -DXXX=1
+#     AAA: 1                               #   -DAAA
+#     STR: "abc"                           #   -DSTR="abc"
+#   libs:                                  # 该组件中支持的二进制静态库,如：libxxx.a, libyyy.a
+#     - xxx                                #   -lxxx
+#     - yyy                                #   -lyyy
+#   libpath:                               # 指定静态库所在的路径（相对于该组件路径）
+#     - libs                               #   -Llibs
+build_config:
+  cflag: 
+    -Wno-unused-variable
+  cxxflag:
+    -enable-threads=posix
+  include:
+    - include
+  internal_include:
+    - internal/BasicUsageEnvironment/
+    - internal/groupsock/
+    - internal/liveMedia/
+    - internal/UsageEnvironment/
+    - internal/cvi_rtsp/
+  define:
+    SOCKLEN_T: "socklen_t"
+    NO_OPENSSL: 1 
+    NO_SSTREAM: 1
+    _LARGEFILE_SOURCE: 1
+    _FILE_OFFSET_BITS: 64 
+    ALLOW_SERVER_PORT_REUSE: 1
+    SO_NOSIGPIPE: 
+
+# source_file:                             # <可选项> 指定参与编译的源代码文件，支持通配符，采用相对路径
+#   - src/*.c                              # 例：组件 src 目录下所有的扩展名为 c 的源代码文件
+source_file:
+  - "src/liveMedia/H264VideoFileServerMediaSubsession.cpp"
+  - "src/liveMedia/H263plusVideoRTPSink.cpp"
+  - "src/liveMedia/H264VideoStreamFramer.cpp"
+  - "src/liveMedia/H264VideoFileSink.cpp"
+  - "src/liveMedia/H265VideoRTPSource.cpp"
+  - "src/liveMedia/MPEG2TransportFileServerMediaSubsession.cpp"
+  - "src/liveMedia/ByteStreamFileSource.cpp"
+  - "src/liveMedia/WAVAudioFileSource.cpp"
+  - "src/liveMedia/MP3AudioMatroskaFileServerMediaSubsession.cpp"
+  - "src/liveMedia/OnDemandServerMediaSubsession.cpp"
+  - "src/liveMedia/VP8VideoRTPSource.cpp"
+  - "src/liveMedia/MultiFramedRTPSource.cpp"
+  - "src/liveMedia/MPEG1or2VideoFileServerMediaSubsession.cpp"
+  - "src/liveMedia/MatroskaFileServerMediaSubsession.cpp"
+  - "src/liveMedia/AC3AudioRTPSource.cpp"
+  - "src/liveMedia/MPEG2TransportStreamParser_PMT.cpp"
+  - "src/liveMedia/HMAC_SHA1.cpp"
+  - "src/liveMedia/MPEGVideoStreamParser.cpp"
+  - "src/liveMedia/MP3AudioFileServerMediaSubsession.cpp"
+  - "src/liveMedia/MultiFramedRTPSink.cpp"
+  - "src/liveMedia/RTSPRegisterSender.cpp"
+  - "src/liveMedia/MP3ADU.cpp"
+  - "src/liveMedia/AC3AudioFileServerMediaSubsession.cpp"
+  - "src/liveMedia/OggFileServerMediaSubsession.cpp"
+  - "src/liveMedia/MPEG1or2AudioRTPSink.cpp"
+  - "src/liveMedia/MPEG2TransportStreamFromESSource.cpp"
+  - "src/liveMedia/BasicUDPSink.cpp"
+  - "src/liveMedia/MP3Transcoder.cpp"
+  - "src/liveMedia/AMRAudioFileSource.cpp"
+  - "src/liveMedia/MPEG4LATMAudioRTPSink.cpp"
+  - "src/liveMedia/MPEG1or2VideoStreamFramer.cpp"
+  - "src/liveMedia/MPEG1or2DemuxedElementaryStream.cpp"
+  - "src/liveMedia/Media.cpp"
+  - "src/liveMedia/MPEG2TransportStreamMultiplexor.cpp"
+  - "src/liveMedia/MP3ADUdescriptor.cpp"
+  - "src/liveMedia/RTSPCommon.cpp"
+  - "src/liveMedia/MPEG4GenericRTPSource.cpp"
+  - "src/liveMedia/RTSPClient.cpp"
+  - "src/liveMedia/StreamReplicator.cpp"
+  - "src/liveMedia/H263plusVideoStreamParser.cpp"
+  - "src/liveMedia/RTSPServerRegister.cpp"
+  - "src/liveMedia/AMRAudioRTPSource.cpp"
+  - "src/liveMedia/MPEG2TransportUDPServerMediaSubsession.cpp"
+  - "src/liveMedia/DVVideoStreamFramer.cpp"
+  - "src/liveMedia/MPEG2TransportStreamIndexFile.cpp"
+  - "src/liveMedia/MP3InternalsHuffmanTable.cpp"
+  - "src/liveMedia/RTSPServer.cpp"
+  - "src/liveMedia/H261VideoRTPSource.cpp"
+  - "src/liveMedia/PassiveServerMediaSubsession.cpp"
+  - "src/liveMedia/DigestAuthentication.cpp"
+  - "src/liveMedia/SRTPCryptographicContext.cpp"
+  - "src/liveMedia/ServerMediaSession.cpp"
+  - "src/liveMedia/MPEG1or2VideoRTPSource.cpp"
+  - "src/liveMedia/FileSink.cpp"
+  - "src/liveMedia/MPEG1or2DemuxedServerMediaSubsession.cpp"
+  - "src/liveMedia/AMRAudioRTPSink.cpp"
+  - "src/liveMedia/MatroskaFileParser.cpp"
+  - "src/liveMedia/AVIFileSink.cpp"
+  - "src/liveMedia/ProxyServerMediaSession.cpp"
+  - "src/liveMedia/ByteStreamMultiFileSource.cpp"
+  - "src/liveMedia/H264VideoStreamDiscreteFramer.cpp"
+  - "src/liveMedia/MPEG1or2Demux.cpp"
+  - "src/liveMedia/JPEGVideoSource.cpp"
+  - "src/liveMedia/MPEG1or2FileServerDemux.cpp"
+  - "src/liveMedia/H264or5VideoStreamDiscreteFramer.cpp"
+  - "src/liveMedia/FramedSource.cpp"
+  - "src/liveMedia/MPEG4ESVideoRTPSink.cpp"
+  - "src/liveMedia/H264VideoRTPSource.cpp"
+  - "src/liveMedia/DVVideoRTPSink.cpp"
+  - "src/liveMedia/MPEG2TransportStreamParser_PAT.cpp"
+  - "src/liveMedia/H263plusVideoStreamFramer.cpp"
+  - "src/liveMedia/ADTSAudioFileSource.cpp"
+  - "src/liveMedia/TextRTPSink.cpp"
+  - "src/liveMedia/RawVideoRTPSink.cpp"
+  - "src/liveMedia/MP3ADUinterleaving.cpp"
+  - "src/liveMedia/AudioInputDevice.cpp"
+  - "src/liveMedia/OutputFile.cpp"
+  - "src/liveMedia/T140TextRTPSink.cpp"
+  - "src/liveMedia/SIPClient.cpp"
+  - "src/liveMedia/RTPSink.cpp"
+  - "src/liveMedia/TheoraVideoRTPSink.cpp"
+  - "src/liveMedia/AC3AudioStreamFramer.cpp"
+  - "src/liveMedia/QCELPAudioRTPSource.cpp"
+  - "src/liveMedia/MPEG2TransportStreamAccumulator.cpp"
+  - "src/liveMedia/MatroskaFile.cpp"
+  - "src/liveMedia/GenericMediaServer.cpp"
+  - "src/liveMedia/RTPInterface.cpp"
+  - "src/liveMedia/VP9VideoRTPSource.cpp"
+  - "src/liveMedia/ByteStreamMemoryBufferSource.cpp"
+  - "src/liveMedia/MP3InternalsHuffman.cpp"
+  - "src/liveMedia/ADTSAudioFileServerMediaSubsession.cpp"
+  - "src/liveMedia/MPEG2TransportStreamParser_STREAM.cpp"
+  - "src/liveMedia/H264VideoRTPSink.cpp"
+  - "src/liveMedia/OggFileSink.cpp"
+  - "src/liveMedia/MatroskaFileServerDemux.cpp"
+  - "src/liveMedia/MPEG4ESVideoRTPSource.cpp"
+  - "src/liveMedia/VP8VideoRTPSink.cpp"
+  - "src/liveMedia/ourMD5.cpp"
+  - "src/liveMedia/TheoraVideoRTPSource.cpp"
+  - "src/liveMedia/MPEG1or2AudioRTPSource.cpp"
+  - "src/liveMedia/OggDemuxedTrack.cpp"
+  - "src/liveMedia/MPEG2TransportStreamFromPESSource.cpp"
+  - "src/liveMedia/MediaSource.cpp"
+  - "src/liveMedia/VorbisAudioRTPSink.cpp"
+  - "src/liveMedia/MPEG4VideoStreamDiscreteFramer.cpp"
+  - "src/liveMedia/FileServerMediaSubsession.cpp"
+  - "src/liveMedia/JPEG2000VideoRTPSink.cpp"
+  - "src/liveMedia/SimpleRTPSink.cpp"
+  - "src/liveMedia/FramedFileSource.cpp"
+  - "src/liveMedia/RawVideoRTPSource.cpp"
+  - "src/liveMedia/AMRAudioFileSink.cpp"
+  - "src/liveMedia/H265VideoRTPSink.cpp"
+  - "src/liveMedia/MP3Internals.cpp"
+  - "src/liveMedia/MPEG2TransportStreamParser.cpp"
+  - "src/liveMedia/StreamParser.cpp"
+  - "src/liveMedia/MPEG1or2VideoRTPSink.cpp"
+  - "src/liveMedia/AMRAudioSource.cpp"
+  - "src/liveMedia/MPEG2IndexFromTransportStream.cpp"
+  - "src/liveMedia/MPEG1or2VideoStreamDiscreteFramer.cpp"
+  - "src/liveMedia/MP3ADURTPSink.cpp"
+  - "src/liveMedia/H264or5VideoRTPSink.cpp"
+  - "src/liveMedia/MatroskaDemuxedTrack.cpp"
+  - "src/liveMedia/MediaSink.cpp"
+  - "src/liveMedia/OggFileServerDemux.cpp"
+  - "src/liveMedia/InputFile.cpp"
+  - "src/liveMedia/RTCP.cpp"
+  - "src/liveMedia/FramedFilter.cpp"
+  - "src/liveMedia/QuickTimeGenericRTPSource.cpp"
+  - "src/liveMedia/AC3AudioRTPSink.cpp"
+  - "src/liveMedia/MPEGVideoStreamFramer.cpp"
+  - "src/liveMedia/H265VideoFileServerMediaSubsession.cpp"
+  - "src/liveMedia/uLawAudioFilter.cpp"
+  - "src/liveMedia/DVVideoFileServerMediaSubsession.cpp"
+  - "src/liveMedia/MP3FileSource.cpp"
+  - "src/liveMedia/MIKEY.cpp"
+  - "src/liveMedia/JPEG2000VideoRTPSource.cpp"
+  - "src/liveMedia/H265VideoStreamDiscreteFramer.cpp"
+  - "src/liveMedia/MPEG2TransportStreamDemux.cpp"
+  - "src/liveMedia/Locale.cpp"
+  - "src/liveMedia/VideoRTPSink.cpp"
+  - "src/liveMedia/H265VideoFileSink.cpp"
+  - "src/liveMedia/EBMLNumber.cpp"
+  - "src/liveMedia/H263plusVideoRTPSource.cpp"
+  - "src/liveMedia/JPEGVideoRTPSink.cpp"
+  - "src/liveMedia/MPEG2TransportStreamFramer.cpp"
+  - "src/liveMedia/MPEG2TransportStreamDemuxedTrack.cpp"
+  - "src/liveMedia/MP3StreamState.cpp"
+  - "src/liveMedia/MPEG4VideoFileServerMediaSubsession.cpp"
+  - "src/liveMedia/VP9VideoRTPSink.cpp"
+  - "src/liveMedia/GSMAudioRTPSink.cpp"
+  - "src/liveMedia/DVVideoRTPSource.cpp"
+  - "src/liveMedia/OggFile.cpp"
+  - "src/liveMedia/AMRAudioFileServerMediaSubsession.cpp"
+  - "src/liveMedia/MPEG4LATMAudioRTPSource.cpp"
+  - "src/liveMedia/TLSState.cpp"
+  - "src/liveMedia/JPEGVideoRTPSource.cpp"
+  - "src/liveMedia/DeviceSource.cpp"
+  - "src/liveMedia/H264or5VideoFileSink.cpp"
+  - "src/liveMedia/MPEG2TransportStreamTrickModeFilter.cpp"
+  - "src/liveMedia/Base64.cpp"
+  - "src/liveMedia/H265VideoStreamFramer.cpp"
+  - "src/liveMedia/MediaSession.cpp"
+  - "src/liveMedia/VorbisAudioRTPSource.cpp"
+  - "src/liveMedia/MPEG4VideoStreamFramer.cpp"
+  - "src/liveMedia/QuickTimeFileSink.cpp"
+  - "src/liveMedia/SimpleRTPSource.cpp"
+  - "src/liveMedia/BasicUDPSource.cpp"
+  - "src/liveMedia/AudioRTPSink.cpp"
+  - "src/liveMedia/BitVector.cpp"
+  - "src/liveMedia/ADTSAudioStreamDiscreteFramer.cpp"
+  - "src/liveMedia/HLSSegmenter.cpp"
+  - "src/liveMedia/H263plusVideoFileServerMediaSubsession.cpp"
+  - "src/liveMedia/MPEG4GenericRTPSink.cpp"
+  - "src/liveMedia/OggFileParser.cpp"
+  - "src/liveMedia/RTPSource.cpp"
+  - "src/liveMedia/MP3ADUTranscoder.cpp"
+  - "src/liveMedia/H264or5VideoStreamFramer.cpp"
+  - "src/liveMedia/MP3ADURTPSource.cpp"
+  - "src/liveMedia/WAVAudioFileServerMediaSubsession.cpp"
+  - "src/liveMedia/MPEG1or2AudioStreamFramer.cpp"
+  - "src/liveMedia/*.c"
+  - "src/groupsock/*.c"
+  - "src/groupsock/GroupEId.cpp"
+  - "src/groupsock/GroupsockHelper.cpp"
+  - "src/groupsock/NetInterface.cpp"
+  - "src/groupsock/IOHandlers.cpp"
+  - "src/groupsock/Groupsock.cpp"
+  - "src/groupsock/NetAddress.cpp"
+  - "src/BasicUsageEnvironment/BasicTaskScheduler.cpp"
+  - "src/BasicUsageEnvironment/BasicHashTable.cpp"
+  - "src/BasicUsageEnvironment/DelayQueue.cpp"
+  - "src/BasicUsageEnvironment/BasicUsageEnvironment.cpp"
+  - "src/BasicUsageEnvironment/BasicTaskScheduler0.cpp"
+  - "src/BasicUsageEnvironment/BasicUsageEnvironment0.cpp"
+  - "src/UsageEnvironment/UsageEnvironment.cpp"
+  - "src/UsageEnvironment/HashTable.cpp"
+  - "src/UsageEnvironment/strDup.cpp"
+  - "src/cvi_rtsp/*.cpp"
+
+## 第五部分：配置信息
+# def_config:                              # 组件的可配置项
+#   CONFIG_DEBUG: y
+#   CONFIG_PARAM_NOT_CHECK: y
+#   CONFIG_CLI: y
+def_config:
+  LOCALE_NOT_USED: y
+
+## 第六部分：安装信息
+# install:
+#   - dest: include/                       # 安装的目的路径 dest是相对路径，通常是相对于YoC SDK 安装目录
+#     source:                              # 安装源列表
+#      - src/*.h                           # 支持通配符，相对路径
+install:
+  - dest: "internal/groupsock/"
+    source:
+      - "internal/groupsock/*"
+
+## 第七部分：导出部分
+# export:
+#   - dest: "<SOLUTION_PATH>/generated/data" # 安装的目的路径 dest是相对路径
+#     source:                                # 安装源列表
+#       - "bootimgs/boot"
+#       - "bootimgs/tee"
+#       - "bootimgs/mtb"
+#       - "configs/config.yaml"

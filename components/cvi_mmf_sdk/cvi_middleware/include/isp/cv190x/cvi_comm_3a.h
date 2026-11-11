@@ -1,0 +1,599 @@
+/*
+ * Copyright (C) Cvitek Co., Ltd. 2019-2021. All rights reserved.
+ *
+ * File Name: include/cvi_common_3a.h
+ * Description:
+ */
+
+#ifndef __CVI_COMM_3A_H__
+#define __CVI_COMM_3A_H__
+
+#ifdef __cplusplus
+#if __cplusplus
+extern "C" {
+#endif
+#endif /* End of #ifdef __cplusplus */
+
+#include <stdbool.h>
+#include "cvi_comm_isp.h"
+#include "cvi_comm_sns.h"
+
+#define ALG_LIB_NAME_SIZE_MAX (20)
+#define MAX_REGISTER_ALG_LIB_NUM 4
+
+#define HIST_THRESH_NUM (4)
+
+#define MAX_AE_W (32)
+#define MAX_AE_H (24)
+#define MAX_AE_SIZE (MAX_AE_W * MAX_AE_H)
+#define MAX_AE_WIN (2)
+#define MAX_STITCH_GROUP (2)
+
+typedef enum _ISP_FSWDR_MODE_E {
+	ISP_FSWDR_NORMAL_MODE = 0x0,
+	ISP_FSWDR_LONG_FRAME_MODE = 0x1,
+	ISP_FSWDR_AUTO_LONG_FRAME_MODE = 0x2,
+	ISP_FSWDR_MODE_BUTT
+} ISP_FSWDR_MODE_E;
+
+typedef struct _ISP_AE_RANGE_S {
+	CVI_U32 u32Max; /*RW; Range:[0x0, 0x7FFFFFFF]*/
+	CVI_U32 u32Min; /*RW; Range:[0x0, 0x7FFFFFFF]*/
+} ISP_AE_RANGE_S;
+
+typedef enum _ISP_AE_STRATEGY_E {
+	AE_EXP_HIGHLIGHT_PRIOR = 0,
+	AE_EXP_LOWLIGHT_PRIOR = 1,
+	AE_STRATEGY_MODE_BUTT
+} ISP_AE_STRATEGY_E;
+
+typedef enum _ISP_AE_MODE_E {
+	AE_MODE_SLOW_SHUTTER = 0,
+	AE_MODE_FIX_FRAME_RATE = 1,
+	AE_MODE_BUTT
+} ISP_AE_MODE_E;
+
+typedef enum _ISP_ANTIFLICKER_MODE_E {
+	ISP_ANTIFLICKER_NORMAL_MODE = 0,
+	ISP_ANTIFLICKER_AUTO_MODE = 1,
+	ISP_ANTIFLICKER_MODE_BUTT
+} ISP_ANTIFLICKER_MODE_E;
+
+typedef struct _ISP_ANTIFLICKER_S {
+	CVI_BOOL bEnable;
+	ISP_AE_ANTIFLICKER_FREQUENCE_E enFrequency;
+	ISP_ANTIFLICKER_MODE_E enMode;
+} ISP_ANTIFLICKER_S;
+
+typedef struct _ISP_SUBFLICKER_S {
+	CVI_BOOL bEnable;
+	CVI_U8 u8LumaDiff; /*RW; Range:[0x0, 0x64]*/
+} ISP_SUBFLICKER_S;
+
+typedef struct _ISP_FLICKER_DETECT_S {
+	CVI_BOOL bEnable;
+	// thr_120, thr_60, thr_30
+	CVI_U8 u8DetectThr[3]; /*RW; Range:[0x0, 0xFF]*/
+	CVI_U8 u8LumaStableThr; /*RW; Range:[0x0, 0xFF]*/
+	CVI_U16 u16DarkThr; /*RW; Range:[0x0, 0xFFFF]*/
+} ISP_FLICKER_DETECT_S;
+
+typedef struct _ISP_AE_DELAY_S {
+	CVI_U16 u16BlackDelayFrame;
+	CVI_U16 u16WhiteDelayFrame;
+} ISP_AE_DELAY_S;
+
+typedef struct _ISP_ME_ATTR_S {
+	ISP_OP_TYPE_E enExpTimeOpType;
+	ISP_OP_TYPE_E enAGainOpType;
+	ISP_OP_TYPE_E enDGainOpType;
+	ISP_OP_TYPE_E enISPDGainOpType;
+	CVI_U32 u32ExpTime; /*RW; Range:[0x0, 0x7FFFFFFF]*/
+	CVI_U32 u32AGain; /*RW; Range:[0x400, 0x7FFFFFFF]*/
+	CVI_U32 u32DGain; /*RW; Range:[0x400, 0x7FFFFFFF]*/
+	CVI_U32 u32ISPDGain; /*RW; Range:[0x400, 0x40000]*/
+	ISP_OP_TYPE_E enISONumOpType;
+	ISP_AE_GAIN_TYPE_E enGainType;
+	CVI_U32 u32ISONum; /*RW; Range:[0x64, 0x7FFFFFFF]*/
+} ISP_ME_ATTR_S;
+
+#define AE_ATTR_RESERVE_SIZE	(4)
+typedef struct _ISP_AE_ATTR_S {
+	ISP_AE_RANGE_S stExpTimeRange;
+	ISP_AE_RANGE_S stAGainRange; /*RW; Range:[0x400, 0x7FFFFFFF]*/
+	ISP_AE_RANGE_S stDGainRange; /*RW; Range:[0x400, 0x7FFFFFFF]*/
+	ISP_AE_RANGE_S stISPDGainRange; /*RW; Range:[0x400, 0x40000]*/
+	ISP_AE_RANGE_S stSysGainRange; /*RW; Range:[0x400, 0x7FFFFFFF]*/
+	CVI_U8 u8Speed; // 1 means 0.1 ev
+	CVI_U16 u16BlackSpeedBias;
+	CVI_U8 u8Tolerance; /*RW; Range:[0, 0x50]*/
+	CVI_U8 u8Compensation;
+	CVI_U16 u16EVBias;
+	ISP_AE_STRATEGY_E enAEStrategyMode;
+	CVI_U16 u16HistRatioSlope; /*RW; Range:[0x0, 0x200]*/
+	CVI_U8 u8MaxHistOffset;
+	ISP_AE_MODE_E enAEMode;
+	ISP_ANTIFLICKER_S stAntiflicker;
+	ISP_SUBFLICKER_S stSubflicker;
+	ISP_AE_DELAY_S stAEDelayAttr;
+	CVI_BOOL bManualExpValue;
+	CVI_U32 u32ExpValue; /*RW; Range:[0x0, 0x7FFFFFFF]*/
+	ISP_FSWDR_MODE_E enFSWDRMode;
+	CVI_BOOL bWDRQuick;
+	CVI_U16 u16ISOCalCoef;
+	ISP_AE_GAIN_TYPE_E enGainType;
+	ISP_AE_RANGE_S stISONumRange; /*RW; Range:[0x64, 0x7FFFFFFF]*/
+	CVI_U8 au8AdjustTargetMin[LV_TOTAL_NUM];
+	CVI_U8 au8AdjustTargetMax[LV_TOTAL_NUM];
+	CVI_BOOL bEnableFaceAE;
+	CVI_U8 u8FaceTargetLuma; /*RW; Range:[0x1, 0xFF]*/
+	CVI_U8 u8FaceWeight; /*RW; Range:[0x0, 0x64]*/
+	CVI_U8 u8HighLightLumaThr[LV_TOTAL_NUM];
+	CVI_U8 u8HighLightBufLumaThr[LV_TOTAL_NUM];
+	CVI_U8 u8LowLightLumaThr[LV_TOTAL_NUM];
+	CVI_U8 u8LowLightBufLumaThr[LV_TOTAL_NUM];
+	CVI_BOOL bHistogramAssist;
+	CVI_U16 u16AEStrategyThr[LV_TOTAL_NUM]; /*RW; Range:[0x1, 0x3E8]*/
+	CVI_U16 u16StsWithWBGainStr; /*RW; Range:[0x0, 0x1000]*/
+	CVI_U32	au32Reserve[AE_ATTR_RESERVE_SIZE]; /*RW; Range:[0x0, 0x7FFFFFFF]*/
+} ISP_AE_ATTR_S;
+
+typedef struct _ISP_EXPOSURE_ATTR_S {
+	CVI_BOOL bByPass;
+	ISP_OP_TYPE_E enOpType;
+	CVI_U8 u8AERunInterval; /*RW; Range:[0x1, 0xFF]*/
+	CVI_BOOL bHistStatAdjust;
+	CVI_BOOL bAERouteExValid;
+	ISP_ME_ATTR_S stManual;
+	ISP_AE_ATTR_S stAuto;
+	CVI_U8 u8DebugMode;
+	CVI_BOOL bAEGainSepCfg;
+	CVI_S8 s8SensorSensitivity; /*RW; Range:[-0xA, 0xA]*/
+} ISP_EXPOSURE_ATTR_S;
+
+typedef enum _ISP_STITCH_AE_AWB_MODE_E {
+	ISP_STITCH_SYNC_AE_AWB,
+	ISP_STITCH_SYNC_AE,
+	ISP_STITCH_SYNC_AWB,
+	ISP_STITCH_AE_AWB_MODE_BUTT
+} ISP_STITCH_AE_AWB_MODE_E;
+
+typedef struct _ISP_STITCH_ATTR_S {
+	CVI_BOOL enable;
+	CVI_BOOL bMainPipe;
+	CVI_BOOL bCalibEnable;
+	CVI_BOOL bCombineSts;
+	CVI_U8  u8CombChnSum;
+	CVI_U8  u8CombChn;
+	CVI_U8	u8Group;
+	CVI_U32 u32CalibLumaRatio;
+	CVI_U32 u32CalibRGainRatio;
+	CVI_U32 u32CalibBGainRatio;
+	ISP_STITCH_AE_AWB_MODE_E enStitchAeAwbMode;
+} ISP_STITCH_ATTR_S;
+
+typedef struct _ALG_LIB_S {
+	CVI_S32 s32Id;
+	CVI_CHAR acLibName[ALG_LIB_NAME_SIZE_MAX];
+} ALG_LIB_S;
+
+/* the init param of awb alg */
+typedef struct _ISP_AE_PARAM_S {
+	SENSOR_ID SensorId;
+	CVI_U8 u8WDRMode;
+	CVI_U8 u8HDRMode;
+	CVI_U16 u16BlackLevel;
+	CVI_FLOAT f32Fps;
+	ISP_BAYER_FORMAT_E enBayer;
+	ISP_STITCH_ATTR_S stStitchAttr;
+	CVI_S32 s32Rsv;
+	ISP_3AWIN_CONFIG_S aeLEWinConfig[AE_MAX_NUM];
+	ISP_3AWIN_CONFIG_S aeSEWinConfig;
+} ISP_AE_PARAM_S;
+
+typedef struct _ISP_FE_AE_STAT_1_S {
+	CVI_U32 u32PixelCount[ISP_CHANNEL_MAX_NUM];
+	CVI_U32 u32PixelWeight[ISP_CHANNEL_MAX_NUM];
+	CVI_U32 au32HistogramMemArray[ISP_CHANNEL_MAX_NUM][MAX_HIST_BINS];
+} ISP_FE_AE_STAT_1_S;
+
+typedef struct _ISP_FE_AE_STAT_2_S {
+	CVI_U16 u16GlobalAvgR[ISP_CHANNEL_MAX_NUM];
+	CVI_U16 u16GlobalAvgGr[ISP_CHANNEL_MAX_NUM];
+	CVI_U16 u16GlobalAvgGb[ISP_CHANNEL_MAX_NUM];
+	CVI_U16 u16GlobalAvgB[ISP_CHANNEL_MAX_NUM];
+} ISP_FE_AE_STAT_2_S;
+
+typedef struct _ISP_FE_AE_STAT_3_S {
+	CVI_U16 au16ZoneAvg[ISP_CHANNEL_MAX_NUM][AE_ZONE_ROW][AE_ZONE_COLUMN][4];
+} ISP_FE_AE_STAT_3_S;
+
+typedef struct _ISP_FE_AE_STITCH_STAT_3_S {
+	CVI_U16 au16ZoneAvg[ISP_CHANNEL_MAX_NUM][ISP_CHANNEL_MAX_NUM][AE_ZONE_ROW][AE_ZONE_COLUMN][4];
+} ISP_FE_AE_STITCH_STAT_3_S;
+
+typedef struct _ISP_AE_STAT_ATTR_S {
+	CVI_BOOL bChange;
+
+	CVI_BOOL bHistAdjust;
+	CVI_U8 u8AEBESel;
+	CVI_U8 u8FourPlaneMode;
+	CVI_U8 u8HistOffsetX;
+	CVI_U8 u8HistOffsetY;
+	CVI_U8 u8HistSkipX;
+	CVI_U8 u8HistSkipY;
+
+	CVI_BOOL bModeUpdate;
+	CVI_U8 u8HistMode;
+	CVI_U8 u8AverMode;
+	CVI_U8 u8MaxGainMode;
+
+	CVI_BOOL bWightTableUpdate;
+	CVI_U8 au8WeightTable[VI_MAX_PIPE_NUM][AE_WEIGHT_ZONE_ROW][AE_WEIGHT_ZONE_COLUMN];
+} ISP_AE_STAT_ATTR_S;
+
+typedef struct _ISP_AE_STAT_RESULT_S {
+	CVI_U32 u32IntTime[VI_MAX_PIPE_NUM];
+	CVI_U32 u32IspDgain;
+	CVI_U32 u32Again;
+	CVI_U32 u32Dgain;
+	CVI_U32 u32Iso;
+	CVI_U8 u8AERunInterval;
+
+	CVI_BOOL bPirisValid;
+	CVI_S32 s32PirisPos;
+	CVI_U32 u32PirisGain;
+
+	ISP_FSWDR_MODE_E enFSWDRMode;
+	CVI_U32 au32WDRGain[4];
+	CVI_U32 u32HmaxTimes; /* unit is ns */
+
+	ISP_AE_STAT_ATTR_S stStatAttr;
+	ISP_DCF_UPDATE_INFO_S stUpdateInfo;
+	CVI_U32	u32ExpRatio;
+	CVI_S16	s16CurrentLV;
+	CVI_U32	u32AvgLuma;
+	CVI_U8	u8MeterFramePeriod;
+	CVI_BOOL	bStable;
+	CVI_FLOAT	fBvStep;
+	CVI_U32		u32BlcIso;
+
+	CVI_U32 u32IspDgainSF;
+	CVI_U32 u32AgainSF;
+	CVI_U32 u32DgainSF;
+	CVI_U32 u32IsoSF;
+	CVI_U32		u32BlcIsoSF;
+	CVI_FLOAT	fEvRatio[2];
+	CVI_U16 u16SEMaxLuma;
+
+	CVI_BOOL bIsBootFinish;
+} ISP_AE_RESULT_S;
+
+typedef struct _ISP_BE_AE_STAT_1_S {
+	CVI_BOOL bStable;
+} ISP_BE_AE_STAT_1_S;
+
+typedef struct _ISP_BE_AE_STAT_2_S {
+	CVI_BOOL bStable;
+} ISP_BE_AE_STAT_2_S;
+
+typedef struct _ISP_BE_AE_STAT_3_S {
+	CVI_BOOL bStable;
+} ISP_BE_AE_STAT_3_S;
+
+typedef struct _ISP_BE_AE_STITCH_STAT_3_S {
+	CVI_BOOL bStable;
+} ISP_BE_AE_STITCH_STAT_3_S;
+
+typedef struct _ISP_AE_INFO_S {
+	CVI_U32 u32FrameCnt; /* the counting of frame */
+	ISP_SMART_ROI_S	stSmartInfo;
+	ISP_FE_AE_STAT_1_S * pstFEAeStat1[AE_MAX_NUM];
+	ISP_FE_AE_STAT_2_S * pstFEAeStat2[AE_MAX_NUM];
+	ISP_FE_AE_STAT_3_S * pstFEAeStat3[AE_MAX_NUM];
+	ISP_FE_AE_STITCH_STAT_3_S *pstFEAeStiStat;
+	ISP_BE_AE_STAT_1_S *pstBEAeStat1;
+	ISP_BE_AE_STAT_2_S *pstBEAeStat2;
+	ISP_BE_AE_STAT_3_S *pstBEAeStat3;
+	ISP_BE_AE_STITCH_STAT_3_S *pstBEAeStiStat;
+	ISP_3AWIN_CONFIG_S aeLEWinConfig[AE_MAX_NUM];
+	ISP_3AWIN_CONFIG_S aeSEWinConfig;
+	CVI_U32 u32WBGainR;
+	CVI_U32 u32WBGainB;
+} ISP_AE_INFO_S;
+
+typedef struct bmISP_DCI_INFO_S {
+	CVI_U32 u32FrameCnt; /* the counting of frame */
+
+	CVI_U16 pStat[DCI_HIST_BINS_NUM];
+} ISP_DCI_INFO_S;
+
+
+/* the init param of awb alg */
+typedef struct _ISP_AWB_PARAM_S {
+	SENSOR_ID SensorId;
+	CVI_U8 u8WDRMode;
+	CVI_U8 u8AWBZoneRow;
+	CVI_U8 u8AWBZoneCol;
+	CVI_U8 u8AWBZoneBin;
+	ISP_STITCH_ATTR_S stStitchAttr;
+	CVI_U16 u16AWBWidth;
+	CVI_U16 u16AWBHeight;
+	CVI_S8 s8Rsv;
+} ISP_AWB_PARAM_S;
+
+typedef struct _ISP_AWB_RAW_STAT_ATTR_S {
+	bool bStatCfgUpdate;
+
+	CVI_U16 u16MeteringWhiteLevelAwb;
+	CVI_U16 u16MeteringBlackLevelAwb;
+	CVI_U16 u16MeteringCrRefMaxAwb;
+	CVI_U16 u16MeteringCbRefMaxAwb;
+	CVI_U16 u16MeteringCrRefMinAwb;
+	CVI_U16 u16MeteringCbRefMinAwb;
+} ISP_AWB_RAW_STAT_ATTR_S;
+
+typedef struct _ISP_AWB_RESULT_S {
+	CVI_U32 au32WhiteBalanceGain[ISP_BAYER_CHN_NUM];
+	CVI_U16 au16ColorMatrix[CCM_MATRIX_SIZE];
+	CVI_U32 u32ColorTemp;
+	CVI_U8 u8Saturation[4];
+	ISP_AWB_RAW_STAT_ATTR_S stRawStatAttr;
+	CVI_BOOL bStable;
+	CVI_U8 u8AdjCASaturation;
+	CVI_U8 u8AdjCASatLuma;
+} ISP_AWB_RESULT_S;
+
+typedef struct _ISP_AWB_STAT_1_S {
+	CVI_U16 u16MeteringAwbAvgR;
+	CVI_U16 u16MeteringAwbAvgG;
+	CVI_U16 u16MeteringAwbAvgB;
+	CVI_U16 u16MeteringAwbCountAll;
+} ISP_AWB_STAT_1_S;
+
+typedef struct _ISP_AWB_STAT_RESULT_S {
+	CVI_U16 *pau16ZoneAvgR;
+	CVI_U16 *pau16ZoneAvgG;
+	CVI_U16 *pau16ZoneAvgB;
+	CVI_U16 *pau16ZoneCount;
+} ISP_AWB_STAT_RESULT_S;
+
+typedef struct _ISP_AWB_INFO_S {
+	CVI_U32 u32FrameCnt;
+	ISP_SMART_ROI_S	stSmartInfo;
+	ISP_AWB_STAT_1_S * pstAwbStat1[ISP_CHANNEL_MAX_NUM];
+	ISP_AWB_STAT_RESULT_S stAwbStat2[ISP_CHANNEL_MAX_NUM];
+	CVI_U8 u8AwbGainSwitch;
+	CVI_U32 au32WDRWBGain[ISP_BAYER_CHN_NUM];
+	CVI_U32 u32IsoNum;
+	CVI_S16 s16LVx100;
+	CVI_FLOAT fBVstep;
+} ISP_AWB_INFO_S;
+
+// AF VCM motor Len calibration attr
+typedef struct _ISP_AF_VCM_ATTR_S {
+	CVI_U32 u32InfinitePos;
+	CVI_U32 u32MacroPos;
+	CVI_U32 u32MediumPos;
+} ISP_AF_VCM_ATTR_S;
+
+// AF related structure
+typedef struct _ISP_AF_PARAM_S {
+	SENSOR_ID SensorId;
+	CVI_U8 u8WDRMode;
+	CVI_U8 u8AWBZoneRow;
+	CVI_U8 u8AWBZoneCol;
+	CVI_S32 s32Rsv;
+} ISP_AF_PARAM_S;
+
+typedef struct _ISP_AF_INFO_S {
+	CVI_BOOL bAEStable;
+	CVI_S16 s16CurrentLV;
+	CVI_U32 u32FrameCnt;
+	CVI_U32 u32ExpTime;
+	CVI_U32 u32ISO;
+	CVI_U32 u32IspDgain;
+	CVI_U32 u32Again;
+	CVI_U32 u32Dgain;
+	CVI_U32 u8AvgLum;
+	CVI_U32 u32WDRExpRatio;
+	ISP_AF_STATISTICS_S *pstAfStat;
+	ISP_AWB_STAT_RESULT_S stAfLumaSts[ISP_CHANNEL_MAX_NUM];
+} ISP_AF_INFO_S;
+
+typedef struct _ISP_AF_RESULT_S {
+	CVI_S32 s32Rsv;
+} ISP_AF_RESULT_S;
+
+typedef struct _ISP_AF_ZONE_FOCUS_ATTR_S {
+	CVI_BOOL enable;
+	CVI_U8 u8ZoneWeight;
+	CVI_U32 u32ZoneX;
+	CVI_U32 u32ZoneY;
+	CVI_U32 u32ZoneWidth;
+	CVI_U32 u32ZoneHeight;
+} ISP_AF_ZONE_FOCUS_ATTR_S;
+
+typedef struct _ISP_AE_STITCH_STATISTICS_S {
+	CVI_U32 enable;
+} ISP_AE_STITCH_STATISTICS_S;
+
+typedef struct _ISP_BIND_ATTR_S {
+	SENSOR_ID sensorId;
+	ALG_LIB_S stAeLib;
+	ALG_LIB_S stAfLib;
+	ALG_LIB_S stAwbLib;
+} ISP_BIND_ATTR_S;
+
+typedef struct _ISP_AF_ZOOM_FOCUS_TAB {
+	CVI_U32 zoom_pos;
+	CVI_U32 focus_pos_min;
+	CVI_U32 focus_pos_max;
+} ISP_AF_ZOOM_FOCUS_TAB;
+
+typedef enum _AF_MOTOR_TYPE {
+	AF_MOTOR_STEPPER,
+	AF_MOTOR_VCM,
+} AF_MOTOR_TYPE;
+
+#define ZOOM_FOCUS_TAB_SIZE 9
+typedef struct _ISP_AF_LEN_INFO_S {
+	ISP_AF_ZOOM_FOCUS_TAB zoom_focus_table[ZOOM_FOCUS_TAB_SIZE];
+	CVI_U32 focus_range;//range of movement when focusing, unit is step
+	CVI_U32 zoom_range;//range of movement when zooming, unit is step
+	CVI_U32 focus_offset;//there is a distance that is blurred, unit is step
+	CVI_U32 zoom_offset;//there is a distance that is blurred, unit is step
+	CVI_U32 focus_backlash;//motor hw limit, unit is step
+	CVI_U32 zoom_backlash;//motor hw limit, unit is step
+	CVI_U32 focus_max_speed;//this speed use as MOTOR_SPD_4X
+	CVI_U32 zoom_max_speed;//this speed use as MOTOR_SPD_4X
+	CVI_U32 focus_time_cost_one_step;//unit is us
+	CVI_U32 zoom_time_cost_one_step;//unit is us
+	CVI_U32 focus_max_step;
+	CVI_U32 zoom_max_step;
+	AF_MOTOR_TYPE motor_type;
+} ISP_AF_LEN_INFO_S;
+
+typedef struct _ISP_AE_EXP_FUNC_S {
+	CVI_S32 (*pfn_ae_init)(VI_PIPE ViPipe, const ISP_AE_PARAM_S *pstAeParam);
+	CVI_S32 (*pfn_ae_run)(VI_PIPE ViPipe, const ISP_AE_INFO_S *pstAeInfo,
+			ISP_AE_RESULT_S *pstAeResult, CVI_S32 s32Rsv);
+	CVI_S32 (*pfn_ae_ctrl)(VI_PIPE ViPipe, CVI_U32 u32Cmd, void *pValue);
+	CVI_S32 (*pfn_ae_exit)(VI_PIPE ViPipe);
+} ISP_AE_EXP_FUNC_S;
+
+typedef struct _ISP_AWB_EXP_FUNC_S {
+	CVI_S32 (*pfn_awb_init)(VI_PIPE ViPipe, const ISP_AWB_PARAM_S *pstAwbParam);
+	CVI_S32 (*pfn_awb_run)(VI_PIPE ViPipe, const ISP_AWB_INFO_S *pstAwbInfo, ISP_AWB_RESULT_S *pstAwbResult,
+			CVI_S32 s32Rsv);
+	CVI_S32 (*pfn_awb_ctrl)(VI_PIPE ViPipe, CVI_U32 u32Cmd, CVI_VOID *pValue);
+	CVI_S32 (*pfn_awb_exit)(VI_PIPE ViPipe);
+} ISP_AWB_EXP_FUNC_S;
+
+typedef struct _ISP_AF_EXP_FUNC_S {
+	CVI_S32 (*pfn_af_init)(VI_PIPE ViPipe, const ISP_AF_PARAM_S *pstAfParam);
+	CVI_S32 (*pfn_af_run)(VI_PIPE ViPipe, const ISP_AF_INFO_S *pstAfInfo, ISP_AF_RESULT_S *pstAfResult,
+			CVI_S32 s32Rsv);
+	CVI_S32 (*pfn_af_ctrl)(VI_PIPE ViPipe, CVI_U32 u32Cmd, CVI_VOID *pValue);
+	CVI_S32 (*pfn_af_exit)(VI_PIPE ViPipe);
+} ISP_AF_EXP_FUNC_S;
+
+typedef struct _ISP_AF_MOTOR_CTL_FUNC_S {
+	CVI_S32 (*pfn_af_motor_init)(VI_PIPE ViPipe);
+	CVI_S32 (*pfn_af_motor_deinit)(VI_PIPE ViPipe);
+	CVI_S32 (*pfn_af_set_zoom_in)(VI_PIPE ViPipe, CVI_U8 step);
+	CVI_S32 (*pfn_af_set_zoom_out)(VI_PIPE ViPipe, CVI_U8 step);
+	CVI_S32 (*pfn_af_set_zoom_speed)(VI_PIPE ViPipe, CVI_U8 speed);
+	CVI_S32 (*pfn_af_set_focus_in)(VI_PIPE ViPipe, CVI_U8 step);
+	CVI_S32 (*pfn_af_set_focus_out)(VI_PIPE ViPipe, CVI_U8 step);
+	CVI_S32 (*pfn_af_set_focus_speed)(VI_PIPE ViPipe, CVI_U8 speed);
+	CVI_S32 (*pfn_af_set_zoom_focus)(VI_PIPE ViPipe, AF_DIRECTION eDirz, AF_DIRECTION eDirf, CVI_U8 zoomStep, CVI_U8 focusStep);
+	CVI_S32 (*pfn_af_get_len_info)(VI_PIPE ViPipe, ISP_AF_LEN_INFO_S *info);
+} ISP_AF_MOTOR_FUNC_S;
+
+typedef struct _ISP_AE_REGISTER_S {
+	ISP_AE_EXP_FUNC_S stAeExpFunc;
+} ISP_AE_REGISTER_S;
+
+typedef struct _ISP_AWB_REGISTER_S {
+	ISP_AWB_EXP_FUNC_S stAwbExpFunc;
+} ISP_AWB_REGISTER_S;
+
+typedef struct _ISP_AF_REGISTER_S {
+	ISP_AF_EXP_FUNC_S stAfExpFunc;
+} ISP_AF_REGISTER_S;
+
+typedef enum _ISP_CTRL_CMD_E {
+	ISP_WDR_MODE_SET = 0,
+
+	ISP_CTRL_CMD_BUTT_MAX,
+} ISP_CTRL_CMD_E;
+
+
+#define AWB_DBG_VER	(13)
+#define AWB_SENSOR_NUM (3)
+#define AWB_DBG_W	(64)
+#define AWB_DBG_H	(32)
+#define AWB_SHIFT_REGION_NUM	(4)
+typedef struct _AWB_DBG_S {
+	//Don't modify ==>
+	CVI_U32 u32Date;
+	CVI_U16 u16AlgoVer;
+	CVI_U16 u16DbgVer;
+	CVI_U16 u16MaxFrameNum;
+	CVI_U16 u16SensorId;
+	CVI_U32 u32BinSize;
+	CVI_U16 u16WinWnum;
+	CVI_U16 u16WinHnum;
+	CVI_U16 u16WinOffX;
+	CVI_U16 u16WinOffY;
+	CVI_U16 u16WinWsize;
+	CVI_U16 u16WinHsize;
+	CVI_U16 u16P_R[2][AWB_DBG_W*AWB_DBG_H];//keep Max Size
+	CVI_U16 u16P_G[2][AWB_DBG_W*AWB_DBG_H];//keep Max Size
+	CVI_U16 u16P_B[2][AWB_DBG_W*AWB_DBG_H];//keep Max Size
+	CVI_U16 u16P_type[2][AWB_DBG_W*AWB_DBG_H];//keep Max Size
+	CVI_U16 u16GrayCnt;
+	CVI_U16 u16BalanceR;
+	CVI_U16 u16BalanceB;
+	CVI_U16 u16FinalR;
+	CVI_U16 u16FinalB;
+	CVI_U16 u16CurrentR;
+	CVI_U16 u16CurrentB;
+	CVI_U16 u16IdealR;
+	CVI_U16 u16IdealB;
+	CVI_U16 CalibRgain[AWB_CALIB_PTS_NUM];
+	CVI_U16 CalibBgain[AWB_CALIB_PTS_NUM];
+	CVI_U16 CalibTemp[AWB_CALIB_PTS_NUM];
+	CVI_U16 u16CurveR[256];//4096/16
+	CVI_U16 u16CurveB[256];
+	CVI_U16 u16CurveB_Top[256];
+	CVI_U16 u16CurveB_Bot[256];
+	CVI_S16 s16LvX100;
+	CVI_U32 u32ISONum;
+	ISP_WB_ATTR_S dbgMPIAttr[AWB_SENSOR_NUM];
+	ISP_WB_ATTR_S dbgInfoAttr[AWB_SENSOR_NUM];
+	ISP_AWB_ATTR_EX_S dbgMPIAttrEx[AWB_SENSOR_NUM];
+	ISP_AWB_ATTR_EX_S dbgInfoAttrEx[AWB_SENSOR_NUM];
+	//Don't modify <==
+	CVI_U8 calib_sts;
+	ISP_AWB_Calibration_Gain_S_EX calib_ex;
+	ISP_SMART_ROI_S stFace;
+
+	// fix size to 128 byte from here
+	CVI_U16 u16Region_R[AWB_SHIFT_REGION_NUM];
+	CVI_U8 u8Reserve[120];
+	// Per-block weight debug data (DBG_VER >= 12)
+	CVI_U16 u16P_lowCostWgt[2][AWB_DBG_W*AWB_DBG_H]; // pos/hist/strict-extra combined weight
+	CVI_U8  u8P_posWgt[2][AWB_DBG_W*AWB_DBG_H];    // position weight (0-255)
+	CVI_U8  u8P_histWgt[2][AWB_DBG_W*AWB_DBG_H];   // brightness/histogram weight (0-128)
+	CVI_U16 u16P_ctWgt[2][AWB_DBG_W*AWB_DBG_H];    // CT bin weight (0-1024), 0=excluded
+	CVI_U16 u16P_outdoorWgt[2][AWB_DBG_W*AWB_DBG_H]; // outdoor bin weight (0-256), 0=disabled/excluded
+	CVI_U32 u32P_finalWgt[2][AWB_DBG_W*AWB_DBG_H]; // final contribution used by debug heatmap
+	// Per-block CT/luma raw values (DBG_VER >= 13). Must stay appended at struct end for old-tool compat.
+	CVI_U16 u16P_colorTemp[2][AWB_DBG_W*AWB_DBG_H]; // per-block equivalent color temp(K), 0=off-curve/invalid
+	CVI_U16 u16P_luma[2][AWB_DBG_W*AWB_DBG_H];      // per-block raw luma value (G)
+	// AWB CT cluster zones (DBG_VER >= 13), per frame [LE,SE], RGain domain (client: AWB_GAIN_BASE/RGain -> X)
+	CVI_U16 u16CTZone1StartR[2];  // primary cluster zone start RGain
+	CVI_U16 u16CTZone1EndR[2];    // primary cluster zone end RGain
+	CVI_U16 u16CTZone2StartR[2];  // secondary cluster zone start RGain
+	CVI_U16 u16CTZone2EndR[2];    // secondary cluster zone end RGain
+	CVI_U16 u16CTZone2Ratio[2];   // secondary blend ratio(%), 0 = secondary zone disabled
+	// AWB indoor/outdoor cluster zones (DBG_VER >= 13), per frame [LE,SE], RGain domain
+	CVI_U16 u16OutdoorZoneStartR[2];      // outdoor main zone start RGain
+	CVI_U16 u16OutdoorZoneEndR[2];        // outdoor main zone end RGain
+	CVI_U16 u16OutdoorLocalZoneStartR[2]; // outdoor local zone start RGain
+	CVI_U16 u16OutdoorLocalZoneEndR[2];   // outdoor local zone end RGain
+	CVI_U16 u16OutdoorLocalRatio[2];      // local blend ratio (1/128), 0=disabled
+	CVI_U16 u16OutdoorRatio[2];           // indoor/outdoor mix ratio (1/256)
+	CVI_U8  u8OutdoorEnable[2];           // 1 = indoor/outdoor feature enabled this frame
+} s_AWB_DBG_S;
+
+
+#ifdef __cplusplus
+#if __cplusplus
+}
+#endif
+#endif /* End of #ifdef __cplusplus */
+
+#endif /* __CVI_COMM_3A_H__ */

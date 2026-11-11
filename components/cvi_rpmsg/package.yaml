@@ -1,0 +1,37 @@
+## 第一部分：基础信息
+name: cvi_rpmsg
+version: v0.1.0
+description: cvitek dual-core rpmsg platform adaptation for AliOS (C906L REMOTE side)
+type: common
+license: Apache license v2.0
+
+## 第二部分：依赖信息
+depends:
+  - libmetal: v0.1.0
+  - open_amp: v0.1.0
+  - cli: v0.1.0
+  - chip_cv184x: v0.0.1
+
+## 第三部分：编译连接信息
+build_config:
+  include:
+    - include
+
+## 第四部分：源代码
+source_file:
+  - src/cvi_rpmsg.c
+  - src/cvi_rpmsg_rsc_table.c
+  - src/cvi_rpmsg_notify.c
+  - src/cvi_rpmsg_rproc_ops.c
+  - src/cvi_hw_spinlock.c
+
+## 第五部分：配置信息
+def_config:
+  # AliOS is the REMOTE/DEVICE side of the virtio rpmsg link
+  CVI_RPMSG_REMOTE: 1
+
+## 第六部分：安装信息
+install:
+  - dest: "include/"
+    source:
+      - include/*.h
